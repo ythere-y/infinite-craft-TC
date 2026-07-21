@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>📺 首发墙 · 鹅厂无限合成 ♾️</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%90%A7%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/wall/wall.css" />
+</head>
+<body>
+  <header class="wall-header">
+    <a class="wall-title" href="/" title="返回画布主页">📺 <b>鹅厂无限合成 ♾️</b> · 首发墙</a>
+  </header>
+
+  <main class="wall-body">
+    <!-- 左：首发 feed -->
+    <div class="feed-scroll" id="feed-scroll">
+      <!-- 🎯 悬赏清单（分父 tab + 每 tab 内多子分组） -->
+      <section id="bounty" class="category-section">
+        <button type="button" class="section-header collapsible" id="bounty-toggle" aria-expanded="true">
+          <span class="chevron">▾</span>
+          <span class="section-title">🎯 <b>悬赏清单</b></span>
+          <span class="section-extra">
+            已发现 <b id="bounty-found">0</b> / 共 <b id="bounty-total">0</b>
+          </span>
+        </button>
+        <div class="section-body" id="bounty-body">
+          <!-- tab 切换栏（JS 填充） -->
+          <nav class="bounty-tabs" id="bounty-tabs"></nav>
+          <!-- 当前 tab 下的分组列表（JS 渲染） -->
+          <div id="bounty-groups" class="bounty-groups">
+            <div class="category-loading">加载中…</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 📜 震撼首发 -->
+      <section id="sec-feed" class="feed-section">
+        <button type="button" class="section-header collapsible" id="feed-toggle" aria-expanded="true">
+          <span class="chevron">▾</span>
+          <span class="section-title">📜 <b>震撼首发</b></span>
+          <span class="section-extra feed-stats">
+            <span>已加载：<b id="stat-loaded">0</b></span>
+            <span class="sep">·</span>
+            <span>全球已发现：<b id="stat-total">0</b></span>
+            <span class="sep">·</span>
+            <span>待发现：<b class="infinity">♾️</b></span>
+          </span>
+        </button>
+        <div class="section-body" id="feed-body">
+          <!-- 搜索框：挪到最新首发内部 -->
+          <div class="wall-search" id="wall-search-wrap">
+            <span class="icon">🔍</span>
+            <input id="wall-search"
+                   type="text"
+                   placeholder="搜索文字 / emoji / 发现者昵称"
+                   autocomplete="off" />
+            <button class="clear" id="wall-search-clear" title="清空">×</button>
+          </div>
+          <div id="feed"></div>
+          <div id="empty" class="empty-hint">等待第一位勇士合成新元素……</div>
+          <div id="feed-status" class="feed-status" style="display:none"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 右：排行榜 -->
+    <aside class="wall-side">
+      <div class="side-title">🏆 <b>打工人排行榜</b> · Top 20</div>
+
+      <!-- 顶部："我的卡片"，无论有无排名都展示 -->
+      <div id="lb-me-card" class="lb-me-card">
+        <div class="lb-me-card-label">🐧 当前鹅</div>
+        <div class="lb-me-card-nick" id="lb-me-nick">加载中…</div>
+        <div class="lb-me-card-row" id="lb-me-row">—</div>
+      </div>
+
+      <!-- Top 榜 -->
+      <div id="lb-list" class="lb-list">
+        <div class="lb-empty">加载中…</div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- 配方 modal（点击已发现的悬赏 chip 弹出） -->
+  <div id="recipe-modal" class="recipe-modal" aria-hidden="true">
+    <div class="recipe-modal-backdrop" id="recipe-modal-backdrop"></div>
+    <div class="recipe-modal-card" role="dialog" aria-labelledby="recipe-modal-name">
+      <button type="button" class="recipe-modal-close" id="recipe-modal-close" aria-label="关闭">×</button>
+      <div class="recipe-modal-header">
+        <span class="recipe-modal-emoji" id="recipe-modal-emoji">✨</span>
+        <div class="recipe-modal-titles">
+          <div class="recipe-modal-name" id="recipe-modal-name">—</div>
+          <div class="recipe-modal-sub" id="recipe-modal-sub">合成配方</div>
+        </div>
+      </div>
+      <div class="recipe-modal-body" id="recipe-modal-body">
+        <div class="recipe-loading">加载中…</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/wall/wall.js"></script>
+</body>
+</html>

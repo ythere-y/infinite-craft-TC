@@ -1,0 +1,117 @@
+# ============================================================
+# Infinity Craft · 鹅厂打工人版 —— .gitignore
+# ============================================================
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+.Python
+build/
+dist/
+develop-eggs/
+wheels/
+pip-wheel-metadata/
+.installed.cfg
+MANIFEST
+.eggs/
+
+# ---- 虚拟环境 / 本地运行时 ----
+.venv/
+venv/
+env/
+ENV/
+
+# ---- 运行时数据（Redis AOF / SQLite 等）----
+# 整个目录只保存运行时数据库、Redis 文件、备份和玩家数据，不进入 Git。
+data/
+
+# ---- 词库原始文件（大文件，独立维护）----
+# words/ 下是第三方词库（THUOCL、emoji-cheat-sheet 等），不进仓库
+# 克隆仓库后用户需自行下载：见 backend/README.md
+words/
+
+# ---- IDE / 编辑器 ----
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ---- 本地配置 / 密钥 ----
+# 默认忽略所有环境文件，只允许提交无真实值的示例模板。
+.env*
+!.env.example
+*.local
+*.private.*
+private/
+secrets/
+.secrets/
+credentials/
+*.credentials.json
+*.secret
+*.token
+*.session
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# ---- 本地数据库 / 玩家数据 / 导出 ----
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.rdb
+*.aof
+dump.rdb
+appendonlydir/
+backups/
+exports/
+recipes-*.json
+
+# ---- 日志 ----
+*.log
+logs/
+/tmp/ic.log
+
+# ---- 测试 / 覆盖 ----
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# ---- 前端依赖（若以后引入 node）----
+node_modules/
+.npm/
+package-lock.json
+
+# ---- Docker 运行状态 ----
+.docker/
+
+# ---- 部署平台本地状态 ----
+.edgeone/
+.vercel/
+.cloudbase/
+.wrangler/
+
+# ---- Claude / AI 工具本地缓存 ----
+.claude/
+.claude-internal/
+.codebuddy/
+.codex/
+.agents/
+.workbuddy/
+
+# ---- 其他临时 ----
+*.tmp
+*.bak
+*.orig

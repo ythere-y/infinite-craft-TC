@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🐧+🐧=? · 鹅厂无限合成 ♾️</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%90%A7%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="title">🐧 鹅厂无限合成 <span class="title-inf">♾️</span></div>
+    <!-- 里模式指示器（平时隐藏，开启时在顶栏中段显示）-->
+    <div id="boss-banner" class="boss-banner-inline">🤪 里模式·彻底疯狂 · ↑↑↓↓←→←→BA 再按可关闭</div>
+    <div class="topbar-actions">
+      <span id="nick-display" class="nick-chip" title="点击重抽一个昵称">🐧 加载中…</span>
+      <button id="btn-recipebook" class="btn-ghost" title="打开配方图鉴">📖 配方库 <span id="recipebook-btn-count">0</span></button>
+      <button id="btn-score" class="btn-ghost" title="打开 KPI 复盘面板">✨ KPI <span id="kpi-value">0</span></button>
+      <button id="btn-reset" class="btn-ghost">🗑️ 清空画布</button>
+      <a class="btn-ghost" href="/wall">📺 首发榜</a>
+      <button id="btn-help" class="btn-help" title="显示/隐藏操作引导" aria-label="帮助">?</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- 工作区 -->
+    <section id="workspace" class="workspace">
+      <div id="hint" class="hint">
+        <div class="hint-line">👆 把右边的元素<b>拖</b>到工作区，再把一个元素<b>拖</b>到另一个元素上合成新玩意儿</div>
+        <div class="hint-line">👆👆 <b>双击</b>右侧元素可快速放到画布中央；双击画布里的元素可就地复制一份</div>
+        <div class="hint-line">📖 配方库里的元素也支持拖拽和双击</div>
+        <div class="hint-line">⌨️ 想不开的时候试试 <code>↑↑↓↓←→←→BA</code></div>
+        <br>
+        <div class="hint-divider">— 案例展示：9 步合成 <b>滨海大厦</b> 🌆 —</div>
+        <div class="hint-line case-step">1. 人 🧍 + 工位 🪑 = <b>打工人</b> 🧑‍💻</div>
+        <div class="hint-line case-step">2. 打工人 🧑‍💻 + 打工人 🧑‍💻 = <b>开放办公区</b> 🏢</div>
+        <div class="hint-line case-step">3. 开放办公区 🏢 + 开放办公区 🏢 = <b>楼层</b> 🏬</div>
+        <div class="hint-line case-step">4. 楼层 🏬 + 楼层 🏬 = <b>小楼</b> 🏢</div>
+        <div class="hint-line case-step">5. 小楼 🏢 + 小楼 🏢 = <b>大厦</b> 🏢</div>
+        <div class="hint-line case-step">6. 水 💧 + 水 💧 = <b>水塘</b> 💧</div>
+        <div class="hint-line case-step">7. 水塘 💧 + 水塘 💧 = <b>湖泊</b> 🏞️</div>
+        <div class="hint-line case-step">8. 湖泊 🏞️ + 湖泊 🏞️ = <b>海洋</b> 🌊</div>
+        <div class="hint-line case-step">9. 大厦 🏢 + 海洋 🌊 = <b>滨海大厦</b> 🌆</div>
+
+        <div class="hint-credit">— created by chaoohu · with AI —</div>
+        <div class="hint-credit-sub">参考 <a href="https://neal.fun/infinite-craft/" target="_blank" rel="noopener">infinite-craft</a></div>
+      </div>
+    </section>
+
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <input id="search" type="text" placeholder="🔍 搜索元素…" />
+        <div class="meta">
+          已发现 <span id="count">0</span> 个
+        </div>
+      </div>
+      <div id="element-list" class="element-list"></div>
+    </aside>
+  </main>
+
+  <!-- KPI delta 浮动提示（固定在顶栏分数按钮下方） -->
+  <span id="kpi-delta" class="kpi-delta"></span>
+
+  <!-- KPI 复盘面板：左=加分历史，右=段位路径 -->
+  <div id="score-panel" class="score-panel">
+    <div class="score-panel-header">
+      <div class="mac-traffic-lights">
+        <button id="score-panel-close" class="mac-light mac-light-close" title="关闭"></button>
+      </div>
+      <div class="score-panel-title">
+        📈 KPI 复盘 · 累计 <span id="score-panel-total">0</span>
+        <span id="score-panel-rank" class="score-panel-rank"></span>
+      </div>
+    </div>
+    <div class="score-panel-body">
+      <!-- 左：加分历史 -->
+      <div class="score-pane pane-history">
+        <div class="pane-title">🧾 加分历史</div>
+        <div id="score-panel-list" class="score-panel-list"></div>
+        <div id="score-panel-empty" class="score-panel-empty">
+          还没得分，去拖几个元素合成吧～
+        </div>
+      </div>
+      <!-- 右：段位路径 -->
+      <div class="score-pane pane-tiers">
+        <div class="pane-title">🏆 段位路径</div>
+        <div id="score-panel-tiers" class="score-panel-tiers"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 首发弹窗 -->
+  <div id="first-toast" class="first-toast"></div>
+
+  <!-- 爆炸覆盖层（P0 模式） -->
+  <div id="explode-overlay" class="explode-overlay">
+    <div class="explode-text">🚨 P0 故障！</div>
+  </div>
+
+  <!-- 首次 / 主动改名模态（覆盖全局） -->
+  <div id="nick-modal" class="nick-modal">
+    <div class="nick-modal-card">
+      <div class="nick-modal-title">🐧 请确认你的花名</div>
+      <div class="nick-modal-sub">系统随机分配，不可手动编辑。不满意可以多次重抽。</div>
+
+      <div class="nick-modal-current" id="nick-modal-current-wrap" style="display:none">
+        <div class="nick-modal-label">当前花名</div>
+        <div class="nick-name-display" id="nick-modal-current">—</div>
+      </div>
+
+      <div class="nick-modal-preview-wrap">
+        <div class="nick-modal-label">候选花名</div>
+        <div class="nick-name-display nick-preview" id="nick-modal-preview">🎲 加载中…</div>
+      </div>
+
+      <div class="nick-modal-actions">
+        <button id="nick-modal-reroll" class="btn-ghost">🎲 再来一个</button>
+        <button id="nick-modal-cancel" class="btn-ghost" style="display:none">取消</button>
+        <button id="nick-modal-confirm" class="btn-primary">✅ 确认覆盖</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 里模式指示器已合并进顶栏，这里不再渲染浮动版本 -->
+
+
+  <!-- 配方图鉴面板（左侧抽屉，Mac 风格关闭）-->
+  <div id="recipebook" class="recipebook">
+    <div class="recipebook-header">
+      <div class="mac-traffic-lights">
+        <button id="recipebook-close" class="mac-light mac-light-close" title="关闭"></button>
+      </div>
+      <div class="recipebook-title">📖 我的配方图鉴 <span id="recipebook-count">(0)</span></div>
+      <div class="recipebook-actions">
+        <input id="recipebook-search" type="text" placeholder="🔍 搜索（元素名或结果）" />
+        <button id="recipebook-export" class="btn-ghost">⬇️ 导出</button>
+        <!-- 导入功能暂时关闭（防止现场被脏数据污染）
+        <label class="btn-ghost" for="recipebook-import-file">⬆️ 导入</label>
+        <input id="recipebook-import-file" type="file" accept=".json,application/json" style="display:none" />
+        -->
+      </div>
+    </div>
+    <div id="recipebook-list" class="recipebook-list"></div>
+    <div id="recipebook-empty" class="recipebook-empty">
+      还没合成过东西～ 把右侧元素拖到一起试试
+    </div>
+  </div>
+
+  <script src="/effects.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

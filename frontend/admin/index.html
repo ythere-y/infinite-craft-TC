@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎛️ 后台监控 · 鹅厂无限合成 ♾️</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%90%A7%3C/text%3E%3C/svg%3E">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #0F111A; color: #E6E8EE;
+      min-height: 100vh;
+    }
+    header {
+      padding: 16px 28px;
+      background: linear-gradient(180deg, #1A1F2E, #0F111A);
+      border-bottom: 1px solid #222838;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
+    }
+    h1 {
+      font-size: 18px; font-weight: 700; margin: 0;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .env-chip {
+      padding: 3px 10px; border-radius: 10px;
+      background: #2A3044; color: #FFD54F;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .env-chip.prod { background: #3B1F1F; color: #FF8A80; }
+    .env-chip.dev  { background: #1F2B3B; color: #82B1FF; }
+    .status {
+      font-size: 12px; color: #8B92A6;
+    }
+    .status .dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: #4CAF50; margin-right: 6px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    main { padding: 20px 28px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: #1A1F2E;
+      border: 1px solid #222838;
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .card .label {
+      font-size: 11px; color: #8B92A6;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .card .value {
+      font-size: 28px; font-weight: 700; color: #FFF;
+      font-variant-numeric: tabular-nums;
+    }
+    .card .sub {
+      font-size: 11px; color: #62677A; margin-top: 4px;
+    }
+    .card.hot .value { color: #FFD54F; }
+    .card.live .value { color: #4ECDC4; }
+
+    .panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 900px) { .panels { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: #1A1F2E;
+      border: 1px solid #222838;
+      border-radius: 12px;
+      padding: 14px 16px;
+      min-height: 180px;
+    }
+    .panel h2 {
+      font-size: 13px; color: #B8BECC;
+      font-weight: 600; margin: 0 0 12px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .panel h2 .count {
+      font-size: 11px; color: #62677A; font-weight: 400;
+    }
+
+    table {
+      width: 100%; border-collapse: collapse; font-size: 13px;
+    }
+    th, td {
+      padding: 7px 8px; text-align: left; vertical-align: middle;
+    }
+    thead th {
+      font-size: 11px; color: #62677A;
+      text-transform: uppercase; letter-spacing: .6px;
+      border-bottom: 1px solid #222838;
+      font-weight: 600;
+    }
+    tbody tr:nth-child(odd) { background: #131725; }
+    tbody td.num { font-variant-numeric: tabular-nums; text-align: right; color: #FFD54F; }
+    tbody td.rank { color: #62677A; width: 28px; }
+    tbody td.emoji { width: 28px; font-size: 18px; text-align: center; }
+
+    /* 时间序列图 */
+    .chart {
+      position: relative; height: 110px;
+      display: flex; align-items: flex-end; gap: 2px;
+      padding: 4px 0;
+    }
+    .chart .bar {
+      flex: 1;
+      background: linear-gradient(180deg, #4ECDC4, #1E88E5);
+      min-height: 1px;
+      border-radius: 2px 2px 0 0;
+      position: relative;
+    }
+    .chart .bar:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: 100%; left: 50%;
+      transform: translateX(-50%);
+      background: #0F111A;
+      border: 1px solid #333;
+      color: #FFF;
+      font-size: 11px;
+      padding: 3px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .chart-axis {
+      display: flex; justify-content: space-between;
+      font-size: 10px; color: #62677A;
+      margin-top: 4px;
+    }
+
+    .empty {
+      color: #62677A; font-size: 12px; padding: 20px 0; text-align: center;
+    }
+
+    .chip-row {
+      display: flex; flex-wrap: wrap; gap: 6px;
+    }
+    .chip {
+      padding: 4px 10px; border-radius: 10px;
+      background: #262D40; color: #B8BECC;
+      font-size: 12px;
+    }
+    .chip b { color: #FFD54F; font-weight: 600; margin-left: 4px; }
+
+    footer {
+      padding: 20px 28px 30px;
+      color: #62677A; font-size: 11px; text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>
+      🎛️ <span>鹅厂无限合成 ♾️ · 后台监控</span>
+      <span id="env-chip" class="env-chip">…</span>
+    </h1>
+    <div class="status">
+      <span class="dot"></span>
+      <span id="status">加载中…</span>
+      <span style="margin-left:12px">下次刷新 <b id="countdown">3</b>s</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- 核心实时指标 -->
+    <div class="grid">
+      <div class="card live">
+        <div class="label">🟢 在线活跃</div>
+        <div class="value" id="active-sessions">—</div>
+        <div class="sub">5 分钟内有合成</div>
+      </div>
+      <div class="card">
+        <div class="label">🐧 在册花名</div>
+        <div class="value" id="nick-count">—</div>
+        <div class="sub">累计注册</div>
+      </div>
+      <div class="card hot">
+        <div class="label">⚡ 当前 1 分钟</div>
+        <div class="value" id="calls-1m">—</div>
+        <div class="sub">次合成</div>
+      </div>
+      <div class="card">
+        <div class="label">📊 5 分钟</div>
+        <div class="value" id="calls-5m">—</div>
+        <div class="sub">次合成</div>
+      </div>
+      <div class="card">
+        <div class="label">📈 60 分钟</div>
+        <div class="value" id="calls-60m">—</div>
+        <div class="sub">次合成</div>
+      </div>
+      <div class="card">
+        <div class="label">🎯 累计合成</div>
+        <div class="value" id="total-calls">—</div>
+        <div class="sub">自启动以来</div>
+      </div>
+      <div class="card">
+        <div class="label">🏆 全球首发</div>
+        <div class="value" id="firsts-total">—</div>
+        <div class="sub">个元素被首次合出</div>
+      </div>
+    </div>
+
+    <!-- 时间序列 -->
+    <div class="panel" style="margin-bottom:14px">
+      <h2>📈 最近 30 分钟合成节奏（每分钟一根）</h2>
+      <div class="chart" id="chart"></div>
+      <div class="chart-axis">
+        <span>30 分钟前</span>
+        <span>15 分钟前</span>
+        <span>现在</span>
+      </div>
+    </div>
+
+    <!-- 24h 折线图 -->
+    <div class="panel" style="margin-bottom:14px">
+      <h2>📉 最近 24 小时合成节奏（每小时一点）</h2>
+      <svg id="chart-24h" viewBox="0 0 1000 180" preserveAspectRatio="none"
+           style="width:100%;height:180px;display:block"></svg>
+      <div class="chart-axis" id="chart-24h-axis"></div>
+    </div>
+
+    <!-- 双栏：造梗榜 + 最近首发 + Chain 分布 -->
+    <div class="panels">
+      <div class="panel">
+        <h2>🏅 造梗榜 Top 10 <span class="count" id="discoverers-count"></span></h2>
+        <table id="discoverers">
+          <thead><tr><th>#</th><th>花名</th><th class="num">首发数</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>⏱️ 最近首发 <span class="count" id="firsts-count"></span></h2>
+        <table id="firsts">
+          <thead><tr><th></th><th>元素</th><th>发现者</th><th class="num">时间</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="panel" style="grid-column: 1 / -1">
+        <h2>🎨 Chain 分布</h2>
+        <div class="chip-row" id="chains"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    每 3 秒自动刷新 · 关闭页面即停止轮询 · 数据源 <code>/api/admin/stats</code>
+  </footer>
+
+  <script>
+    const REFRESH_SEC = 3;
+    let countdown = REFRESH_SEC;
+
+    function fmtNum(n) { return n == null ? "—" : Number(n).toLocaleString("en-US"); }
+    function fmtTimeAgo(ts) {
+      const diff = Date.now() / 1000 - ts;
+      if (diff < 60) return `${Math.floor(diff)}秒前`;
+      if (diff < 3600) return `${Math.floor(diff/60)}分钟前`;
+      if (diff < 86400) return `${Math.floor(diff/3600)}小时前`;
+      return new Date(ts * 1000).toLocaleDateString("zh-CN");
+    }
+    function esc(s) {
+      return String(s || "").replace(/[&<>"']/g, c =>
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    // 24h 折线图：SVG 画填充面积 + 折线 + 数据点
+    function renderChart24h(points) {
+      const svg = document.getElementById("chart-24h");
+      const axis = document.getElementById("chart-24h-axis");
+      if (!points || points.length === 0) {
+        svg.innerHTML = `<text x="500" y="90" fill="#62677A" font-size="12"
+          text-anchor="middle">暂无数据</text>`;
+        axis.innerHTML = "";
+        return;
+      }
+      const W = 1000, H = 180, PAD_L = 40, PAD_R = 10, PAD_T = 10, PAD_B = 22;
+      const plotW = W - PAD_L - PAD_R;
+      const plotH = H - PAD_T - PAD_B;
+      const n = points.length;
+      const max = Math.max(1, ...points.map(p => p.count));
+      // 向上取整到好看的数：1 / 2 / 5 / 10 / 20 / 50 / 100 ...
+      const nice = (v) => {
+        const p10 = Math.pow(10, Math.floor(Math.log10(v)));
+        for (const m of [1, 2, 5, 10]) {
+          if (v <= m * p10) return m * p10;
+        }
+        return 10 * p10;
+      };
+      const yMax = nice(max);
+
+      const x = (i) => PAD_L + (i / (n - 1)) * plotW;
+      const y = (v) => PAD_T + (1 - v / yMax) * plotH;
+
+      // 路径点
+      const pts = points.map((p, i) => [x(i), y(p.count)]);
+      const line = pts.map(([px, py], i) => `${i === 0 ? "M" : "L"}${px.toFixed(1)},${py.toFixed(1)}`).join(" ");
+      // 填充：路径 + 底边
+      const area = `${line} L${pts[pts.length-1][0].toFixed(1)},${(PAD_T + plotH).toFixed(1)} L${pts[0][0].toFixed(1)},${(PAD_T + plotH).toFixed(1)} Z`;
+
+      // y 轴刻度（3 条：0 / yMax/2 / yMax）
+      const gridLines = [0, yMax / 2, yMax].map(v => {
+        const gy = y(v).toFixed(1);
+        return `
+          <line x1="${PAD_L}" y1="${gy}" x2="${W - PAD_R}" y2="${gy}"
+                stroke="#222838" stroke-width="1"/>
+          <text x="${PAD_L - 6}" y="${gy}" fill="#62677A" font-size="10"
+                text-anchor="end" dominant-baseline="middle">${Math.round(v)}</text>
+        `;
+      }).join("");
+
+      // 数据点 + hover tooltip
+      const dots = pts.map(([px, py], i) => {
+        const p = points[i];
+        const t = new Date(p.ts * 1000);
+        const label = `${t.getHours().toString().padStart(2,"0")}:00 · ${p.count} 次`;
+        return `
+          <circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="3.5"
+                  fill="#FFD54F" stroke="#0F111A" stroke-width="1.5">
+            <title>${label}</title>
+          </circle>`;
+      }).join("");
+
+      svg.innerHTML = `
+        <defs>
+          <linearGradient id="area-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#4ECDC4" stop-opacity="0.45"/>
+            <stop offset="100%" stop-color="#4ECDC4" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        ${gridLines}
+        <path d="${area}" fill="url(#area-grad)"/>
+        <path d="${line}" fill="none" stroke="#4ECDC4" stroke-width="2"
+              stroke-linejoin="round" stroke-linecap="round"/>
+        ${dots}
+      `;
+
+      // 下方时间轴：只标 4 个（起点 / 8h 前 / 16h 前 / 现在）
+      const fmtHour = (ts) => {
+        const t = new Date(ts * 1000);
+        const h = t.getHours().toString().padStart(2, "0");
+        return `${h}:00`;
+      };
+      axis.innerHTML = `
+        <span>${fmtHour(points[0].ts)}</span>
+        <span>${fmtHour(points[Math.floor(n / 3)].ts)}</span>
+        <span>${fmtHour(points[Math.floor(2 * n / 3)].ts)}</span>
+        <span>现在</span>
+      `;
+    }
+
+    async function tick() {
+      try {
+        const r = await fetch("/api/admin/stats", { cache: "no-store" });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const d = await r.json();
+        render(d);
+        document.getElementById("status").textContent =
+          "最近更新 " + new Date().toLocaleTimeString("zh-CN");
+      } catch (e) {
+        document.getElementById("status").textContent = "❌ " + e.message;
+      }
+    }
+
+    function render(d) {
+      // env chip
+      const envChip = document.getElementById("env-chip");
+      envChip.textContent = d.env.toUpperCase();
+      envChip.className = "env-chip " + d.env;
+
+      // 核心数字
+      document.getElementById("active-sessions").textContent = fmtNum(d.active_sessions);
+      document.getElementById("nick-count").textContent = fmtNum(d.nick_count);
+      document.getElementById("calls-1m").textContent = fmtNum(d.calls_1m);
+      document.getElementById("calls-5m").textContent = fmtNum(d.calls_5m);
+      document.getElementById("calls-60m").textContent = fmtNum(d.calls_60m);
+      document.getElementById("total-calls").textContent = fmtNum(d.total_calls);
+      document.getElementById("firsts-total").textContent = fmtNum(d.firsts_total);
+
+      // 时间序列柱图
+      const chart = document.getElementById("chart");
+      const ts = d.timeseries_30m || [];
+      const max = Math.max(1, ...ts.map(x => x.count));
+      chart.innerHTML = ts.map(p => {
+        const pct = (p.count / max) * 100;
+        const t = new Date(p.ts * 1000).toLocaleTimeString("zh-CN", {hour:'2-digit', minute:'2-digit'});
+        return `<div class="bar" style="height:${pct}%" data-tip="${t} · ${p.count} 次"></div>`;
+      }).join("");
+
+      // 24h 折线图
+      renderChart24h(d.timeseries_24h || []);
+
+      // 造梗榜
+      const discTbody = document.querySelector("#discoverers tbody");
+      document.getElementById("discoverers-count").textContent =
+        d.top_discoverers.length > 0 ? `(${d.top_discoverers.length})` : "";
+      discTbody.innerHTML = d.top_discoverers.length === 0
+        ? `<tr><td colspan="3" class="empty">还没人首发过</td></tr>`
+        : d.top_discoverers.map(x => `
+            <tr>
+              <td class="rank">${x.rank}</td>
+              <td>${esc(x.discoverer)}</td>
+              <td class="num">${x.firsts}</td>
+            </tr>`).join("");
+
+      // 热门合成表已删除（无有效更新效果）
+
+      // Chain 分布
+      const chainsBox = document.getElementById("chains");
+      chainsBox.innerHTML = d.top_chains.length === 0
+        ? `<div class="empty">暂无数据</div>`
+        : d.top_chains.map(x =>
+            `<span class="chip">${esc(x.chain || "未分类")}<b>${x.total_hits || x.cnt}</b></span>`
+          ).join("");
+
+      // 最近首发
+      const firstsTbody = document.querySelector("#firsts tbody");
+      document.getElementById("firsts-count").textContent =
+        d.recent_firsts.length > 0 ? `(显示 ${d.recent_firsts.length} / 共 ${d.firsts_total})` : "";
+      firstsTbody.innerHTML = d.recent_firsts.length === 0
+        ? `<tr><td colspan="4" class="empty">暂无首发记录</td></tr>`
+        : d.recent_firsts.map(x => `
+            <tr>
+              <td class="emoji">${esc(x.emoji || "🎉")}</td>
+              <td>${esc(x.result)}</td>
+              <td>${esc(x.discoverer || "匿名鹅")}</td>
+              <td class="num" style="color:#62677A">${fmtTimeAgo(x.ts)}</td>
+            </tr>`).join("");
+    }
+
+    // 倒计时刷新
+    function loop() {
+      countdown = REFRESH_SEC;
+      tick();
+      setInterval(() => {
+        countdown--;
+        document.getElementById("countdown").textContent = countdown;
+        if (countdown <= 0) {
+          countdown = REFRESH_SEC;
+          tick();
+        }
+      }, 1000);
+    }
+    loop();
+  </script>
+</body>
+</html>

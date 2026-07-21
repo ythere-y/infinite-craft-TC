@@ -1,0 +1,33 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: ic-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:16739:6379"   # 冷门端口防冲突
+    volumes:
+      - ./data/redis:/data
+    # AOF everysec：兼顾性能和持久化；落盘间隔最多丢 1s 数据
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --save 900 1
+      --save 300 10
+      --dir /data
+
+  web:
+    build: .
+    image: infinity-craft:latest
+    container_name: infinity-craft
+    depends_on:
+      - redis
+    ports:
+      - "8000:8000"
+    environment:
+      REDIS_URL: "redis://redis:6379/0"
+      # 私有地址与密钥只从本地 .env / 部署平台注入，不写入仓库。
+      GLM_API_URL: "${GLM_API_URL:-}"
+      GLM_TIMEOUT: "${GLM_TIMEOUT:-15}"
+      GLM_MAX_RETRIES: "${GLM_MAX_RETRIES:-2}"
+    restart: unless-stopped
