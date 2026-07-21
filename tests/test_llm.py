@@ -123,3 +123,28 @@ def test_configuration_status(monkeypatch):
     assert llm.configuration_status() == "configured"
     monkeypatch.setenv("LLM_TIMEOUT", "invalid")
     assert llm.configuration_status() == "not_configured"
+
+
+def test_health_reports_configuration_without_model_call(monkeypatch):
+    import asyncio
+    from backend import main
+
+    configure(monkeypatch)
+
+    class FakeRedis:
+        def ping(self):
+            return True
+
+        def dbsize(self):
+            return 7
+
+    def forbidden_query(*args, **kwargs):
+        raise AssertionError("health must not call the model")
+
+    monkeypatch.setattr(main.db, "get_client", lambda: FakeRedis())
+    monkeypatch.setattr(llm, "query", forbidden_query)
+    result = asyncio.run(main.api_health())
+    assert result["redis"] == "ok"
+    assert result["redis_dbsize"] == 7
+    assert result["llm"] == "configured"
+    assert "glm" not in result

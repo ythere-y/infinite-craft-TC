@@ -301,7 +301,7 @@ _JSON_RE = re.compile(r'\{[^{}]*"name"[^{}]*"emoji"[^{}]*\}', re.DOTALL)
 
 def parse_response(text: str) -> Optional[Dict[str, str]]:
     """
-    从 GLM 返回文本里抽 JSON。GLM 有时会包 ```json ... ``` 或加解释，做兼容。
+    从 LLM 返回文本里抽 JSON。模型有时会包 ```json ... ``` 或加解释，做兼容。
     返回 {"name": str, "emoji": str} 或 None（解析失败）。
     """
     if not text:
@@ -342,7 +342,7 @@ def combine_via_llm(
     avoid_words: Optional[List[str]] = None,
 ) -> Optional[Dict[str, str]]:
     """
-    调用 GLM-5.1-64K 合成。
+    调用已配置的 OpenAI-compatible LLM 合成。
 
     Args:
         a, b: 两个元素

@@ -5,7 +5,7 @@ FastAPI 主入口。
   GET  /wall              → frontend/wall.html
   GET  /api/starters      → 8 个 starter
   GET  /api/elements      → 当前全部元素
-  POST /api/combine       → 合成（M1 只走 seed；M2 接 GLM）
+  POST /api/combine       → 合成（seed/cache miss 时接 LLM）
   GET  /api/wall/stream   → SSE 首发推送（M4）
   POST /api/session/kpi   → 上报 KPI（M4）
   GET  /api/session/{sid}/rank → 绩效评级（M4）
@@ -117,23 +117,23 @@ async def api_starters():
 
 @app.get("/api/health")
 async def api_health():
-    """诊断端点：redis 连通 + GLM 连通 + SQLite 归档路径。"""
-    out = {"redis": "?", "glm": "?", "redis_dbsize": 0,
-           "sqlite": archive.db_path_str(),
-           "app_env": os.environ.get("APP_ENV", "dev")}
+    """Report dependencies and LLM configuration without billing a model call."""
+    from .llm import configuration_status
+
+    out = {
+        "redis": "?",
+        "llm": configuration_status(),
+        "redis_dbsize": 0,
+        "sqlite": archive.db_path_str(),
+        "app_env": os.environ.get("APP_ENV", "dev"),
+    }
     try:
         c = db.get_client()
         c.ping()
         out["redis"] = "ok"
         out["redis_dbsize"] = c.dbsize()
-    except Exception as e:
-        out["redis"] = f"error: {e}"
-    try:
-        from .llm import query
-        r = await asyncio.to_thread(query, {"question": "ping"})
-        out["glm"] = "ok" if r else "unreachable"
-    except Exception as e:
-        out["glm"] = f"error: {e}"
+    except Exception as exc:
+        out["redis"] = f"error: {type(exc).__name__}"
     return out
 
 
@@ -342,7 +342,7 @@ async def api_combine(req: CombineReq):
     # 1. Redis 缓存查询（含 seed 预热数据 + 历史 AI 结果）
     hit = db.get_cached(key)
 
-    # 2. miss → 默认走 GLM
+    # 2. miss → 默认走 LLM
     if not hit:
         hit = await _combine_via_llm(a, b)
 
@@ -404,7 +404,7 @@ async def api_combine(req: CombineReq):
 
 
 async def _combine_via_llm(a: str, b: str) -> Optional[dict]:
-    """seed/cache miss 后调 GLM，成功则落 Redis。"""
+    """seed/cache miss 后调 LLM，成功则落 Redis。"""
     try:
         from .prompt import combine_via_llm
     except Exception as e:

@@ -27,7 +27,10 @@ services:
     environment:
       REDIS_URL: "redis://redis:6379/0"
       # 私有地址与密钥只从本地 .env / 部署平台注入，不写入仓库。
-      GLM_API_URL: "${GLM_API_URL:-}"
-      GLM_TIMEOUT: "${GLM_TIMEOUT:-15}"
-      GLM_MAX_RETRIES: "${GLM_MAX_RETRIES:-2}"
+      LLM_API_KEY: "${LLM_API_KEY:-}"
+      MAKERS_MODELS_KEY: "${MAKERS_MODELS_KEY:-}"
+      LLM_BASE_URL: "${LLM_BASE_URL:-}"
+      LLM_MODEL: "${LLM_MODEL:-}"
+      LLM_TIMEOUT: "${LLM_TIMEOUT:-15}"
+      LLM_MAX_RETRIES: "${LLM_MAX_RETRIES:-2}"
     restart: unless-stopped
