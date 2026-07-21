@@ -4,3 +4,5 @@ requests>=2.31
 sse-starlette>=2.0
 pydantic>=2.6
 redis>=5.0
+openai>=1.0,<3
+python-dotenv>=1.0,<2
