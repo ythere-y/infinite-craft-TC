@@ -33,4 +33,6 @@ services:
       LLM_MODEL: "${LLM_MODEL:-}"
       LLM_TIMEOUT: "${LLM_TIMEOUT:-15}"
       LLM_MAX_RETRIES: "${LLM_MAX_RETRIES:-2}"
+      LLM_REASONING_EFFORT: "${LLM_REASONING_EFFORT:-}"
+      LLM_THINKING_ENABLED: "${LLM_THINKING_ENABLED:-false}"
     restart: unless-stopped

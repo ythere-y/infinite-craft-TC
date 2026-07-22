@@ -505,9 +505,9 @@ async function combine(srcId, dstId, x, y) {
   loader.style.top = (y - 14) + "px";
   workspace.appendChild(loader);
 
-  // 8s 超时保护
+  // 高推理模型可能需要数十秒；略高于后端默认 60s 超时。
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 8000);
+  const timer = setTimeout(() => ctrl.abort(), 65000);
 
   try {
     const resp = await fetch("/api/combine", {
@@ -592,15 +592,15 @@ function shake(el) {
 // 段位表（启动时从 /api/tiers 拉，和后端 kpi.TIERS 对齐）
 // 瑞雪以上是"里程碑档位"；真实的阶梯是瑞雪内按 🌟 累加（后端动态拼）
 let TIERS = [
-  { floor: 0,      grade: "3-",       label: "待改进",      emoji: "🔴" },
-  { floor: 500,    grade: "3.25",     label: "勉强合格",    emoji: "🟡" },
-  { floor: 1500,   grade: "3.5",      label: "达标",        emoji: "🟢" },
-  { floor: 3500,   grade: "3.75",     label: "优秀",        emoji: "🔵" },
-  { floor: 8000,   grade: "瑞雪",     label: "瑞雪兆丰年",  emoji: "❄️" },
-  { floor: 11200,  grade: "瑞雪🌛",   label: "月华如水",    emoji: "🌛" },
-  { floor: 20800,  grade: "瑞雪🌞",   label: "日耀乾坤",    emoji: "🌞" },
-  { floor: 59200,  grade: "瑞雪👑",   label: "加冕鹅王",    emoji: "👑" },
-  { floor: 212800, grade: "暴雪领主", label: "极地主宰鹅",  emoji: "🌨️" },
+  { floor: 0, grade: "3-", label: "待改进", emoji: "🔴" },
+  { floor: 500, grade: "3.25", label: "勉强合格", emoji: "🟡" },
+  { floor: 1500, grade: "3.5", label: "达标", emoji: "🟢" },
+  { floor: 3500, grade: "3.75", label: "优秀", emoji: "🔵" },
+  { floor: 8000, grade: "瑞雪", label: "瑞雪兆丰年", emoji: "❄️" },
+  { floor: 11200, grade: "瑞雪🌛", label: "月华如水", emoji: "🌛" },
+  { floor: 20800, grade: "瑞雪🌞", label: "日耀乾坤", emoji: "🌞" },
+  { floor: 59200, grade: "瑞雪👑", label: "加冕鹅王", emoji: "👑" },
+  { floor: 212800, grade: "暴雪领主", label: "极地主宰鹅", emoji: "🌨️" },
 ];
 
 async function loadTiers() {

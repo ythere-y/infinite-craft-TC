@@ -134,21 +134,32 @@ infinity_craft/
 
 ## 环境变量
 
-| 变量                | 默认               | 说明                                      |
-| ------------------- | ------------------ | ----------------------------------------- |
-| `LLM_API_KEY`       | 无                 | 通用 Provider 密钥，设置后优先使用        |
-| `MAKERS_MODELS_KEY` | 无                 | EdgeOne Makers 密钥                       |
-| `LLM_BASE_URL`      | 无                 | OpenAI-compatible API 根地址              |
-| `LLM_MODEL`         | 无                 | Provider 模型标识                         |
-| `LLM_TIMEOUT`       | `15`               | 单次请求超时（秒）                        |
-| `LLM_MAX_RETRIES`   | `2`                | SDK 瞬时错误重试次数                      |
-| `HOST` / `PORT`     | `0.0.0.0` / `8000` | `run.sh` 监听                             |
+| 变量                | 默认               | 说明                               |
+| ------------------- | ------------------ | ---------------------------------- |
+| `LLM_API_KEY`       | 无                 | 通用 Provider 密钥，设置后优先使用 |
+| `MAKERS_MODELS_KEY` | 无                 | EdgeOne Makers 密钥                |
+| `LLM_BASE_URL`      | 无                 | OpenAI-compatible API 根地址       |
+| `LLM_MODEL`         | 无                 | Provider 模型标识                  |
+| `LLM_TIMEOUT`       | `15`               | 单次请求超时（秒）                 |
+| `LLM_MAX_RETRIES`   | `2`                | SDK 瞬时错误重试次数               |
+| `HOST` / `PORT`     | `0.0.0.0` / `8000` | `run.sh` 监听                      |
 
 EdgeOne Makers 示例只需要在本地 `.env` 中填写 `MAKERS_MODELS_KEY`，并使用 `.env.example` 里的公开网关地址和模型标识。切换到其他 OpenAI-compatible Provider 时，改为填写 `LLM_API_KEY`、对应的 `LLM_BASE_URL` 和 `LLM_MODEL` 即可，不需要修改源码。
 
 Docker Compose 用户可复制 `.env.example` 为 `.env` 后填写本地配置；其他运行方式可通过 `.env`、shell 或部署平台注入。`.env` 和所有私有配置均不会进入 Git。EdgeOne 部署时应在项目环境变量设置中录入真实密钥。
 
 `/api/health` 只报告 LLM 是否已配置，不会发起模型请求或消耗 Token；真实连通性应在部署后单独做一次小请求验证。
+
+### 合成诊断日志
+
+每次 `/api/combine` 都会生成一个 `request_id`，并在标准输出中记录缓存查询、LLM 调用和请求完成等阶段。排查卡顿时按同一 `request_id` 串联以下事件：
+
+- `cache_hit` / `cache_miss`：是否进入 LLM 路径
+- `llm_started` / `llm_succeeded` / `llm_no_result`：模型阶段及耗时
+- `request_started` / `request_succeeded` / `request_failed`：Provider 请求耗时、字符数、Token 数和安全的异常类型
+- `request_completed`：整个合成请求的总耗时与最终来源
+
+日志不会记录 API key、完整 Prompt、Provider 响应正文或异常正文。Docker 部署可用 `docker compose logs -f web` 跟踪；本地运行时直接查看 Uvicorn 终端输出。
 
 ---
 

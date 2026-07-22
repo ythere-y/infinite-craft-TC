@@ -103,31 +103,24 @@ SYSTEM_PROMPT = """你是《鹅厂无限合成 ♾️》的合成裁判。
 FEW_SHOT_EXAMPLES = [
     # 成语化（只保留 1 条，示范"有反差感的成语化用"这一风味）
     ({"a": "老板", "b": "画饼"}, {"name": "望梅止渴", "emoji": "🥧"}),
-
     # 自造词（主力风格，多示范几条）
     ({"a": "咖啡", "b": "夜宵券"}, {"name": "续命二连", "emoji": "☕"}),
     ({"a": "会议", "b": "会议"}, {"name": "会议套娃", "emoji": "🪆"}),
     ({"a": "工位", "b": "折叠椅"}, {"name": "工位床位", "emoji": "🛏️"}),
     ({"a": "周报", "b": "ChatGPT"}, {"name": "AI代笔", "emoji": "🤖"}),
-
     # 场景词（具体到一个画面，不追求对仗工整）
     ({"a": "厕所", "b": "手机"}, {"name": "带薪冥想", "emoji": "🧘"}),
     ({"a": "火", "b": "头发"}, {"name": "地中海", "emoji": "👨‍🦲"}),
     ({"a": "周一", "b": "地铁"}, {"name": "沙丁鱼罐头", "emoji": "🚇"}),
-
     # 中英混搭
     ({"a": "周五", "b": "下班"}, {"name": "GG时刻", "emoji": "🎉"}),
     ({"a": "PPT", "b": "通宵"}, {"name": "deadline战士", "emoji": "💀"}),
-
     # 同元素 × 2
     ({"a": "腾讯会议", "b": "腾讯会议"}, {"name": "会议通缉令", "emoji": "📢"}),
-
     # 抽象 → 自造词（原来这里是"学海无涯"成语，换成自造概念词，避免暗示"抽象=成语"）
     ({"a": "知识", "b": "时间"}, {"name": "学费复利", "emoji": "📚"}),
-
     # 纯物理（保底）
     ({"a": "水", "b": "土"}, {"name": "泥", "emoji": "🟤"}),
-
     # ✨ 惰性/吞噬合成（返回原料之一）
     ({"a": "虚空", "b": "加班"}, {"name": "虚空", "emoji": "🕳️"}),
     ({"a": "宇宙", "b": "人"}, {"name": "宇宙", "emoji": "🌌"}),
@@ -190,14 +183,30 @@ def _select_bounty_candidates(a: str, b: str, limit: int = 12) -> List[Dict]:
             if name in a or name in b:
                 score += 2
             # 创始人类目——a/b 含高管/创始人信号时加权
-            founder_signals = {"创始人", "老板", "Pony", "代码", "RTX", "工牌",
-                               "投资", "COO", "iWiki", "门禁"}
+            founder_signals = {
+                "创始人",
+                "老板",
+                "Pony",
+                "代码",
+                "RTX",
+                "工牌",
+                "投资",
+                "COO",
+                "iWiki",
+                "门禁",
+            }
             if gcat == "boss" and ({a, b} & founder_signals):
                 score += 5
             # BG 类——含具体业务触发词时加权
-            bg_hints = {"游戏": "IEG", "微信": "WXG", "云": "CSIG",
-                        "视频号": "PCG", "代码": "TEG", "广告": "CDG",
-                        "腾讯云": "CSIG"}
+            bg_hints = {
+                "游戏": "IEG",
+                "微信": "WXG",
+                "云": "CSIG",
+                "视频号": "PCG",
+                "代码": "TEG",
+                "广告": "CDG",
+                "腾讯云": "CSIG",
+            }
             for trigger, bg in bg_hints.items():
                 if trigger in (a, b) and name == bg:
                     score += 6
@@ -271,13 +280,13 @@ def build_prompt(
     # 权重显著倾向"自造词/场景词/跨界混搭"，成语/古今方向压到 10% 以内，
     # 避免模型形成"默认输出四字成语"的路径依赖。
     hint_options = [
-        ("偏自造词",     0.30),
-        ("偏具体场景",   0.25),
-        ("偏跨界混搭",   0.15),
-        ("偏中英混搭",   0.10),
-        ("偏动作描述",   0.10),
-        ("偏成语化",     0.05),
-        ("偏古今对照",   0.05),
+        ("偏自造词", 0.30),
+        ("偏具体场景", 0.25),
+        ("偏跨界混搭", 0.15),
+        ("偏中英混搭", 0.10),
+        ("偏动作描述", 0.10),
+        ("偏成语化", 0.05),
+        ("偏古今对照", 0.05),
     ]
     hint = random.choices(
         [h for h, _ in hint_options],
@@ -340,6 +349,7 @@ def combine_via_llm(
     a: str,
     b: str,
     avoid_words: Optional[List[str]] = None,
+    request_id: Optional[str] = None,
 ) -> Optional[Dict[str, str]]:
     """
     调用已配置的 OpenAI-compatible LLM 合成。
@@ -356,9 +366,14 @@ def combine_via_llm(
     except Exception:
         bounty_candidates = []
 
-    prompt = build_prompt(a, b, avoid_words=avoid_words, bounty_candidates=bounty_candidates)
+    prompt = build_prompt(
+        a, b, avoid_words=avoid_words, bounty_candidates=bounty_candidates
+    )
     # 带温度调用，让相同输入也能有多样输出
-    raw = query({"question": prompt}, temperature=0.85)
+    raw = query(
+        {"question": prompt, "request_id": request_id},
+        temperature=0.85,
+    )
     text = ""
     if isinstance(raw, dict):
         data = raw.get("data") if isinstance(raw.get("data"), dict) else {}

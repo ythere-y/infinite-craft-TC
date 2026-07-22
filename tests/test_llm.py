@@ -6,10 +6,15 @@ import pytest
 
 from backend import llm
 
-
 ENV_NAMES = (
-    "LLM_API_KEY", "MAKERS_MODELS_KEY", "LLM_BASE_URL", "LLM_MODEL",
-    "LLM_TIMEOUT", "LLM_MAX_RETRIES",
+    "LLM_API_KEY",
+    "MAKERS_MODELS_KEY",
+    "LLM_BASE_URL",
+    "LLM_MODEL",
+    "LLM_TIMEOUT",
+    "LLM_MAX_RETRIES",
+    "LLM_REASONING_EFFORT",
+    "LLM_THINKING_ENABLED",
 )
 
 
@@ -56,7 +61,8 @@ def test_generic_key_precedence_and_request_mapping(monkeypatch):
     configure(monkeypatch, generic_key="generic-test-key")
     factory, captured = fake_factory()
     result = llm.query(
-        {"question": "咖啡 + 代码"}, temperature=0.42,
+        {"question": "咖啡 + 代码"},
+        temperature=0.42,
         _client_factory=factory,
     )
     assert result == {"text": '{"name":"云朵","emoji":"☁️"}'}
@@ -81,9 +87,19 @@ def test_makers_key_fallback_and_optional_temperature(monkeypatch):
     assert "temperature" not in captured["create"]
 
 
-@pytest.mark.parametrize(
-    "missing", ["MAKERS_MODELS_KEY", "LLM_BASE_URL", "LLM_MODEL"]
-)
+def test_reasoning_options_are_mapped(monkeypatch):
+    configure(monkeypatch)
+    monkeypatch.setenv("LLM_REASONING_EFFORT", "high")
+    monkeypatch.setenv("LLM_THINKING_ENABLED", "true")
+    factory, captured = fake_factory()
+    assert llm.query({"question": "ping"}, _client_factory=factory)
+    assert captured["create"]["reasoning_effort"] == "high"
+    assert captured["create"]["extra_body"] == {
+        "thinking": {"type": "enabled"},
+    }
+
+
+@pytest.mark.parametrize("missing", ["MAKERS_MODELS_KEY", "LLM_BASE_URL", "LLM_MODEL"])
 def test_incomplete_configuration_returns_none(monkeypatch, missing):
     configure(monkeypatch)
     monkeypatch.delenv(missing)
@@ -115,6 +131,24 @@ def test_provider_error_is_redacted(monkeypatch, capsys):
     assert "do-not-print-this-key" not in output
     assert "provider body" not in output
     assert "private prompt" not in output
+
+
+def test_logs_include_request_id_and_safe_timing_fields(monkeypatch, capsys):
+    configure(monkeypatch)
+    factory, _ = fake_factory()
+    result = llm.query(
+        {"question": "private prompt", "request_id": "req-test-123"},
+        _client_factory=factory,
+    )
+    assert result
+    output = capsys.readouterr().out
+    assert "event=request_started" in output
+    assert "event=request_succeeded" in output
+    assert "request_id=req-test-123" in output
+    assert "elapsed_ms=" in output
+    assert "prompt_chars=14" in output
+    assert "private prompt" not in output
+    assert "makers-test-key" not in output
 
 
 def test_configuration_status(monkeypatch):

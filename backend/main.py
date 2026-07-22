@@ -18,6 +18,7 @@ import json
 import os
 import random
 import time
+import uuid
 from pathlib import Path
 from typing import Optional, List
 
@@ -36,7 +37,9 @@ app = FastAPI(title="Infinity Craft · 鹅厂打工人版", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
@@ -47,7 +50,9 @@ async def _startup() -> None:
     db.init_db()  # 连 Redis + 建 SQLite 表
     # 1) 从 SQLite 恢复历史数据到 Redis（重启不丢 AI 生成的长尾）
     warm = db.warm_up_from_archive()
-    print(f"[warmup] restored from SQLite: combos={warm['combos']} firsts={warm['firsts']} nicks={warm['nicks']}")
+    print(
+        f"[warmup] restored from SQLite: combos={warm['combos']} firsts={warm['firsts']} nicks={warm['nicks']}"
+    )
     # 2) 加载 seed（会补齐 SQLite 没有的那些）
     n_el, n_warmed = store.load()
     # 3) 计算元素深度（合成分数用）
@@ -57,8 +62,10 @@ async def _startup() -> None:
     print(f"[env] APP_ENV={env}  REDIS_URL={redis_configured}")
     print(f"[sqlite] archive path: {archive.db_path_str()}")
     print(f"[seed] loaded {n_el} elements, warmed {n_warmed} seed combinations")
-    print(f"[depth] computed {len(depth_table)} elements, "
-          f"max depth = {max(depth_table.values()) if depth_table else 0}")
+    print(
+        f"[depth] computed {len(depth_table)} elements, "
+        f"max depth = {max(depth_table.values()) if depth_table else 0}"
+    )
     # 首发事件广播队列
     app.state.first_queue: asyncio.Queue = asyncio.Queue()
 
@@ -78,7 +85,7 @@ class CombineResp(BaseModel):
     b: str
     result: str
     emoji: str
-    source: str                    # seed | llm | fallback
+    source: str  # seed | llm | fallback
     chain: Optional[str] = None
     is_first: bool = False
     discoverer: Optional[str] = None
@@ -104,10 +111,18 @@ class KPIReq(BaseModel):
 @app.get("/api/tiers")
 async def api_tiers():
     """前端用于检测段位跃迁、渲染进度条。和 kpi.TIERS 保持一致。"""
-    return {"tiers": [
-        {"floor": t[0], "grade": t[1], "label": t[2], "emoji": t[3], "comment": t[4]}
-        for t in kpi.TIERS
-    ]}
+    return {
+        "tiers": [
+            {
+                "floor": t[0],
+                "grade": t[1],
+                "label": t[2],
+                "emoji": t[3],
+                "comment": t[4],
+            }
+            for t in kpi.TIERS
+        ]
+    }
 
 
 @app.get("/api/starters")
@@ -173,6 +188,7 @@ async def api_admin_stats():
     # 最近 1 分钟 / 5 分钟 / 60 分钟 的调用量
     def window_count(sec: int) -> int:
         return int(c.zcount("stats:calls_ts", now_ts - sec, now_ts))
+
     calls_1m = window_count(60)
     calls_5m = window_count(300)
     calls_60m = window_count(3600)
@@ -181,17 +197,19 @@ async def api_admin_stats():
     # 关键：按整分钟对齐（:00 ~ :59 秒为一格），而不是"当前时刻往前数 60 秒"
     # 否则每次请求都会重新切一次刻度，bar 会看起来随机闪动。
     # 当前分钟 bucket_start = now_ts - (now_ts % 60)
-    bucket_end = now_ts - (now_ts % 60)   # 当前整分钟起点
+    bucket_end = now_ts - (now_ts % 60)  # 当前整分钟起点
     timeseries = []
     for i in range(29, -1, -1):
-        t_start = bucket_end - i * 60          # 该分钟的起点
-        t_end = t_start + 60                    # 该分钟的终点（不含）
+        t_start = bucket_end - i * 60  # 该分钟的起点
+        t_end = t_start + 60  # 该分钟的终点（不含）
         # zcount 包含两端，这里用 t_end - 1 避免跨分钟重复计数
         count = int(c.zcount("stats:calls_ts", t_start, t_end - 1))
-        timeseries.append({
-            "ts": t_start,   # 用分钟起点做时间戳，UI 显示"HH:MM"
-            "count": count,
-        })
+        timeseries.append(
+            {
+                "ts": t_start,  # 用分钟起点做时间戳，UI 显示"HH:MM"
+                "count": count,
+            }
+        )
 
     # 24 小时时间序列（每小时一格，整点对齐）
     # 数据源：stats:calls_hourly sorted set，每次 combine 把"当前整点 ts"
@@ -204,10 +222,12 @@ async def api_admin_stats():
         t_start = hour_end - i * 3600
         t_end = t_start + 3600
         count = int(c.zcount("stats:calls_ts_day", t_start, t_end - 1))
-        timeseries_24h.append({
-            "ts": t_start,
-            "count": count,
-        })
+        timeseries_24h.append(
+            {
+                "ts": t_start,
+                "count": count,
+            }
+        )
 
     # 昵称总数（nick:* key 数）
     nick_count = sum(1 for _ in c.scan_iter(match="nick:*", count=500))
@@ -262,9 +282,10 @@ async def api_nickname():
 @app.get("/api/nickname/peek")
 async def api_nickname_peek():
     """生成一个候选名字但不占位（用于改名界面的预览随机）。
-       注意：多次调用返回的名字可能最终被别人抢占。
-       最终确认时应该再调 /api/nickname/claim。"""
+    注意：多次调用返回的名字可能最终被别人抢占。
+    最终确认时应该再调 /api/nickname/claim。"""
     from .nickname import generate_one
+
     return {"nickname": generate_one()}
 
 
@@ -310,9 +331,16 @@ async def api_elements():
 
 @app.post("/api/combine", response_model=CombineResp)
 async def api_combine(req: CombineReq):
+    request_id = uuid.uuid4().hex[:12]
+    started = time.perf_counter()
     a, b = req.a.strip(), req.b.strip()
     if not a or not b:
         raise HTTPException(400, "a/b 不能为空")
+    print(
+        f"[combine] event=request_started request_id={request_id} "
+        f"a={a[:40]!r} b={b[:40]!r}",
+        flush=True,
+    )
 
     # 监控打点：活跃 session + 合成总次数 + 时间序列
     try:
@@ -334,17 +362,25 @@ async def api_combine(req: CombineReq):
         d_name = (req.discoverer or "").strip()
         if d_name:
             c.setnx(f"nick:{d_name}", "1")
-    except Exception:
-        pass
+    except Exception as exc:
+        print(
+            f"[combine] event=metrics_failed request_id={request_id} "
+            f"error_type={type(exc).__name__}",
+            flush=True,
+        )
 
     key = db.normalize_key(a, b)
 
     # 1. Redis 缓存查询（含 seed 预热数据 + 历史 AI 结果）
     hit = db.get_cached(key)
+    print(
+        f"[combine] event=cache_{'hit' if hit else 'miss'} " f"request_id={request_id}",
+        flush=True,
+    )
 
     # 2. miss → 默认走 LLM
     if not hit:
-        hit = await _combine_via_llm(a, b)
+        hit = await _combine_via_llm(a, b, request_id)
 
     # 3. 彻底失败 → fallback
     if not hit:
@@ -369,17 +405,22 @@ async def api_combine(req: CombineReq):
         is_first = db.record_first(result, emoji, who)
         if is_first:
             queue: asyncio.Queue = app.state.first_queue
-            await queue.put({
-                "result": result, "emoji": emoji,
-                "discoverer": who,
-            })
+            await queue.put(
+                {
+                    "result": result,
+                    "emoji": emoji,
+                    "discoverer": who,
+                }
+            )
         row = db.get_first(result)
         discoverer = row["discoverer"] if row else None
 
     # 5. result 纳入 elements + 归档到 SQLite
     if result not in store.elements and source != "fallback":
         store.elements[result] = {"emoji": emoji, "category": chain or "ai"}
-        archive.upsert_element(name=result, emoji=emoji, category=chain, is_starter=False)
+        archive.upsert_element(
+            name=result, emoji=emoji, category=chain, is_starter=False
+        )
 
     # 6. KPI（保留旧 chain 打分）
     delta, reason = kpi.score_for(chain, is_first)
@@ -395,31 +436,79 @@ async def api_combine(req: CombineReq):
 
     explode = kpi.should_explode(chain, result)
 
+    elapsed_ms = round((time.perf_counter() - started) * 1000)
+    print(
+        f"[combine] event=request_completed request_id={request_id} "
+        f"elapsed_ms={elapsed_ms} source={source} result={result[:40]!r}",
+        flush=True,
+    )
+
     return CombineResp(
-        a=a, b=b, result=result, emoji=emoji, source=source, chain=chain,
-        is_first=is_first, discoverer=discoverer, explode=explode,
-        kpi_delta=delta if source != "fallback" else 0, kpi_reason=reason,
-        depth=depth_val, full_score=full_score,
+        a=a,
+        b=b,
+        result=result,
+        emoji=emoji,
+        source=source,
+        chain=chain,
+        is_first=is_first,
+        discoverer=discoverer,
+        explode=explode,
+        kpi_delta=delta if source != "fallback" else 0,
+        kpi_reason=reason,
+        depth=depth_val,
+        full_score=full_score,
     )
 
 
-async def _combine_via_llm(a: str, b: str) -> Optional[dict]:
+async def _combine_via_llm(a: str, b: str, request_id: str) -> Optional[dict]:
     """seed/cache miss 后调 LLM，成功则落 Redis。"""
+    started = time.perf_counter()
     try:
         from .prompt import combine_via_llm
-    except Exception as e:
-        print(f"[llm] import failed: {e}")
+    except Exception as exc:
+        print(
+            f"[combine] event=llm_import_failed request_id={request_id} "
+            f"error_type={type(exc).__name__}",
+            flush=True,
+        )
         return None
     # 传入最近的 30 个 result 作为 avoid_words，减少撞词
     avoid = db.recent_result_names(30)
-    result = await asyncio.to_thread(combine_via_llm, a, b, avoid)
+    print(
+        f"[combine] event=llm_started request_id={request_id} "
+        f"avoid_words={len(avoid)}",
+        flush=True,
+    )
+    result = await asyncio.to_thread(
+        combine_via_llm,
+        a,
+        b,
+        avoid,
+        request_id=request_id,
+    )
+    elapsed_ms = round((time.perf_counter() - started) * 1000)
     if not result:
+        print(
+            f"[combine] event=llm_no_result request_id={request_id} "
+            f"elapsed_ms={elapsed_ms}",
+            flush=True,
+        )
         return None
     key = db.normalize_key(a, b)
-    db.put_cache(key=key, result=result["name"], emoji=result["emoji"],
-                 source="llm", chain=None)
-    return {"result": result["name"], "emoji": result["emoji"],
-            "source": "llm", "chain": None}
+    db.put_cache(
+        key=key, result=result["name"], emoji=result["emoji"], source="llm", chain=None
+    )
+    print(
+        f"[combine] event=llm_succeeded request_id={request_id} "
+        f"elapsed_ms={elapsed_ms}",
+        flush=True,
+    )
+    return {
+        "result": result["name"],
+        "emoji": result["emoji"],
+        "source": "llm",
+        "chain": None,
+    }
 
 
 # ---- KPI ----
@@ -447,7 +536,7 @@ async def api_recipes_verify(req: VerifyReq):
     只接受 valid 的条目，另两类前端会告知用户被拒绝的数量。
     """
     valid, invalid, unknown = [], [], []
-    for r in (req.recipes or []):
+    for r in req.recipes or []:
         a = (r.get("a") or "").strip()
         b = (r.get("b") or "").strip()
         result = (r.get("result") or "").strip()
@@ -463,18 +552,26 @@ async def api_recipes_verify(req: VerifyReq):
             continue
 
         if hit["result"] != result:
-            invalid.append({
-                "a": a, "b": b,
-                "expected": hit["result"], "got": result,
-                "reason": "result 与全球配方不一致",
-            })
+            invalid.append(
+                {
+                    "a": a,
+                    "b": b,
+                    "expected": hit["result"],
+                    "got": result,
+                    "reason": "result 与全球配方不一致",
+                }
+            )
             continue
 
         # emoji 不强制一致（全球可能后来改过），用全球的
-        valid.append({
-            "a": a, "b": b,
-            "result": hit["result"], "emoji": hit["emoji"],
-        })
+        valid.append(
+            {
+                "a": a,
+                "b": b,
+                "result": hit["result"],
+                "emoji": hit["emoji"],
+            }
+        )
 
     return {
         "valid": valid,
@@ -641,15 +738,17 @@ async def api_element_recipes(name: str):
         a, b = r["a"], r["b"]
         a_info = store.elements.get(a) or {}
         b_info = store.elements.get(b) or {}
-        recipes.append({
-            "a": a,
-            "b": b,
-            "a_emoji": a_info.get("emoji") or "❓",
-            "b_emoji": b_info.get("emoji") or "❓",
-            "source": r.get("source"),
-            "chain": r.get("chain"),
-            "hit_count": r.get("hit_count"),
-        })
+        recipes.append(
+            {
+                "a": a,
+                "b": b,
+                "a_emoji": a_info.get("emoji") or "❓",
+                "b_emoji": b_info.get("emoji") or "❓",
+                "source": r.get("source"),
+                "chain": r.get("chain"),
+                "hit_count": r.get("hit_count"),
+            }
+        )
     return {
         "result": target,
         "result_emoji": result_info.get("emoji") or "❓",
@@ -672,4 +771,5 @@ app.mount("/", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="static
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
