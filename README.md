@@ -140,8 +140,8 @@ infinity_craft/
 | `MAKERS_MODELS_KEY` | 无                 | EdgeOne Makers 密钥                |
 | `LLM_BASE_URL`      | 无                 | OpenAI-compatible API 根地址       |
 | `LLM_MODEL`         | 无                 | Provider 模型标识                  |
-| `LLM_TIMEOUT`       | `15`               | 单次请求超时（秒）                 |
-| `LLM_MAX_RETRIES`   | `2`                | SDK 瞬时错误重试次数               |
+| `LLM_TIMEOUT`       | `20`               | 单次请求超时（秒）                 |
+| `LLM_MAX_RETRIES`   | `0`                | SDK 瞬时错误重试次数               |
 | `HOST` / `PORT`     | `0.0.0.0` / `8000` | `run.sh` 监听                      |
 
 EdgeOne Makers 示例只需要在本地 `.env` 中填写 `MAKERS_MODELS_KEY`，并使用 `.env.example` 里的公开网关地址和模型标识。切换到其他 OpenAI-compatible Provider 时，改为填写 `LLM_API_KEY`、对应的 `LLM_BASE_URL` 和 `LLM_MODEL` 即可，不需要修改源码。

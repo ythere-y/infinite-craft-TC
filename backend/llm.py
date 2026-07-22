@@ -23,7 +23,7 @@ class LLMSettings:
     timeout: float
     max_retries: int
     reasoning_effort: str
-    thinking_enabled: bool
+    thinking_enabled: Optional[bool]
 
     @classmethod
     def from_env(cls) -> "LLMSettings":
@@ -45,7 +45,7 @@ class LLMSettings:
             timeout=timeout,
             max_retries=max_retries,
             reasoning_effort=os.getenv("LLM_REASONING_EFFORT", "").strip(),
-            thinking_enabled=thinking == "true",
+            thinking_enabled=None if not thinking else thinking == "true",
         )
 
     @property
@@ -90,16 +90,22 @@ def query(
         request["temperature"] = float(temperature)
     if settings.reasoning_effort:
         request["reasoning_effort"] = settings.reasoning_effort
-    if settings.thinking_enabled:
-        request["extra_body"] = {"thinking": {"type": "enabled"}}
+    if settings.thinking_enabled is not None:
+        thinking_type = "enabled" if settings.thinking_enabled else "disabled"
+        request["extra_body"] = {"thinking": {"type": thinking_type}}
 
     started = time.perf_counter()
+    thinking_label = (
+        "default"
+        if settings.thinking_enabled is None
+        else "on" if settings.thinking_enabled else "off"
+    )
     print(
         f"[llm] event=request_started request_id={request_id} "
         f"model={settings.model} prompt_chars={len(question)} "
         f"timeout_s={settings.timeout:g} max_retries={settings.max_retries} "
         f"reasoning={settings.reasoning_effort or 'off'} "
-        f"thinking={'on' if settings.thinking_enabled else 'off'}",
+        f"thinking={thinking_label}",
         flush=True,
     )
     try:
@@ -130,10 +136,14 @@ def query(
             return None
         elapsed_ms = round((time.perf_counter() - started) * 1000)
         usage = getattr(completion, "usage", None)
+        prompt_tokens = getattr(usage, "prompt_tokens", None)
+        completion_tokens = getattr(usage, "completion_tokens", None)
         total_tokens = getattr(usage, "total_tokens", None)
         print(
             f"[llm] event=request_succeeded request_id={request_id} "
             f"elapsed_ms={elapsed_ms} response_chars={len(content)} "
+            f"prompt_tokens={prompt_tokens if prompt_tokens is not None else 'unknown'} "
+            f"completion_tokens={completion_tokens if completion_tokens is not None else 'unknown'} "
             f"total_tokens={total_tokens if total_tokens is not None else 'unknown'}",
             flush=True,
         )

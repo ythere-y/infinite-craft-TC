@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+from typing import Any, Optional
 
 import pytest
 
@@ -33,8 +34,11 @@ def configure(monkeypatch, generic_key="", makers_key="makers-test-key"):
     monkeypatch.setenv("LLM_MAX_RETRIES", "3")
 
 
-def fake_factory(content='{"name":"云朵","emoji":"☁️"}', error=None):
-    captured = {"init": None, "create": None}
+def fake_factory(
+    content: Optional[str] = '{"name":"云朵","emoji":"☁️"}',
+    error: Optional[Exception] = None,
+):
+    captured: dict[str, Any] = {"init": None, "create": None}
 
     class Completions:
         def create(self, **kwargs):
@@ -96,6 +100,16 @@ def test_reasoning_options_are_mapped(monkeypatch):
     assert captured["create"]["reasoning_effort"] == "high"
     assert captured["create"]["extra_body"] == {
         "thinking": {"type": "enabled"},
+    }
+
+
+def test_thinking_can_be_explicitly_disabled(monkeypatch):
+    configure(monkeypatch)
+    monkeypatch.setenv("LLM_THINKING_ENABLED", "false")
+    factory, captured = fake_factory()
+    assert llm.query({"question": "ping"}, _client_factory=factory)
+    assert captured["create"]["extra_body"] == {
+        "thinking": {"type": "disabled"},
     }
 
 

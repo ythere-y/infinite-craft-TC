@@ -43,6 +43,7 @@ app.add_middleware(
 )
 
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
+_COMBINE_LOCKS = tuple(asyncio.Lock() for _ in range(64))
 
 
 @app.on_event("startup")
@@ -380,7 +381,24 @@ async def api_combine(req: CombineReq):
 
     # 2. miss → 默认走 LLM
     if not hit:
-        hit = await _combine_via_llm(a, b, request_id)
+        lock = _COMBINE_LOCKS[hash(key) % len(_COMBINE_LOCKS)]
+        wait_started = time.perf_counter()
+        async with lock:
+            wait_ms = round((time.perf_counter() - wait_started) * 1000)
+            hit = db.get_cached(key)
+            if hit:
+                print(
+                    f"[combine] event=coalesced_cache_hit request_id={request_id} "
+                    f"wait_ms={wait_ms}",
+                    flush=True,
+                )
+            else:
+                print(
+                    f"[combine] event=llm_slot_acquired request_id={request_id} "
+                    f"wait_ms={wait_ms}",
+                    flush=True,
+                )
+                hit = await _combine_via_llm(a, b, request_id)
 
     # 3. 彻底失败 → fallback
     if not hit:
