@@ -56,6 +56,9 @@ test("static, health and rank routes keep their public contracts", async () => {
   assert.equal(rank.body.grade, "瑞雪");
   assert.equal(rank.body.total, 8000);
 
+  const defaultPage = await json(router, "/api/wall/page");
+  assert.equal(defaultPage.body.limit, 100);
+
   const health = await json(router, "/api/health");
   assert.equal(health.body.kv, "ok");
   assert.equal(health.body.llm.configured, true);
@@ -174,4 +177,19 @@ test("router returns safe JSON errors, CORS preflight and stream shutdown", asyn
 
   const stream = await router.handle(request("/api/wall/stream"));
   assert.equal(stream.status, 204);
+});
+
+test("Edge Function entry reads the console binding named test as a global", async () => {
+  globalThis.test = new FakeKV();
+  try {
+    const { onRequest } = await import("../edge-functions/api/[[default]].js");
+    const response = await onRequest({
+      request: request("/api/starters"),
+      env: {},
+    });
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).starters.length, 10);
+  } finally {
+    delete globalThis.test;
+  }
 });

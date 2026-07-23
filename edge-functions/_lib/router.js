@@ -25,7 +25,9 @@ import {
 } from "./nickname.js";
 
 function intParam(searchParams, name, fallback, minimum, maximum) {
-  const value = Number(searchParams.get(name));
+  const raw = searchParams.get(name);
+  if (raw == null || raw === "") return fallback;
+  const value = Number(raw);
   if (!Number.isFinite(value)) return fallback;
   return Math.max(minimum, Math.min(maximum, Math.trunc(value)));
 }

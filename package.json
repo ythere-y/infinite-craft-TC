@@ -6,6 +6,6 @@
   "scripts": {
     "build": "node scripts/build-makers.mjs",
     "generate:makers-data": "node scripts/generate-makers-data.mjs",
-    "test": "node --test tests-makers"
+    "test": "node --test tests-makers/*.test.mjs"
   }
 }

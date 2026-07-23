@@ -150,9 +150,9 @@ infinity_craft/
 
 - < 500 → **3-**（待改进）
 - 500-1500 → **3.25**（勉强合格）
-- 1500-3000 → **3.5**（达标）
-- 3000-5000 → **3.75**（优秀）
-- \> 5000 → **4**（卓越，瑞雪 +1）
+- 1500-3500 → **3.5**（达标）
+- 3500-8000 → **3.75**（优秀）
+- ≥ 8000 → **瑞雪**（进入星/月/日/冠进阶）
 
 ---
 
@@ -182,7 +182,10 @@ infinity_craft/
 | `LLM_MAX_RETRIES`   | `2`                | SDK 瞬时错误重试次数                      |
 | `HOST` / `PORT`     | `0.0.0.0` / `8000` | `run.sh` 监听                             |
 
-EdgeOne Makers 示例只需要在本地 `.env` 中填写 `MAKERS_MODELS_KEY`，并使用 `.env.example` 里的公开网关地址和模型标识。切换到其他 OpenAI-compatible Provider 时，改为填写 `LLM_API_KEY`、对应的 `LLM_BASE_URL` 和 `LLM_MODEL` 即可，不需要修改源码。
+EdgeOne Makers 项目推荐在控制台填写 `AI_GATEWAY_API_KEY`；代码也兼容
+`MAKERS_MODELS_KEY`。本地 FastAPI 可继续使用 `LLM_API_KEY`，切换其他
+OpenAI-compatible Provider 时配置对应的 `LLM_BASE_URL` 和 `LLM_MODEL`
+即可，不需要修改源码。
 
 Docker Compose 用户可复制 `.env.example` 为 `.env` 后填写本地配置；其他运行方式可通过 `.env`、shell 或部署平台注入。`.env` 和所有私有配置均不会进入 Git。EdgeOne 部署时应在项目环境变量设置中录入真实密钥。
 
