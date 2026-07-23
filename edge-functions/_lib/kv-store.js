@@ -63,8 +63,9 @@ export class KvStore {
   }
 
   async getJson(key, fallback = null) {
-    const value = await this.kv.get(key, { type: "json" });
-    return value == null ? fallback : value;
+    const value = await this.kv.get(key);
+    if (value == null || value === "") return fallback;
+    return typeof value === "string" ? JSON.parse(value) : value;
   }
 
   async putJson(key, value) {

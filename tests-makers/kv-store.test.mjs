@@ -45,6 +45,30 @@ test("dynamic combinations are created as JSON records", async () => {
   });
 });
 
+test("JSON records are decoded from plain Makers KV text reads", async () => {
+  class TextOnlyKV extends FakeKV {
+    async get(key, options) {
+      if (options !== undefined) {
+        throw new Error("typed JSON reads are unavailable");
+      }
+      return super.get(key);
+    }
+  }
+
+  const store = new KvStore(
+    new TextOnlyKV({
+      snapshot_recent: JSON.stringify({ items: [{ result: "蒸汽" }] }),
+    }),
+  );
+
+  assert.deepEqual(await store.getJson("snapshot_recent"), {
+    items: [{ result: "蒸汽" }],
+  });
+  assert.deepEqual(await store.getJson("missing", { items: [] }), {
+    items: [],
+  });
+});
+
 test("first discovery keeps the earliest claimant and powers pagination", async () => {
   let now = 1_700_000_000_000;
   const store = new KvStore(new FakeKV(), { now: () => now });
