@@ -9,6 +9,7 @@
    ============================================================ */
 
 const PAGE_SIZE = 40;
+const POLL_PAGE_SIZE = 500;       // 覆盖 100 QPS 下一个轮询周期的突发量
 const LB_REFRESH_MS = 20000;     // 排行榜定时刷新
 const POLL_REFRESH_MS = 3000;    // Makers Edge Functions 使用短轮询
 const SCROLL_NEAR_PX = 400;      // 距底多少触发下一页
@@ -234,7 +235,7 @@ async function pollNewFirsts() {
   if (_polling || document.hidden) return;
   _polling = true;
   try {
-    const response = await fetch(`/api/wall/page?offset=0&limit=${PAGE_SIZE}`, {
+    const response = await fetch(`/api/wall/page?offset=0&limit=${POLL_PAGE_SIZE}`, {
       cache: "no-store",
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);

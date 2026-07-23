@@ -47,7 +47,7 @@ function requireMethod(request, expected) {
 }
 
 function dynamicAndSeedElements(dynamic) {
-  return { ...ELEMENTS, ...(dynamic || {}) };
+  return { ...(dynamic || {}), ...ELEMENTS };
 }
 
 export function createRouter({
@@ -170,7 +170,8 @@ export function createRouter({
         redis_dbsize: null,
         sqlite: null,
         app_env: env.APP_ENV || "makers",
-        llm: {
+        llm: config.configured ? "configured" : "not_configured",
+        llm_config: {
           configured: config.configured,
           provider: "edgeone-makers-models",
           base_url: config.baseUrl,
@@ -207,7 +208,11 @@ export function createRouter({
     if (path === "/api/nickname/touch") {
       requireMethod(request, "POST");
       const body = await readJson(request);
-      return jsonResponse(await store.touchNickname(body?.nickname));
+      const nickname = cleanText(body?.nickname);
+      if ([...nickname].length > 80) {
+        throw new HttpError(400, "nickname 过长");
+      }
+      return jsonResponse(await store.touchNickname(nickname));
     }
     if (path === "/api/nickname/stats") {
       requireMethod(request, "GET");
@@ -223,10 +228,17 @@ export function createRouter({
       const body = await readJson(request);
       const sessionId = cleanText(body?.session_id);
       if (!sessionId) throw new HttpError(400, "session_id 不能为空");
+      if ([...sessionId].length > 128) {
+        throw new HttpError(400, "session_id 过长");
+      }
+      const delta = Math.max(
+        -1_000_000,
+        Math.min(1_000_000, Number(body?.delta) || 0),
+      );
       const total = await store.addKpi(
         sessionId,
-        Number(body?.delta) || 0,
-        body?.reason,
+        delta,
+        cleanText(body?.reason).slice(0, 200),
       );
       return jsonResponse({ ok: true, total });
     }

@@ -61,9 +61,23 @@ test("static, health and rank routes keep their public contracts", async () => {
 
   const health = await json(router, "/api/health");
   assert.equal(health.body.kv, "ok");
-  assert.equal(health.body.llm.configured, true);
-  assert.equal(health.body.llm.model, "test-model");
-  assert.equal("apiKey" in health.body.llm, false);
+  assert.equal(health.body.llm, "configured");
+  assert.equal(health.body.llm_config.model, "test-model");
+  assert.equal("apiKey" in health.body.llm_config, false);
+});
+
+test("dynamic KV metadata never overwrites authoritative seed elements", async () => {
+  const router = createRouter({
+    kv: new FakeKV({
+      snapshot_elements: JSON.stringify({
+        "企鹅": { emoji: "❌", category: "ai", depth: 99 },
+      }),
+    }),
+    env: {},
+  });
+  const elements = await json(router, "/api/elements");
+  assert.equal(elements.body.elements["企鹅"].emoji, "🐧");
+  assert.equal(elements.body.elements["企鹅"].category, "tencent");
 });
 
 test("nickname, combine, wall, bounty and admin routes share KV state", async () => {
@@ -165,6 +179,13 @@ test("router returns safe JSON errors, CORS preflight and stream shutdown", asyn
   });
   assert.equal(bad.response.status, 400);
   assert.match(bad.body.detail, /不能为空/);
+
+  const tooLong = await json(router, "/api/combine", {
+    method: "POST",
+    body: { a: "a".repeat(81), b: "火" },
+  });
+  assert.equal(tooLong.response.status, 400);
+  assert.match(tooLong.body.detail, /过长/);
 
   const missing = await json(router, "/api/not-found");
   assert.equal(missing.response.status, 404);

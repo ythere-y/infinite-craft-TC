@@ -452,7 +452,8 @@ export class KvStore {
     do {
       const result = await this.kv.list({ prefix, limit: 256, cursor });
       for (const item of result?.keys ?? []) {
-        if (item?.key) keys.push(item.key);
+        const key = item?.key || item?.name;
+        if (key) keys.push(key);
       }
       if (result?.complete) break;
       if (!result?.cursor || result.cursor === cursor) break;

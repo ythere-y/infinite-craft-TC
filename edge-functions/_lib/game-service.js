@@ -2,7 +2,9 @@ import {
   COMBINATIONS,
   DEPTHS,
   ELEMENTS,
+  STARTERS,
 } from "../_generated/seed-data.js";
+import { selectBountyCandidates } from "./bounty.js";
 import { normalizePair, cleanText } from "./keys.js";
 import { requestModelCombination } from "./llm.js";
 import { scoreFor, shouldExplode } from "./kpi.js";
@@ -13,6 +15,12 @@ const FALLBACK = {
   source: "fallback",
   chain: null,
 };
+
+function badRequest(message) {
+  const error = new TypeError(message);
+  error.status = 400;
+  return error;
+}
 
 function validDiscoverer(value) {
   const name = cleanText(value);
@@ -36,11 +44,18 @@ export function createGameService({
     const seeded = COMBINATIONS[normalizePair(a, b)];
     if (seeded?.result) return seeded;
 
-    const recent = await store.recentFirsts(30);
+    const firsts = await store.allFirsts();
     const generated = await requestModelCombination({
       a,
       b,
-      avoidWords: recent.map((item) => item.result),
+      avoidWords: firsts.slice(0, 30).map((item) => item.result),
+      bountyCandidates: selectBountyCandidates({
+        a,
+        b,
+        elements: { ...(await store.dynamicElements()), ...ELEMENTS },
+        starters: STARTERS,
+        firsts,
+      }),
       env,
       fetchImpl,
     });
@@ -67,11 +82,16 @@ export function createGameService({
     const a = cleanText(input?.a);
     const b = cleanText(input?.b);
     if (!a || !b) {
-      const error = new TypeError("a/b 不能为空");
-      error.status = 400;
-      throw error;
+      throw badRequest("a/b 不能为空");
+    }
+    if ([...a].length > 80 || [...b].length > 80) {
+      throw badRequest("a/b 过长");
     }
     const sessionId = cleanText(input?.session_id) || "default";
+    if ([...sessionId].length > 128) throw badRequest("session_id 过长");
+    if ([...cleanText(input?.discoverer)].length > 80) {
+      throw badRequest("discoverer 过长");
+    }
     const discoverer = validDiscoverer(input?.discoverer);
     if (cleanText(input?.discoverer)) {
       await store.touchNickname(cleanText(input.discoverer));

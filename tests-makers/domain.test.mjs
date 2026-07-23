@@ -11,7 +11,10 @@ import {
   generateNickname,
   nicknameStats,
 } from "../edge-functions/_lib/nickname.js";
-import { buildBounty } from "../edge-functions/_lib/bounty.js";
+import {
+  buildBounty,
+  selectBountyCandidates,
+} from "../edge-functions/_lib/bounty.js";
 import { jsonResponse } from "../edge-functions/_lib/http.js";
 import { ELEMENTS, STARTERS } from "../edge-functions/_generated/seed-data.js";
 
@@ -59,6 +62,18 @@ test("bounty retains groups, starter discoveries and first metadata", () => {
   const tower = buildings.items.find((item) => item.name === "腾讯大厦");
   assert.equal(tower.discoverer, "测试鹅");
   assert.equal(tower.seq, 1);
+});
+
+test("bounty candidates preserve input-aware Makers model hints", () => {
+  const candidates = selectBountyCandidates({
+    a: "云",
+    b: "企鹅",
+    elements: ELEMENTS,
+    starters: STARTERS,
+    firsts: [],
+  });
+  assert.ok(candidates.some((item) => item.name === "CSIG"));
+  assert.ok(candidates.length <= 12);
 });
 
 test("JSON responses avoid unsupported Response.json static helper", async () => {

@@ -207,3 +207,86 @@ export function buildCategory({ category, elements, starters, firsts }) {
     items,
   };
 }
+
+export function selectBountyCandidates({
+  a,
+  b,
+  elements,
+  starters,
+  firsts,
+  limit = 12,
+}) {
+  const payload = buildBounty({ elements, starters, firsts });
+  const inputCategories = new Set(
+    [elements[a]?.category, elements[b]?.category].filter(Boolean),
+  );
+  const founderSignals = new Set([
+    "创始人", "老板", "Pony", "代码", "RTX", "工牌", "投资", "COO",
+    "iWiki", "门禁",
+  ]);
+  const bgHints = {
+    "游戏": "IEG",
+    "微信": "WXG",
+    "云": "CSIG",
+    "视频号": "PCG",
+    "代码": "TEG",
+    "广告": "CDG",
+    "腾讯云": "CSIG",
+  };
+  const geoHints = {
+    "深圳": ["腾讯大厦", "滨海大厦", "T1塔楼", "金地威新"],
+    "南山": ["滨海大厦", "T1塔楼"],
+    "滨海": ["滨海大厦"],
+    "前海": ["T1塔楼"],
+    "科兴": ["科兴科学园"],
+    "琶洲": ["琶洲新总部"],
+    "广州": ["TIT创意园", "微信总部"],
+    "北京": ["北京总部"],
+    "上海": ["上海总部"],
+    "成都": ["成都办公楼"],
+  };
+  const inputs = new Set([a, b]);
+  const scored = [];
+
+  for (const group of payload.groups) {
+    for (const item of group.items) {
+      if (item.discovered || !item.name) continue;
+      let score = 0;
+      if (inputCategories.has(group.category)) score += 4;
+      if (a && item.name.includes(a)) score += 3;
+      if (b && item.name.includes(b)) score += 3;
+      if ((a && a.includes(item.name)) || (b && b.includes(item.name))) {
+        score += 2;
+      }
+      if (
+        group.category === "boss" &&
+        [...inputs].some((value) => founderSignals.has(value))
+      ) {
+        score += 5;
+      }
+      for (const [trigger, target] of Object.entries(bgHints)) {
+        if (inputs.has(trigger) && item.name === target) score += 6;
+      }
+      if (group.category === "building") {
+        for (const [trigger, targets] of Object.entries(geoHints)) {
+          if (inputs.has(trigger) && targets.includes(item.name)) score += 6;
+        }
+      }
+      if (score > 0) {
+        scored.push({
+          score,
+          value: {
+            name: item.name,
+            emoji: item.emoji,
+            category: group.category,
+          },
+        });
+      }
+    }
+  }
+
+  return scored
+    .sort((left, right) => right.score - left.score)
+    .slice(0, Math.max(1, Math.min(50, Number(limit) || 12)))
+    .map((item) => item.value);
+}
