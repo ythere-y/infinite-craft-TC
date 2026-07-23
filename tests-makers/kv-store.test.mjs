@@ -69,6 +69,36 @@ test("JSON records are decoded from plain Makers KV text reads", async () => {
   });
 });
 
+test("initial Makers KV list calls omit an undefined cursor", async () => {
+  class StrictListKV extends FakeKV {
+    async list(options = {}) {
+      if (
+        Object.hasOwn(options, "cursor") &&
+        options.cursor === undefined
+      ) {
+        throw new TypeError("cursor must be omitted until pagination starts");
+      }
+      return super.list(options);
+    }
+  }
+
+  const store = new KvStore(
+    new StrictListKV({
+      record_a: JSON.stringify({ value: "a" }),
+      record_b: JSON.stringify({ value: "b" }),
+    }),
+  );
+
+  assert.deepEqual(await store.listAllKeys("record_"), [
+    "record_a",
+    "record_b",
+  ]);
+  assert.deepEqual(await store.listKeyWindow("record_", 0, 1), {
+    keys: ["record_a"],
+    complete: true,
+  });
+});
+
 test("first discovery keeps the earliest claimant and powers pagination", async () => {
   let now = 1_700_000_000_000;
   const store = new KvStore(new FakeKV(), { now: () => now });

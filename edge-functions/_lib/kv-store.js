@@ -48,6 +48,10 @@ function newestFirst(left, right) {
   );
 }
 
+function listOptions(prefix, limit, cursor) {
+  return cursor ? { prefix, limit, cursor } : { prefix, limit };
+}
+
 export class KvStore {
   constructor(kv, { now = () => Date.now() } = {}) {
     if (!kv || typeof kv.get !== "function" || typeof kv.put !== "function") {
@@ -245,11 +249,7 @@ export class KvStore {
     let cursor;
     let complete = false;
     while (keys.length < limit && !complete) {
-      const result = await this.kv.list({
-        prefix,
-        limit: 256,
-        cursor,
-      });
+      const result = await this.kv.list(listOptions(prefix, 256, cursor));
       const page = (result?.keys ?? [])
         .map((item) => item?.key || item?.name)
         .filter(Boolean);
@@ -1052,7 +1052,7 @@ export class KvStore {
     const keys = [];
     let cursor;
     do {
-      const result = await this.kv.list({ prefix, limit: 256, cursor });
+      const result = await this.kv.list(listOptions(prefix, 256, cursor));
       for (const item of result?.keys ?? []) {
         const key = item?.key || item?.name;
         if (key) keys.push(key);
