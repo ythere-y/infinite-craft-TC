@@ -179,12 +179,14 @@ export class KvStore {
     return (await this.firstPage({ offset: 0, limit })).items;
   }
 
+  async allFirsts() {
+    const snapshot = await this.getJson(RECENT_KEY, { items: [] });
+    return Array.isArray(snapshot?.items) ? snapshot.items : [];
+  }
+
   async leaderboard({ limit = 20, me = null } = {}) {
     const safeLimit = normalizedLimit(limit, 20, 100);
-    const { items } = await this.firstPage({
-      offset: 0,
-      limit: MAX_FIRSTS,
-    });
+    const items = await this.allFirsts();
     const counts = new Map();
     for (const item of items) {
       const name = cleanText(item?.discoverer);
