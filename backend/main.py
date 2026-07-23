@@ -29,6 +29,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from . import db, kpi, archive, depth as depth_mod, bounty as bounty_mod
+from .comments import normalize_comment
 from .seed_loader import store
 from .nickname import generate_unique, stats as nickname_stats
 
@@ -87,6 +88,7 @@ class CombineResp(BaseModel):
     result: str
     emoji: str
     source: str  # seed | llm | fallback
+    comment: str
     chain: Optional[str] = None
     is_first: bool = False
     discoverer: Optional[str] = None
@@ -408,6 +410,7 @@ async def api_combine(req: CombineReq):
     emoji = hit["emoji"]
     chain = hit.get("chain") or None
     source = hit.get("source", "seed")
+    comment = normalize_comment(hit.get("comment"))
 
     # 4. 首发记录
     #    说明：即使 source == "seed"（缓存命中预设配方），只要 first:{result} 在 Redis 中
@@ -467,6 +470,7 @@ async def api_combine(req: CombineReq):
         result=result,
         emoji=emoji,
         source=source,
+        comment=comment,
         chain=chain,
         is_first=is_first,
         discoverer=discoverer,
@@ -514,7 +518,12 @@ async def _combine_via_llm(a: str, b: str, request_id: str) -> Optional[dict]:
         return None
     key = db.normalize_key(a, b)
     db.put_cache(
-        key=key, result=result["name"], emoji=result["emoji"], source="llm", chain=None
+        key=key,
+        result=result["name"],
+        emoji=result["emoji"],
+        source="llm",
+        chain=None,
+        comment=result["comment"],
     )
     print(
         f"[combine] event=llm_succeeded request_id={request_id} "
@@ -525,6 +534,7 @@ async def _combine_via_llm(a: str, b: str, request_id: str) -> Optional[dict]:
         "result": result["name"],
         "emoji": result["emoji"],
         "source": "llm",
+        "comment": result["comment"],
         "chain": None,
     }
 

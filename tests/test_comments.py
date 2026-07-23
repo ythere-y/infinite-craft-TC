@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import asyncio
 
 import pytest
 
@@ -173,3 +174,112 @@ def test_archive_warmup_restores_comment_to_redis(tmp_path, monkeypatch):
 
     assert stats["combos"] == 1
     assert fake.hashes["combo:甲 + 乙"]["comment"] == "归档重新上线。"
+
+
+class FakeMetricsRedis:
+    def setex(self, *args, **kwargs):
+        return True
+
+    def incr(self, *args, **kwargs):
+        return 1
+
+    def zadd(self, *args, **kwargs):
+        return 1
+
+    def zremrangebyscore(self, *args, **kwargs):
+        return 0
+
+    def setnx(self, *args, **kwargs):
+        return True
+
+
+def prepare_cached_combine(monkeypatch, hit):
+    from backend import main
+
+    monkeypatch.setattr(main.db, "get_client", lambda: FakeMetricsRedis())
+    monkeypatch.setattr(main.db, "get_cached", lambda key: dict(hit))
+    monkeypatch.setattr(main.db, "record_first", lambda *args: False)
+    monkeypatch.setattr(
+        main.db,
+        "get_first",
+        lambda result: {"discoverer": "别的玩家"},
+    )
+    monkeypatch.setattr(main.db, "kpi_add", lambda *args: None)
+    monkeypatch.setattr(main.kpi, "score_for", lambda *args: (0, ""))
+    monkeypatch.setattr(main.kpi, "should_explode", lambda *args: False)
+    monkeypatch.setattr(main.depth_mod, "update_on_combine", lambda *args: 1)
+    monkeypatch.setattr(
+        main.store,
+        "elements",
+        {"项目": {"emoji": "📦", "category": "ai"}},
+    )
+
+    async def forbidden_llm(*args, **kwargs):
+        raise AssertionError("cache hit must not call the LLM")
+
+    monkeypatch.setattr(main, "_combine_via_llm", forbidden_llm)
+    return main
+
+
+def test_cached_comment_is_returned_without_llm(monkeypatch):
+    main = prepare_cached_combine(
+        monkeypatch,
+        {
+            "result": "项目",
+            "emoji": "📦",
+            "source": "llm",
+            "chain": "",
+            "comment": "第一次生成的点评。",
+        },
+    )
+
+    response = asyncio.run(
+        main.api_combine(main.CombineReq(a="甲", b="乙", discoverer="测试鹅"))
+    )
+
+    assert response.comment == "第一次生成的点评。"
+
+
+def test_old_cache_without_comment_uses_default(monkeypatch):
+    main = prepare_cached_combine(
+        monkeypatch,
+        {
+            "result": "项目",
+            "emoji": "📦",
+            "source": "llm",
+            "chain": "",
+        },
+    )
+
+    response = asyncio.run(
+        main.api_combine(main.CombineReq(a="甲", b="乙", discoverer="测试鹅"))
+    )
+
+    assert response.comment == DEFAULT_COMMENT
+
+
+def test_llm_comment_is_persisted_once(monkeypatch):
+    from backend import main
+
+    monkeypatch.setattr(main.db, "recent_result_names", lambda limit: [])
+    monkeypatch.setattr(
+        prompt,
+        "combine_via_llm",
+        lambda *args, **kwargs: {
+            "name": "需求膨胀",
+            "emoji": "🎈",
+            "comment": "一行需求开完会，变成季度项目。",
+        },
+    )
+    writes = []
+    monkeypatch.setattr(
+        main.db,
+        "put_cache",
+        lambda *args, **kwargs: writes.append((args, kwargs)),
+    )
+
+    result = asyncio.run(main._combine_via_llm("需求", "会议", "req-comment"))
+
+    assert result["comment"] == "一行需求开完会，变成季度项目。"
+    assert len(writes) == 1
+    assert writes[0][1]["comment"] == result["comment"]
