@@ -1,0 +1,11 @@
+{
+  "name": "infinity-craft-edgeone-makers",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-makers.mjs",
+    "generate:makers-data": "node scripts/generate-makers-data.mjs",
+    "test": "node --test tests-makers"
+  }
+}
