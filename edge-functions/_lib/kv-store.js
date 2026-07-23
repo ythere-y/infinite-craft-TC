@@ -2,6 +2,7 @@ import { cleanText, entityKey, normalizePair } from "./keys.js";
 
 const RECENT_KEY = "snapshot_recent";
 const ELEMENTS_KEY = "snapshot_elements";
+const STATS_KEY = "snapshot_stats";
 const MAX_FIRSTS = 10_000;
 const MAX_RECIPES_PER_RESULT = 100;
 const MAX_KPI_LOG = 100;
@@ -80,9 +81,14 @@ export class KvStore {
 
   async rememberElement(name, info) {
     const elements = await this.getJson(ELEMENTS_KEY, {});
-    elements[cleanText(name)] = {
+    const cleanName = cleanText(name);
+    elements[cleanName] = {
+      ...(elements[cleanName] || {}),
       emoji: cleanText(info?.emoji) || "❓",
       category: cleanText(info?.category) || "ai",
+      ...(Number.isFinite(Number(info?.depth))
+        ? { depth: Math.max(0, finiteInteger(info.depth)) }
+        : {}),
     };
     await this.putJson(ELEMENTS_KEY, elements);
   }
@@ -270,6 +276,172 @@ export class KvStore {
 
   async kpiTotal(sessionId) {
     return finiteInteger((await this.getSession(sessionId)).value.total);
+  }
+
+  async recordCombineActivity({
+    sessionId,
+    a,
+    b,
+    result,
+    emoji,
+    source,
+    chain,
+  }) {
+    const now = Math.floor(this.timestamp());
+    const minute = String(now - (now % 60));
+    const hour = String(now - (now % 3_600));
+    const stats = await this.getJson(STATS_KEY, {
+      total_calls: 0,
+      active_sessions: {},
+      minute_counts: {},
+      hour_counts: {},
+      combinations: {},
+      chains: {},
+    });
+
+    stats.total_calls = finiteInteger(stats.total_calls) + 1;
+    stats.active_sessions ||= {};
+    stats.active_sessions[
+      await entityKey("active", cleanText(sessionId) || "anon")
+    ] = now;
+    for (const [key, timestamp] of Object.entries(stats.active_sessions)) {
+      if (Number(timestamp) < now - 300) delete stats.active_sessions[key];
+    }
+
+    stats.minute_counts ||= {};
+    stats.minute_counts[minute] = finiteInteger(stats.minute_counts[minute]) + 1;
+    for (const key of Object.keys(stats.minute_counts)) {
+      if (Number(key) < Number(minute) - 61 * 60) {
+        delete stats.minute_counts[key];
+      }
+    }
+
+    stats.hour_counts ||= {};
+    stats.hour_counts[hour] = finiteInteger(stats.hour_counts[hour]) + 1;
+    for (const key of Object.keys(stats.hour_counts)) {
+      if (Number(key) < Number(hour) - 25 * 3_600) {
+        delete stats.hour_counts[key];
+      }
+    }
+
+    const pair = normalizePair(a, b);
+    stats.combinations ||= {};
+    const combination = stats.combinations[pair] || {
+      key: pair,
+      result: cleanText(result),
+      emoji: cleanText(emoji) || "❓",
+      hit_count: 0,
+      source: cleanText(source) || "fallback",
+      chain: cleanText(chain) || null,
+    };
+    combination.result = cleanText(result);
+    combination.emoji = cleanText(emoji) || "❓";
+    combination.source = cleanText(source) || "fallback";
+    combination.chain = cleanText(chain) || null;
+    combination.hit_count = finiteInteger(combination.hit_count) + 1;
+    stats.combinations[pair] = combination;
+
+    const combinationEntries = Object.entries(stats.combinations);
+    if (combinationEntries.length > 500) {
+      const keep = new Set(
+        combinationEntries
+          .sort(
+            (left, right) =>
+              finiteInteger(right[1]?.hit_count) -
+              finiteInteger(left[1]?.hit_count),
+          )
+          .slice(0, 500)
+          .map(([key]) => key),
+      );
+      for (const key of Object.keys(stats.combinations)) {
+        if (!keep.has(key)) delete stats.combinations[key];
+      }
+    }
+
+    stats.chains ||= {};
+    const chainName = cleanText(chain) || "未分类";
+    stats.chains[chainName] = finiteInteger(stats.chains[chainName]) + 1;
+    await this.putJson(STATS_KEY, stats);
+    return stats;
+  }
+
+  async statsSnapshot() {
+    return this.getJson(STATS_KEY, {
+      total_calls: 0,
+      active_sessions: {},
+      minute_counts: {},
+      hour_counts: {},
+      combinations: {},
+      chains: {},
+    });
+  }
+
+  async analyticsCombinations(limit = 20) {
+    const stats = await this.statsSnapshot();
+    return Object.values(stats.combinations || {})
+      .sort(
+        (left, right) =>
+          finiteInteger(right.hit_count) - finiteInteger(left.hit_count),
+      )
+      .slice(0, normalizedLimit(limit, 20, 100));
+  }
+
+  async analyticsChains(limit = 10) {
+    const stats = await this.statsSnapshot();
+    return Object.entries(stats.chains || {})
+      .map(([chain, count]) => ({
+        chain: chain === "未分类" ? null : chain,
+        cnt: finiteInteger(count),
+        total_hits: finiteInteger(count),
+      }))
+      .sort((left, right) => right.total_hits - left.total_hits)
+      .slice(0, normalizedLimit(limit, 10, 100));
+  }
+
+  async adminStats() {
+    const now = Math.floor(this.timestamp());
+    const minuteStart = now - (now % 60);
+    const hourStart = now - (now % 3_600);
+    const stats = await this.statsSnapshot();
+    const minuteCounts = stats.minute_counts || {};
+    const hourCounts = stats.hour_counts || {};
+    const sumMinutes = (count) => {
+      let total = 0;
+      for (let index = 0; index < count; index += 1) {
+        total += finiteInteger(minuteCounts[String(minuteStart - index * 60)]);
+      }
+      return total;
+    };
+    const timeseries30m = [];
+    for (let index = 29; index >= 0; index -= 1) {
+      const ts = minuteStart - index * 60;
+      timeseries30m.push({
+        ts,
+        count: finiteInteger(minuteCounts[String(ts)]),
+      });
+    }
+    const timeseries24h = [];
+    for (let index = 23; index >= 0; index -= 1) {
+      const ts = hourStart - index * 3_600;
+      timeseries24h.push({
+        ts,
+        count: finiteInteger(hourCounts[String(ts)]),
+      });
+    }
+    return {
+      now,
+      active_sessions: Object.values(stats.active_sessions || {}).filter(
+        (timestamp) => Number(timestamp) >= now - 300,
+      ).length,
+      total_calls: finiteInteger(stats.total_calls),
+      calls_1m: sumMinutes(1),
+      calls_5m: sumMinutes(5),
+      calls_60m: sumMinutes(60),
+      timeseries_30m: timeseries30m,
+      timeseries_24h: timeseries24h,
+      top_combinations: await this.analyticsCombinations(10),
+      top_chains: await this.analyticsChains(10),
+    };
   }
 
   async listAllKeys(prefix) {
