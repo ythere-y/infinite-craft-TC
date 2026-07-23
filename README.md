@@ -28,6 +28,39 @@ docker compose up -d
 
 然后同样访问 `http://localhost:8000`。SQLite 数据通过 `./data` 卷持久化。
 
+### 方式 3：EdgeOne Makers
+
+仓库已经包含 Makers 所需的静态构建、Edge Functions API 和 KV
+持久化实现。Git 集成发布时，Makers 会按照 `edgeone.json` 执行
+`npm run build`，并发布 `dist/`。
+
+控制台只需确认：
+
+1. 在项目的“存储 → KV”中，将命名空间 `infinite_craft` 绑定为变量名
+   `test`。
+2. 在项目环境变量中配置 `AI_GATEWAY_API_KEY`（推荐）或
+   `MAKERS_MODELS_KEY`；模型默认是 `@makers/deepseek-v4-flash`。
+3. 推送 `main`，等待已配置的 Git 自动发布完成。
+
+`test` 是 Edge Function 访问整个命名空间的绑定名，不是单条数据，也
+不需要写进 `.env`。合成、首发、昵称、KPI、排行榜和统计所需的业务 key
+都会由代码通过 `test.put(...)` 自动创建；无需在控制台逐条新建记录。
+
+本地检查 Makers 产物：
+
+```bash
+npm test
+npm run build
+```
+
+Makers KV 是最终一致存储：发起写入的节点立即可读，其他边缘节点最多约
+60 秒后看到更新。因此跨地域的成就墙、排行、首发和昵称占用可能短暂滞后；
+KV 没有事务或原子 `put-if-absent`，极端跨节点并发时唯一性是尽力保证。
+
+现有 FastAPI 的本地 SQLite/Redis 运行数据位于被 Git 忽略的 `data/`，
+不会随代码发布到 Makers；固定元素和全部预设配方会随构建发布，Makers
+上线后的新玩家数据则写入 KV。
+
 ### 分享现场
 
 - 主屏：浏览器打开 `http://<服务器>:8000`
@@ -41,21 +74,14 @@ docker compose up -d
 ┌────────────── 浏览器 ──────────────┐
 │  index.html + app.js / effects.js  │
 │  HTML5 Drag & Drop + LocalStorage  │
-└──────────────┬─────────────────────┘
-               │ fetch POST /api/combine
-┌──────────────▼─────────────────────┐
-│  FastAPI (backend/)                 │
-│  1. normalize key                   │
-│  2. SQLite cache ──命中──→ 返回     │
-│  3. seed_combinations ──命中──→ 返回 │
-│  4. miss → 服务端配置的 LLM          │
-│  5. 记首发 + KPI + SSE 推首发墙     │
-└──────────────┬─────────────────────┘
-               │ requests
-┌──────────────▼─────────────────────┐
-│  OpenAI-compatible LLM API          │
-│  （仅由服务端环境变量配置）           │
-└────────────────────────────────────┘
+└──────────────┬──────────────────────┘
+               │ 相对路径 /api/*
+       ┌───────┴────────────────┐
+       │                        │
+┌──────▼──────────────┐  ┌──────▼─────────────────┐
+│ Makers Edge Function│  │ FastAPI（本地/Docker）  │
+│ KV(test) + Models   │  │ Redis + SQLite + LLM   │
+└─────────────────────┘  └────────────────────────┘
 ```
 
 ---
@@ -67,6 +93,15 @@ infinity_craft/
 ├── run.sh                     本地一键启动
 ├── Dockerfile / docker-compose.yml
 ├── requirements.txt
+├── edgeone.json               Makers 构建配置
+├── package.json               Makers 构建/测试命令（无第三方依赖）
+├── edge-functions/
+│   ├── api/[[default]].js     /api/* catch-all Edge Function
+│   ├── _lib/                  KV、路由、合成、模型和业务逻辑
+│   └── _generated/            从现有 seed JSON 生成的只读数据
+├── scripts/
+│   ├── build-makers.mjs       生成 dist/ 静态发布目录
+│   └── generate-makers-data.mjs
 ├── backend/
 │   ├── main.py                FastAPI 路由
 │   ├── db.py                  SQLite（combinations / first_discovery / kpi_events）
@@ -74,13 +109,13 @@ infinity_craft/
 │   ├── llm.py                 LLM 调用封装
 │   ├── prompt.py              few-shot prompt 模板
 │   ├── kpi.py                 评分 + 绩效评级
-│   ├── seed_elements.json     140+ 元素（8 starter + 鹅厂/打工人/热梗/黑话/物理/生活/抽象）
-│   ├── seed_combinations.json 140+ 合成规则
+│   ├── seed_elements.json     元素与 starter 真相源
+│   ├── seed_combinations.json 预设合成规则真相源
 │   └── README.md              词库扩展指南
 ├── frontend/
 │   ├── index.html / style.css / app.js
 │   ├── effects.js             P0 爆炸 / 首发 toast / 老板模式
-│   ├── wall/                  首发墙（分页 + 搜索 + 排行榜 + SSE）
+│   ├── wall/                  首发墙（分页 + 搜索 + 排行榜 + 增量轮询）
 │   │   ├── index.html / wall.css / wall.js
 └── data/
     └── cache.db               运行时自动生成
@@ -136,8 +171,11 @@ infinity_craft/
 
 | 变量                | 默认               | 说明                                      |
 | ------------------- | ------------------ | ----------------------------------------- |
-| `LLM_API_KEY`       | 无                 | 通用 Provider 密钥，设置后优先使用        |
-| `MAKERS_MODELS_KEY` | 无                 | EdgeOne Makers 密钥                       |
+| `AI_GATEWAY_API_KEY`| 无                 | Makers Edge Function 推荐的模型密钥       |
+| `MAKERS_MODELS_KEY` | 无                 | EdgeOne Makers 兼容密钥                   |
+| `LLM_API_KEY`       | 无                 | 通用 Provider 密钥                        |
+| `AI_GATEWAY_BASE_URL`| EdgeOne AI Gateway | Makers Edge Function 的网关地址          |
+| `AI_GATEWAY_MODEL`  | DeepSeek V4 Flash  | Makers Edge Function 的模型标识           |
 | `LLM_BASE_URL`      | 无                 | OpenAI-compatible API 根地址              |
 | `LLM_MODEL`         | 无                 | Provider 模型标识                         |
 | `LLM_TIMEOUT`       | `15`               | 单次请求超时（秒）                        |
