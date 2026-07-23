@@ -287,17 +287,33 @@ test("router returns safe JSON errors, CORS preflight and stream shutdown", asyn
   assert.equal(stream.status, 204);
 });
 
-test("Edge Function entry reads the console binding named test as a global", async () => {
-  globalThis.test = new FakeKV();
+test("Edge Function entry selects the production and development KV globals", async () => {
+  const productionKv = new FakeKV();
+  const developmentKv = new FakeKV();
+  globalThis.test = productionKv;
+  globalThis.test_dev = developmentKv;
   try {
     const { onRequest } = await import("../edge-functions/api/[[default]].js");
-    const response = await onRequest({
-      request: request("/api/starters"),
+
+    const production = await onRequest({
+      request: request("/api/health"),
       env: {},
     });
-    assert.equal(response.status, 200);
-    assert.equal((await response.json()).starters.length, 10);
+    assert.equal(production.status, 200);
+    assert.equal((await production.json()).app_env, "makers");
+    assert.equal(productionKv.getCalls, 1);
+    assert.equal(developmentKv.getCalls, 0);
+
+    const development = await onRequest({
+      request: new Request("http://127.0.0.1:8088/api/health"),
+      env: { APP_ENV: "dev" },
+    });
+    assert.equal(development.status, 200);
+    assert.equal((await development.json()).app_env, "dev");
+    assert.equal(productionKv.getCalls, 1);
+    assert.equal(developmentKv.getCalls, 1);
   } finally {
     delete globalThis.test;
+    delete globalThis.test_dev;
   }
 });
