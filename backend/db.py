@@ -66,7 +66,14 @@ def get_cached(key: str) -> Optional[Dict]:
     return data
 
 
-def put_cache(key: str, result: str, emoji: str, source: str, chain: Optional[str] = None) -> None:
+def put_cache(
+    key: str,
+    result: str,
+    emoji: str,
+    source: str,
+    chain: Optional[str] = None,
+    comment: str = "",
+) -> None:
     c = get_client()
     # 防御：Redis HSET 不接受 None 值，所有字段一律强制转成 str（空串兜底）
     payload = {
@@ -74,23 +81,48 @@ def put_cache(key: str, result: str, emoji: str, source: str, chain: Optional[st
         "emoji":  str(emoji)  if emoji  is not None else "❓",
         "source": str(source) if source is not None else "seed",
         "chain":  str(chain)  if chain  is not None else "",
+        "comment": str(comment) if comment is not None else "",
         "ts": f"{time.time():.3f}",
     }
     # 若已存在则不覆盖（保留最早落库的 source，避免 LLM 结果覆盖 seed）
     if not c.exists(_combo_key(key)):
         c.hset(_combo_key(key), mapping=payload)
     # 双写 SQLite（冷副本 / 真相源）
-    archive.upsert_combination(key, result, emoji, source, chain, increment_hit=False)
+    archive.upsert_combination(
+        key,
+        result,
+        emoji,
+        source,
+        chain,
+        comment=comment,
+        increment_hit=False,
+    )
 
 
-def put_cache_force(key: str, result: str, emoji: str, source: str, chain: Optional[str] = None) -> None:
+def put_cache_force(
+    key: str,
+    result: str,
+    emoji: str,
+    source: str,
+    chain: Optional[str] = None,
+    comment: str = "",
+) -> None:
     """强制覆盖版本（仅用于手工运维）。"""
     c = get_client()
     c.hset(_combo_key(key), mapping={
         "result": result, "emoji": emoji, "source": source,
-        "chain": chain or "", "ts": f"{time.time():.3f}",
+        "chain": chain or "", "comment": str(comment or ""),
+        "ts": f"{time.time():.3f}",
     })
-    archive.upsert_combination(key, result, emoji, source, chain, increment_hit=False)
+    archive.upsert_combination(
+        key,
+        result,
+        emoji,
+        source,
+        chain,
+        comment=comment,
+        increment_hit=False,
+    )
 
 
 def touch_hit(key: str) -> None:
@@ -268,6 +300,7 @@ def warm_up_from_archive() -> dict:
             c.hset(_combo_key(key), mapping={
                 "result": row["result"], "emoji": row["emoji"],
                 "source": row["source"], "chain": row["chain"] or "",
+                "comment": row.get("comment") or "",
                 "ts": f"{time.time():.3f}",
             })
             stats["combos"] += 1
