@@ -1,3 +1,7 @@
+# Legacy / paused configuration.
+# EdgeOne Makers is the active deployment target. This file is intentionally
+# outside the repository root so Render Blueprint is not the default workflow.
+# Review service plans, persistence and secrets before any future reuse.
 services:
   - type: web
     name: infinite-craft-tc
