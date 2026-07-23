@@ -1,8 +1,6 @@
 services:
   redis:
     image: redis:7-alpine
-    container_name: ic-redis
-    restart: unless-stopped
     ports:
       - "127.0.0.1:16739:6379"   # 冷门端口防冲突
     volumes:
@@ -15,24 +13,41 @@ services:
       --save 900 1
       --save 300 10
       --dir /data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
 
   web:
     build: .
     image: infinity-craft:latest
-    container_name: infinity-craft
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     ports:
       - "8000:8000"
     environment:
-      REDIS_URL: "redis://redis:6379/0"
-      # 私有地址与密钥只从本地 .env / 部署平台注入，不写入仓库。
+      # 本地运行时固定隔离；不允许 .env 把它改成线上环境或远端 Redis。
+      APP_ENV: "dev"
+      REDIS_URL: "redis://redis:6379/1"
+      # DeepSeek 密钥仅从被 Git 忽略的本地 .env 注入。
       LLM_API_KEY: "${LLM_API_KEY:-}"
-      MAKERS_MODELS_KEY: "${MAKERS_MODELS_KEY:-}"
-      LLM_BASE_URL: "${LLM_BASE_URL:-}"
-      LLM_MODEL: "${LLM_MODEL:-}"
+      LLM_BASE_URL: "${LLM_BASE_URL:-https://api.deepseek.com}"
+      LLM_MODEL: "${LLM_MODEL:-deepseek-v4-flash}"
       LLM_TIMEOUT: "${LLM_TIMEOUT:-20}"
       LLM_MAX_RETRIES: "${LLM_MAX_RETRIES:-0}"
       LLM_REASONING_EFFORT: "${LLM_REASONING_EFFORT:-}"
       LLM_THINKING_ENABLED: "${LLM_THINKING_ENABLED:-false}"
-    restart: unless-stopped
+    volumes:
+      - ./backend:/app/backend:ro
+      - ./frontend:/app/frontend:ro
+      - ./data:/app/data
+    command:
+      - uvicorn
+      - backend.main:app
+      - --host
+      - "0.0.0.0"
+      - --port
+      - "8000"
+      - --reload

@@ -11,20 +11,6 @@ async function exists(path) {
   }
 }
 
-test("tracked configuration exposes the safe Makers team workflow", async () => {
-  const packageJson = JSON.parse(await readFile("package.json", "utf8"));
-  const envExample = await readFile(".env.example", "utf8");
-
-  assert.equal(
-    packageJson.scripts["makers:dev"],
-    "node scripts/dev-makers.mjs",
-  );
-  assert.equal("dev" in packageJson.scripts, false);
-  assert.match(envExample, /^APP_ENV=dev$/mu);
-  assert.match(envExample, /^MAKERS_MODELS_KEY=$/mu);
-  assert.match(envExample, /test_dev → infinite_craft_dev/u);
-});
-
 test("Render is archived outside the repository root", async () => {
   assert.equal(await exists("render.yaml"), false);
   assert.equal(await exists("deploy/legacy/render.yaml"), true);

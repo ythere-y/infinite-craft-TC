@@ -98,7 +98,7 @@ package-lock.json
 .docker/
 
 # ---- 部署平台本地状态 ----
-# .edgeone/ 保存每位成员自己的 Makers 项目关联和登录状态，不进入 Git。
+# .edgeone/ 仅供部署维护者保存 Makers 项目关联和登录状态；普通本地开发不需要。
 .edgeone/
 .vercel/
 .cloudbase/
