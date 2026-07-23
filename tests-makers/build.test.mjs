@@ -5,11 +5,13 @@ import test from "node:test";
 import { buildMakersSite } from "../scripts/build-makers.mjs";
 
 const REQUIRED_FILES = [
+  "dist/THIRD_PARTY_NOTICES.md",
   "dist/index.html",
   "dist/app.js",
   "dist/effects.js",
   "dist/style.css",
   "dist/wall/index.html",
+  "dist/wall/polling.js",
   "dist/wall/wall.js",
   "dist/admin/index.html",
 ];

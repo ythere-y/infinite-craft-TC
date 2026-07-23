@@ -24,6 +24,10 @@ import {
   randomSuffix,
 } from "./nickname.js";
 
+const MAX_VERIFY_RECIPES = 500;
+const MAX_RECIPE_FIELD_LENGTH = 80;
+const VERIFY_READ_BATCH = 20;
+
 function intParam(searchParams, name, fallback, minimum, maximum) {
   const raw = searchParams.get(name);
   if (raw == null || raw === "") return fallback;
@@ -48,6 +52,18 @@ function requireMethod(request, expected) {
 
 function dynamicAndSeedElements(dynamic) {
   return { ...(dynamic || {}), ...ELEMENTS };
+}
+
+async function mapInBatches(items, batchSize, worker) {
+  const output = [];
+  for (let index = 0; index < items.length; index += batchSize) {
+    output.push(
+      ...(await Promise.all(
+        items.slice(index, index + batchSize).map(worker),
+      )),
+    );
+  }
+  return output;
 }
 
 export function createRouter({
@@ -85,8 +101,8 @@ export function createRouter({
 
   async function getKnownCombination(a, b) {
     return (
-      (await store.getCombination(a, b)) ||
       COMBINATIONS[normalizePair(a, b)] ||
+      (await store.getCombination(a, b)) ||
       null
     );
   }
@@ -121,20 +137,46 @@ export function createRouter({
   }
 
   async function adminPayload() {
-    const [base, firsts, leaderboard, nickCount] = await Promise.all([
+    const [base, firsts, nickCount] = await Promise.all([
       store.adminStats(),
-      store.firstPage({ offset: 0, limit: 15 }),
-      store.leaderboard({ limit: 10 }),
+      store.allFirsts(),
       store.nicknameCount(),
     ]);
+    const leaderboard = await store.leaderboard({
+      limit: 10,
+      items: firsts,
+    });
     return {
       ...base,
       env: env.APP_ENV || "makers",
       nick_count: nickCount,
-      firsts_total: firsts.total,
+      firsts_total: firsts.length,
       top_discoverers: leaderboard.top,
-      recent_firsts: firsts.items,
+      recent_firsts: firsts.slice(0, 15),
     };
+  }
+
+  function dashboardAccessMode() {
+    if (cleanText(env.DASHBOARD_PUBLIC) === "1") return "public";
+    if (cleanText(env.ADMIN_TOKEN)) return "protected";
+    return "disabled";
+  }
+
+  function requireDashboardAccess(request) {
+    if (dashboardAccessMode() === "public") return;
+    const expected = cleanText(env.ADMIN_TOKEN);
+    if (!expected) {
+      throw new HttpError(
+        503,
+        "管理面板已关闭：请配置 ADMIN_TOKEN，或显式设置 DASHBOARD_PUBLIC=1",
+      );
+    }
+    const authorization = cleanText(request.headers.get("authorization"));
+    const bearer = authorization.match(/^Bearer\s+(.+)$/iu)?.[1] || "";
+    const explicit = cleanText(request.headers.get("x-admin-token"));
+    if (bearer !== expected && explicit !== expected) {
+      throw new HttpError(401, "管理面板凭据无效");
+    }
   }
 
   async function handleApi(request) {
@@ -176,6 +218,16 @@ export function createRouter({
           provider: "edgeone-makers-models",
           base_url: config.baseUrl,
           model: config.model,
+        },
+        security: {
+          dashboard: dashboardAccessMode(),
+          model_calls_per_minute: Math.max(
+            1,
+            Math.min(
+              1_000,
+              Number(env.MODEL_CALLS_PER_MINUTE) || 20,
+            ),
+          ),
         },
       });
     }
@@ -221,7 +273,17 @@ export function createRouter({
 
     if (path === "/api/combine") {
       requireMethod(request, "POST");
-      return jsonResponse(await game.combine(await readJson(request)));
+      const body = await readJson(request);
+      const sessionId = cleanText(body?.session_id) || "anonymous";
+      const clientIp = cleanText(request.eo?.clientIp);
+      return jsonResponse(
+        await game.combine({
+          ...body,
+          client_identity: clientIp
+            ? `${clientIp}:${sessionId}`
+            : sessionId,
+        }),
+      );
     }
     if (path === "/api/session/kpi") {
       requireMethod(request, "POST");
@@ -245,10 +307,17 @@ export function createRouter({
     if (path === "/api/recipes/verify") {
       requireMethod(request, "POST");
       const body = await readJson(request);
-      const input = Array.isArray(body?.recipes) ? body.recipes.slice(0, 2_000) : [];
+      const input = Array.isArray(body?.recipes) ? body.recipes : [];
+      if (input.length > MAX_VERIFY_RECIPES) {
+        throw new HttpError(
+          400,
+          `每次最多校验 ${MAX_VERIFY_RECIPES} 条配方`,
+        );
+      }
       const valid = [];
       const invalid = [];
       const unknown = [];
+      const candidates = [];
       for (const recipe of input) {
         const a = cleanText(recipe?.a);
         const b = cleanText(recipe?.b);
@@ -257,7 +326,26 @@ export function createRouter({
           invalid.push({ a, b, reason: "缺少必填字段" });
           continue;
         }
-        const hit = await getKnownCombination(a, b);
+        if (
+          [...a].length > MAX_RECIPE_FIELD_LENGTH ||
+          [...b].length > MAX_RECIPE_FIELD_LENGTH ||
+          [...result].length > MAX_RECIPE_FIELD_LENGTH
+        ) {
+          invalid.push({ a, b, reason: "字段过长" });
+          continue;
+        }
+        candidates.push({ a, b, result });
+      }
+
+      const checks = await mapInBatches(
+        candidates,
+        VERIFY_READ_BATCH,
+        async (recipe) => ({
+          ...recipe,
+          hit: await getKnownCombination(recipe.a, recipe.b),
+        }),
+      );
+      for (const { a, b, result, hit } of checks) {
         if (!hit) {
           unknown.push({ a, b });
         } else if (hit.result !== result) {
@@ -276,7 +364,7 @@ export function createRouter({
         valid,
         invalid,
         unknown,
-        total_input: Array.isArray(body?.recipes) ? body.recipes.length : 0,
+        total_input: input.length,
       });
     }
 
@@ -353,15 +441,18 @@ export function createRouter({
 
     if (path === "/api/admin/stats") {
       requireMethod(request, "GET");
+      requireDashboardAccess(request);
       return jsonResponse(await adminPayload());
     }
     if (path === "/api/analytics/chains") {
       requireMethod(request, "GET");
+      requireDashboardAccess(request);
       const limit = intParam(url.searchParams, "limit", 10, 1, 100);
       return jsonResponse({ items: await store.analyticsChains(limit) });
     }
     if (path === "/api/analytics/discoverers") {
       requireMethod(request, "GET");
+      requireDashboardAccess(request);
       const limit = intParam(url.searchParams, "limit", 10, 1, 100);
       const result = await store.leaderboard({ limit });
       return jsonResponse({
@@ -373,6 +464,7 @@ export function createRouter({
     }
     if (path === "/api/analytics/combinations") {
       requireMethod(request, "GET");
+      requireDashboardAccess(request);
       const limit = intParam(url.searchParams, "limit", 20, 1, 100);
       return jsonResponse({
         items: await store.analyticsCombinations(limit),

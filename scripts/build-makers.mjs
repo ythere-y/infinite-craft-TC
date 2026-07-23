@@ -8,6 +8,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const FRONTEND = resolve(ROOT, "frontend");
 const OUTPUT = resolve(ROOT, "dist");
 const REQUIRED_ENTRIES = [
+  "THIRD_PARTY_NOTICES.md",
   "index.html",
   "app.js",
   "effects.js",
@@ -32,6 +33,10 @@ export async function buildMakersSite() {
   await rm(OUTPUT, { recursive: true, force: true });
   await mkdir(OUTPUT, { recursive: true });
   await cp(FRONTEND, OUTPUT, { recursive: true });
+  await cp(
+    resolve(ROOT, "THIRD_PARTY_NOTICES.md"),
+    resolve(OUTPUT, "THIRD_PARTY_NOTICES.md"),
+  );
   await assertPublicEntries();
 }
 

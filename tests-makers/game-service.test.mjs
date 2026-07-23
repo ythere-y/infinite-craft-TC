@@ -7,6 +7,10 @@ import {
 } from "../edge-functions/_lib/llm.js";
 import { createGameService } from "../edge-functions/_lib/game-service.js";
 import { KvStore } from "../edge-functions/_lib/kv-store.js";
+import {
+  entityKey,
+  normalizePair,
+} from "../edge-functions/_lib/keys.js";
 import { FakeKV } from "./fake-kv.mjs";
 
 function makeService({ env = {}, fetchImpl } = {}) {
@@ -37,6 +41,10 @@ test("model parser accepts clean or fenced JSON and rejects invalid output", () 
   assert.equal(parseModelCombination('{"name":"","emoji":"🧠"}'), null);
   assert.equal(
     parseModelCombination('{"name":"这是一个超过十个字符的超长结果","emoji":"🧠"}'),
+    null,
+  );
+  assert.equal(
+    parseModelCombination('{"name":"危险结果","emoji":"<img onerror=alert(1)>"}'),
     null,
   );
 });
@@ -99,6 +107,30 @@ test("seed combinations keep the existing response contract and persist firsts",
   assert.equal((await store.firstPage()).total, 1);
 });
 
+test("authoritative seed combinations cannot be shadowed by KV", async () => {
+  const comboKey = await entityKey("combo", normalizePair("水", "火"));
+  const kv = new FakeKV({
+    [comboKey]: JSON.stringify({
+      a: "水",
+      b: "火",
+      result: "错误覆盖",
+      emoji: "❌",
+      source: "llm",
+    }),
+  });
+  const store = new KvStore(kv, { now: () => 1_700_000_000_000 });
+  const service = createGameService({ store, env: {} });
+
+  const result = await service.combine({
+    a: "水",
+    b: "火",
+    discoverer: "种子鹅",
+    session_id: "seed-session",
+  });
+  assert.equal(result.result, "蒸汽");
+  assert.equal(result.source, "seed");
+});
+
 test("LLM misses are cached in KV and reused without another model request", async () => {
   let calls = 0;
   const { service, store } = makeService({
@@ -134,6 +166,48 @@ test("LLM misses are cached in KV and reused without another model request", asy
   assert.equal(repeat.result, "智能咖啡");
   assert.equal(calls, 1);
   assert.equal((await store.getCombination("AI", "咖啡")).result, "智能咖啡");
+});
+
+test("model misses have a bounded per-visitor KV rate limit", async () => {
+  let calls = 0;
+  const { service, kv } = makeService({
+    env: {
+      MAKERS_MODELS_KEY: "secret",
+      MODEL_CALLS_PER_MINUTE: "1",
+    },
+    fetchImpl: async () => {
+      calls += 1;
+      return new Response(
+        JSON.stringify({
+          choices: [
+            { message: { content: '{"name":"限流结果","emoji":"🧱"}' } },
+          ],
+        }),
+        { status: 200 },
+      );
+    },
+  });
+
+  await service.combine({
+    a: "限流甲",
+    b: "限流乙",
+    discoverer: "限流鹅",
+    session_id: "same-visitor",
+  });
+  await assert.rejects(
+    service.combine({
+      a: "限流丙",
+      b: "限流丁",
+      discoverer: "限流鹅",
+      session_id: "same-visitor",
+    }),
+    (error) => error?.status === 429 && /频繁/.test(error.message),
+  );
+  assert.equal(calls, 1);
+  assert.equal(
+    [...kv.values.keys()].filter((key) => key.startsWith("modelrate_")).length,
+    1,
+  );
 });
 
 test("missing model configuration degrades to the established fallback", async () => {

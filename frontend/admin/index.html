@@ -206,9 +206,9 @@
         <div class="sub">次合成</div>
       </div>
       <div class="card">
-        <div class="label">🎯 累计合成</div>
+        <div class="label">🎯 累计合成（约）</div>
         <div class="value" id="total-calls">—</div>
-        <div class="sub">自启动以来</div>
+        <div class="sub">KV 最终一致近似遥测</div>
       </div>
       <div class="card">
         <div class="label">🏆 全球首发</div>
@@ -267,7 +267,9 @@
 
   <script>
     const REFRESH_SEC = 3;
+    const ADMIN_TOKEN_KEY = "infinity_admin_token";
     let countdown = REFRESH_SEC;
+    let authPrompted = false;
 
     function fmtNum(n) { return n == null ? "—" : Number(n).toLocaleString("en-US"); }
     function fmtTimeAgo(ts) {
@@ -367,11 +369,33 @@
       `;
     }
 
+    async function fetchStats() {
+      let token = sessionStorage.getItem("infinity_admin_token") || "";
+      const request = () => fetch("/api/admin/stats", {
+        cache: "no-store",
+        headers: token ? { authorization: `Bearer ${token}` } : {},
+      });
+      let response = await request();
+      if (response.status === 401 && !authPrompted) {
+        authPrompted = true;
+        token = prompt("此监控面板已启用访问保护，请输入 ADMIN_TOKEN：") || "";
+        if (token) {
+          sessionStorage.setItem(ADMIN_TOKEN_KEY, token);
+          response = await request();
+        }
+      }
+      if (!response.ok) {
+        if (response.status === 401) {
+          sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+        }
+        throw new Error("HTTP " + response.status);
+      }
+      return response.json();
+    }
+
     async function tick() {
       try {
-        const r = await fetch("/api/admin/stats", { cache: "no-store" });
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        const d = await r.json();
+        const d = await fetchStats();
         render(d);
         document.getElementById("status").textContent =
           "最近更新 " + new Date().toLocaleTimeString("zh-CN");

@@ -1,4 +1,9 @@
-const CHENGYU = [
+import {
+  NICKNAME_CHENGYU,
+  NICKNAME_STATES,
+} from "../_generated/nickname-data.js";
+
+const FALLBACK_CHENGYU = [
   "热情洋溢",
   "一本正经",
   "无所畏惧",
@@ -9,7 +14,13 @@ const CHENGYU = [
   "目不转睛",
 ];
 
-const STATES = ["代码", "周报", "咖啡", "火锅"];
+const FALLBACK_STATES = ["代码", "周报", "咖啡", "火锅"];
+const CHENGYU = NICKNAME_CHENGYU.length
+  ? NICKNAME_CHENGYU
+  : FALLBACK_CHENGYU;
+const STATES = NICKNAME_STATES.length
+  ? NICKNAME_STATES
+  : FALLBACK_STATES;
 
 export const MEME_POOL = [
   "OKR", "KPI", "周报", "月报", "季报", "述职PPT", "TAPD",
@@ -47,6 +58,10 @@ export function randomSuffix(length = 3, random = Math.random) {
 
 export function nicknameStats() {
   return {
+    source:
+      NICKNAME_CHENGYU.length && NICKNAME_STATES.length
+        ? "bundled"
+        : "fallback",
     chengyu: CHENGYU.length,
     thuocl_states: STATES.length,
     meme_pool: MEME_POOL.length,

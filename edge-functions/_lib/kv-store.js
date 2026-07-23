@@ -1,11 +1,23 @@
-import { cleanText, entityKey, normalizePair } from "./keys.js";
+import {
+  cleanText,
+  entityKey,
+  normalizePair,
+  sha256Hex,
+} from "./keys.js";
 
 const RECENT_KEY = "snapshot_recent";
 const ELEMENTS_KEY = "snapshot_elements";
 const STATS_KEY = "snapshot_stats";
 const MAX_FIRSTS = 10_000;
+const MAX_RECENT_FIRSTS = 500;
+const MAX_INDEX_RECORDS_PER_SHARD = 2_000;
 const MAX_RECIPES_PER_RESULT = 100;
 const MAX_KPI_LOG = 100;
+const KPI_SHARD_COUNT = 32;
+const RECORD_READ_BATCH = 20;
+const INDEX_RECONCILE_SECONDS = 60;
+const INDEX_SHARDS = "0123456789abcdef".split("");
+const MAX_FEED_TIMESTAMP_MS = 9_999_999_999_999;
 
 function finiteInteger(value, fallback = 0) {
   const parsed = Number(value);
@@ -16,6 +28,25 @@ function normalizedLimit(value, fallback, maximum) {
   return Math.max(1, Math.min(maximum, finiteInteger(value, fallback)));
 }
 
+function emptyStats() {
+  return {
+    total_calls: 0,
+    active_sessions: {},
+    minute_counts: {},
+    hour_counts: {},
+    combinations: {},
+    chains: {},
+  };
+}
+
+function newestFirst(left, right) {
+  const byTime = Number(right?.ts || 0) - Number(left?.ts || 0);
+  if (byTime) return byTime;
+  return cleanText(left?.result || left?.name).localeCompare(
+    cleanText(right?.result || right?.name),
+  );
+}
+
 export class KvStore {
   constructor(kv, { now = () => Date.now() } = {}) {
     if (!kv || typeof kv.get !== "function" || typeof kv.put !== "function") {
@@ -23,6 +54,7 @@ export class KvStore {
     }
     this.kv = kv;
     this.now = now;
+    this.uniqueSequence = 0;
   }
 
   timestamp() {
@@ -37,6 +69,198 @@ export class KvStore {
   async putJson(key, value) {
     await this.kv.put(key, JSON.stringify(value));
     return value;
+  }
+
+  async readRecords(keys) {
+    const records = [];
+    for (let index = 0; index < keys.length; index += RECORD_READ_BATCH) {
+      const batch = keys.slice(index, index + RECORD_READ_BATCH);
+      const values = await Promise.all(
+        batch.map(async (key) => ({
+          key,
+          value: await this.getJson(key),
+        })),
+      );
+      records.push(...values.filter((item) => item.value));
+    }
+    return records;
+  }
+
+  uniqueSuffix() {
+    this.uniqueSequence += 1;
+    const bytes = new Uint8Array(8);
+    if (globalThis.crypto?.getRandomValues) {
+      globalThis.crypto.getRandomValues(bytes);
+    } else {
+      for (let index = 0; index < bytes.length; index += 1) {
+        bytes[index] = Math.floor(Math.random() * 256);
+      }
+    }
+    const random = [...bytes]
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
+    return `${Math.floor(this.now()).toString(36)}_${this.uniqueSequence.toString(36)}_${random}`;
+  }
+
+  randomShardIndex(count) {
+    const bytes = new Uint8Array(1);
+    if (globalThis.crypto?.getRandomValues) {
+      globalThis.crypto.getRandomValues(bytes);
+      return bytes[0] % count;
+    }
+    return Math.floor(Math.random() * count);
+  }
+
+  indexKey(kind, shard) {
+    return `index_${kind}_${shard}`;
+  }
+
+  indexMetaKey(kind) {
+    return `indexmeta_${kind}`;
+  }
+
+  shardForCanonicalKey(kind, key) {
+    const hash = key.slice(kind.length + 1);
+    return /^[a-f0-9]{64}$/u.test(hash) ? hash[0] : "0";
+  }
+
+  normalizeIndexSnapshot(value) {
+    return {
+      items:
+        value?.items && typeof value.items === "object"
+          ? value.items
+          : {},
+      reconciled_at: Number(value?.reconciled_at) || 0,
+    };
+  }
+
+  trimIndexItems(items) {
+    const entries = Object.entries(items);
+    if (entries.length <= MAX_INDEX_RECORDS_PER_SHARD) return items;
+    return Object.fromEntries(
+      entries
+        .sort((left, right) => newestFirst(left[1], right[1]))
+        .slice(0, MAX_INDEX_RECORDS_PER_SHARD),
+    );
+  }
+
+  async loadIndexShard(kind, shard, { reconcile = false } = {}) {
+    const storageKey = this.indexKey(kind, shard);
+    const snapshot = this.normalizeIndexSnapshot(
+      await this.getJson(storageKey, {}),
+    );
+    if (!reconcile) return snapshot;
+
+    const canonicalPrefix = `${kind}_${shard}`;
+    const canonicalPattern = new RegExp(
+      `^${kind}_[a-f0-9]{64}$`,
+      "u",
+    );
+    const canonicalKeys = (await this.listAllKeys(canonicalPrefix)).filter(
+      (key) => canonicalPattern.test(key),
+    );
+    const missingKeys = canonicalKeys.filter(
+      (key) => !Object.hasOwn(snapshot.items, key),
+    );
+    for (const { key, value } of await this.readRecords(missingKeys)) {
+      snapshot.items[key] = { ...value, storage_key: key };
+    }
+    snapshot.items = this.trimIndexItems(snapshot.items);
+    snapshot.reconciled_at = this.timestamp();
+    await this.putJson(storageKey, snapshot);
+    return snapshot;
+  }
+
+  async reconcileNextIndexShard(kind) {
+    const metaKey = this.indexMetaKey(kind);
+    const meta = await this.getJson(metaKey, {
+      next_shard: 0,
+      next_reconcile_at: 0,
+    });
+    const now = this.timestamp();
+    if (Number(meta?.next_reconcile_at || 0) > now) return null;
+
+    const index = Math.max(
+      0,
+      finiteInteger(meta?.next_shard) % INDEX_SHARDS.length,
+    );
+    const shard = INDEX_SHARDS[index];
+    const snapshot = await this.loadIndexShard(kind, shard, {
+      reconcile: true,
+    });
+    await this.putJson(metaKey, {
+      next_shard: (index + 1) % INDEX_SHARDS.length,
+      next_reconcile_at: now + INDEX_RECONCILE_SECONDS,
+    });
+    return { shard, snapshot };
+  }
+
+  async loadIndexRecords(kind, { reconcileOne = true } = {}) {
+    const snapshots = await Promise.all(
+      INDEX_SHARDS.map((shard) => this.loadIndexShard(kind, shard)),
+    );
+    if (reconcileOne) {
+      const repaired = await this.reconcileNextIndexShard(kind);
+      if (repaired) {
+        snapshots[INDEX_SHARDS.indexOf(repaired.shard)] = repaired.snapshot;
+      }
+    }
+    return snapshots.flatMap((snapshot) => Object.values(snapshot.items));
+  }
+
+  async putIndexRecord(kind, canonicalKey, record) {
+    const shard = this.shardForCanonicalKey(kind, canonicalKey);
+    const storageKey = this.indexKey(kind, shard);
+    const snapshot = this.normalizeIndexSnapshot(
+      await this.getJson(storageKey, {}),
+    );
+    snapshot.items[canonicalKey] = {
+      ...record,
+      storage_key: canonicalKey,
+    };
+    snapshot.items = this.trimIndexItems(snapshot.items);
+    await this.putJson(storageKey, snapshot);
+  }
+
+  firstFeedKey(record, canonicalKey) {
+    const timestamp = Math.max(
+      0,
+      Math.min(
+        MAX_FEED_TIMESTAMP_MS,
+        Math.floor(Number(record?.ts || 0) * 1_000),
+      ),
+    );
+    const inverted = String(MAX_FEED_TIMESTAMP_MS - timestamp).padStart(
+      13,
+      "0",
+    );
+    return `feed_${inverted}_${canonicalKey.slice("first_".length)}`;
+  }
+
+  async listKeyWindow(prefix, offset, limit) {
+    const keys = [];
+    let skipped = 0;
+    let cursor;
+    let complete = false;
+    while (keys.length < limit && !complete) {
+      const result = await this.kv.list({
+        prefix,
+        limit: 256,
+        cursor,
+      });
+      const page = (result?.keys ?? [])
+        .map((item) => item?.key || item?.name)
+        .filter(Boolean);
+      const start = Math.max(0, offset - skipped);
+      if (start < page.length) {
+        keys.push(...page.slice(start, start + limit - keys.length));
+      }
+      skipped += page.length;
+      complete = Boolean(result?.complete);
+      if (complete || !result?.cursor || result.cursor === cursor) break;
+      cursor = result.cursor;
+    }
+    return { keys, complete };
   }
 
   async getCombination(a, b) {
@@ -80,58 +304,163 @@ export class KvStore {
   }
 
   async rememberElement(name, info) {
-    const elements = await this.getJson(ELEMENTS_KEY, {});
     const cleanName = cleanText(name);
-    elements[cleanName] = {
-      ...(elements[cleanName] || {}),
+    if (!cleanName) return;
+
+    const key = await entityKey("element", cleanName);
+    const existing = await this.getJson(key, {});
+    const record = {
+      ...existing,
+      name: cleanName,
       emoji: cleanText(info?.emoji) || "❓",
       category: cleanText(info?.category) || "ai",
       ...(Number.isFinite(Number(info?.depth))
         ? { depth: Math.max(0, finiteInteger(info.depth)) }
         : {}),
+      updated_at: this.timestamp(),
+      storage_key: key,
     };
-    await this.putJson(ELEMENTS_KEY, elements);
+    await this.putJson(key, record);
+    await this.putIndexRecord("element", key, record);
   }
 
   async dynamicElements() {
-    return this.getJson(ELEMENTS_KEY, {});
+    const legacy = await this.getJson(ELEMENTS_KEY, {});
+    const elements =
+      legacy && typeof legacy === "object" && !Array.isArray(legacy)
+        ? { ...(legacy.items || legacy) }
+        : {};
+    for (const record of await this.loadIndexRecords("element")) {
+      const name = cleanText(record?.name);
+      if (name) elements[name] = record;
+    }
+    return Object.fromEntries(
+      Object.entries(elements).map(([name, value]) => {
+        const {
+          name: _name,
+          storage_key: _storageKey,
+          updated_at: _updatedAt,
+          ...publicValue
+        } = value || {};
+        return [name, publicValue];
+      }),
+    );
+  }
+
+  async getElement(name) {
+    const cleanName = cleanText(name);
+    if (!cleanName) return null;
+    const value = await this.getJson(await entityKey("element", cleanName));
+    if (!value) return null;
+    const {
+      name: _name,
+      storage_key: _storageKey,
+      updated_at: _updatedAt,
+      ...publicValue
+    } = value;
+    return publicValue;
   }
 
   async rememberRecipe(record) {
-    const key = await entityKey("recipes", cleanText(record.result));
-    const recipes = await this.getJson(key, []);
+    const result = cleanText(record.result);
     const pair = normalizePair(record.a, record.b);
-    const next = recipes.filter(
-      (item) => normalizePair(item.a, item.b) !== pair,
-    );
-    next.unshift({
+    const resultHash = await sha256Hex(result);
+    const pairHash = await sha256Hex(pair);
+    const key = `recipe_${resultHash}_${pairHash}`;
+    await this.putJson(key, {
       a: record.a,
       b: record.b,
-      result: record.result,
+      result,
       emoji: record.emoji,
       source: record.source,
       chain: record.chain,
       hit_count: finiteInteger(record.hit_count),
+      ts: Number(record.ts) || this.timestamp(),
+      storage_key: key,
     });
-    await this.putJson(key, next.slice(0, MAX_RECIPES_PER_RESULT));
   }
 
   async dynamicRecipes(result) {
-    return this.getJson(await entityKey("recipes", cleanText(result)), []);
+    const cleanResult = cleanText(result);
+    const prefix = `recipe_${await sha256Hex(cleanResult)}_`;
+    const { keys } = await this.listKeyWindow(
+      prefix,
+      0,
+      MAX_RECIPES_PER_RESULT,
+    );
+    if (!keys.length) {
+      return this.getJson(await entityKey("recipes", cleanResult), []);
+    }
+    const records = await this.readRecords(keys);
+    return records
+      .map(({ value }) => value)
+      .filter((item) => cleanText(item?.result) === cleanResult)
+      .sort((left, right) => {
+        const byHits =
+          finiteInteger(right?.hit_count) - finiteInteger(left?.hit_count);
+        if (byHits) return byHits;
+        return Number(right?.ts || 0) - Number(left?.ts || 0);
+      })
+      .slice(0, MAX_RECIPES_PER_RESULT)
+      .map(({ storage_key: _storageKey, ts: _ts, ...item }) => item);
   }
 
   async getFirst(result) {
-    return this.getJson(await entityKey("first", cleanText(result)));
+    return this.publicFirst(
+      await this.getJson(await entityKey("first", cleanText(result))),
+    );
+  }
+
+  normalizeRecentSnapshot(value) {
+    return {
+      items: Array.isArray(value?.items) ? value.items : [],
+      total: Math.max(
+        finiteInteger(value?.total),
+        Array.isArray(value?.items) ? value.items.length : 0,
+      ),
+      initialized: value?.initialized === true,
+    };
+  }
+
+  mergeRecent(items, additions) {
+    const byResult = new Map();
+    for (const item of [...(additions || []), ...(items || [])]) {
+      const result = cleanText(item?.result);
+      if (result && !byResult.has(result)) {
+        byResult.set(result, this.publicFirst(item));
+      }
+    }
+    return [...byResult.values()]
+      .sort(newestFirst)
+      .slice(0, MAX_RECENT_FIRSTS);
+  }
+
+  async repairRecentSnapshot(snapshot) {
+    const repaired = await this.reconcileNextIndexShard("first");
+    if (!repaired) return snapshot;
+    const additions = Object.values(repaired.snapshot.items);
+    const items = this.mergeRecent(snapshot.items, additions);
+    const next = {
+      items,
+      total: Math.max(snapshot.total, items.length),
+      initialized: true,
+    };
+    await this.putJson(RECENT_KEY, next);
+    return next;
   }
 
   async recordFirst(result, emoji, discoverer) {
     const name = cleanText(result);
     const key = await entityKey("first", name);
     const existing = await this.getJson(key);
-    if (existing) return { created: false, record: existing };
+    if (existing) {
+      return { created: false, record: this.publicFirst(existing) };
+    }
 
-    const snapshot = await this.getJson(RECENT_KEY, { items: [] });
-    const items = Array.isArray(snapshot?.items) ? snapshot.items : [];
+    const snapshot = this.normalizeRecentSnapshot(
+      await this.getJson(RECENT_KEY, { items: [] }),
+    );
+    const items = snapshot.items;
     const maxSeq = items.reduce(
       (maximum, item) => Math.max(maximum, finiteInteger(item?.seq)),
       0,
@@ -142,36 +471,126 @@ export class KvStore {
       discoverer: cleanText(discoverer) || "匿名鹅",
       ts: this.timestamp(),
       seq: maxSeq + 1,
+      claim_token: this.uniqueSuffix(),
+      storage_key: key,
     };
 
     await this.putJson(key, record);
     const verified = await this.getJson(key);
-    const created =
-      verified?.discoverer === record.discoverer &&
-      Number(verified?.ts) === record.ts;
-    if (!created) return { created: false, record: verified };
+    const created = verified?.claim_token === record.claim_token;
+    if (!created) {
+      return { created: false, record: this.publicFirst(verified) };
+    }
 
-    const nextItems = [
-      record,
-      ...items.filter((item) => item?.result !== name),
-    ]
-      .sort((a, b) => Number(b.ts || 0) - Number(a.ts || 0))
-      .slice(0, MAX_FIRSTS);
-    await this.putJson(RECENT_KEY, { items: nextItems });
-    return { created: true, record };
+    await Promise.all([
+      this.putIndexRecord("first", key, record),
+      this.putJson(
+        this.firstFeedKey(record, key),
+        this.publicFirst(record),
+      ),
+    ]);
+    const nextItems = this.mergeRecent(items, [record]);
+    await this.putJson(RECENT_KEY, {
+      items: nextItems,
+      total: Math.max(snapshot.total + 1, nextItems.length),
+      initialized: true,
+    });
+    return { created: true, record: this.publicFirst(record) };
   }
 
   async firstPage({ offset = 0, limit = 100 } = {}) {
     const safeOffset = Math.max(0, finiteInteger(offset));
     const safeLimit = normalizedLimit(limit, 100, 500);
-    const snapshot = await this.getJson(RECENT_KEY, { items: [] });
-    const items = Array.isArray(snapshot?.items) ? snapshot.items : [];
+    let snapshot = this.normalizeRecentSnapshot(
+      await this.getJson(RECENT_KEY, { items: [] }),
+    );
+    if (!snapshot.initialized) {
+      const feedWindow = await this.listKeyWindow(
+        "feed_",
+        0,
+        MAX_RECENT_FIRSTS + 1,
+      );
+      const feedRecords = await this.readRecords(
+        feedWindow.keys.slice(0, MAX_RECENT_FIRSTS),
+      );
+      const feedItems = feedRecords.map(({ value }) => value);
+      if (feedItems.length) {
+        snapshot = {
+          items: this.mergeRecent([], feedItems),
+          total:
+            feedItems.length +
+            (feedWindow.keys.length > MAX_RECENT_FIRSTS ||
+            !feedWindow.complete
+              ? 1
+              : 0),
+          initialized: true,
+        };
+      } else {
+        const indexed = await this.loadIndexRecords("first");
+        snapshot = {
+          items: this.mergeRecent([], indexed),
+          total: indexed.length,
+          initialized: true,
+        };
+      }
+      await this.putJson(RECENT_KEY, snapshot);
+    } else {
+      snapshot = await this.repairRecentSnapshot(snapshot);
+    }
+
+    if (!snapshot.items.length && snapshot.total === 0) {
+      return {
+        items: [],
+        offset: safeOffset,
+        limit: safeLimit,
+        total: 0,
+        has_more: false,
+      };
+    }
+
+    if (safeOffset + safeLimit <= snapshot.items.length) {
+      return {
+        items: snapshot.items.slice(safeOffset, safeOffset + safeLimit),
+        offset: safeOffset,
+        limit: safeLimit,
+        total: snapshot.total,
+        has_more:
+          safeOffset + safeLimit < snapshot.items.length ||
+          safeOffset + safeLimit < snapshot.total,
+      };
+    }
+
+    if (safeOffset < snapshot.items.length && snapshot.total <= snapshot.items.length) {
+      const items = snapshot.items.slice(safeOffset, safeOffset + safeLimit);
+      return {
+        items,
+        offset: safeOffset,
+        limit: safeLimit,
+        total: snapshot.total,
+        has_more: false,
+      };
+    }
+
+    const window = await this.listKeyWindow(
+      "feed_",
+      safeOffset,
+      safeLimit + 1,
+    );
+    const records = await this.readRecords(
+      window.keys.slice(0, safeLimit),
+    );
+    const items = records.map(({ value }) => this.publicFirst(value));
+    const hasMore = window.keys.length > safeLimit || !window.complete;
+    const total = Math.max(
+      snapshot.total,
+      safeOffset + items.length + (hasMore ? 1 : 0),
+    );
     return {
-      items: items.slice(safeOffset, safeOffset + safeLimit),
+      items,
       offset: safeOffset,
       limit: safeLimit,
-      total: items.length,
-      has_more: safeOffset + safeLimit < items.length,
+      total,
+      has_more: hasMore,
     };
   }
 
@@ -180,15 +599,54 @@ export class KvStore {
   }
 
   async allFirsts() {
-    const snapshot = await this.getJson(RECENT_KEY, { items: [] });
-    return Array.isArray(snapshot?.items) ? snapshot.items : [];
+    const recent = this.normalizeRecentSnapshot(
+      await this.getJson(RECENT_KEY, { items: [] }),
+    );
+    const recordsByResult = new Map();
+    for (const item of [
+      ...(await this.loadIndexRecords("first")),
+      ...recent.items,
+    ]) {
+      const result = cleanText(item?.result);
+      if (result && !recordsByResult.has(result)) {
+        recordsByResult.set(result, item);
+      }
+    }
+    const chronological = [...recordsByResult.values()]
+      .sort((left, right) => {
+        const byTime = Number(left?.ts || 0) - Number(right?.ts || 0);
+        if (byTime) return byTime;
+        return cleanText(left?.result).localeCompare(cleanText(right?.result));
+      })
+      .slice(-MAX_FIRSTS)
+      .map((item, index) => ({ ...item, seq: index + 1 }));
+    const items = chronological.reverse();
+    const nextRecent = {
+      items: items.slice(0, MAX_RECENT_FIRSTS).map((item) =>
+        this.publicFirst(item),
+      ),
+      total: items.length,
+      initialized: true,
+    };
+    await this.putJson(RECENT_KEY, nextRecent);
+    return items.map((item) => this.publicFirst(item));
   }
 
-  async leaderboard({ limit = 20, me = null } = {}) {
+  publicFirst(record) {
+    if (!record) return record;
+    const {
+      claim_token: _claimToken,
+      storage_key: _storageKey,
+      ...publicRecord
+    } = record;
+    return publicRecord;
+  }
+
+  async leaderboard({ limit = 20, me = null, items = null } = {}) {
     const safeLimit = normalizedLimit(limit, 20, 100);
-    const items = await this.allFirsts();
+    const firsts = Array.isArray(items) ? items : await this.allFirsts();
     const counts = new Map();
-    for (const item of items) {
+    for (const item of firsts) {
       const name = cleanText(item?.discoverer);
       if (name) counts.set(name, (counts.get(name) || 0) + 1);
     }
@@ -223,12 +681,16 @@ export class KvStore {
     if (!name) return false;
     const key = await entityKey("nick", name);
     if (await this.getJson(key)) return false;
-    const record = { nickname: name, ts: this.timestamp() };
+    const record = {
+      nickname: name,
+      ts: this.timestamp(),
+      claim_token: this.uniqueSuffix(),
+    };
     await this.putJson(key, record);
     const verified = await this.getJson(key);
-    return (
-      verified?.nickname === name && Number(verified?.ts) === record.ts
-    );
+    const created = verified?.claim_token === record.claim_token;
+    if (created) await this.incrementNicknameCount(key);
+    return created;
   }
 
   async touchNickname(nickname) {
@@ -238,12 +700,82 @@ export class KvStore {
     const existing = await this.getJson(key);
     if (!existing) {
       await this.putJson(key, { nickname: name, ts: this.timestamp() });
+      await this.incrementNicknameCount(key);
     }
     return { ok: true, nickname: name, created: !existing };
   }
 
+  async incrementNicknameCount(canonicalKey) {
+    const shard = this.shardForCanonicalKey("nick", canonicalKey);
+    const key = `nickcount_${shard}`;
+    const value = await this.getJson(key, { count: 0 });
+    await this.putJson(key, {
+      count: finiteInteger(value?.count) + 1,
+      updated_at: this.timestamp(),
+    });
+  }
+
   async nicknameCount() {
-    return (await this.listAllKeys("nick_")).length;
+    const meta = await this.getJson("meta_nickcount");
+    if (!meta?.initialized) {
+      const keys = (await this.listAllKeys("nick_")).filter((key) =>
+        /^nick_[a-f0-9]{64}$/u.test(key),
+      );
+      const counts = Object.fromEntries(
+        INDEX_SHARDS.map((shard) => [shard, 0]),
+      );
+      for (const key of keys) {
+        counts[this.shardForCanonicalKey("nick", key)] += 1;
+      }
+      await Promise.all([
+        ...INDEX_SHARDS.map((shard) =>
+          this.putJson(`nickcount_${shard}`, {
+            count: counts[shard],
+            updated_at: this.timestamp(),
+          }),
+        ),
+        this.putJson("meta_nickcount", { initialized: true }),
+      ]);
+      return keys.length;
+    }
+
+    const shards = await Promise.all(
+      INDEX_SHARDS.map((shard) =>
+        this.getJson(`nickcount_${shard}`, { count: 0 }),
+      ),
+    );
+    return shards.reduce(
+      (total, value) => total + finiteInteger(value?.count),
+      0,
+    );
+  }
+
+  async consumeRateLimit(
+    identity,
+    { limit = 20, windowSeconds = 60 } = {},
+  ) {
+    const safeLimit = Math.max(1, Math.min(1_000, finiteInteger(limit, 20)));
+    const safeWindow = Math.max(
+      1,
+      Math.min(3_600, finiteInteger(windowSeconds, 60)),
+    );
+    const key = await entityKey(
+      "modelrate",
+      cleanText(identity) || "anonymous",
+    );
+    const now = Math.floor(this.timestamp());
+    const bucket = Math.floor(now / safeWindow);
+    const current = await this.getJson(key, {});
+    const count =
+      finiteInteger(current?.bucket, -1) === bucket
+        ? finiteInteger(current?.count) + 1
+        : 1;
+    await this.putJson(key, { bucket, count, updated_at: now });
+    return {
+      allowed: count <= safeLimit,
+      remaining: Math.max(0, safeLimit - count),
+      retry_after: safeWindow - (now % safeWindow),
+    };
   }
 
   async getSession(sessionId) {
@@ -259,10 +791,23 @@ export class KvStore {
   }
 
   async addKpi(sessionId, delta, reason) {
-    const session = await this.getSession(sessionId);
+    const cleanSessionId = cleanText(sessionId) || "default";
+    const sessionHash = await sha256Hex(cleanSessionId);
     const amount = finiteInteger(delta);
+    const timestamp = this.timestamp();
+    const shard = this.randomShardIndex(KPI_SHARD_COUNT)
+      .toString(16)
+      .padStart(2, "0");
+    const shardKey = `kpi_${sessionHash}_${shard}`;
+    const shardValue = await this.getJson(shardKey, { total: 0 });
+    await this.putJson(shardKey, {
+      total: finiteInteger(shardValue?.total) + amount,
+      updated_at: timestamp,
+    });
+
+    const session = await this.getSession(sessionId);
     session.value.total = finiteInteger(session.value.total) + amount;
-    session.value.last_seen = this.timestamp();
+    session.value.last_seen = timestamp;
     const events = Array.isArray(session.value.events)
       ? session.value.events
       : [];
@@ -277,7 +822,18 @@ export class KvStore {
   }
 
   async kpiTotal(sessionId) {
-    return finiteInteger((await this.getSession(sessionId)).value.total);
+    const cleanSessionId = cleanText(sessionId) || "default";
+    const prefix = `kpi_${await sha256Hex(cleanSessionId)}_`;
+    const keys = await this.listAllKeys(prefix);
+    if (!keys.length) {
+      return finiteInteger((await this.getSession(sessionId)).value.total);
+    }
+    const events = await this.readRecords(keys);
+    return events.reduce(
+      (total, { value }) =>
+        total + finiteInteger(value?.total, finiteInteger(value?.delta)),
+      0,
+    );
   }
 
   async recordCombineActivity({
@@ -292,20 +848,17 @@ export class KvStore {
     const now = Math.floor(this.timestamp());
     const minute = String(now - (now % 60));
     const hour = String(now - (now % 3_600));
-    const stats = await this.getJson(STATS_KEY, {
-      total_calls: 0,
-      active_sessions: {},
-      minute_counts: {},
-      hour_counts: {},
-      combinations: {},
-      chains: {},
-    });
+    const activeKey = await entityKey(
+      "active",
+      cleanText(sessionId) || "anon",
+    );
+    const shard = activeKey.slice("active_".length, "active_".length + 1);
+    const statsKey = `stats_${shard}`;
+    const stats = await this.getJson(statsKey, emptyStats());
 
     stats.total_calls = finiteInteger(stats.total_calls) + 1;
     stats.active_sessions ||= {};
-    stats.active_sessions[
-      await entityKey("active", cleanText(sessionId) || "anon")
-    ] = now;
+    stats.active_sessions[activeKey] = now;
     for (const [key, timestamp] of Object.entries(stats.active_sessions)) {
       if (Number(timestamp) < now - 300) delete stats.active_sessions[key];
     }
@@ -363,23 +916,64 @@ export class KvStore {
     stats.chains ||= {};
     const chainName = cleanText(chain) || "未分类";
     stats.chains[chainName] = finiteInteger(stats.chains[chainName]) + 1;
-    await this.putJson(STATS_KEY, stats);
+    await this.putJson(statsKey, stats);
     return stats;
   }
 
   async statsSnapshot() {
-    return this.getJson(STATS_KEY, {
-      total_calls: 0,
-      active_sessions: {},
-      minute_counts: {},
-      hour_counts: {},
-      combinations: {},
-      chains: {},
-    });
+    const [legacy, ...shards] = await Promise.all([
+      this.getJson(STATS_KEY),
+      ...INDEX_SHARDS.map((shard) => this.getJson(`stats_${shard}`)),
+    ]);
+    const merged = emptyStats();
+    for (const stats of [legacy, ...shards].filter(Boolean)) {
+      merged.total_calls += finiteInteger(stats?.total_calls);
+
+      for (const [key, timestamp] of Object.entries(
+        stats?.active_sessions || {},
+      )) {
+        merged.active_sessions[key] = Math.max(
+          Number(merged.active_sessions[key] || 0),
+          Number(timestamp || 0),
+        );
+      }
+      for (const field of ["minute_counts", "hour_counts", "chains"]) {
+        for (const [key, count] of Object.entries(stats?.[field] || {})) {
+          merged[field][key] =
+            finiteInteger(merged[field][key]) + finiteInteger(count);
+        }
+      }
+      for (const [key, item] of Object.entries(
+        stats?.combinations || {},
+      )) {
+        const existing = merged.combinations[key] || {};
+        merged.combinations[key] = {
+          ...existing,
+          ...item,
+          hit_count:
+            finiteInteger(existing?.hit_count) +
+            finiteInteger(item?.hit_count),
+        };
+      }
+    }
+
+    const combinations = Object.entries(merged.combinations);
+    if (combinations.length > 500) {
+      merged.combinations = Object.fromEntries(
+        combinations
+          .sort(
+            (left, right) =>
+              finiteInteger(right[1]?.hit_count) -
+              finiteInteger(left[1]?.hit_count),
+          )
+          .slice(0, 500),
+      );
+    }
+    return merged;
   }
 
-  async analyticsCombinations(limit = 20) {
-    const stats = await this.statsSnapshot();
+  async analyticsCombinations(limit = 20, snapshot = null) {
+    const stats = snapshot || (await this.statsSnapshot());
     return Object.values(stats.combinations || {})
       .sort(
         (left, right) =>
@@ -388,8 +982,8 @@ export class KvStore {
       .slice(0, normalizedLimit(limit, 20, 100));
   }
 
-  async analyticsChains(limit = 10) {
-    const stats = await this.statsSnapshot();
+  async analyticsChains(limit = 10, snapshot = null) {
+    const stats = snapshot || (await this.statsSnapshot());
     return Object.entries(stats.chains || {})
       .map(([chain, count]) => ({
         chain: chain === "未分类" ? null : chain,
@@ -431,6 +1025,10 @@ export class KvStore {
       });
     }
     return {
+      // Makers KV has no atomic increment. These dashboard counters are
+      // intentionally best-effort telemetry; gameplay records use canonical
+      // per-entity/per-event keys elsewhere in this store.
+      approximate: true,
       now,
       active_sessions: Object.values(stats.active_sessions || {}).filter(
         (timestamp) => Number(timestamp) >= now - 300,
@@ -441,8 +1039,8 @@ export class KvStore {
       calls_60m: sumMinutes(60),
       timeseries_30m: timeseries30m,
       timeseries_24h: timeseries24h,
-      top_combinations: await this.analyticsCombinations(10),
-      top_chains: await this.analyticsChains(10),
+      top_combinations: await this.analyticsCombinations(10, stats),
+      top_chains: await this.analyticsChains(10, stats),
     };
   }
 

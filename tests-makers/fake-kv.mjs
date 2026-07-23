@@ -1,6 +1,8 @@
 export class FakeKV {
   constructor(initial = {}) {
     this.values = new Map(Object.entries(initial));
+    this.getCalls = 0;
+    this.listCalls = 0;
   }
 
   async put(key, value) {
@@ -26,6 +28,7 @@ export class FakeKV {
   }
 
   async get(key, options) {
+    this.getCalls += 1;
     this.#assertKey(key);
     const value = this.values.get(key);
     if (value == null) return null;
@@ -44,6 +47,7 @@ export class FakeKV {
   }
 
   async list({ prefix = "", limit = 256, cursor = "" } = {}) {
+    this.listCalls += 1;
     const keys = [...this.values.keys()]
       .filter((key) => key.startsWith(prefix) && (!cursor || key >= cursor))
       .sort();
@@ -65,4 +69,3 @@ export class FakeKV {
     }
   }
 }
-

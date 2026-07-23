@@ -4,10 +4,13 @@ import test from "node:test";
 import { createRouter } from "../edge-functions/_lib/router.js";
 import { FakeKV } from "./fake-kv.mjs";
 
-function request(path, { method = "GET", body } = {}) {
+function request(path, { method = "GET", body, headers = {} } = {}) {
   return new Request(`https://makers.example${path}`, {
     method,
-    headers: body == null ? {} : { "content-type": "application/json" },
+    headers: {
+      ...(body == null ? {} : { "content-type": "application/json" }),
+      ...headers,
+    },
     body: body == null ? undefined : JSON.stringify(body),
   });
 }
@@ -17,6 +20,7 @@ function makeRouter() {
     kv: new FakeKV(),
     env: {
       APP_ENV: "test",
+      DASHBOARD_PUBLIC: "1",
       MAKERS_MODELS_KEY: "secret",
       LLM_MODEL: "test-model",
     },
@@ -64,6 +68,8 @@ test("static, health and rank routes keep their public contracts", async () => {
   assert.equal(health.body.llm, "configured");
   assert.equal(health.body.llm_config.model, "test-model");
   assert.equal("apiKey" in health.body.llm_config, false);
+  assert.equal(health.body.security.dashboard, "public");
+  assert.equal(health.body.security.model_calls_per_minute, 20);
 });
 
 test("dynamic KV metadata never overwrites authoritative seed elements", async () => {
@@ -119,6 +125,7 @@ test("nickname, combine, wall, bounty and admin routes share KV state", async ()
   assert.ok(Array.isArray(bounty.body.groups));
 
   const admin = await json(router, "/api/admin/stats");
+  assert.equal(admin.body.approximate, true);
   assert.equal(admin.body.total_calls, 1);
   assert.equal(admin.body.firsts_total, 1);
   assert.equal(admin.body.nick_count, 1);
@@ -170,6 +177,86 @@ test("recipes, verification, KPI and analytics routes remain available", async (
   }
 });
 
+test("recipe verification rejects oversized imports and bounds KV concurrency", async () => {
+  const oversizedRouter = makeRouter();
+  const oversized = await json(oversizedRouter, "/api/recipes/verify", {
+    method: "POST",
+    body: {
+      recipes: Array.from({ length: 501 }, (_, index) => ({
+        a: `甲${index}`,
+        b: `乙${index}`,
+        result: `结果${index}`,
+      })),
+    },
+  });
+  assert.equal(oversized.response.status, 400);
+  assert.match(oversized.body.detail, /500/);
+
+  class ObservedKV extends FakeKV {
+    activeComboReads = 0;
+    maxComboReads = 0;
+
+    async get(key, options) {
+      if (!key.startsWith("combo_")) return super.get(key, options);
+      this.activeComboReads += 1;
+      this.maxComboReads = Math.max(
+        this.maxComboReads,
+        this.activeComboReads,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 1));
+      try {
+        return await super.get(key, options);
+      } finally {
+        this.activeComboReads -= 1;
+      }
+    }
+  }
+
+  const kv = new ObservedKV();
+  const router = createRouter({ kv, env: {} });
+  const bounded = await json(router, "/api/recipes/verify", {
+    method: "POST",
+    body: {
+      recipes: Array.from({ length: 41 }, (_, index) => ({
+        a: `未知甲${index}`,
+        b: `未知乙${index}`,
+        result: `未知结果${index}`,
+      })),
+    },
+  });
+  assert.equal(bounded.response.status, 200);
+  assert.equal(bounded.body.unknown.length, 41);
+  assert.ok(kv.maxComboReads > 1);
+  assert.ok(kv.maxComboReads <= 20);
+});
+
+test("admin and analytics routes support an optional bearer token", async () => {
+  const router = createRouter({
+    kv: new FakeKV(),
+    env: { ADMIN_TOKEN: "private-dashboard-token" },
+  });
+
+  const denied = await json(router, "/api/admin/stats");
+  assert.equal(denied.response.status, 401);
+  assert.match(denied.body.detail, /凭据/);
+
+  const analyticsDenied = await json(router, "/api/analytics/chains");
+  assert.equal(analyticsDenied.response.status, 401);
+
+  const allowed = await json(router, "/api/admin/stats", {
+    headers: { authorization: "Bearer private-dashboard-token" },
+  });
+  assert.equal(allowed.response.status, 200);
+  assert.equal(allowed.body.approximate, true);
+});
+
+test("admin routes fail closed when no access mode is configured", async () => {
+  const router = createRouter({ kv: new FakeKV(), env: {} });
+  const result = await json(router, "/api/admin/stats");
+  assert.equal(result.response.status, 503);
+  assert.match(result.body.detail, /ADMIN_TOKEN/);
+});
+
 test("router returns safe JSON errors, CORS preflight and stream shutdown", async () => {
   const router = makeRouter();
 
@@ -194,7 +281,7 @@ test("router returns safe JSON errors, CORS preflight and stream shutdown", asyn
     request("/api/combine", { method: "OPTIONS" }),
   );
   assert.equal(options.status, 204);
-  assert.equal(options.headers.get("access-control-allow-origin"), "*");
+  assert.equal(options.headers.get("access-control-allow-origin"), null);
 
   const stream = await router.handle(request("/api/wall/stream"));
   assert.equal(stream.status, 204);

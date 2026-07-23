@@ -510,7 +510,7 @@ async function combine(srcId, dstId, x, y) {
   const timer = setTimeout(() => ctrl.abort(), 8000);
 
   try {
-    const resp = await fetch("/api/combine", {
+    const response = await fetch("/api/combine", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -518,7 +518,11 @@ async function combine(srcId, dstId, x, y) {
         discoverer: NICKNAME, session_id: SESSION_ID,
       }),
       signal: ctrl.signal,
-    }).then(r => r.json());
+    });
+    const resp = await response.json();
+    if (!response.ok) {
+      throw new Error(resp.detail || `HTTP ${response.status}`);
+    }
     clearTimeout(timer);
     loader.remove();
 
@@ -570,7 +574,12 @@ async function combine(srcId, dstId, x, y) {
     // 给用户一个可见提示（非阻塞）
     const tip = document.createElement("div");
     tip.className = "combining";
-    tip.textContent = err.name === "AbortError" ? "⏱️ 合成超时，再试一次" : "❌ 合成失败";
+    tip.textContent =
+      err.name === "AbortError"
+        ? "⏱️ 合成超时，再试一次"
+        : /频繁/.test(err.message)
+          ? `⏳ ${err.message}`
+          : "❌ 合成失败";
     tip.style.left = (x - 60) + "px";
     tip.style.top = (y - 14) + "px";
     tip.style.color = "#C62828";
@@ -1042,6 +1051,8 @@ function exportRecipes() {
 }
 
 // ---- 导入 JSON（带合法性校验）----
+const VERIFY_BATCH_SIZE = 500;
+
 async function importRecipes(ev) {
   const file = ev.target.files?.[0];
   if (!file) return;
@@ -1085,11 +1096,22 @@ async function importRecipes(ev) {
   // 2) 后端内容校验：对比全球配方表
   let verify;
   try {
-    verify = await fetch("/api/recipes/verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ recipes: formatValid }),
-    }).then(r => r.json());
+    verify = { valid: [], invalid: [], unknown: [] };
+    for (let index = 0; index < formatValid.length; index += VERIFY_BATCH_SIZE) {
+      const recipes = formatValid.slice(index, index + VERIFY_BATCH_SIZE);
+      const response = await fetch("/api/recipes/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipes }),
+      });
+      const batch = await response.json();
+      if (!response.ok) {
+        throw new Error(batch.detail || `HTTP ${response.status}`);
+      }
+      verify.valid.push(...(batch.valid || []));
+      verify.invalid.push(...(batch.invalid || []));
+      verify.unknown.push(...(batch.unknown || []));
+    }
   } catch (e) {
     alert("❌ 校验服务不可达：" + e.message);
     return;

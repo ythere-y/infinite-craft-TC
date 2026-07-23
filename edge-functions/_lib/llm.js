@@ -87,7 +87,15 @@ export function parseModelCombination(text) {
   }
   const name = String(value?.name || "").trim();
   const emoji = String(value?.emoji || "").trim();
-  if (!name || !emoji || [...name].length > 10) return null;
+  if (
+    !name ||
+    !emoji ||
+    [...name].length > 10 ||
+    [...emoji].length > 16 ||
+    /[<>&"'`]/u.test(emoji)
+  ) {
+    return null;
+  }
   return { name, emoji };
 }
 
@@ -103,10 +111,13 @@ export async function requestModelCombination({
   if (!config.configured || typeof fetchImpl !== "function") return null;
 
   const controller = new AbortController();
-  const timeout = setTimeout(
-    () => controller.abort(),
-    config.timeoutSeconds * 1_000,
-  );
+  const timeout =
+    typeof setTimeout === "function"
+      ? setTimeout(
+          () => controller.abort(),
+          config.timeoutSeconds * 1_000,
+        )
+      : null;
   try {
     const response = await fetchImpl(completionUrl(config.baseUrl), {
       method: "POST",
@@ -140,6 +151,8 @@ export async function requestModelCombination({
   } catch {
     return null;
   } finally {
-    clearTimeout(timeout);
+    if (timeout != null && typeof clearTimeout === "function") {
+      clearTimeout(timeout);
+    }
   }
 }

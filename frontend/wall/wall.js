@@ -8,8 +8,11 @@
    - 右侧排行榜：顶部"我"的卡片 + Top 20；定时刷新 + 每次新首发后再拉
    ============================================================ */
 
+import { collectUnseenPrefix, mergeFirstItems } from "./polling.js";
+
 const PAGE_SIZE = 40;
 const POLL_PAGE_SIZE = 500;       // 覆盖 100 QPS 下一个轮询周期的突发量
+const MAX_POLL_PAGES = 20;
 const LB_REFRESH_MS = 20000;     // 排行榜定时刷新
 const POLL_REFRESH_MS = 3000;    // Makers Edge Functions 使用短轮询
 const SCROLL_NEAR_PX = 400;      // 距底多少触发下一页
@@ -235,22 +238,53 @@ async function pollNewFirsts() {
   if (_polling || document.hidden) return;
   _polling = true;
   try {
-    const response = await fetch(`/api/wall/page?offset=0&limit=${POLL_PAGE_SIZE}`, {
-      cache: "no-store",
-    });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.json();
-    const incoming = Array.isArray(data.items) ? data.items : [];
-    const fresh = incoming.filter(
-      (item) => item && item.result && !state.seen.has(item.result),
-    );
+    const fresh = [];
+    const collectedNames = new Set();
+    let offset = 0;
+    let boundaryFound = false;
+    let hasMore = false;
+    let latestTotal = state.total;
 
-    // 服务端是新→旧；倒序 unshift 后仍保持新→旧。
-    for (const item of fresh.slice().reverse()) {
-      state.seen.add(item.result);
-      state.items.unshift(item);
+    for (let page = 0; page < MAX_POLL_PAGES; page += 1) {
+      const response = await fetch(
+        `/api/wall/page?offset=${offset}&limit=${POLL_PAGE_SIZE}`,
+        { cache: "no-store" },
+      );
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      const incoming = Array.isArray(data.items) ? data.items : [];
+      if (page === 0) latestTotal = Number(data.total) || 0;
+      hasMore = Boolean(data.has_more);
+
+      const prefix = collectUnseenPrefix(incoming, state.seen);
+      for (const item of prefix.items) {
+        if (!collectedNames.has(item.result)) {
+          collectedNames.add(item.result);
+          fresh.push(item);
+        }
+      }
+      if (prefix.boundaryFound) {
+        boundaryFound = true;
+        break;
+      }
+      if (!hasMore || incoming.length === 0) break;
+      offset += incoming.length;
     }
-    state.total = Number(data.total) || state.total;
+
+    // 页面隐藏太久且积压超过安全分页上限时，重载最新页，避免跳过中间记录。
+    if (!boundaryFound && hasMore) {
+      state.items = [];
+      state.seen.clear();
+      state.nextOffset = 0;
+      state.total = 0;
+      state.exhausted = false;
+      await loadNextPage();
+      return;
+    }
+
+    for (const item of fresh) state.seen.add(item.result);
+    state.items = mergeFirstItems(state.items, fresh);
+    state.total = latestTotal;
     state.nextOffset += fresh.length;
 
     if (fresh.length > 0) {

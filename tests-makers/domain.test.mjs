@@ -35,8 +35,12 @@ test("KPI domain matches existing tier boundaries and effects", () => {
 
 test("nickname generator preserves the established display format", () => {
   const nickname = generateNickname({ random: () => 0 });
+  const stats = nicknameStats();
   assert.match(nickname, /^.{4}的.+鹅$/u);
-  assert.ok(nicknameStats().effective_combo_space > 0);
+  assert.equal(stats.source, "bundled");
+  assert.ok(stats.chengyu >= 7_000);
+  assert.ok(stats.thuocl_states >= 4_000);
+  assert.ok(stats.effective_combo_space >= 30_000_000);
 });
 
 test("bounty retains groups, starter discoveries and first metadata", () => {

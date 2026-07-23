@@ -6,7 +6,10 @@ import {
 } from "../_generated/seed-data.js";
 import { selectBountyCandidates } from "./bounty.js";
 import { normalizePair, cleanText } from "./keys.js";
-import { requestModelCombination } from "./llm.js";
+import {
+  llmConfiguration,
+  requestModelCombination,
+} from "./llm.js";
 import { scoreFor, shouldExplode } from "./kpi.js";
 
 const FALLBACK = {
@@ -19,6 +22,12 @@ const FALLBACK = {
 function badRequest(message) {
   const error = new TypeError(message);
   error.status = 400;
+  return error;
+}
+
+function tooManyRequests(message) {
+  const error = new Error(message);
+  error.status = 429;
   return error;
 }
 
@@ -36,13 +45,27 @@ export function createGameService({
   now = () => Date.now(),
 } = {}) {
   if (!store) throw new TypeError("Game service requires a KV store");
+  const modelConfigured = llmConfiguration(env).configured;
+  const modelCallsPerMinute = Math.max(
+    1,
+    Math.min(1_000, Number(env.MODEL_CALLS_PER_MINUTE) || 20),
+  );
 
-  async function resolveCombination(a, b) {
-    const cached = await store.getCombination(a, b);
-    if (cached?.result) return cached;
-
+  async function resolveCombination(a, b, clientIdentity = "anonymous") {
     const seeded = COMBINATIONS[normalizePair(a, b)];
     if (seeded?.result) return seeded;
+
+    const cached = await store.getCombination(a, b);
+    if (cached?.result) return cached;
+    if (!modelConfigured) return null;
+
+    const quota = await store.consumeRateLimit(clientIdentity, {
+      limit: modelCallsPerMinute,
+      windowSeconds: 60,
+    });
+    if (!quota.allowed) {
+      throw tooManyRequests("新组合生成过于频繁，请稍后再试");
+    }
 
     const firsts = await store.allFirsts();
     const generated = await requestModelCombination({
@@ -69,10 +92,13 @@ export function createGameService({
   }
 
   async function depthFor(a, b, result) {
-    const dynamic = await store.dynamicElements();
-    const aDepth = DEPTHS[a] ?? dynamic[a]?.depth;
-    const bDepth = DEPTHS[b] ?? dynamic[b]?.depth;
-    const current = DEPTHS[result] ?? dynamic[result]?.depth;
+    const dynamicDepth = async (name) =>
+      DEPTHS[name] ?? (await store.getElement(name))?.depth;
+    const [aDepth, bDepth, current] = await Promise.all([
+      dynamicDepth(a),
+      dynamicDepth(b),
+      dynamicDepth(result),
+    ]);
     if (aDepth == null || bDepth == null) return current ?? 3;
     const candidate = Math.max(Number(aDepth), Number(bDepth)) + 1;
     return current == null ? candidate : Math.min(Number(current), candidate);
@@ -88,6 +114,8 @@ export function createGameService({
       throw badRequest("a/b 过长");
     }
     const sessionId = cleanText(input?.session_id) || "default";
+    const clientIdentity =
+      cleanText(input?.client_identity) || sessionId;
     if ([...sessionId].length > 128) throw badRequest("session_id 过长");
     if ([...cleanText(input?.discoverer)].length > 80) {
       throw badRequest("discoverer 过长");
@@ -97,7 +125,8 @@ export function createGameService({
       await store.touchNickname(cleanText(input.discoverer));
     }
 
-    const hit = (await resolveCombination(a, b)) || FALLBACK;
+    const hit =
+      (await resolveCombination(a, b, clientIdentity)) || FALLBACK;
     const source = hit.source || "seed";
     const chain = hit.chain || null;
     let isFirst = false;

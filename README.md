@@ -40,11 +40,21 @@ docker compose up -d
    `test`。
 2. 在项目环境变量中配置 `AI_GATEWAY_API_KEY`（推荐）或
    `MAKERS_MODELS_KEY`；模型默认是 `@makers/deepseek-v4-flash`。
-3. 推送 `main`，等待已配置的 Git 自动发布完成。
+3. 配置随机长字符串 `ADMIN_TOKEN`，保护 `/admin` 与分析接口；打开管理页
+   时浏览器会提示输入，并仅保存到当前标签页会话。未配置时接口默认关闭；
+   只有明确接受公开风险时才设置 `DASHBOARD_PUBLIC=1`。
+4. 在 Makers 的安全防护中给 `POST /api/combine` 配置精准限频。现场可先
+   从“同一客户端 IP，10 秒 100 次，超限观察”开始，根据实际 NAT 和并发
+   调整后再改为拦截或人机验证。
+5. 推送 `main`，等待已配置的 Git 自动发布完成。
 
 `test` 是 Edge Function 访问整个命名空间的绑定名，不是单条数据，也
 不需要写进 `.env`。合成、首发、昵称、KPI、排行榜和统计所需的业务 key
 都会由代码通过 `test.put(...)` 自动创建；无需在控制台逐条新建记录。
+关键业务数据按元素、首发、配方分别使用独立 key；列表索引、KPI 和统计
+使用固定数量的小分片。首发墙热区只保留最近 500 条，深层历史通过有序
+`feed_*` key 分页，因此不会把 10,000 条记录塞进一个 KV value，也不会
+在每次轮询时全表扫描。
 
 本地检查 Makers 产物：
 
@@ -56,10 +66,16 @@ npm run build
 Makers KV 是最终一致存储：发起写入的节点立即可读，其他边缘节点最多约
 60 秒后看到更新。因此跨地域的成就墙、排行、首发和昵称占用可能短暂滞后；
 KV 没有事务或原子 `put-if-absent`，极端跨节点并发时唯一性是尽力保证。
+管理面板中的合成次数和在线人数属于近似遥测值；玩家元素、配方、首发和
+KPI 记录不依赖这个全局统计值。代码还会对真正命中模型的新组合按访客执行
+固定窗口限频，默认每分钟 20 次；缓存命中和固定配方不计入该额度。
 
 现有 FastAPI 的本地 SQLite/Redis 运行数据位于被 Git 忽略的 `data/`，
 不会随代码发布到 Makers；固定元素和全部预设配方会随构建发布，Makers
 上线后的新玩家数据则写入 KV。
+
+昵称使用随 Edge Function 打包的 THUOCL 过滤词库（7,831 个成语、4,350
+个状态词），不会因 Makers 构建环境没有本地 `words/` 目录而退化。
 
 ### 分享现场
 
@@ -101,7 +117,8 @@ infinity_craft/
 │   └── _generated/            从现有 seed JSON 生成的只读数据
 ├── scripts/
 │   ├── build-makers.mjs       生成 dist/ 静态发布目录
-│   └── generate-makers-data.mjs
+│   ├── generate-makers-data.mjs
+│   └── generate-makers-nickname-data.mjs
 ├── backend/
 │   ├── main.py                FastAPI 路由
 │   ├── db.py                  SQLite（combinations / first_discovery / kpi_events）
@@ -180,6 +197,9 @@ infinity_craft/
 | `LLM_MODEL`         | 无                 | Provider 模型标识                         |
 | `LLM_TIMEOUT`       | `15`               | 单次请求超时（秒）                        |
 | `LLM_MAX_RETRIES`   | `2`                | SDK 瞬时错误重试次数                      |
+| `MODEL_CALLS_PER_MINUTE` | `20`          | 每访客每分钟的新组合模型调用上限          |
+| `ADMIN_TOKEN`       | 无                 | 管理与分析接口令牌；未设置时默认关闭      |
+| `DASHBOARD_PUBLIC`  | `0`                | 设为 `1` 才允许无令牌访问管理统计         |
 | `HOST` / `PORT`     | `0.0.0.0` / `8000` | `run.sh` 监听                             |
 
 EdgeOne Makers 项目推荐在控制台填写 `AI_GATEWAY_API_KEY`；代码也兼容
@@ -189,7 +209,8 @@ OpenAI-compatible Provider 时配置对应的 `LLM_BASE_URL` 和 `LLM_MODEL`
 
 Docker Compose 用户可复制 `.env.example` 为 `.env` 后填写本地配置；其他运行方式可通过 `.env`、shell 或部署平台注入。`.env` 和所有私有配置均不会进入 Git。EdgeOne 部署时应在项目环境变量设置中录入真实密钥。
 
-`/api/health` 只报告 LLM 是否已配置，不会发起模型请求或消耗 Token；真实连通性应在部署后单独做一次小请求验证。
+`/api/health` 只报告 KV、LLM 和安全开关状态，不会发起模型请求或消耗
+Token；真实模型连通性应在部署后单独做一次小请求验证。
 
 ---
 
