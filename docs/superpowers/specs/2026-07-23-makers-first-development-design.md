@@ -49,6 +49,12 @@ Edge Function 根据 `APP_ENV` 显式选择绑定：
 - `APP_ENV=dev`：必须使用全局绑定 `test_dev`。
 - 其他值或未设置：使用全局绑定 `test`，保持现有生产发布兼容。
 
+`APP_ENV=dev` 只写入成员本机且被 Git 忽略的 `.env`，不能配置到当前 Makers
+项目的控制台环境变量。Makers 项目环境变量对所有部署环境统一生效；若在
+控制台设置为 `dev`，后续 `main` 生产部署也会误用开发 KV。当前方案覆盖
+本机 Makers 开发与 `main` 生产发布；如未来需要云端开发预览长期使用独立
+KV，应建立独立的 Makers 开发项目。
+
 选择逻辑必须失败关闭：
 
 - `APP_ENV=dev` 但 `test_dev` 不存在时，返回清晰的 500 配置错误，不能回退
@@ -67,8 +73,8 @@ Edge Function 根据 `APP_ENV` 显式选择绑定：
 成员必须先获得该 Makers 项目的访问权限。首次克隆后执行：
 
 ```bash
-git clone <repository-url>
-cd 06.infinity_craft
+git clone git@github.com:ythere-y/infinite-craft-TC.git
+cd infinite-craft-TC
 npm install
 npm install -g edgeone
 edgeone login --site china
