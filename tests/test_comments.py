@@ -29,6 +29,11 @@ def test_normalize_comment(value, expected):
     assert normalize_comment(value) == expected
 
 
+@pytest.mark.parametrize("separator", ["\u0085", "\u2028"])
+def test_unicode_line_separators_degrade_to_default(separator):
+    assert normalize_comment(f"第一行{separator}第二行") == DEFAULT_COMMENT
+
+
 def test_parse_response_keeps_valid_comment():
     payload = {
         "name": "需求膨胀",
@@ -174,6 +179,77 @@ def test_archive_warmup_restores_comment_to_redis(tmp_path, monkeypatch):
 
     assert stats["combos"] == 1
     assert fake.hashes["combo:甲 + 乙"]["comment"] == "归档重新上线。"
+
+
+def test_hit_only_sqlite_update_preserves_original_comment(tmp_path, monkeypatch):
+    monkeypatch.setattr(archive, "_DATA_DIR", tmp_path)
+    monkeypatch.setenv("APP_ENV", "test")
+    archive.init_archive()
+    archive.upsert_combination(
+        "甲 + 乙",
+        "项目",
+        "📝",
+        "llm",
+        None,
+        comment="一次生成，长期复用。",
+    )
+
+    archive.upsert_combination(
+        key="甲 + 乙",
+        result="",
+        emoji="",
+        source="",
+        chain=None,
+        increment_hit=True,
+    )
+
+    con = archive._conn()
+    row = con.execute(
+        "SELECT result, emoji, comment, hit_count "
+        "FROM combinations WHERE key = ?",
+        ("甲 + 乙",),
+    ).fetchone()
+    con.close()
+    assert dict(row) == {
+        "result": "项目",
+        "emoji": "📝",
+        "comment": "一次生成，长期复用。",
+        "hit_count": 2,
+    }
+
+
+def test_archive_warmup_leaves_existing_legacy_redis_hash_untouched(monkeypatch):
+    fake = FakeRedis()
+    legacy = {
+        "result": "旧项目",
+        "emoji": "📦",
+        "source": "llm",
+        "chain": "",
+        "ts": "123.000",
+    }
+    fake.hashes["combo:旧 + 数据"] = dict(legacy)
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+    monkeypatch.setattr(
+        db.archive,
+        "all_combinations",
+        lambda: [
+            {
+                "key": "旧 + 数据",
+                "result": "归档项目",
+                "emoji": "🗄️",
+                "source": "llm",
+                "chain": "",
+                "comment": "归档点评",
+            }
+        ],
+    )
+    monkeypatch.setattr(db.archive, "all_firsts", lambda: [])
+    monkeypatch.setattr(db.archive, "all_nicknames", lambda: [])
+
+    stats = db.warm_up_from_archive()
+
+    assert stats == {"combos": 0, "firsts": 0, "nicks": 0}
+    assert fake.hashes["combo:旧 + 数据"] == legacy
 
 
 class FakeMetricsRedis:

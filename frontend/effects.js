@@ -115,7 +115,7 @@
     if (title) title.textContent += depthStr + scoreStr;
     el.className = "first-toast show tier-" + tier;
     clearTimeout(EFFECTS.firstToast._t);
-    EFFECTS.firstToast._t = setTimeout(() => el.classList.remove("show"), 2800);
+    EFFECTS.firstToast._t = setTimeout(() => el.classList.remove("show"), 4200);
   };
 
   // -------------------- 里模式（ura mode · 疯狂的可视化覆盖）--------------------

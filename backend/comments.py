@@ -8,7 +8,7 @@ from typing import Any
 DEFAULT_COMMENT = "这波组合很有想法，建议先小范围灰度。"
 MAX_COMMENT_CHARS = 30
 
-_CONTROL_OR_NEWLINE_RE = re.compile(r"[\x00-\x1f\x7f]")
+_CONTROL_OR_NEWLINE_RE = re.compile(r"[\x00-\x1f\x7f-\x9f\u2028\u2029]")
 _SPACE_RE = re.compile(r"[^\S\r\n]+")
 
 
