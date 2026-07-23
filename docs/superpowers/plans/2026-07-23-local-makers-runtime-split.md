@@ -225,7 +225,7 @@ test("Compose fixes the local runtime and supports source reload", async () => {
   assert.match(compose, /\.\/backend:\/app\/backend:ro/u);
   assert.match(compose, /\.\/frontend:\/app\/frontend:ro/u);
   assert.match(compose, /\.\/data:\/app\/data/u);
-  assert.match(compose, /uvicorn backend\.main:app.*--reload/u);
+  assert.match(compose, /command:[\s\S]*uvicorn[\s\S]*--reload/u);
   assert.doesNotMatch(compose, /MAKERS_MODELS_KEY/u);
 });
 
