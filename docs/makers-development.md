@@ -1,203 +1,253 @@
-# EdgeOne Makers 团队开发指南
+# 本地开发与 EdgeOne Makers 发布指南
 
-EdgeOne Makers 是本项目当前的默认开发和生产平台。本指南用于成员从 GitHub
-克隆仓库后，在自己的电脑上运行静态页面、Edge Functions、Makers KV 和
-Makers Models。
+项目使用两套相互独立的运行环境：
 
-## 运行结构
-
-同一个 Makers 项目绑定了两个相互隔离的 KV 命名空间：
-
-| 环境 | `APP_ENV` | Edge Function 全局变量 | 命名空间 |
+| 场景 | 服务 | 数据 | 模型 |
 | --- | --- | --- | --- |
-| 本地开发 | `dev` | `test_dev` | `infinite_craft_dev` |
-| `main` 生产发布 | 留空、`makers` 或 `prod` | `test` | `infinite_craft` |
+| 成员电脑 | FastAPI | 本机 Redis + SQLite | DeepSeek API |
+| `main` 线上版本 | Makers Edge Functions | `test → infinite_craft` KV | Makers Models |
 
-本地 Makers 开发会连接远端的 `infinite_craft_dev`，并不是在电脑上模拟一套
-内存 KV。旧 FastAPI 使用的 Redis 和 `data/*.db` SQLite 文件不参与 Makers
-运行，也不会与两个 KV 命名空间自动同步。
+普通本地开发不需要 EdgeOne 账号或项目权限。本机数据不会写入 Makers，线上
+数据也不会同步到本机。
 
-## 前置条件
+## 一、本地开发
 
-- Node.js 20 或更高版本。
-- EdgeOne CLI 1.6.7 或更高版本。
-- 成员的腾讯云账号已经获得现有 Infinity Makers 项目的访问权限。
-- 项目控制台保持以下 KV 绑定：
-  - `test_dev → infinite_craft_dev`
-  - `test → infinite_craft`
-- 项目控制台已经配置 `MAKERS_MODELS_KEY` 或
-  `AI_GATEWAY_API_KEY`。
+### 前置条件
 
-不要在共享的 Makers 控制台环境变量中设置 `APP_ENV=dev`。Makers 项目环境
-变量对所有部署统一生效，这会让后续生产部署也选择开发 KV。
+- Node.js 20 或更高版本；
+- Docker Desktop，或带 Compose 插件的 Docker Engine；
+- 成员私发的 DeepSeek API Key。
 
-## 首次克隆与关联
+确认 Docker 可用：
+
+```bash
+docker --version
+docker compose version
+```
+
+### 首次启动
 
 ```bash
 git clone git@github.com:ythere-y/infinite-craft-TC.git
 cd infinite-craft-TC
-npm install
-npm install -g edgeone
-edgeone -v
-edgeone login --site china
-edgeone makers link
+cp .env.example .env
 ```
 
-`edgeone makers link` 会显示项目选择器。请选择团队已经在使用、并具有上述两个
-KV 绑定的现有项目，不要创建同名新项目。关联完成后：
+只在被 Git 忽略的 `.env` 中填写：
 
-- `.edgeone/project.json` 保存成员本机的项目关联。
-- `.env` 保存从 Makers 同步的项目环境变量。
-- 两者均被 `.gitignore` 排除，不能提交。
+```dotenv
+LLM_API_KEY=成员私发的DeepSeek密钥
+LLM_BASE_URL=https://api.deepseek.com
+LLM_MODEL=deepseek-v4-flash
+```
 
-如果项目已经关联，但本机没有 `.env`，执行：
+启动：
 
 ```bash
-edgeone makers env pull -f .env
+npm run dev
 ```
 
-不要在终端、聊天或 Issue 中粘贴 `.env` 内容。
-
-## 启动本地 Makers
+首次启动会拉取 Redis 和 Python 镜像并安装依赖，后续启动复用 Docker 缓存。
+命令保持在前台显示 FastAPI、模型和请求日志；按 `Ctrl+C` 停止前台进程，或
+在另一个终端执行：
 
 ```bash
-npm run makers:dev
+npm run dev:down
 ```
 
-该命令会：
+### 本地访问与健康检查
 
-1. 检查 `.edgeone/project.json` 和 `.env`。
-2. 只把本机 `.env` 中的 `APP_ENV` 设置为 `dev`，保留其他配置和密钥。
-3. 运行 `edgeone makers dev --skip-env-sync`。
-4. 让 Edge Function 只使用 `test_dev → infinite_craft_dev`。
+```bash
+curl --noproxy '*' http://127.0.0.1:8000/api/health
+curl --noproxy '*' http://127.0.0.1:8000/api/elements
+```
 
-打开 CLI 输出的 HTTP 地址。默认通常为：
+健康检查应至少包含：
+
+```json
+{
+  "redis": "ok",
+  "llm": "configured",
+  "sqlite": "/app/data/dev.db",
+  "app_env": "dev"
+}
+```
+
+健康检查不会调用模型。要验证 DeepSeek，可在网页合成一组预设配方之外的
+元素，或向 `/api/combine` 发送一次请求；重复相同组合应命中本地缓存。
+
+### 本地数据
+
+- Redis 监听宿主机 `127.0.0.1:16739`，容器内使用 DB 1；
+- Redis AOF 位于 `data/redis/`；
+- SQLite 位于 `data/dev.db`；
+- 所有这些路径都被 Git 忽略。
+
+Compose 固定向 Web 容器注入 `APP_ENV=dev` 和
+`REDIS_URL=redis://redis:6379/1`，本机 `.env` 不能把它们改为生产值或远端
+Redis。后端与前端源码以只读方式挂载，Uvicorn 会在代码修改后自动重载。
+
+### 日常命令
+
+```bash
+npm run dev                  # 启动本地服务并显示日志
+docker compose logs -f web   # 只跟踪 FastAPI 日志
+docker compose ps            # 查看容器健康状态
+npm run dev:down             # 停止服务，保留数据
+```
+
+现有 `run.sh` 仍可用于特殊的 Conda 环境，但不是成员和 Agent 的默认入口。
+
+## 二、修改与 PR
+
+开发分支修改完成后运行：
+
+```bash
+npm test
+python3 -m pytest tests --ignore=tests/test_combine_feedback.py -q
+npm run build
+```
+
+安装了 EdgeOne CLI 的发布维护者再执行：
+
+```bash
+npm run makers:build
+```
+
+该命令只验证 Makers 静态产物和 Edge Function 编译，不读取线上 KV。普通
+本地开发不要求安装或登录 EdgeOne CLI。
+
+提交功能分支、创建 PR，并合并到 `main`。Makers 已配置的 Git 集成检测到
+`main` 更新后会自动发布，仓库不保存部署 Token，也不重复运行另一套发布
+脚本。
+
+## 三、Makers 生产配置
+
+### KV
+
+项目必须绑定：
 
 ```text
-http://127.0.0.1:8088/
+变量名：test
+命名空间：infinite_craft
 ```
 
-必须通过 Makers 的 HTTP 开发服务器访问。不要直接打开 `frontend/index.html`
-形成 `file://` 地址，也不要使用 `python -m http.server`、`npx serve` 等普通
-静态服务器；这些方式不会运行 Edge Functions，也不能正确注入 KV 和环境变量。
+Edge Function 将 `test` 当作整个数据库使用，并在运行时自动创建组合、元素、
+首发、昵称、KPI、排行榜和索引所需的 key。
 
-## 本地验证
+控制台中已有的 `test_dev → infinite_craft_dev` 可以保留备用，但当前源代码
+不会读取它。本地开发也不会连接它。
 
-先检查健康状态：
+### Makers Models 与安全
 
-```bash
-curl --noproxy '*' http://127.0.0.1:8088/api/health
+Makers 控制台环境变量：
+
+```dotenv
+MAKERS_MODELS_KEY=控制台中的MakersModels密钥
+AI_GATEWAY_BASE_URL=https://ai-gateway.edgeone.link/v1
+AI_GATEWAY_MODEL=@makers/deepseek-v4-flash
+MODEL_CALLS_PER_MINUTE=20
+ADMIN_TOKEN=随机长字符串
+DASHBOARD_PUBLIC=0
 ```
 
-预期至少包含：
+`MAKERS_MODELS_KEY` 与本地 `LLM_API_KEY` 是两套独立凭据。前者只在 Makers
+运行时注入，后者只存在于成员电脑的 `.env`。
+
+### 自动发布边界
+
+`edgeone.json` 固定执行：
+
+```json
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist"
+}
+```
+
+生产 Edge Function 只接受远端请求并只读取 `test → infinite_craft`。即使
+Makers 控制台意外出现 `APP_ENV=dev`，代码也不会切换到开发 KV。Loopback
+请求会返回配置错误并提示使用 `npm run dev`，防止误用本机 Edge Function
+写入生产数据。
+
+自动发布后，线上 `/api/health` 应包含：
 
 ```json
 {
   "kv": "ok",
-  "app_env": "dev",
+  "app_env": "makers",
   "llm": "configured"
 }
 ```
 
-然后打开游戏，合成一组固定配方之外的元素。首次请求应通过 Makers Models
-生成结果并写入 `infinite_craft_dev`；重复相同组合应直接命中开发 KV 缓存。
+## 四、常见问题
 
-其他只读检查：
+### `npm run dev` 提示找不到 Docker
 
-```bash
-curl --noproxy '*' http://127.0.0.1:8088/api/elements
-curl --noproxy '*' \
-  'http://127.0.0.1:8088/api/wall/page?offset=0&limit=1'
-```
+安装 Docker Desktop 或 Docker Engine Compose 插件，然后重新打开终端并
+确认 `docker compose version` 成功。
 
-## 日常开发
+### 端口 8000 或 16739 被占用
+
+检查是否有本项目的旧容器或 `run.sh` 进程：
 
 ```bash
-git pull --ff-only
-npm install
-npm test
-npm run makers:dev
+docker compose ps
+docker ps
+npm run dev:down
 ```
 
-修改完成后运行：
-
-```bash
-npm test
-npm run build
-npm run makers:build
-```
-
-将代码推送到功能分支可用于代码审查；合并或直接推送 `main` 后，现有 Makers
-Git 集成会自动创建新的生产部署。生产请求未设置 `APP_ENV=dev`，因此继续使用
-`test → infinite_craft`。
-
-## Git 中的配置边界
-
-会提交：
-
-- `edgeone.json`
-- `package.json` 中的 Makers 构建、测试和开发命令
-- `.env.example`
-- `scripts/dev-makers.mjs`
-- KV 绑定名称、命名空间约定和本指南
-
-不会提交：
-
-- `.env` 与任何真实模型密钥、`ADMIN_TOKEN`
-- `.edgeone/` 项目关联和登录状态
-- Makers API Token
-- 带 `eo_token` / `eo_time` 的临时预览链接
-- KV 导出、SQLite、Redis AOF/RDB 或玩家数据
-
-## 常见问题
-
-### 提示先运行 `edgeone makers link`
-
-当前克隆尚未关联项目。登录正确账号后执行：
-
-```bash
-edgeone makers link
-```
-
-选择已有项目，不要创建新项目。
-
-### 提示先运行 `edgeone makers env pull -f .env`
-
-项目已关联，但本机环境变量文件不存在：
-
-```bash
-edgeone makers env pull -f .env
-npm run makers:dev
-```
-
-### 提示缺少 `test_dev`
-
-检查 Makers 控制台当前项目的 KV 绑定是否为：
-
-```text
-test_dev → infinite_craft_dev
-```
-
-变量名必须完全一致，不要把命名空间名称直接写进代码。
+停止占用端口的旧进程后重新执行 `npm run dev`。不要通过改成远端 Redis 来
+绕过端口冲突。
 
 ### 健康检查显示 `llm: "not_configured"`
 
-在 Makers 项目环境变量中配置 `MAKERS_MODELS_KEY`，然后重新执行
-`edgeone makers env pull -f .env`。`/api/health` 只证明密钥已加载；还应实际
-合成一次未知组合验证模型调用。
+检查 `.env` 是否位于仓库根目录，变量名是否为 `LLM_API_KEY`，然后重建 Web
+容器：
 
-### 需要一个云端开发部署
+```bash
+npm run dev:down
+npm run dev
+```
 
-当前 Makers 项目的环境变量对所有部署统一生效，不能安全地让同一项目的生产
-部署和云端开发部署长期使用不同 `APP_ENV`。如果将来需要持续存在的云端开发
-地址，应创建独立 Makers 开发项目，并只在该项目绑定
-`test_dev → infinite_craft_dev`。本指南当前覆盖成员电脑上的 Makers 本地开发。
+不要把 Key 发到聊天、Issue、日志或 Git。
 
-## Legacy FastAPI 与 Render
+### Redis 正常但 SQLite 写入失败
 
-`./run.sh`、Docker Compose、Redis、SQLite 和 Python 后端仍可用于离线分析或
-传统服务器备用运行，但不是当前团队默认链路。
+确认仓库的 `data/` 对当前 Docker 用户可写，并检查：
 
-Render 当前暂停使用，历史 Blueprint 位于
-`deploy/legacy/render.yaml`。仓库无法自动暂停 Render 控制台中已经存在的
-服务；项目所有者需要在 Render 控制台手动暂停服务或关闭自动部署。
+```bash
+docker compose logs web
+```
+
+不要删除其他成员的数据。确实需要清空本机开发数据时，应先停止服务并由数据
+所有者明确确认删除范围。
+
+### Makers 构建通过但线上 API 报缺少 KV
+
+检查生产项目的绑定变量名是否精确为 `test`、命名空间是否为
+`infinite_craft`。KV 是 Edge Function 全局变量，不在 `context.env` 中。
+
+### PR 合并后没有自动发布
+
+在 Makers 控制台确认项目仍关联正确的 Git 仓库和 `main` 分支，并查看最新
+部署日志。仓库代码不包含平台账号凭据，因此控制台连接失效需要项目维护者
+重新授权。
+
+## 五、Git 与数据安全
+
+可以提交：
+
+- `edgeone.json`、`package.json`、Dockerfile 和 Compose 配置；
+- `.env.example` 的变量名与安全默认值；
+- Edge Function、FastAPI、前端、测试和文档。
+
+不能提交：
+
+- `.env`、DeepSeek Key、Makers Key、管理令牌；
+- `.edgeone/` 登录或项目关联状态；
+- 带临时授权参数的预览地址；
+- Redis AOF、SQLite、KV 导出和玩家数据。
+
+Render 目前暂停，历史配置只保存在 `deploy/legacy/render.yaml`。Makers 是
+唯一主动维护、在 `main` 更新后自动发布的线上平台。
