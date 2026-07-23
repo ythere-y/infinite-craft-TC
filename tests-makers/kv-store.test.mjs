@@ -5,6 +5,7 @@ import {
   entityKey,
   normalizePair,
 } from "../edge-functions/_lib/keys.js";
+import { DEFAULT_COMMENT } from "../edge-functions/_lib/comments.js";
 import { KvStore } from "../edge-functions/_lib/kv-store.js";
 import { FakeKV } from "./fake-kv.mjs";
 
@@ -26,6 +27,7 @@ test("dynamic combinations are created as JSON records", async () => {
   await store.putCombination("水", "AI", {
     result: "智能水",
     emoji: "🧠",
+    comment: DEFAULT_COMMENT,
     source: "llm",
     chain: null,
   });
@@ -35,6 +37,7 @@ test("dynamic combinations are created as JSON records", async () => {
     b: "水",
     result: "智能水",
     emoji: "🧠",
+    comment: DEFAULT_COMMENT,
     source: "llm",
     chain: null,
     hit_count: 0,

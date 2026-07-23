@@ -5,6 +5,10 @@ import {
   parseModelCombination,
   requestModelCombination,
 } from "../edge-functions/_lib/llm.js";
+import {
+  DEFAULT_COMMENT,
+  normalizeComment,
+} from "../edge-functions/_lib/comments.js";
 import { createGameService } from "../edge-functions/_lib/game-service.js";
 import { KvStore } from "../edge-functions/_lib/kv-store.js";
 import {
@@ -33,10 +37,17 @@ test("model parser accepts clean or fenced JSON and rejects invalid output", () 
   assert.deepEqual(parseModelCombination('{"name":"智能水","emoji":"🧠"}'), {
     name: "智能水",
     emoji: "🧠",
+    comment: DEFAULT_COMMENT,
   });
   assert.deepEqual(
-    parseModelCombination('```json\\n{"name":"工位床位","emoji":"🛏️"}\\n```'),
-    { name: "工位床位", emoji: "🛏️" },
+    parseModelCombination(
+      '```json\\n{"name":"工位床位","emoji":"🛏️","comment":"工位完成了居住属性升级。"}\\n```',
+    ),
+    {
+      name: "工位床位",
+      emoji: "🛏️",
+      comment: "工位完成了居住属性升级。",
+    },
   );
   assert.equal(parseModelCombination('{"name":"","emoji":"🧠"}'), null);
   assert.equal(
@@ -46,6 +57,26 @@ test("model parser accepts clean or fenced JSON and rejects invalid output", () 
   assert.equal(
     parseModelCombination('{"name":"危险结果","emoji":"<img onerror=alert(1)>"}'),
     null,
+  );
+});
+
+test("Makers comments use the same safe degradation policy as FastAPI", () => {
+  assert.equal(
+    normalizeComment("  一次生成，长期复用。  "),
+    "一次生成，长期复用。",
+  );
+  for (const value of [null, "", "第一行\n第二行", "超".repeat(31)]) {
+    assert.equal(normalizeComment(value), DEFAULT_COMMENT);
+  }
+  assert.deepEqual(
+    parseModelCombination(
+      '{"name":"合法结果","emoji":"✨","comment":"第一行\\n第二行"}',
+    ),
+    {
+      name: "合法结果",
+      emoji: "✨",
+      comment: DEFAULT_COMMENT,
+    },
   );
 });
 
@@ -65,7 +96,12 @@ test("model request uses Makers environment variables and OpenAI endpoint", asyn
       return new Response(
         JSON.stringify({
           choices: [
-            { message: { content: '{"name":"智能水","emoji":"🧠"}' } },
+            {
+              message: {
+                content:
+                  '{"name":"智能水","emoji":"🧠","comment":"水也完成了智能升级。"}',
+              },
+            },
           ],
         }),
         { status: 200, headers: { "content-type": "application/json" } },
@@ -73,12 +109,17 @@ test("model request uses Makers environment variables and OpenAI endpoint", asyn
     },
   });
 
-  assert.deepEqual(result, { name: "智能水", emoji: "🧠" });
+  assert.deepEqual(result, {
+    name: "智能水",
+    emoji: "🧠",
+    comment: "水也完成了智能升级。",
+  });
   assert.equal(captured.url, "https://example.test/v1/chat/completions");
   assert.equal(captured.init.headers.authorization, "Bearer secret");
   const body = JSON.parse(captured.init.body);
   assert.equal(body.model, "demo-model");
   assert.match(body.messages[1].content, /旧结果/);
+  assert.match(body.messages[0].content, /"comment"/);
 });
 
 test("seed combinations keep the existing response contract and persist firsts", async () => {
@@ -102,6 +143,7 @@ test("seed combinations keep the existing response contract and persist firsts",
   assert.equal(first.discoverer, "勇敢鹅");
   assert.equal(first.depth, 1);
   assert.equal(first.full_score, 10);
+  assert.equal(first.comment, DEFAULT_COMMENT);
   assert.equal(repeat.is_first, false);
   assert.equal(repeat.discoverer, "勇敢鹅");
   assert.equal((await store.firstPage()).total, 1);
@@ -163,9 +205,55 @@ test("LLM misses are cached in KV and reused without another model request", asy
 
   assert.equal(first.result, "智能咖啡");
   assert.equal(first.source, "llm");
+  assert.equal(first.comment, DEFAULT_COMMENT);
   assert.equal(repeat.result, "智能咖啡");
+  assert.equal(repeat.comment, DEFAULT_COMMENT);
   assert.equal(calls, 1);
   assert.equal((await store.getCombination("AI", "咖啡")).result, "智能咖啡");
+});
+
+test("LLM comments are persisted in KV and reused with the cached result", async () => {
+  let calls = 0;
+  const { service, store } = makeService({
+    env: { MAKERS_MODELS_KEY: "secret" },
+    fetchImpl: async () => {
+      calls += 1;
+      return new Response(
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content:
+                  '{"name":"需求气球","emoji":"🎈","comment":"一开会，需求就自动膨胀。"}',
+              },
+            },
+          ],
+        }),
+        { status: 200 },
+      );
+    },
+  });
+
+  const first = await service.combine({
+    a: "需求甲",
+    b: "会议乙",
+    discoverer: "点评鹅",
+    session_id: "comment-session",
+  });
+  const repeat = await service.combine({
+    a: "会议乙",
+    b: "需求甲",
+    discoverer: "点评鹅",
+    session_id: "comment-session",
+  });
+
+  assert.equal(first.comment, "一开会，需求就自动膨胀。");
+  assert.equal(repeat.comment, first.comment);
+  assert.equal(
+    (await store.getCombination("需求甲", "会议乙")).comment,
+    first.comment,
+  );
+  assert.equal(calls, 1);
 });
 
 test("model misses have a bounded per-visitor KV rate limit", async () => {
@@ -223,4 +311,5 @@ test("missing model configuration degrades to the established fallback", async (
   assert.equal(result.result, "未知产物");
   assert.equal(result.is_first, false);
   assert.equal(result.kpi_delta, 0);
+  assert.equal(result.comment, DEFAULT_COMMENT);
 });

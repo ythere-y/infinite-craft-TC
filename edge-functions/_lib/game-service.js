@@ -11,10 +11,15 @@ import {
   requestModelCombination,
 } from "./llm.js";
 import { scoreFor, shouldExplode } from "./kpi.js";
+import {
+  DEFAULT_COMMENT,
+  normalizeComment,
+} from "./comments.js";
 
 const FALLBACK = {
   result: "未知产物",
   emoji: "❓",
+  comment: DEFAULT_COMMENT,
   source: "fallback",
   chain: null,
 };
@@ -86,6 +91,7 @@ export function createGameService({
     return store.putCombination(a, b, {
       result: generated.name,
       emoji: generated.emoji,
+      comment: generated.comment,
       source: "llm",
       chain: null,
     });
@@ -129,6 +135,7 @@ export function createGameService({
       (await resolveCombination(a, b, clientIdentity)) || FALLBACK;
     const source = hit.source || "seed";
     const chain = hit.chain || null;
+    const comment = normalizeComment(hit.comment);
     let isFirst = false;
     let recordedDiscoverer = null;
     let depth = 0;
@@ -168,6 +175,7 @@ export function createGameService({
       b,
       result: hit.result,
       emoji: hit.emoji,
+      comment,
       source,
       chain,
       is_first: isFirst,

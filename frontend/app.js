@@ -10,6 +10,14 @@ const countEl = $("#count");
 const kpiValueEl = $("#kpi-value");
 const kpiDeltaEl = $("#kpi-delta");
 
+function appendTextElement(parent, tagName, className, text) {
+  const node = document.createElement(tagName);
+  node.className = className;
+  node.textContent = String(text ?? "");
+  parent.appendChild(node);
+  return node;
+}
+
 // ---- 会话 & 昵称 ----
 const SESSION_ID = (() => {
   let sid = localStorage.getItem("ic_session");
@@ -210,7 +218,7 @@ async function loadElements() {
 // 侧栏
 // ============================================================
 function renderSidebar(filter = "") {
-  list.innerHTML = "";
+  list.replaceChildren();
   const q = filter.trim().toLowerCase();
   const names = [...state.discovered].sort((a, b) => a.localeCompare(b, "zh"));
   for (const name of names) {
@@ -237,8 +245,11 @@ function makeElementChip(name, emoji, { isFirst = false, isStarter = false, sour
   div.dataset.name = name;
   div.dataset.source = source;
   if (isStarter) div.title = "🌱 基础元素（开局自带）";
-  const seedBadge = isStarter ? `<span class="starter-badge" aria-hidden="true">🌱</span>` : "";
-  div.innerHTML = `${seedBadge}<span class="emoji">${emoji}</span><span class="name">${escapeHTML(name)}</span>`;
+  window.COMBINE_FEEDBACK.renderElement(document, div, {
+    name,
+    emoji,
+    isStarter,
+  });
   div.addEventListener("pointerdown", (e) => onPointerDown(e, div, { name, emoji, source }));
   // 侧栏双击 → 画布中心生成该元素（允许原地叠放）
   bindDoubleTap(div, () => spawnAtWorkspaceCenter(name, emoji));
@@ -343,7 +354,7 @@ function onPointerDown(e, el, { name, emoji, source }) {
   // 创建 ghost（跟手的元素副本）
   const ghost = document.createElement("div");
   ghost.className = "element ghost";
-  ghost.innerHTML = `<span class="emoji">${emoji}</span><span class="name">${escapeHTML(name)}</span>`;
+  window.COMBINE_FEEDBACK.renderElement(document, ghost, { name, emoji });
   ghost.style.position = "fixed";
   ghost.style.left = (e.clientX - offsetX) + "px";
   ghost.style.top = (e.clientY - offsetY) + "px";
@@ -454,8 +465,11 @@ function spawnOnCanvas(name, emoji, x, y) {
   el.dataset.name = name;
   el.dataset.source = "canvas";
   if (isStarter) el.title = "🌱 基础元素（开局自带）";
-  const seedBadge = isStarter ? `<span class="starter-badge" aria-hidden="true">🌱</span>` : "";
-  el.innerHTML = `${seedBadge}<span class="emoji">${emoji}</span><span class="name">${escapeHTML(name)}</span>`;
+  window.COMBINE_FEEDBACK.renderElement(document, el, {
+    name,
+    emoji,
+    isStarter,
+  });
   el.style.left = (x - 30) + "px";
   el.style.top = (y - 16) + "px";
   workspace.appendChild(el);
@@ -500,14 +514,15 @@ async function combine(srcId, dstId, x, y) {
   // loader
   const loader = document.createElement("div");
   loader.className = "combining";
-  loader.innerHTML = `<div class="spinner"></div>合成中…`;
+  appendTextElement(loader, "div", "spinner", "");
+  loader.append("合成中…");
   loader.style.left = (x - 40) + "px";
   loader.style.top = (y - 14) + "px";
   workspace.appendChild(loader);
 
-  // 8s 超时保护
+  // 高推理模型可能需要数十秒；略高于后端默认 60s 超时。
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 8000);
+  const timer = setTimeout(() => ctrl.abort(), 65000);
 
   try {
     const response = await fetch("/api/combine", {
@@ -536,7 +551,9 @@ async function combine(srcId, dstId, x, y) {
     removeCanvasEl(dstId);
     const newRec = spawnOnCanvas(resp.result, resp.emoji, x, y);
 
-    const isNewToPlayer = !state.discovered.has(resp.result);
+    const knownBefore = state.discovered.has(resp.result);
+    const isNewToPlayer = !knownBefore;
+    const tier = window.COMBINE_FEEDBACK.classify(resp.is_first, knownBefore);
     state.elements[resp.result] = { emoji: resp.emoji, category: resp.chain || "unknown" };
     state.discovered.add(resp.result);
     if (resp.is_first) state.firsts.add(resp.result);
@@ -547,14 +564,6 @@ async function combine(srcId, dstId, x, y) {
     persistDiscovered();
     renderSidebar(searchInput.value);
 
-    // 判定三档特效 tier
-    //   tier 3 global_new    全球首发 -> 烟花 + 持续发光
-    //   tier 2 global_known  玩家本地新发现 -> 持续发光
-    //   tier 1 seen          玩家已知 -> 基础轻动效
-    let tier = "seen";
-    if (resp.is_first) tier = "global_new";
-    else if (isNewToPlayer) tier = "global_known";
-
     // 加分系统（depth-based）：未知全分 / 已知 1/10
     const fullScore = resp.full_score || 0;
     const gained = isNewToPlayer ? fullScore : Math.max(1, Math.floor(fullScore / 10));
@@ -564,7 +573,7 @@ async function combine(srcId, dstId, x, y) {
     }
     if (resp.explode) window.EFFECTS?.explode?.(resp.result);
     window.EFFECTS?.onCombineResult?.(newRec.el, resp.result, resp.emoji, tier, {
-      depth: resp.depth, gained, fullScore, isNewToPlayer,
+      depth: resp.depth, gained, fullScore, isNewToPlayer, comment: resp.comment,
     });
   } catch (err) {
     clearTimeout(timer);
@@ -601,15 +610,15 @@ function shake(el) {
 // 段位表（启动时从 /api/tiers 拉，和后端 kpi.TIERS 对齐）
 // 瑞雪以上是"里程碑档位"；真实的阶梯是瑞雪内按 🌟 累加（后端动态拼）
 let TIERS = [
-  { floor: 0,      grade: "3-",       label: "待改进",      emoji: "🔴" },
-  { floor: 500,    grade: "3.25",     label: "勉强合格",    emoji: "🟡" },
-  { floor: 1500,   grade: "3.5",      label: "达标",        emoji: "🟢" },
-  { floor: 3500,   grade: "3.75",     label: "优秀",        emoji: "🔵" },
-  { floor: 8000,   grade: "瑞雪",     label: "瑞雪兆丰年",  emoji: "❄️" },
-  { floor: 11200,  grade: "瑞雪🌛",   label: "月华如水",    emoji: "🌛" },
-  { floor: 20800,  grade: "瑞雪🌞",   label: "日耀乾坤",    emoji: "🌞" },
-  { floor: 59200,  grade: "瑞雪👑",   label: "加冕鹅王",    emoji: "👑" },
-  { floor: 212800, grade: "暴雪领主", label: "极地主宰鹅",  emoji: "🌨️" },
+  { floor: 0, grade: "3-", label: "待改进", emoji: "🔴" },
+  { floor: 500, grade: "3.25", label: "勉强合格", emoji: "🟡" },
+  { floor: 1500, grade: "3.5", label: "达标", emoji: "🟢" },
+  { floor: 3500, grade: "3.75", label: "优秀", emoji: "🔵" },
+  { floor: 8000, grade: "瑞雪", label: "瑞雪兆丰年", emoji: "❄️" },
+  { floor: 11200, grade: "瑞雪🌛", label: "月华如水", emoji: "🌛" },
+  { floor: 20800, grade: "瑞雪🌞", label: "日耀乾坤", emoji: "🌞" },
+  { floor: 59200, grade: "瑞雪👑", label: "加冕鹅王", emoji: "👑" },
+  { floor: 212800, grade: "暴雪领主", label: "极地主宰鹅", emoji: "🌨️" },
 ];
 
 async function loadTiers() {
@@ -775,23 +784,26 @@ function renderScorePanel() {
 
   // 左：加分历史
   if (state.scoreEvents.length === 0) {
-    list.innerHTML = "";
+    list.replaceChildren();
     empty.classList.remove("hide");
   } else {
     empty.classList.add("hide");
     // 最新在顶，最多展示 50 条
     const rows = state.scoreEvents.slice().reverse().slice(0, 50);
-    list.innerHTML = "";
+    list.replaceChildren();
     for (const ev of rows) {
       const row = document.createElement("div");
       row.className = "score-row";
       const timeStr = formatTime(ev.ts);
-      row.innerHTML = `
-        <span class="emoji">${ev.emoji}</span>
-        <span class="name" title="${escapeHTML(ev.result)}">${escapeHTML(ev.result)}</span>
-        <span class="meta">d=${ev.depth} · ${timeStr}</span>
-        <span class="gain tier-${ev.tier}">+${ev.gained}</span>
-      `;
+      window.COMBINE_FEEDBACK.renderElement(document, row, {
+        name: ev.result,
+        emoji: ev.emoji,
+      });
+      row.querySelector(".name").title = ev.result;
+      appendTextElement(row, "span", "meta", `d=${ev.depth} · ${timeStr}`);
+      appendTextElement(
+        row, "span", `gain tier-${ev.tier}`, `+${ev.gained}`
+      );
       list.appendChild(row);
     }
   }
@@ -830,7 +842,7 @@ async function renderTiersPane() {
     badge.title = rank.label;
   }
 
-  box.innerHTML = "";
+  box.replaceChildren();
 
   // 当前状态卡片（置顶）
   const header = document.createElement("div");
@@ -842,14 +854,10 @@ async function renderTiersPane() {
   //   - 未到瑞雪：X 是基础档位（3.25 / 3.5 / …）
   //   - 瑞雪及以上：X 是下一次"🌟 视觉变化"后的形态，和 grade 字符串直接对齐
   //   （后端 next_grade 已经生成好，例如当前是 瑞雪🌛🌟 → next_grade = 瑞雪🌛🌟🌟）
-  const nextLine = rank.topped
-    ? `👑 已达 <b>${rank.emoji} ${escapeHTML(rank.grade)}</b>，继续堆分进入 <b>${escapeHTML(rank.next_grade)}</b>`
-    : `距 <b>${rank.next_emoji} ${escapeHTML(rank.next_grade)}</b> 还差 <b>${rank.to_next}</b> 分`;
-
   // 🌟 breakdown：只在已经进入瑞雪阶（stars > 0 或 rank.grade 包含瑞雪）时显示
   //   显示时把 stars 拆成 👑/🌞/🌛/🌟 的组合，和 grade 字符串 1:1 对齐
   //   例：stars=69 → 1👑 + 0🌞 + 1🌛 + 1🌟，grade 恰好是 瑞雪👑🌛🌟
-  let starsBlock = "";
+  let starsSummary = null;
   const inSnow = (rank.stars != null && rank.stars > 0)
     || (rank.grade && rank.grade.startsWith("瑞雪"));
   if (inSnow && rank.max_stars) {
@@ -858,26 +866,50 @@ async function renderTiersPane() {
       .filter(([, n]) => n > 0)
       .map(([sym, n]) => `${n}${sym}`)
       .join(" + ");
-    const pretty = pieces || "0🌟";
-    starsBlock = `
-      <div class="tier-stars">
-        已累积瑞雪 <b>${pretty}</b>（= ${rank.stars} / ${rank.max_stars} 🌟，每 ${rank.star_step} 分 1🌟）
-      </div>
-    `;
+    starsSummary = pieces || "0🌟";
   }
 
-  header.innerHTML = `
-    <div class="tier-current-emoji">${rank.emoji}</div>
-    <div class="tier-current-main">
-      <div class="tier-current-grade">${escapeHTML(rank.grade)}</div>
-      <div class="tier-current-label">${escapeHTML(rank.label || "")}</div>
-    </div>
-    <div class="tier-current-next">
-      ${nextLine}
-      <div class="tier-progress"><div class="tier-progress-fill" style="width:${progressPct}%"></div></div>
-      ${starsBlock}
-    </div>
-  `;
+  appendTextElement(header, "div", "tier-current-emoji", rank.emoji);
+  const main = appendTextElement(
+    header, "div", "tier-current-main", ""
+  );
+  appendTextElement(main, "div", "tier-current-grade", rank.grade);
+  appendTextElement(main, "div", "tier-current-label", rank.label || "");
+  const next = appendTextElement(
+    header, "div", "tier-current-next", ""
+  );
+  if (rank.topped) {
+    next.append("👑 已达 ");
+    appendTextElement(
+      next, "b", "", `${rank.emoji} ${rank.grade}`
+    );
+    next.append("，继续堆分进入 ");
+    appendTextElement(next, "b", "", rank.next_grade);
+  } else {
+    next.append("距 ");
+    appendTextElement(
+      next, "b", "", `${rank.next_emoji} ${rank.next_grade}`
+    );
+    next.append(" 还差 ");
+    appendTextElement(next, "b", "", rank.to_next);
+    next.append(" 分");
+  }
+  const progress = appendTextElement(
+    next, "div", "tier-progress", ""
+  );
+  const fill = appendTextElement(
+    progress, "div", "tier-progress-fill", ""
+  );
+  fill.style.width = `${progressPct}%`;
+  if (starsSummary != null) {
+    const stars = appendTextElement(next, "div", "tier-stars", "");
+    stars.append("已累积瑞雪 ");
+    appendTextElement(stars, "b", "", starsSummary);
+    stars.append(
+      `（= ${rank.stars} / ${rank.max_stars} 🌟，` +
+      `每 ${rank.star_step} 分 1🌟）`
+    );
+  }
   box.appendChild(header);
 
   // 全部段位列表
@@ -891,12 +923,10 @@ async function renderTiersPane() {
       !tiers.some(x => x.floor > t.floor && rank.total >= x.floor);
     const row = document.createElement("div");
     row.className = "tier-row " + (isCurrent ? "current" : reached ? "reached" : "locked");
-    row.innerHTML = `
-      <span class="tier-emoji">${t.emoji}</span>
-      <span class="tier-grade">${escapeHTML(t.grade)}</span>
-      <span class="tier-label">${escapeHTML(t.label)}</span>
-      <span class="tier-floor">≥ ${t.floor}</span>
-    `;
+    appendTextElement(row, "span", "tier-emoji", t.emoji);
+    appendTextElement(row, "span", "tier-grade", t.grade);
+    appendTextElement(row, "span", "tier-label", t.label);
+    appendTextElement(row, "span", "tier-floor", `≥ ${t.floor}`);
     listBox.appendChild(row);
   }
   box.appendChild(listBox);
@@ -944,7 +974,7 @@ function renderRecipebook(filter = "") {
   // 最新合成的在顶
   const rows = state.recipes.slice().sort((a, b) => b.ts - a.ts);
 
-  list.innerHTML = "";
+  list.replaceChildren();
   let shown = 0;
   for (const r of rows) {
     const blob = `${r.a} ${r.b} ${r.result}`.toLowerCase();
@@ -1012,7 +1042,7 @@ function makeInteractiveRecipeChip(name, emoji, { isResult = false } = {}) {
   const chip = document.createElement("span");
   chip.className = "recipe-chip" + (isResult ? " recipe-result" : "");
   chip.dataset.name = name;
-  chip.innerHTML = `<span class="emoji">${emoji}</span><span class="name">${escapeHTML(name)}</span>`;
+  window.COMBINE_FEEDBACK.renderElement(document, chip, { name, emoji });
 
   // 拖拽：复用主拖拽系统
   chip.addEventListener("pointerdown", (e) => {
@@ -1191,13 +1221,6 @@ async function settle() {
     renderScorePanel();
     panel.classList.add("show");
   }
-}
-
-function escapeHTML(s) {
-  return String(s).replace(/[&<>"']/g, c => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;",
-    '"': "&quot;", "'": "&#39;",
-  })[c]);
 }
 
 init();

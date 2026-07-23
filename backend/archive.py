@@ -49,6 +49,7 @@ def init_archive() -> None:
                     emoji      TEXT NOT NULL,
                     source     TEXT NOT NULL,   -- seed | llm
                     chain      TEXT,
+                    comment    TEXT NOT NULL DEFAULT '',
                     created_at REAL NOT NULL,
                     hit_count  INTEGER NOT NULL DEFAULT 1
                 );
@@ -86,6 +87,17 @@ def init_archive() -> None:
                 CREATE INDEX IF NOT EXISTS idx_combo_chain ON combinations(chain);
                 """
             )
+            columns = {
+                row["name"]
+                for row in con.execute(
+                    "PRAGMA table_info(combinations)"
+                ).fetchall()
+            }
+            if "comment" not in columns:
+                con.execute(
+                    "ALTER TABLE combinations "
+                    "ADD COLUMN comment TEXT NOT NULL DEFAULT ''"
+                )
             con.commit()
             print(f"[sqlite] archive ready: {_db_path()}")
         finally:
@@ -98,7 +110,7 @@ def init_archive() -> None:
 
 def upsert_combination(
     key: str, result: str, emoji: str, source: str,
-    chain: Optional[str], increment_hit: bool = False,
+    chain: Optional[str], comment: str = "", increment_hit: bool = False,
 ) -> None:
     """
     插入或更新一条合成规则。
@@ -110,12 +122,23 @@ def upsert_combination(
         try:
             con.execute(
                 """
-                INSERT INTO combinations(key, result, emoji, source, chain, created_at, hit_count)
-                VALUES (?, ?, ?, ?, ?, ?, 1)
+                INSERT INTO combinations(
+                    key, result, emoji, source, chain, comment, created_at, hit_count
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, 1)
                 ON CONFLICT(key) DO UPDATE SET
                     hit_count = hit_count + CASE WHEN ? THEN 1 ELSE 0 END
                 """,
-                (key, result, emoji, source, chain or "", time.time(), 1 if increment_hit else 0),
+                (
+                    key,
+                    result,
+                    emoji,
+                    source,
+                    chain or "",
+                    str(comment or ""),
+                    time.time(),
+                    1 if increment_hit else 0,
+                ),
             )
             con.commit()
         finally:
@@ -187,7 +210,7 @@ def all_combinations() -> List[Dict]:
     con = _conn()
     try:
         rows = con.execute(
-            "SELECT key, result, emoji, source, chain FROM combinations"
+            "SELECT key, result, emoji, source, chain, comment FROM combinations"
         ).fetchall()
         return [dict(r) for r in rows]
     finally:

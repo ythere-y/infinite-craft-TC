@@ -4,6 +4,7 @@ import {
   normalizePair,
   sha256Hex,
 } from "./keys.js";
+import { normalizeComment } from "./comments.js";
 
 const RECENT_KEY = "snapshot_recent";
 const ELEMENTS_KEY = "snapshot_elements";
@@ -278,6 +279,7 @@ export class KvStore {
       b: right,
       result: cleanText(rawRecord.result),
       emoji: cleanText(rawRecord.emoji) || "❓",
+      comment: normalizeComment(rawRecord.comment),
       source: cleanText(rawRecord.source) || "llm",
       chain: cleanText(rawRecord.chain) || null,
       hit_count: 0,
@@ -372,6 +374,7 @@ export class KvStore {
       b: record.b,
       result,
       emoji: record.emoji,
+      comment: normalizeComment(record.comment),
       source: record.source,
       chain: record.chain,
       hit_count: finiteInteger(record.hit_count),

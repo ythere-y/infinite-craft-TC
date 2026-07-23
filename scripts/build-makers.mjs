@@ -11,6 +11,7 @@ const REQUIRED_ENTRIES = [
   "THIRD_PARTY_NOTICES.md",
   "index.html",
   "app.js",
+  "combine-feedback.js",
   "effects.js",
   "style.css",
   "wall/index.html",

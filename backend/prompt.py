@@ -1,7 +1,8 @@
 """
 GLM-5.1-64K Prompt 模板
 职责：当 Redis 缓存 miss 时，构造 prompt 调用 GLM 生成合成结果。
-约束：输出必须是 JSON { "name": str, "emoji": str }，温度稍高，few-shot 提供风格示例。
+约束：输出必须是 JSON { "name": str, "emoji": str, "comment": str }，
+温度稍高，few-shot 提供风格示例。
 
 多样性策略（2026-04 优化）：
 - 不再给"优先级词表"做 anchor（模型会反复抽里面的词）
@@ -15,6 +16,8 @@ import random
 import re
 from typing import Optional, Dict, List
 
+from .comments import normalize_comment
+
 # ============================================================
 # System Prompt：定义裁判身份 + 鼓励多样性
 # ============================================================
@@ -27,9 +30,11 @@ SYSTEM_PROMPT = """你是《鹅厂无限合成 ♾️》的合成裁判。
 
 【硬约束】
 1. 只返回 JSON，禁止任何解释性文字、markdown、代码块围栏。
-2. JSON 格式：{"name": "元素名", "emoji": "单个emoji"}
+2. JSON 格式：{"name": "元素名", "emoji": "单个emoji", "comment": "一句话点评"}
 3. name 必须是中文或中英混搭，长度 2-8 个字。
 4. emoji 必须是单个 emoji 字符（可以是复合 emoji，如 👨‍🦲）。
+5. comment 必须与输入或结果相关，只有一句话，不换行，不超过 30 个字符。
+6. comment 要简短有趣，符合鹅厂打工人或互联网黑话语境。
 
 【风格主题（不是词表，不要反复抽同一个词）】
 合成结果可以来自以下任一方向，每次要"意料之外情理之中"：
@@ -102,35 +107,28 @@ SYSTEM_PROMPT = """你是《鹅厂无限合成 ♾️》的合成裁判。
 # - 不堆砌"南极圈/打工鹅/瑞雪"这种高频词（会被模型当成标准答案）
 FEW_SHOT_EXAMPLES = [
     # 成语化（只保留 1 条，示范"有反差感的成语化用"这一风味）
-    ({"a": "老板", "b": "画饼"}, {"name": "望梅止渴", "emoji": "🥧"}),
-
+    ({"a": "老板", "b": "画饼"}, {"name": "望梅止渴", "emoji": "🥧", "comment": "饼还没画完，季度目标已经吃饱了。"}),
     # 自造词（主力风格，多示范几条）
-    ({"a": "咖啡", "b": "夜宵券"}, {"name": "续命二连", "emoji": "☕"}),
-    ({"a": "会议", "b": "会议"}, {"name": "会议套娃", "emoji": "🪆"}),
-    ({"a": "工位", "b": "折叠椅"}, {"name": "工位床位", "emoji": "🛏️"}),
-    ({"a": "周报", "b": "ChatGPT"}, {"name": "AI代笔", "emoji": "🤖"}),
-
+    ({"a": "咖啡", "b": "夜宵券"}, {"name": "续命二连", "emoji": "☕", "comment": "白天靠咖啡，晚上靠预算续命。"}),
+    ({"a": "会议", "b": "会议"}, {"name": "会议套娃", "emoji": "🪆", "comment": "为了对齐上个会，再开一个会。"}),
+    ({"a": "工位", "b": "折叠椅"}, {"name": "工位床位", "emoji": "🛏️", "comment": "离职手续齐了，只差一床被子。"}),
+    ({"a": "周报", "b": "ChatGPT"}, {"name": "AI代笔", "emoji": "🤖", "comment": "产出没变，措辞先完成了智能升级。"}),
     # 场景词（具体到一个画面，不追求对仗工整）
-    ({"a": "厕所", "b": "手机"}, {"name": "带薪冥想", "emoji": "🧘"}),
-    ({"a": "火", "b": "头发"}, {"name": "地中海", "emoji": "👨‍🦲"}),
-    ({"a": "周一", "b": "地铁"}, {"name": "沙丁鱼罐头", "emoji": "🚇"}),
-
+    ({"a": "厕所", "b": "手机"}, {"name": "带薪冥想", "emoji": "🧘", "comment": "隔间虽小，容得下完整的精神世界。"}),
+    ({"a": "火", "b": "头发"}, {"name": "地中海", "emoji": "👨‍🦲", "comment": "头顶的项目，终于烧出了交付边界。"}),
+    ({"a": "周一", "b": "地铁"}, {"name": "沙丁鱼罐头", "emoji": "🚇", "comment": "人还没到工位，颗粒度先压实了。"}),
     # 中英混搭
-    ({"a": "周五", "b": "下班"}, {"name": "GG时刻", "emoji": "🎉"}),
-    ({"a": "PPT", "b": "通宵"}, {"name": "deadline战士", "emoji": "💀"}),
-
+    ({"a": "周五", "b": "下班"}, {"name": "GG时刻", "emoji": "🎉", "comment": "本周闭环完成，消息免打扰已上线。"}),
+    ({"a": "PPT", "b": "通宵"}, {"name": "deadline战士", "emoji": "💀", "comment": "页面还在美化，人已经进入灰度。"}),
     # 同元素 × 2
-    ({"a": "腾讯会议", "b": "腾讯会议"}, {"name": "会议通缉令", "emoji": "📢"}),
-
+    ({"a": "腾讯会议", "b": "腾讯会议"}, {"name": "会议通缉令", "emoji": "📢", "comment": "同一个结论，被两场会议同时追捕。"}),
     # 抽象 → 自造词（原来这里是"学海无涯"成语，换成自造概念词，避免暗示"抽象=成语"）
-    ({"a": "知识", "b": "时间"}, {"name": "学费复利", "emoji": "📚"}),
-
+    ({"a": "知识", "b": "时间"}, {"name": "学费复利", "emoji": "📚", "comment": "今天没听懂的，明天按复利补课。"}),
     # 纯物理（保底）
-    ({"a": "水", "b": "土"}, {"name": "泥", "emoji": "🟤"}),
-
+    ({"a": "水", "b": "土"}, {"name": "泥", "emoji": "🟤", "comment": "最朴素的混合，也有完整交付。"}),
     # ✨ 惰性/吞噬合成（返回原料之一）
-    ({"a": "虚空", "b": "加班"}, {"name": "虚空", "emoji": "🕳️"}),
-    ({"a": "宇宙", "b": "人"}, {"name": "宇宙", "emoji": "🌌"}),
+    ({"a": "虚空", "b": "加班"}, {"name": "虚空", "emoji": "🕳️", "comment": "加班落进去，连调休都没有回声。"}),
+    ({"a": "宇宙", "b": "人"}, {"name": "宇宙", "emoji": "🌌", "comment": "人的需求很大，宇宙选择保持原样。"}),
 ]
 
 
@@ -190,14 +188,30 @@ def _select_bounty_candidates(a: str, b: str, limit: int = 12) -> List[Dict]:
             if name in a or name in b:
                 score += 2
             # 创始人类目——a/b 含高管/创始人信号时加权
-            founder_signals = {"创始人", "老板", "Pony", "代码", "RTX", "工牌",
-                               "投资", "COO", "iWiki", "门禁"}
+            founder_signals = {
+                "创始人",
+                "老板",
+                "Pony",
+                "代码",
+                "RTX",
+                "工牌",
+                "投资",
+                "COO",
+                "iWiki",
+                "门禁",
+            }
             if gcat == "boss" and ({a, b} & founder_signals):
                 score += 5
             # BG 类——含具体业务触发词时加权
-            bg_hints = {"游戏": "IEG", "微信": "WXG", "云": "CSIG",
-                        "视频号": "PCG", "代码": "TEG", "广告": "CDG",
-                        "腾讯云": "CSIG"}
+            bg_hints = {
+                "游戏": "IEG",
+                "微信": "WXG",
+                "云": "CSIG",
+                "视频号": "PCG",
+                "代码": "TEG",
+                "广告": "CDG",
+                "腾讯云": "CSIG",
+            }
             for trigger, bg in bg_hints.items():
                 if trigger in (a, b) and name == bg:
                     score += 6
@@ -271,13 +285,13 @@ def build_prompt(
     # 权重显著倾向"自造词/场景词/跨界混搭"，成语/古今方向压到 10% 以内，
     # 避免模型形成"默认输出四字成语"的路径依赖。
     hint_options = [
-        ("偏自造词",     0.30),
-        ("偏具体场景",   0.25),
-        ("偏跨界混搭",   0.15),
-        ("偏中英混搭",   0.10),
-        ("偏动作描述",   0.10),
-        ("偏成语化",     0.05),
-        ("偏古今对照",   0.05),
+        ("偏自造词", 0.30),
+        ("偏具体场景", 0.25),
+        ("偏跨界混搭", 0.15),
+        ("偏中英混搭", 0.10),
+        ("偏动作描述", 0.10),
+        ("偏成语化", 0.05),
+        ("偏古今对照", 0.05),
     ]
     hint = random.choices(
         [h for h, _ in hint_options],
@@ -302,7 +316,8 @@ _JSON_RE = re.compile(r'\{[^{}]*"name"[^{}]*"emoji"[^{}]*\}', re.DOTALL)
 def parse_response(text: str) -> Optional[Dict[str, str]]:
     """
     从 LLM 返回文本里抽 JSON。模型有时会包 ```json ... ``` 或加解释，做兼容。
-    返回 {"name": str, "emoji": str} 或 None（解析失败）。
+    返回 {"name": str, "emoji": str, "comment": str} 或 None（解析失败）。
+    点评非法时只降级点评，不影响合法的元素名称和 emoji。
     """
     if not text:
         return None
@@ -330,7 +345,11 @@ def _sanitize(obj: Dict) -> Optional[Dict[str, str]]:
         return None
     if len(name) > 10:
         return None
-    return {"name": name, "emoji": emoji}
+    return {
+        "name": name,
+        "emoji": emoji,
+        "comment": normalize_comment(obj.get("comment")),
+    }
 
 
 # ============================================================
@@ -340,6 +359,7 @@ def combine_via_llm(
     a: str,
     b: str,
     avoid_words: Optional[List[str]] = None,
+    request_id: Optional[str] = None,
 ) -> Optional[Dict[str, str]]:
     """
     调用已配置的 OpenAI-compatible LLM 合成。
@@ -356,9 +376,14 @@ def combine_via_llm(
     except Exception:
         bounty_candidates = []
 
-    prompt = build_prompt(a, b, avoid_words=avoid_words, bounty_candidates=bounty_candidates)
+    prompt = build_prompt(
+        a, b, avoid_words=avoid_words, bounty_candidates=bounty_candidates
+    )
     # 带温度调用，让相同输入也能有多样输出
-    raw = query({"question": prompt}, temperature=0.85)
+    raw = query(
+        {"question": prompt, "request_id": request_id},
+        temperature=0.85,
+    )
     text = ""
     if isinstance(raw, dict):
         data = raw.get("data") if isinstance(raw.get("data"), dict) else {}

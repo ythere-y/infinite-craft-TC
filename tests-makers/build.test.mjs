@@ -8,6 +8,7 @@ const REQUIRED_FILES = [
   "dist/THIRD_PARTY_NOTICES.md",
   "dist/index.html",
   "dist/app.js",
+  "dist/combine-feedback.js",
   "dist/effects.js",
   "dist/style.css",
   "dist/wall/index.html",

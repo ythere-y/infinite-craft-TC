@@ -670,6 +670,7 @@ body.ura-on .element.on-canvas.is-starter {
   position: fixed;
   right: 340px;
   bottom: 28px;
+  max-width: min(420px, calc(100vw - 24px));
   padding: 12px 18px;
   background: #FFF;
   border: 2px solid #FFD54F;
@@ -678,6 +679,8 @@ body.ura-on .element.on-canvas.is-starter {
   font-size: 14px;
   opacity: 0;
   transform: translateY(12px);
+  overflow-wrap: anywhere;
+  white-space: normal;
   pointer-events: none;
   transition: opacity .25s, transform .25s;
   z-index: 25;
@@ -685,6 +688,27 @@ body.ura-on .element.on-canvas.is-starter {
 .first-toast.show {
   opacity: 1;
   transform: translateY(0);
+}
+.first-toast-title {
+  font-weight: 700;
+}
+.first-toast-result {
+  margin-top: 5px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.first-toast-comment {
+  margin-top: 5px;
+  color: #666;
+  line-height: 1.45;
+}
+
+@media (max-width: 780px) {
+  .first-toast {
+    left: 12px;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+  }
 }
 
 /* ---------- P0 爆炸覆盖 ---------- */

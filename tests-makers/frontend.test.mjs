@@ -55,13 +55,16 @@ test("an established 40-row wall does not treat rows 41-500 as fresh", () => {
 });
 
 test("frontend supports protected admin stats and batched recipe verification", async () => {
-  const [admin, app] = await Promise.all([
+  const [admin, app, html] = await Promise.all([
     readFile("frontend/admin/index.html", "utf8"),
     readFile("frontend/app.js", "utf8"),
+    readFile("frontend/index.html", "utf8"),
   ]);
 
   assert.match(admin, /sessionStorage\.getItem\("infinity_admin_token"\)/);
   assert.match(admin, /authorization:\s*`Bearer \$\{token\}`/);
   assert.match(app, /const VERIFY_BATCH_SIZE = 500/);
   assert.match(app, /formatValid\.slice\(index, index \+ VERIFY_BATCH_SIZE\)/);
+  assert.match(html, /combine-feedback\.js/);
+  assert.match(app, /comment:\s*resp\.comment/);
 });
