@@ -4,12 +4,13 @@
    - 滚到底：自动加载下一页；全部加载完提示"已经加载完了"
    - 搜索：在已加载数据内按 result / emoji / discoverer 三字段过滤
      （搜索全量数据库留到 docs/improvements/wall-search-all.md）
-   - 实时：SSE /api/wall/stream?skip_history=1 推新首发，插到顶部
+   - 实时：轮询 /api/wall/page?offset=0 拉新首发，插到顶部
    - 右侧排行榜：顶部"我"的卡片 + Top 20；定时刷新 + 每次新首发后再拉
    ============================================================ */
 
 const PAGE_SIZE = 40;
 const LB_REFRESH_MS = 20000;     // 排行榜定时刷新
+const POLL_REFRESH_MS = 3000;    // Makers Edge Functions 使用短轮询
 const SCROLL_NEAR_PX = 400;      // 距底多少触发下一页
 
 // ---- DOM ----
@@ -224,38 +225,66 @@ searchClear.addEventListener("click", () => {
 });
 
 // ============================================================
-// SSE 实时新首发
+// Makers Edge Functions 实时新首发（短轮询）
 // ============================================================
-function connectSSE() {
-  const es = new EventSource("/api/wall/stream?skip_history=1");
-  es.addEventListener("first", (e) => {
-    try {
-      const item = JSON.parse(e.data);
-      if (!item || !item.result) return;
-      if (state.seen.has(item.result)) return;
+let _pollTimer = null;
+let _polling = false;
+
+async function pollNewFirsts() {
+  if (_polling || document.hidden) return;
+  _polling = true;
+  try {
+    const response = await fetch(`/api/wall/page?offset=0&limit=${PAGE_SIZE}`, {
+      cache: "no-store",
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    const incoming = Array.isArray(data.items) ? data.items : [];
+    const fresh = incoming.filter(
+      (item) => item && item.result && !state.seen.has(item.result),
+    );
+
+    // 服务端是新→旧；倒序 unshift 后仍保持新→旧。
+    for (const item of fresh.slice().reverse()) {
       state.seen.add(item.result);
-      // SSE 事件暂时没 seq，用 total+1 作为新条目的序号（后端下一次分页会自然对齐）
-      if (item.seq == null) item.seq = state.total + 1;
       state.items.unshift(item);
-      state.total += 1;
-      state.nextOffset += 1;
-
-      if (itemMatches(item, state.query)) {
-        feed.prepend(buildCard(item, { pop: true, q: state.query }));
-        if (emptyHint.style.display !== "none") emptyHint.style.display = "none";
-      }
-      statLoaded.textContent = state.items.length;
-      statTotal.textContent = state.total;
-
-      scheduleLeaderboardRefresh();
-      scheduleCategoryRefresh(item.result);
-    } catch (err) {
-      console.error(err);
     }
-  });
-  es.onerror = () => {
-    console.warn("SSE disconnected, retrying…");
-  };
+    state.total = Number(data.total) || state.total;
+    state.nextOffset += fresh.length;
+
+    if (fresh.length > 0) {
+      renderFeed();
+      scheduleLeaderboardRefresh();
+      for (const item of fresh) scheduleCategoryRefresh(item.result);
+    } else {
+      statTotal.textContent = state.total;
+    }
+  } catch (error) {
+    console.warn("wall polling failed", error);
+  } finally {
+    _polling = false;
+  }
+}
+
+function scheduleWallPoll(delay = POLL_REFRESH_MS) {
+  clearTimeout(_pollTimer);
+  if (document.hidden) return;
+  _pollTimer = setTimeout(async () => {
+    await pollNewFirsts();
+    scheduleWallPoll();
+  }, delay);
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    clearTimeout(_pollTimer);
+  } else {
+    pollNewFirsts().finally(() => scheduleWallPoll());
+  }
+});
+
+function startWallPolling() {
+  scheduleWallPoll();
 }
 
 // ============================================================
@@ -602,7 +631,7 @@ async function fetchBounty() {
   }
 }
 
-// SSE 触发：元素命中悬赏清单任意分类时 800ms 节流刷新
+// 新首发触发：元素命中悬赏清单任意分类时 800ms 节流刷新
 let _bountyTimer = null;
 function scheduleCategoryRefresh(resultName) {
   if (!bountyState.loaded) return;
@@ -789,7 +818,7 @@ async function init() {
   fetchLeaderboard();
   fetchBounty();            // 悬赏清单（父 tab + 子分组）
   setInterval(fetchLeaderboard, LB_REFRESH_MS);
-  connectSSE();
+  startWallPolling();
 }
 
 init();
