@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build-makers.mjs",
+    "makers:build": "edgeone makers build",
+    "makers:dev": "node scripts/dev-makers.mjs",
     "generate:makers-data": "node scripts/generate-makers-data.mjs",
     "generate:makers-nickname-data": "node scripts/generate-makers-nickname-data.mjs",
     "test": "node --test --test-concurrency=1 tests-makers/*.test.mjs"
