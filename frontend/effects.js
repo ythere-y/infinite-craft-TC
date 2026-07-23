@@ -63,10 +63,7 @@
       default:
         el.classList.add("pop-in");
         setTimeout(() => el.classList.remove("pop-in"), 500);
-        // 已知元素也弹个小分提示
-        if (meta.gained > 0) {
-          EFFECTS.firstToast(name, emoji, { tier: "seen", ...meta });
-        }
+        EFFECTS.firstToast(name, emoji, { tier: "seen", ...meta });
         break;
     }
   };
@@ -106,13 +103,16 @@
     const el = document.getElementById("first-toast");
     if (!el) return;
     const tier = opt.tier || (opt.small ? "global_known" : "global_new");
-    let label;
-    if (tier === "global_new") label = "🎆 全球首发！";
-    else if (tier === "global_known") label = "🌱 本地新发现";
-    else label = "✨ 熟练度+1";
     const depthStr = opt.depth != null ? ` · 难度 ${opt.depth}` : "";
     const scoreStr = opt.gained != null ? ` · +${opt.gained}分` : "";
-    el.innerHTML = `<b>${label}${depthStr}${scoreStr}</b><br>${emoji} ${escapeHTML(name)}`;
+    window.COMBINE_FEEDBACK.renderToast(document, el, {
+      tier,
+      name,
+      emoji,
+      comment: opt.comment,
+    });
+    const title = el.querySelector(".first-toast-title");
+    if (title) title.textContent += depthStr + scoreStr;
     el.className = "first-toast show tier-" + tier;
     clearTimeout(EFFECTS.firstToast._t);
     EFFECTS.firstToast._t = setTimeout(() => el.classList.remove("show"), 2800);

@@ -532,7 +532,9 @@ async function combine(srcId, dstId, x, y) {
     removeCanvasEl(dstId);
     const newRec = spawnOnCanvas(resp.result, resp.emoji, x, y);
 
-    const isNewToPlayer = !state.discovered.has(resp.result);
+    const knownBefore = state.discovered.has(resp.result);
+    const isNewToPlayer = !knownBefore;
+    const tier = window.COMBINE_FEEDBACK.classify(resp.is_first, knownBefore);
     state.elements[resp.result] = { emoji: resp.emoji, category: resp.chain || "unknown" };
     state.discovered.add(resp.result);
     if (resp.is_first) state.firsts.add(resp.result);
@@ -543,14 +545,6 @@ async function combine(srcId, dstId, x, y) {
     persistDiscovered();
     renderSidebar(searchInput.value);
 
-    // 判定三档特效 tier
-    //   tier 3 global_new    全球首发 -> 烟花 + 持续发光
-    //   tier 2 global_known  玩家本地新发现 -> 持续发光
-    //   tier 1 seen          玩家已知 -> 基础轻动效
-    let tier = "seen";
-    if (resp.is_first) tier = "global_new";
-    else if (isNewToPlayer) tier = "global_known";
-
     // 加分系统（depth-based）：未知全分 / 已知 1/10
     const fullScore = resp.full_score || 0;
     const gained = isNewToPlayer ? fullScore : Math.max(1, Math.floor(fullScore / 10));
@@ -560,7 +554,7 @@ async function combine(srcId, dstId, x, y) {
     }
     if (resp.explode) window.EFFECTS?.explode?.(resp.result);
     window.EFFECTS?.onCombineResult?.(newRec.el, resp.result, resp.emoji, tier, {
-      depth: resp.depth, gained, fullScore, isNewToPlayer,
+      depth: resp.depth, gained, fullScore, isNewToPlayer, comment: resp.comment,
     });
   } catch (err) {
     clearTimeout(timer);
