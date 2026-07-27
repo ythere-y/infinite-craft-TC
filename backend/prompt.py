@@ -245,6 +245,7 @@ def build_prompt(
     b: str,
     avoid_words: Optional[List[str]] = None,
     bounty_candidates: Optional[List[Dict]] = None,
+    community_examples: Optional[List[Dict]] = None,
 ) -> str:
     """
     构造给 GLM 的完整 prompt。
@@ -256,11 +257,27 @@ def build_prompt(
     """
     avoid_words = avoid_words or []
     bounty_candidates = bounty_candidates or []
+    community_examples = community_examples or []
     lines = [SYSTEM_PROMPT, "", "【示例】"]
     for inp, out in FEW_SHOT_EXAMPLES:
         lines.append(f"输入：{json.dumps(inp, ensure_ascii=False)}")
         lines.append(f"输出：{json.dumps(out, ensure_ascii=False)}")
     lines.append("")
+
+    if community_examples:
+        lines.append("【社区高质量示例（仅参考风格，不要照抄）】")
+        for item in community_examples[:8]:
+            inp = {"a": item.get("a", ""), "b": item.get("b", "")}
+            out = {
+                "name": item.get("name", ""),
+                "emoji": item.get("emoji", ""),
+                "comment": item.get("comment", ""),
+            }
+            lines.append(
+                f"输入：{json.dumps(inp, ensure_ascii=False)} "
+                f"输出：{json.dumps(out, ensure_ascii=False)}"
+            )
+        lines.append("")
 
     if avoid_words:
         # 避免 prompt 过长，截断到 30 个
@@ -359,6 +376,7 @@ def combine_via_llm(
     a: str,
     b: str,
     avoid_words: Optional[List[str]] = None,
+    community_examples: Optional[List[Dict]] = None,
     request_id: Optional[str] = None,
 ) -> Optional[Dict[str, str]]:
     """
@@ -377,7 +395,8 @@ def combine_via_llm(
         bounty_candidates = []
 
     prompt = build_prompt(
-        a, b, avoid_words=avoid_words, bounty_candidates=bounty_candidates
+        a, b, avoid_words=avoid_words, bounty_candidates=bounty_candidates,
+        community_examples=community_examples,
     )
     # 带温度调用，让相同输入也能有多样输出
     raw = query(

@@ -1,5 +1,5 @@
 export const CORS_HEADERS = {
-  "access-control-allow-methods": "GET, POST, OPTIONS",
+  "access-control-allow-methods": "GET, POST, PUT, OPTIONS",
   "access-control-allow-headers": "content-type, authorization, x-admin-token",
 };
 

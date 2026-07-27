@@ -15,6 +15,7 @@ import {
   DEFAULT_COMMENT,
   normalizeComment,
 } from "./comments.js";
+import { CommunityStore } from "./community.js";
 
 const FALLBACK = {
   result: "未知产物",
@@ -51,17 +52,23 @@ export function createGameService({
 } = {}) {
   if (!store) throw new TypeError("Game service requires a KV store");
   const modelConfigured = llmConfiguration(env).configured;
+  const community = new CommunityStore(store.kv, { now });
   const modelCallsPerMinute = Math.max(
     1,
     Math.min(1_000, Number(env.MODEL_CALLS_PER_MINUTE) || 20),
   );
 
   async function resolveCombination(a, b, clientIdentity = "anonymous") {
-    const seeded = COMBINATIONS[normalizePair(a, b)];
-    if (seeded?.result) return seeded;
-
+    const communityState = await community.combinationState(a, b);
     const cached = await store.getCombination(a, b);
-    if (cached?.result) return cached;
+    if (communityState?.status === "active" && communityState.version > 1 && cached?.result) {
+      return cached;
+    }
+    if (communityState?.status !== "retired") {
+      const seeded = COMBINATIONS[normalizePair(a, b)];
+      if (seeded?.result) return seeded;
+      if (cached?.result) return cached;
+    }
     if (!modelConfigured) return null;
 
     const quota = await store.consumeRateLimit(clientIdentity, {
@@ -73,10 +80,15 @@ export function createGameService({
     }
 
     const firsts = await store.allFirsts();
+    const feedback = await community.feedback(env);
     const generated = await requestModelCombination({
       a,
       b,
-      avoidWords: firsts.slice(0, 30).map((item) => item.result),
+      avoidWords: [
+        ...feedback.negatives,
+        ...firsts.slice(0, 30).map((item) => item.result),
+      ],
+      communityExamples: feedback.positives,
       bountyCandidates: selectBountyCandidates({
         a,
         b,
@@ -159,6 +171,14 @@ export function createGameService({
       await store.addKpi(sessionId, kpi.delta, kpi.reason);
     }
 
+    let formula = null;
+    if (source !== "fallback" && cleanText(input?.player_id)) {
+      formula = await community.ensureFormula({
+        a, b, result: hit.result, emoji: hit.emoji, comment, source,
+        discoverer: recordedDiscoverer, playerId: cleanText(input.player_id),
+      });
+    }
+
     await store.recordCombineActivity({
       sessionId,
       a,
@@ -185,6 +205,7 @@ export function createGameService({
       kpi_reason: kpi.reason,
       depth,
       full_score: 10 * depth * depth,
+      formula_id: formula?.id || null,
     };
   }
 

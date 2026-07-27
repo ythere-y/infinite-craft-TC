@@ -1,0 +1,24 @@
+:root { color-scheme: light; font-family: Inter, "PingFang SC", system-ui, sans-serif; color: #263238; background: #f5f3ee; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+.community-header { min-height: 68px; padding: 14px clamp(18px, 5vw, 72px); display: flex; align-items: center; justify-content: space-between; gap: 20px; background: #153f37; color: white; }
+.community-header strong { font-size: 1.2rem; }
+.community-header small { display: block; opacity: .75; margin-top: 3px; }
+a { color: inherit; }
+nav { display: flex; gap: 16px; }
+main { width: min(1100px, 92vw); margin: 38px auto 80px; }
+.intro h1 { margin-bottom: 6px; font-size: clamp(1.8rem, 4vw, 3.2rem); }
+.intro p { color: #60736e; }
+.formula-grid { margin-top: 28px; display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 16px; }
+.formula-card, .admin-login { padding: 20px; border: 1px solid #d8ddd9; border-radius: 16px; background: #fff; box-shadow: 0 8px 24px #24443b12; }
+.formula-card h2 { margin: 0 0 10px; }
+.recipe { color: #176b57; font-weight: 700; }
+.comment { min-height: 44px; color: #596763; }
+.vote-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+button, select, input { border: 1px solid #b8c4c0; border-radius: 9px; background: white; padding: 9px 12px; font: inherit; }
+button { cursor: pointer; }
+button:hover { border-color: #176b57; }
+.score { margin-left: auto; font-weight: 700; }
+.admin-login label { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.empty { text-align: center; color: #71817c; padding: 60px 0; }
+@media (max-width: 560px) { .community-header { align-items: flex-start; flex-direction: column; } .score { width: 100%; margin: 4px 0 0; } }
