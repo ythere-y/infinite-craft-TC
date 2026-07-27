@@ -23,6 +23,12 @@ import {
   nicknameStats,
   randomSuffix,
 } from "./nickname.js";
+import {
+  adminSessionCookie,
+  CommunityStore,
+  hasAdminSession,
+  playerIdentity,
+} from "./community.js";
 
 const MAX_VERIFY_RECIPES = 500;
 const MAX_RECIPE_FIELD_LENGTH = 80;
@@ -75,6 +81,7 @@ export function createRouter({
 } = {}) {
   const store = new KvStore(kv, { now });
   const game = createGameService({ store, env, fetchImpl, now, random });
+  const community = new CommunityStore(kv, { now });
 
   async function candidateNickname() {
     return generateNickname({ random });
@@ -179,6 +186,21 @@ export function createRouter({
     }
   }
 
+  async function requireCommunityRate(playerId, operation, limit) {
+    const quota = await store.consumeRateLimit(
+      `community:${operation}:${playerId}`,
+      { limit, windowSeconds: 60 },
+    );
+    if (!quota.allowed) throw new HttpError(429, "操作过于频繁，请稍后再试");
+  }
+
+  function requireSameOrigin(request) {
+    const origin = cleanText(request.headers.get("origin"));
+    if (origin && origin !== new URL(request.url).origin) {
+      throw new HttpError(403, "拒绝跨站管理员请求");
+    }
+  }
+
   async function handleApi(request) {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
@@ -276,14 +298,74 @@ export function createRouter({
       const body = await readJson(request);
       const sessionId = cleanText(body?.session_id) || "anonymous";
       const clientIp = cleanText(request.eo?.clientIp);
-      return jsonResponse(
-        await game.combine({
+      const identity = await playerIdentity(request, env);
+      const result = await game.combine({
           ...body,
+          player_id: identity.id,
           client_identity: clientIp
             ? `${clientIp}:${sessionId}`
             : sessionId,
-        }),
-      );
+        });
+      return jsonResponse(result, {
+        headers: identity.setCookie ? { "set-cookie": identity.setCookie } : {},
+      });
+    }
+    if (path === "/api/community/formulas") {
+      requireMethod(request, "GET");
+      return jsonResponse({ items: await community.listPublic() });
+    }
+    const publishMatch = path.match(/^\/api\/community\/formulas\/([^/]+)\/publish$/);
+    if (publishMatch) {
+      requireMethod(request, "POST");
+      const identity = await playerIdentity(request, env);
+      await requireCommunityRate(identity.id, "publish", 10);
+      const formula = await community.publish(publishMatch[1], identity.id);
+      return jsonResponse({ formula: community.publicView(formula) }, {
+        headers: identity.setCookie ? { "set-cookie": identity.setCookie } : {},
+      });
+    }
+    const voteMatch = path.match(/^\/api\/community\/formulas\/([^/]+)\/vote$/);
+    if (voteMatch) {
+      requireMethod(request, "PUT");
+      const identity = await playerIdentity(request, env);
+      await requireCommunityRate(identity.id, "vote", 30);
+      const body = await readJson(request);
+      const value = Number(body?.value);
+      if (![1, 0, -1].includes(value)) throw new HttpError(400, "vote 必须是 -1、0 或 1");
+      const formula = await community.vote(voteMatch[1], identity.id, value);
+      return jsonResponse(formula, {
+        headers: identity.setCookie ? { "set-cookie": identity.setCookie } : {},
+      });
+    }
+    if (path === "/api/community/admin/login") {
+      requireMethod(request, "POST");
+      requireSameOrigin(request);
+      const body = await readJson(request);
+      if (!cleanText(env.ADMIN_TOKEN) || cleanText(body?.key) !== cleanText(env.ADMIN_TOKEN)) {
+        throw new HttpError(401, "管理员密钥错误或未配置");
+      }
+      return jsonResponse({ ok: true }, {
+        headers: { "set-cookie": await adminSessionCookie(env, now()) },
+      });
+    }
+    if (path === "/api/community/admin/queue") {
+      requireMethod(request, "GET");
+      requireSameOrigin(request);
+      if (!(await hasAdminSession(request, env, now()))) throw new HttpError(401, "管理员会话无效");
+      return jsonResponse({ items: await community.queue(env) });
+    }
+    const moderateMatch = path.match(/^\/api\/community\/admin\/formulas\/([^/]+)\/moderate$/);
+    if (moderateMatch) {
+      requireMethod(request, "POST");
+      requireSameOrigin(request);
+      if (!(await hasAdminSession(request, env, now()))) throw new HttpError(401, "管理员会话无效");
+      const body = await readJson(request);
+      return jsonResponse({
+        formula: await community.moderate(
+          moderateMatch[1], cleanText(body?.action),
+          cleanText(body?.reason_code), cleanText(body?.note),
+        ),
+      });
     }
     if (path === "/api/session/kpi") {
       requireMethod(request, "POST");

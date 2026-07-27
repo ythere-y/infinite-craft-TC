@@ -49,12 +49,20 @@ function completionUrl(baseUrl) {
     : `${baseUrl}/chat/completions`;
 }
 
-function promptFor(a, b, avoidWords = [], bountyCandidates = []) {
+function promptFor(a, b, avoidWords = [], bountyCandidates = [], communityExamples = []) {
   const lines = [SYSTEM_PROMPT, "", "示例："];
   for (const [left, right, name, emoji, comment] of EXAMPLES) {
     lines.push(
       `${JSON.stringify({ a: left, b: right })} -> ${JSON.stringify({ name, emoji, comment })}`,
     );
+  }
+  if (communityExamples.length) {
+    lines.push("", "社区高质量示例（只参考风格，不要照抄）：");
+    for (const item of communityExamples.slice(0, 8)) {
+      lines.push(`${JSON.stringify({ a: item.a, b: item.b })} -> ${JSON.stringify({
+        name: item.name, emoji: item.emoji, comment: item.comment,
+      })}`);
+    }
   }
   if (avoidWords.length) {
     lines.push("", `禁用最近结果：${avoidWords.slice(0, 30).join("、")}`);
@@ -111,6 +119,7 @@ export async function requestModelCombination({
   b,
   avoidWords = [],
   bountyCandidates = [],
+  communityExamples = [],
   env = {},
   fetchImpl = globalThis.fetch,
 }) {
@@ -139,7 +148,7 @@ export async function requestModelCombination({
           { role: "system", content: SYSTEM_PROMPT },
           {
             role: "user",
-            content: promptFor(a, b, avoidWords, bountyCandidates),
+            content: promptFor(a, b, avoidWords, bountyCandidates, communityExamples),
           },
         ],
       }),
