@@ -420,4 +420,4 @@ def test_first_toast_uses_exact_design_duration(tmp_path):
         """,
         include_effects=True,
     )
-    assert actual == {"delays": [4200], "showing": True}
+    assert actual == {"delays": [8000], "showing": True}

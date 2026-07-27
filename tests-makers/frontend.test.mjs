@@ -68,3 +68,22 @@ test("frontend supports protected admin stats and batched recipe verification", 
   assert.match(html, /combine-feedback\.js/);
   assert.match(app, /comment:\s*resp\.comment/);
 });
+
+test("combine feedback owns the only formula publication bubble", async () => {
+  const [app, effects, styles] = await Promise.all([
+    readFile("frontend/app.js", "utf8"),
+    readFile("frontend/effects.js", "utf8"),
+    readFile("frontend/style.css", "utf8"),
+  ]);
+
+  assert.match(app, /renderPublishAction\(document,\s*toast,/);
+  assert.match(app, /showPublishAction\(resp\.formula_id\)/);
+  assert.doesNotMatch(app, /className\s*=\s*["']formula-publish["']/);
+  assert.match(
+    effects,
+    /setTimeout\(\s*\(\)\s*=>\s*el\.classList\.remove\("show"\),\s*8000\s*\)/,
+  );
+  assert.doesNotMatch(styles, /\.formula-publish\b/);
+  assert.match(styles, /\.first-toast-actions\b/);
+  assert.match(styles, /min-height:\s*44px/);
+});
