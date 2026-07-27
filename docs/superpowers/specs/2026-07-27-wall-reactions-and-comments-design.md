@@ -1,0 +1,360 @@
+# 首发墙评论与赞踩设计
+
+## 目标
+
+在首发墙的每张元素卡片中展示该元素首次合成时生成的自然语言点评，并提供
+点赞、点踩两个互斥操作。项目继续使用现有匿名浏览器身份，不引入登录系统：
+同一 `ic_session` 对同一元素只能提交一次评价，提交后不能修改。
+
+本设计同时覆盖 Makers 生产运行时与 FastAPI 本地开发运行时，保持两个环境的
+接口和页面行为一致。
+
+## 范围
+
+本次包含：
+
+- 首发卡片展示合成结果原有的 `comment`；
+- 每张卡片展示点赞数和点踩数；
+- 匿名浏览器账号对每个元素只能选择一次点赞或点踩；
+- 服务端执行重复投票检查，浏览器本地状态只用于交互恢复；
+- 新首发完整保存点评，旧首发以统一默认点评兼容；
+- Makers KV、FastAPI Redis/SQLite、API、前端与自动化测试同步更新。
+
+本次不包含：
+
+- 用户自行撰写、回复或删除自由文本评论；
+- 点赞/点踩后改票或撤票；
+- 跨浏览器、跨设备同步匿名账号；
+- OAuth、手机号、企业账号等真实登录；
+- 面向恶意刷票的强身份认证或风控系统。
+
+## 已确认的产品规则
+
+1. `ic_session` 是匿名账号标识。首发墙若在没有访问主页的情况下直接打开，
+   也按主页现有规则生成并持久化一个 `ic_session`。
+2. 限投维度是“匿名账号 + 元素”，不是“匿名账号全站只能投一次”。
+3. 点赞和点踩互斥；第一次成功提交后两个按钮都进入已投状态，不能修改。
+4. 服务端是限投真相源。`localStorage` 仅保存当前浏览器已投结果，用于页面
+   重开后立即恢复按钮状态。
+5. 清除浏览器数据或更换设备会产生新的匿名账号；这是本次简单方案明确接受的
+   边界。
+6. 投票数字是非负整数。旧元素默认 `upvotes=0`、`downvotes=0`。
+7. 点评使用第一次成功创造该元素时的合成点评；后续命中同一组合不会覆盖它。
+
+## 现状与根因
+
+合成服务已经生成、校验并缓存 `comment`，主页合成反馈也能展示它。但是首次
+发现记录目前只保存 `result`、`emoji`、`discoverer`、`ts` 和 `seq`，调用
+`recordFirst()` 时没有传入 `comment`。首发墙分页 API 因而无法把合成点评
+传给卡片。
+
+当前代码没有点赞/点踩 API、投票存储或卡片交互。现有花名只用于展示和排行榜，
+没有认证凭据，不能作为严格账号使用。因此本次复用浏览器 `ic_session`，并在
+服务端只保存其哈希。
+
+## 方案比较
+
+### 方案 A：Makers KV 服务端去重与计数（采用）
+
+浏览器提交 `result`、`session_id` 和 `direction`。服务端为“元素 + 会话”
+建立投票标记，成功占用后更新元素计数，并把结果同步到首发记录的读取副本。
+
+优点：
+
+- 无需登录，沿用现有产品身份；
+- 刷新页面、重复点击和普通重试都由服务端去重；
+- 首发分页直接返回计数，不需要每张卡片额外请求；
+- 与现有 Makers KV 架构一致。
+
+限制：
+
+- Makers KV 最终一致且没有事务或原子 `put-if-absent`，跨边缘节点完全同时
+  提交时只能尽力保证一次；
+- 清除本地身份后会被视为新账号。
+
+### 方案 B：只用 `localStorage` 去重（不采用）
+
+实现最少，但调用者可以绕过页面直接重复请求，服务端无法判断重复投票，不符合
+“每个账号一次”的基本要求。
+
+### 方案 C：真实登录与事务数据库（不采用）
+
+能够严格跨设备限投，但需要账号生命周期、认证、找回、数据库事务和隐私方案，
+明显超过本次社区反馈增强范围。
+
+## 数据模型
+
+### 首发公开记录
+
+Makers 与 FastAPI 的首发记录统一增加：
+
+```json
+{
+  "result": "需求气球",
+  "emoji": "🎈",
+  "discoverer": "点评鹅",
+  "comment": "一开会，需求就自动膨胀。",
+  "upvotes": 12,
+  "downvotes": 2,
+  "ts": 1785123456,
+  "seq": 123
+}
+```
+
+规则：
+
+- `comment` 通过现有 `normalizeComment` / `normalize_comment` 归一化；
+- 缺失或非法点评使用项目现有 `DEFAULT_COMMENT`；
+- 计数字段缺失、非数值或小于零时按 `0` 返回；
+- 首发创建后点评不可被后续组合命中覆盖。
+
+### Makers 投票标记
+
+每次投票建立一个不可枚举用户明文的 KV 记录：
+
+```text
+vote_<result_sha256>_<session_sha256>
+```
+
+值为：
+
+```json
+{
+  "direction": "up",
+  "ts": 1785123456,
+  "claim_token": "一次请求的随机占用标识"
+}
+```
+
+服务端不在 KV key 或响应中保存原始 `ic_session`。重复请求先读取该记录；已有
+记录时不再增加计数，并返回 `already_voted` 及原投票方向。
+
+首发记录在 Makers 中存在 canonical、索引、feed 和 recent snapshot 等读取
+副本。投票成功后由一个专门的存储方法统一更新 canonical 记录，并同步更新索引
+记录、feed 记录和 recent snapshot 中同一 `result` 的计数，防止不同分页路径
+显示不同数字。
+
+### FastAPI 本地持久化
+
+Redis 使用每元素首发 Hash 的 `comment`、`upvotes`、`downvotes` 字段，并用
+基于结果与会话哈希的唯一投票 key 执行 `SET NX` 去重。
+
+SQLite 对现有 `first_discoveries` 表新增：
+
+```sql
+comment TEXT NOT NULL DEFAULT '',
+upvotes INTEGER NOT NULL DEFAULT 0,
+downvotes INTEGER NOT NULL DEFAULT 0
+```
+
+新增投票表：
+
+```sql
+CREATE TABLE IF NOT EXISTS first_votes (
+  result TEXT NOT NULL,
+  voter_hash TEXT NOT NULL,
+  direction TEXT NOT NULL CHECK(direction IN ('up', 'down')),
+  ts REAL NOT NULL,
+  PRIMARY KEY (result, voter_hash)
+);
+```
+
+SQLite 唯一键保证本地归档中的同一匿名账号不能对同一元素重复写入。Redis 与
+SQLite 的写入通过现有 `backend.db` 边界封装，启动预热恢复首发点评、计数和
+投票标记。
+
+## API 设计
+
+新增：
+
+```http
+POST /api/wall/vote
+Content-Type: application/json
+
+{
+  "result": "需求气球",
+  "session_id": "s_ab12cd34",
+  "direction": "up"
+}
+```
+
+首次成功统一返回 HTTP 200：
+
+```json
+{
+  "ok": true,
+  "result": "需求气球",
+  "vote": "up",
+  "upvotes": 13,
+  "downvotes": 2
+}
+```
+
+已经投过返回 HTTP 200，使网络重试保持幂等：
+
+```json
+{
+  "ok": false,
+  "reason": "already_voted",
+  "detail": "你已经评价过这个元素",
+  "result": "需求气球",
+  "vote": "up",
+  "upvotes": 13,
+  "downvotes": 2
+}
+```
+
+错误规则：
+
+- 缺少 `result` 或 `session_id`：HTTP 400；
+- `session_id` 超过 128 个 Unicode 字符：HTTP 400；
+- `direction` 不是 `up` 或 `down`：HTTP 400；
+- 元素不存在于首发记录：HTTP 404；
+- 存储异常：沿用统一安全 JSON 错误，不向浏览器暴露 KV key 或会话哈希。
+
+现有 `/api/wall/page`、`/api/wall/recent` 和轮询返回的首发条目增加
+`comment`、`upvotes`、`downvotes`，不改变分页字段和排序规则。
+
+## Makers 投票流程
+
+1. 路由校验请求字段。
+2. 存储层读取 canonical 首发记录；不存在则返回 404。
+3. 对 `result` 与 `session_id` 分别计算 SHA-256，得到投票标记 key。
+4. 已有标记时，读取当前首发计数并返回 `already_voted`。
+5. 没有标记时写入带 `claim_token` 的标记，再读回验证占用。
+6. 验证成功后只增加对应方向的计数。
+7. 同步 canonical、索引、feed 和 recent snapshot 中的公开首发记录。
+8. 返回最终方向和计数。
+
+该流程阻止同一边缘节点上的顺序重复请求。由于 Makers KV 的最终一致模型，
+不同边缘节点在极短时间内并发提交仍可能产生计数偏差；页面和文档不宣称金融级
+精确计票。
+
+## 卡片与交互设计
+
+首发卡片从上到下显示：
+
+1. 原有编号和时间；
+2. Emoji 与元素名；
+3. `首发 · 发现者`；
+4. 一行到两行自然语言点评，使用引号和弱对比文本；
+5. `👍 数量` 与 `👎 数量` 两个按钮。
+
+交互规则：
+
+- 未投票时两个按钮均可用；
+- 点击后立即进入提交中状态并暂时禁用两个按钮，防止连点；
+- 服务端成功后保存 `ic_wall_votes[result] = direction`，高亮所选按钮并永久
+  禁用两个按钮；
+- 服务端返回 `already_voted` 时，按服务端返回方向修复本地状态并显示
+  “已评价”；
+- 网络错误时恢复按钮，不修改数字，卡片内短暂显示“提交失败，请重试”；
+- 页面重开时先读取 `ic_wall_votes` 恢复状态；服务端仍会阻止本地状态被清除后
+  的同会话重复提交；
+- 使用 `aria-pressed`、`aria-label` 和卡片级 `aria-live` 状态文本支持键盘
+  与辅助技术；
+- 移动端按钮保持至少 44px 的可点击高度，点评换行但不遮挡卡片内容。
+
+自然语言点评属于 LLM 控制文本，必须通过 `textContent` 写入 DOM，不能拼接进
+未转义的 `innerHTML`。元素名、Emoji 与发现者继续沿用现有转义和搜索高亮。
+
+当前 3 秒轮询继续负责新首发。第一页轮询响应中已存在卡片的赞踩计数会合并回
+前端状态，使最近首发的数字在不刷新页面时更新；已经滚动到很早的历史卡片允许
+在用户投票、重新加载该页或刷新页面时更新。
+
+## 旧数据兼容
+
+- 旧 Makers 首发记录没有 `comment` 时返回 `DEFAULT_COMMENT`；
+- 旧记录没有赞踩字段时返回 `0/0`；
+- 首次发生投票时写回规范化后的完整公开记录；
+- SQLite 启动迁移只新增带默认值的列和表，不删除或重建用户本地数据；
+- Redis 旧 Hash 缺少字段时读取层补默认值；
+- 不尝试按结果名扫描全部历史组合来猜测旧首发点评，因为一个结果可能由多个
+  配方生成，无法可靠恢复“首次合成时”的原点评。
+
+## 文件边界
+
+预计修改：
+
+- `edge-functions/_lib/kv-store.js`：首发点评、投票标记、计数与副本同步；
+- `edge-functions/_lib/game-service.js`：创建首发时传入点评；
+- `edge-functions/_lib/router.js`：新增投票路由和校验；
+- `backend/archive.py`：SQLite 兼容迁移与投票唯一表；
+- `backend/db.py`：Redis/SQLite 首发与投票封装；
+- `backend/main.py`：本地投票路由、首发点评传递与响应兼容；
+- `frontend/wall/wall.js`：匿名身份、卡片点评、投票状态和请求；
+- `frontend/wall/wall.css`：点评与赞踩控件样式；
+- `frontend/wall/reactions.js`：可独立测试的方向校验、本地状态与响应合并帮助
+  函数；
+- `tests-makers/kv-store.test.mjs`、`tests-makers/router.test.mjs`、
+  `tests-makers/frontend.test.mjs`：Makers 和前端契约；
+- `tests/test_wall_reactions.py`：FastAPI、Redis/SQLite 迁移与接口行为；
+- `README.md`：记录匿名限投、旧数据和 Makers 最终一致限制。
+
+不重构首发墙的悬赏、排行榜或配方弹窗。
+
+## 测试设计
+
+所有生产代码遵循测试先行。
+
+### Makers 存储测试
+
+- 新首发保存规范化点评并从分页接口返回；
+- 旧首发缺失点评和计数时返回默认点评与 `0/0`；
+- 第一个 `up` 投票使点赞数从 0 变为 1；
+- 同一 session 对同一元素第二次提交不增加任何计数；
+- 同一 session 不能先点赞再点踩；
+- 不同 session 可以分别投票；
+- 不同元素互不影响；
+- 投票后的 canonical、索引、feed、recent snapshot 返回相同计数。
+
+### Makers 路由测试
+
+- 合法请求返回统一成功契约；
+- 重复请求返回幂等 `already_voted` 契约；
+- 缺字段、超长 session、非法方向和不存在元素返回规定状态码；
+- `/api/wall/page` 包含点评和计数字段。
+
+### FastAPI 测试
+
+- 旧 SQLite schema 自动增加点评、计数列和 `first_votes` 表；
+- `PRIMARY KEY(result, voter_hash)` 阻止重复投票；
+- Redis 首发 Hash 与 SQLite 归档保持点评和计数一致；
+- 服务重启预热后仍能阻止已归档会话重复投票；
+- FastAPI 路由响应与 Makers 契约一致。
+
+### 前端测试
+
+- 首发墙直接打开时复用或创建 `ic_session`；
+- 点评按文本渲染，恶意 HTML 不会生成节点；
+- 点击期间禁用两个按钮；
+- 成功和 `already_voted` 都保存服务端方向并锁定按钮；
+- 网络失败不写本地投票状态并恢复按钮；
+- 轮询合并计数时不丢失已有卡片和本地已投状态；
+- 窄屏卡片仍能显示完整点评和两个 44px 高按钮。
+
+### 完整回归
+
+实现完成后运行：
+
+```bash
+npm test
+python3 -m pytest tests --ignore=tests/test_combine_feedback.py -q
+npm run build
+npm run makers:build
+```
+
+浏览器验证至少覆盖：
+
+1. 新匿名浏览器对一个元素点赞成功；
+2. 同元素再次点击赞或踩均不会增加计数；
+3. 同一浏览器可以评价另一个元素；
+4. 新首发卡片显示实际合成点评；
+5. 旧首发显示默认点评；
+6. 页面刷新后按钮保持锁定；
+7. 手机宽度下点评和按钮无重叠。
+
+## 发布
+
+本次不在仓库中加入部署凭据。实现与验证完成后提交功能分支并合并到 `main`，
+由项目现有 Makers Git 集成自动创建新的 Production 部署。
