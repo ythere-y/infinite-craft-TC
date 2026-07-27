@@ -13,6 +13,7 @@ import subprocess
 SOURCE = Path("frontend/combine-feedback.js")
 EFFECTS_SOURCE = Path("frontend/effects.js")
 APP_SOURCE = Path("frontend/app.js")
+INDEX_SOURCE = Path("frontend/index.html")
 
 try:
     # js2py prints its bytecode comparison before raising on unsupported
@@ -421,3 +422,20 @@ def test_first_toast_uses_exact_design_duration(tmp_path):
         include_effects=True,
     )
     assert actual == {"delays": [8000], "showing": True}
+
+
+def test_combine_feedback_assets_share_one_cache_version():
+    index_source = INDEX_SOURCE.read_text(encoding="utf-8")
+    asset_urls = re.findall(
+        r'(?:href|src)="(/(?:style\.css|combine-feedback\.js|effects\.js|app\.js)[^"]*)"',
+        index_source,
+    )
+
+    assert len(asset_urls) == 4
+    versions = {
+        url.partition("?v=")[2]
+        for url in asset_urls
+        if "?v=" in url
+    }
+    assert len(versions) == 1
+    assert all("?v=" in url for url in asset_urls)
