@@ -294,7 +294,10 @@ def warm_up_from_archive() -> dict:
     stats = {"combos": 0, "firsts": 0, "nicks": 0}
     c = get_client()
 
+    from . import community
     for row in archive.all_combinations():
+        if community.is_retired_key(row["key"]):
+            continue
         key = row["key"]
         if not c.exists(_combo_key(key)):
             c.hset(_combo_key(key), mapping={

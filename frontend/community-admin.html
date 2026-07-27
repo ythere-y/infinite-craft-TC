@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>公式治理后台</title>
+  <link rel="stylesheet" href="/community.css">
+</head>
+<body>
+  <header class="community-header"><strong>🛡️ 公式治理后台</strong><a href="/community.html">返回广场</a></header>
+  <main>
+    <form id="login" class="admin-login">
+      <label>管理员密钥 <input id="admin-key" type="password" autocomplete="current-password" required></label>
+      <button>登录 8 小时会话</button>
+    </form>
+    <section id="queue" hidden>
+      <h1>低分审核队列</h1>
+      <p>系统不会自动退役任何公式。每项决定都必须选择原因并写入审计记录。</p>
+      <div id="queue-list" class="formula-grid"></div>
+    </section>
+  </main>
+  <script src="/community-admin.js"></script>
+</body>
+</html>

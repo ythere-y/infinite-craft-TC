@@ -575,6 +575,7 @@ async function combine(srcId, dstId, x, y) {
     window.EFFECTS?.onCombineResult?.(newRec.el, resp.result, resp.emoji, tier, {
       depth: resp.depth, gained, fullScore, isNewToPlayer, comment: resp.comment,
     });
+    if (resp.formula_id) showPublishAction(resp.formula_id, resp.result);
   } catch (err) {
     clearTimeout(timer);
     loader.remove();
@@ -595,6 +596,36 @@ async function combine(srcId, dstId, x, y) {
     workspace.appendChild(tip);
     setTimeout(() => tip.remove(), 1500);
   }
+}
+
+function showPublishAction(formulaId, resultName) {
+  const old = document.querySelector(".formula-publish");
+  old?.remove();
+  const box = document.createElement("div");
+  box.className = "formula-publish";
+  appendTextElement(box, "span", "", `已复现「${resultName}」的公式`);
+  const publish = appendTextElement(box, "button", "", "公开到公式广场");
+  publish.type = "button";
+  publish.addEventListener("click", async () => {
+    publish.disabled = true;
+    const response = await fetch(
+      `/api/community/formulas/${encodeURIComponent(formulaId)}/publish`,
+      { method: "POST" }
+    );
+    if (response.ok) {
+      box.replaceChildren();
+      appendTextElement(box, "span", "", "✅ 已公开，社区现在可以投票");
+      const link = appendTextElement(box, "a", "", "查看广场");
+      link.href = "/community.html";
+    } else {
+      const body = await response.json().catch(() => ({}));
+      publish.disabled = false;
+      publish.textContent = body.detail || "公开失败，请重试";
+    }
+  });
+  box.append(publish);
+  document.body.append(box);
+  setTimeout(() => box.remove(), 12000);
 }
 
 function shake(el) {

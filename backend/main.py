@@ -24,13 +24,14 @@ import uuid
 from pathlib import Path
 from typing import Optional, List
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import db, kpi, archive, depth as depth_mod, bounty as bounty_mod
+from . import db, kpi, archive, community, depth as depth_mod, bounty as bounty_mod
+from .community_api import router as community_router, player as community_player
 from .comments import normalize_comment
 from .seed_loader import store
 from .nickname import generate_unique, stats as nickname_stats
@@ -44,6 +45,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(community_router)
 
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 _COMBINE_LOCKS = tuple(asyncio.Lock() for _ in range(64))
@@ -56,6 +58,7 @@ _LLM_EXECUTOR = ThreadPoolExecutor(
 @app.on_event("startup")
 async def _startup() -> None:
     db.init_db()  # 连 Redis + 建 SQLite 表
+    community.init()
     # 1) 从 SQLite 恢复历史数据到 Redis（重启不丢 AI 生成的长尾）
     warm = db.warm_up_from_archive()
     print(
@@ -106,6 +109,7 @@ class CombineResp(BaseModel):
     # 前端自己判断是否"玩家已知"：已知给 full_score // 10，未知给 full_score
     depth: int = 0
     full_score: int = 0
+    formula_id: Optional[str] = None
 
 
 class KPIReq(BaseModel):
@@ -339,7 +343,9 @@ async def api_elements():
 
 
 @app.post("/api/combine", response_model=CombineResp)
-async def api_combine(req: CombineReq):
+async def api_combine(
+    req: CombineReq, request: Request = None, response: Response = None
+):
     request_id = uuid.uuid4().hex[:12]
     started = time.perf_counter()
     a, b = req.a.strip(), req.b.strip()
@@ -379,9 +385,16 @@ async def api_combine(req: CombineReq):
         )
 
     key = db.normalize_key(a, b)
+    player_id = community_player(request, response)
 
     # 1. Redis 缓存查询（含 seed 预热数据 + 历史 AI 结果）
     hit = db.get_cached(key)
+    if hit and community.is_retired_key(key):
+        try:
+            db.get_client().delete(f"combo:{key}")
+        except Exception:
+            pass
+        hit = None
     print(
         f"[combine] event=cache_{'hit' if hit else 'miss'} " f"request_id={request_id}",
         flush=True,
@@ -462,6 +475,13 @@ async def api_combine(req: CombineReq):
     full_score = 10 * depth_val * depth_val
 
     explode = kpi.should_explode(chain, result)
+    formula_id = None
+    if source != "fallback" and request is not None:
+        formula = community.ensure_formula(
+            key, a, b, result, emoji, comment, source, discoverer
+        )
+        formula_id = formula["id"]
+        community.record_reproduction(formula_id, player_id)
 
     elapsed_ms = round((time.perf_counter() - started) * 1000)
     print(
@@ -485,6 +505,7 @@ async def api_combine(req: CombineReq):
         kpi_reason=reason,
         depth=depth_val,
         full_score=full_score,
+        formula_id=formula_id,
     )
 
 
@@ -502,6 +523,8 @@ async def _combine_via_llm(a: str, b: str, request_id: str) -> Optional[dict]:
         return None
     # 传入最近的 30 个 result 作为 avoid_words，减少撞词
     avoid = db.recent_result_names(30)
+    positive_examples, negative_results = community.feedback_examples()
+    avoid = list(dict.fromkeys([*negative_results, *avoid]))
     print(
         f"[combine] event=llm_started request_id={request_id} "
         f"avoid_words={len(avoid)}",
@@ -515,6 +538,7 @@ async def _combine_via_llm(a: str, b: str, request_id: str) -> Optional[dict]:
             a,
             b,
             avoid,
+            community_examples=positive_examples,
             request_id=request_id,
         ),
     )
