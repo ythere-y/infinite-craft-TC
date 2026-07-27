@@ -3,8 +3,8 @@
 ## 目标
 
 在首发墙的每张元素卡片中展示该元素首次合成时生成的自然语言点评，并提供
-点赞、点踩两个互斥操作。项目继续使用现有匿名浏览器身份，不引入登录系统：
-同一 `ic_session` 对同一元素只能提交一次评价，提交后不能修改。
+点赞、点踩两个互斥操作。项目复用公式广场现有的签名匿名玩家 Cookie，不引入
+登录系统：同一匿名玩家对同一元素只能提交一次评价，提交后不能修改。
 
 本设计同时覆盖 Makers 生产运行时与 FastAPI 本地开发运行时，保持两个环境的
 接口和页面行为一致。
@@ -31,16 +31,19 @@
 
 ## 已确认的产品规则
 
-1. `ic_session` 是匿名账号标识。首发墙若在没有访问主页的情况下直接打开，
-   也按主页现有规则生成并持久化一个 `ic_session`。
+1. 现有签名 HttpOnly `craft_player` Cookie 是匿名账号标识。Makers 使用
+   `playerIdentity()`，FastAPI 使用 `community_player()`；首发墙与公式广场
+   共享同一匿名身份。
 2. 限投维度是“匿名账号 + 元素”，不是“匿名账号全站只能投一次”。
 3. 点赞和点踩互斥；第一次成功提交后两个按钮都进入已投状态，不能修改。
 4. 服务端是限投真相源。`localStorage` 仅保存当前浏览器已投结果，用于页面
    重开后立即恢复按钮状态。
-5. 清除浏览器数据或更换设备会产生新的匿名账号；这是本次简单方案明确接受的
-   边界。
+5. 清除 `craft_player` Cookie 或更换设备会产生新的匿名账号；这是本次简单
+   方案明确接受的边界。
 6. 投票数字是非负整数。旧元素默认 `upvotes=0`、`downvotes=0`。
 7. 点评使用第一次成功创造该元素时的合成点评；后续命中同一组合不会覆盖它。
+8. 公式广场现有投票是“公式版本级”，保留赞成、反对、取消和切换；首发墙新增
+   投票是“元素级”，保持一次性不可修改。两者共享匿名身份但不混用计数。
 
 ## 现状与根因
 
@@ -49,16 +52,18 @@
 `recordFirst()` 时没有传入 `comment`。首发墙分页 API 因而无法把合成点评
 传给卡片。
 
-当前代码没有点赞/点踩 API、投票存储或卡片交互。现有花名只用于展示和排行榜，
-没有认证凭据，不能作为严格账号使用。因此本次复用浏览器 `ic_session`，并在
-服务端只保存其哈希。
+最新 `main` 已有公式广场的公式版本级投票、签名匿名 Cookie 和治理后台，但首发
+记录与首发墙没有元素级赞踩 API、计数或卡片交互。公式版本与元素不是同一聚合
+维度，而且现有公式投票允许取消和切换，不满足本次“每个元素只能评价一次”的
+规则。因此本次复用其匿名身份与签名能力，新增独立的元素级投票记录。
 
 ## 方案比较
 
 ### 方案 A：Makers KV 服务端去重与计数（采用）
 
-浏览器提交 `result`、`session_id` 和 `direction`。服务端为“元素 + 会话”
-建立投票标记，成功占用后更新元素计数，并把结果同步到首发记录的读取副本。
+浏览器提交 `result` 和 `direction`。服务端从签名 `craft_player` Cookie
+恢复匿名玩家，为“元素 + 匿名玩家”建立投票标记，成功占用后更新元素计数，并
+把结果同步到首发记录的读取副本。
 
 优点：
 
@@ -114,7 +119,7 @@ Makers 与 FastAPI 的首发记录统一增加：
 每次投票建立一个不可枚举用户明文的 KV 记录：
 
 ```text
-vote_<result_sha256>_<session_sha256>
+vote_<result_sha256>_<player_sha256>
 ```
 
 值为：
@@ -127,8 +132,8 @@ vote_<result_sha256>_<session_sha256>
 }
 ```
 
-服务端不在 KV key 或响应中保存原始 `ic_session`。重复请求先读取该记录；已有
-记录时不再增加计数，并返回 `already_voted` 及原投票方向。
+服务端不在元素投票 KV key 或响应中保存原始匿名玩家 ID。重复请求先读取该
+记录；已有记录时不再增加计数，并返回 `already_voted` 及原投票方向。
 
 首发记录在 Makers 中存在 canonical、索引、feed 和 recent snapshot 等读取
 副本。投票成功后由一个专门的存储方法统一更新 canonical 记录，并同步更新索引
@@ -138,7 +143,7 @@ vote_<result_sha256>_<session_sha256>
 ### FastAPI 本地持久化
 
 Redis 使用每元素首发 Hash 的 `comment`、`upvotes`、`downvotes` 字段，并用
-基于结果与会话哈希的唯一投票 key 执行 `SET NX` 去重。
+基于结果与匿名玩家哈希的唯一投票 key 执行 `SET NX` 去重。
 
 SQLite 对现有 `first_discoveries` 表新增：
 
@@ -174,7 +179,6 @@ Content-Type: application/json
 
 {
   "result": "需求气球",
-  "session_id": "s_ab12cd34",
   "direction": "up"
 }
 ```
@@ -207,11 +211,17 @@ Content-Type: application/json
 
 错误规则：
 
-- 缺少 `result` 或 `session_id`：HTTP 400；
-- `session_id` 超过 128 个 Unicode 字符：HTTP 400；
+- 缺少 `result`：HTTP 400；
 - `direction` 不是 `up` 或 `down`：HTTP 400；
 - 元素不存在于首发记录：HTTP 404；
-- 存储异常：沿用统一安全 JSON 错误，不向浏览器暴露 KV key 或会话哈希。
+- Makers 没有配置 `SESSION_SECRET` 且也没有可回退的 `ADMIN_TOKEN`：HTTP
+  503，避免每次请求产生无法持久化的新身份；
+- 存储异常：沿用统一安全 JSON 错误，不向浏览器暴露 KV key 或玩家哈希。
+
+首次访问没有合法 `craft_player` Cookie 时，响应沿用现有社区身份逻辑设置一个
+有效期一年的签名 HttpOnly Cookie。Makers 优先使用独立 `SESSION_SECRET`，
+没有时回退到已经用于后台保护的 `ADMIN_TOKEN`；生产环境 Cookie 带 `Secure`
+和 `SameSite=Lax`。
 
 现有 `/api/wall/page`、`/api/wall/recent` 和轮询返回的首发条目增加
 `comment`、`upvotes`、`downvotes`，不改变分页字段和排序规则。
@@ -264,7 +274,8 @@ Content-Type: application/json
 
 1. 路由校验请求字段。
 2. 存储层读取 canonical 首发记录；不存在则返回 404。
-3. 对 `result` 与 `session_id` 分别计算 SHA-256，得到投票标记 key。
+3. 对 `result` 与签名 Cookie 中恢复出的匿名玩家 ID 分别计算 SHA-256，得到
+   投票标记 key。
 4. 已有标记时，读取当前首发计数并返回 `already_voted`。
 5. 没有标记时写入带 `claim_token` 的标记，再读回验证占用。
 6. 验证成功后只增加对应方向的计数。
@@ -294,8 +305,8 @@ Content-Type: application/json
 - 服务端返回 `already_voted` 时，按服务端返回方向修复本地状态并显示
   “已评价”；
 - 网络错误时恢复按钮，不修改数字，卡片内短暂显示“提交失败，请重试”；
-- 页面重开时先读取 `ic_wall_votes` 恢复状态；服务端仍会阻止本地状态被清除后
-  的同会话重复提交；
+- 页面重开时先读取 `ic_wall_votes` 恢复状态；即使只清除这个本地展示状态，
+  服务端仍会通过 `craft_player` Cookie 阻止重复提交；
 - 使用 `aria-pressed`、`aria-label` 和卡片级 `aria-live` 状态文本支持键盘
   与辅助技术；
 - 移动端按钮保持至少 44px 的可点击高度，点评换行但不遮挡卡片内容。
@@ -349,10 +360,12 @@ Content-Type: application/json
 
 - `edge-functions/_lib/kv-store.js`：首发点评、投票标记、计数与副本同步；
 - `edge-functions/_lib/game-service.js`：创建首发时传入点评；
-- `edge-functions/_lib/router.js`：新增投票路由和校验；
+- `edge-functions/_lib/router.js`：新增投票路由、复用 `playerIdentity()` 并校验
+  身份配置；
 - `backend/archive.py`：SQLite 兼容迁移与投票唯一表；
 - `backend/db.py`：Redis/SQLite 首发与投票封装；
-- `backend/main.py`：本地投票路由、首发点评传递与响应兼容；
+- `backend/main.py`：本地投票路由、复用 `community_player()`、首发点评传递与
+  响应兼容；
 - `frontend/wall/wall.js`：匿名身份、卡片点评、投票状态和请求；
 - `frontend/wall/wall.css`：点评与赞踩控件样式；
 - `frontend/wall/reactions.js`：可独立测试的方向校验、本地状态与响应合并帮助
@@ -375,9 +388,9 @@ Content-Type: application/json
 - 新首发保存规范化点评并从分页接口返回；
 - 旧首发缺失点评和计数时返回默认点评与 `0/0`；
 - 第一个 `up` 投票使点赞数从 0 变为 1；
-- 同一 session 对同一元素第二次提交不增加任何计数；
-- 同一 session 不能先点赞再点踩；
-- 不同 session 可以分别投票；
+- 同一匿名玩家对同一元素第二次提交不增加任何计数；
+- 同一匿名玩家不能先点赞再点踩；
+- 不同匿名玩家可以分别投票；
 - 不同元素互不影响；
 - 投票后的 canonical、索引、feed、recent snapshot 返回相同计数。
 
@@ -385,7 +398,9 @@ Content-Type: application/json
 
 - 合法请求返回统一成功契约；
 - 重复请求返回幂等 `already_voted` 契约；
-- 缺字段、超长 session、非法方向和不存在元素返回规定状态码；
+- 缺少结果、非法方向、不存在元素和缺少签名密钥返回规定状态码；
+- 首次投票设置签名 `craft_player` Cookie，后续请求复用同一身份；
+- 篡改签名 Cookie 会获得新的匿名身份，不会冒充原玩家；
 - `/api/wall/page` 包含点评和计数字段。
 - `/api/admin/stats` 返回正确的四项汇总；
 - 最受欢迎榜按点赞、点踩、序号稳定排序并限制 10 条；
@@ -397,13 +412,14 @@ Content-Type: application/json
 - 旧 SQLite schema 自动增加点评、计数列和 `first_votes` 表；
 - `PRIMARY KEY(result, voter_hash)` 阻止重复投票；
 - Redis 首发 Hash 与 SQLite 归档保持点评和计数一致；
-- 服务重启预热后仍能阻止已归档会话重复投票；
+- 服务重启预热后仍能阻止已归档匿名玩家重复投票；
 - FastAPI 投票路由响应与 Makers 契约一致；
 - FastAPI `/api/admin/stats` 返回与 Makers 相同的社区反馈汇总和榜单。
 
 ### 前端测试
 
-- 首发墙直接打开时复用或创建 `ic_session`；
+- 首发墙投票请求由服务端复用或创建 `craft_player` Cookie，前端不提交可伪造
+  的账号 ID；
 - 点评按文本渲染，恶意 HTML 不会生成节点；
 - 点击期间禁用两个按钮；
 - 成功和 `already_voted` 都保存服务端方向并锁定按钮；
