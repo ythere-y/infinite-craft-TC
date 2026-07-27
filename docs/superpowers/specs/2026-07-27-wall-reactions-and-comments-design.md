@@ -18,6 +18,7 @@
 - 匿名浏览器账号对每个元素只能选择一次点赞或点踩；
 - 服务端执行重复投票检查，浏览器本地状态只用于交互恢复；
 - 新首发完整保存点评，旧首发以统一默认点评兼容；
+- `/admin` 展示赞踩汇总及最受欢迎、争议最高元素榜单；
 - Makers KV、FastAPI Redis/SQLite、API、前端与自动化测试同步更新。
 
 本次不包含：
@@ -215,6 +216,50 @@ Content-Type: application/json
 现有 `/api/wall/page`、`/api/wall/recent` 和轮询返回的首发条目增加
 `comment`、`upvotes`、`downvotes`，不改变分页字段和排序规则。
 
+受现有 `ADMIN_TOKEN` 保护的 `/api/admin/stats` 增加：
+
+```json
+{
+  "reaction_summary": {
+    "total_votes": 120,
+    "total_upvotes": 96,
+    "total_downvotes": 24,
+    "rated_elements": 38
+  },
+  "top_upvoted": [
+    {
+      "result": "需求气球",
+      "emoji": "🎈",
+      "comment": "一开会，需求就自动膨胀。",
+      "upvotes": 18,
+      "downvotes": 2
+    }
+  ],
+  "top_controversial": [
+    {
+      "result": "会议套娃",
+      "emoji": "🪆",
+      "comment": "为了对齐上个会，再开一个会。",
+      "upvotes": 11,
+      "downvotes": 9,
+      "controversy_score": 9
+    }
+  ]
+}
+```
+
+汇总和榜单直接从 `adminPayload()` 已经加载的完整首发记录计算，不为后台看板
+新增公开接口或额外 KV 扫描：
+
+- `total_upvotes`、`total_downvotes`：所有规范化首发计数之和；
+- `total_votes`：点赞与点踩之和；
+- `rated_elements`：点赞或点踩至少为 1 的元素数量；
+- `top_upvoted`：只包含至少 1 个点赞的元素，按点赞数降序、点踩数升序、首发
+  序号降序取前 10；
+- `controversy_score`：`min(upvotes, downvotes)`，用于衡量双方都有参与的争议；
+- `top_controversial`：只包含 `controversy_score > 0` 的元素，按争议分、总
+  评价数、首发序号依次降序取前 10。
+
 ## Makers 投票流程
 
 1. 路由校验请求字段。
@@ -262,6 +307,32 @@ Content-Type: application/json
 前端状态，使最近首发的数字在不刷新页面时更新；已经滚动到很早的历史卡片允许
 在用户投票、重新加载该页或刷新页面时更新。
 
+## `/admin` 社区反馈看板
+
+后台继续复用现有 `/admin` 页面和 `/api/admin/stats` 的
+`ADMIN_TOKEN` / `DASHBOARD_PUBLIC` 访问控制，不把投票统计暴露到新的公开管理
+接口。
+
+现有核心指标区增加四张卡片：
+
+1. `👍 总点赞`；
+2. `👎 总点踩`；
+3. `🗳️ 总评价`；
+4. `💬 被评价元素`。
+
+现有面板区增加两个 Top 10 表格：
+
+- `💚 最受欢迎元素`：名次、Emoji、元素名、自然语言点评、赞、踩；
+- `🔥 争议最高元素`：名次、Emoji、元素名、自然语言点评、赞、踩。
+
+两个榜单都在无投票时显示明确空状态。点评最多显示两行，完整文本放在安全的
+`title` 或同等文本提示中；所有点评继续按不可信 LLM 文本处理，不直接插入
+未转义 HTML。
+
+后台沿用当前每 3 秒自动刷新。汇总数字和榜单在同一次
+`/api/admin/stats` 响应中更新，不增加独立轮询。由于底层 Makers KV 最终一致，
+卡片副标题标明统计为近似实时数据。
+
 ## 旧数据兼容
 
 - 旧 Makers 首发记录没有 `comment` 时返回 `DEFAULT_COMMENT`；
@@ -286,6 +357,8 @@ Content-Type: application/json
 - `frontend/wall/wall.css`：点评与赞踩控件样式；
 - `frontend/wall/reactions.js`：可独立测试的方向校验、本地状态与响应合并帮助
   函数；
+- `frontend/admin/index.html`：社区反馈汇总卡片、两个 Top 10 榜单与安全点评
+  渲染；
 - `tests-makers/kv-store.test.mjs`、`tests-makers/router.test.mjs`、
   `tests-makers/frontend.test.mjs`：Makers 和前端契约；
 - `tests/test_wall_reactions.py`：FastAPI、Redis/SQLite 迁移与接口行为；
@@ -314,6 +387,10 @@ Content-Type: application/json
 - 重复请求返回幂等 `already_voted` 契约；
 - 缺字段、超长 session、非法方向和不存在元素返回规定状态码；
 - `/api/wall/page` 包含点评和计数字段。
+- `/api/admin/stats` 返回正确的四项汇总；
+- 最受欢迎榜按点赞、点踩、序号稳定排序并限制 10 条；
+- 争议榜使用 `min(upvotes, downvotes)` 排序并限制 10 条；
+- 无投票时汇总全为 0，两个榜单为空数组。
 
 ### FastAPI 测试
 
@@ -321,7 +398,8 @@ Content-Type: application/json
 - `PRIMARY KEY(result, voter_hash)` 阻止重复投票；
 - Redis 首发 Hash 与 SQLite 归档保持点评和计数一致；
 - 服务重启预热后仍能阻止已归档会话重复投票；
-- FastAPI 路由响应与 Makers 契约一致。
+- FastAPI 投票路由响应与 Makers 契约一致；
+- FastAPI `/api/admin/stats` 返回与 Makers 相同的社区反馈汇总和榜单。
 
 ### 前端测试
 
@@ -332,6 +410,9 @@ Content-Type: application/json
 - 网络失败不写本地投票状态并恢复按钮；
 - 轮询合并计数时不丢失已有卡片和本地已投状态；
 - 窄屏卡片仍能显示完整点评和两个 44px 高按钮。
+- `/admin` 渲染四项社区反馈汇总和两个榜单；
+- 后台榜单中的恶意点评文本不会生成 HTML 节点；
+- 后台无投票时显示空状态，下一次轮询出现投票后正常更新。
 
 ### 完整回归
 
@@ -352,7 +433,9 @@ npm run makers:build
 4. 新首发卡片显示实际合成点评；
 5. 旧首发显示默认点评；
 6. 页面刷新后按钮保持锁定；
-7. 手机宽度下点评和按钮无重叠。
+7. 手机宽度下点评和按钮无重叠；
+8. `/admin` 四项汇总与赞踩榜单和首发墙数字一致；
+9. `/admin` 无投票及有投票两种状态都能正常刷新。
 
 ## 发布
 
