@@ -56,14 +56,19 @@ def _run_browser(tmp_path: Path, test_script: str, *, include_effects=False):
                 '<div id="fixture"></div><pre id="__result"></pre>',
                 *[f"<script>{source}</script>" for source in scripts],
                 "<script>",
+                "var pending;",
                 "try {",
-                f"  var value = (function () {{ {test_script} }})();",
+                f"  pending = (function () {{ {test_script} }})();",
+                "} catch (error) {",
+                "  pending = Promise.reject(error);",
+                "}",
+                "Promise.resolve(pending).then(function (value) {",
                 "  document.getElementById('__result').textContent = "
                 "JSON.stringify({ok: true, value: value});",
-                "} catch (error) {",
+                "}, function (error) {",
                 "  document.getElementById('__result').textContent = "
                 "JSON.stringify({ok: false, error: String(error && error.stack || error)});",
-                "}",
+                "});",
                 "</script>",
             ]
         ),
@@ -73,10 +78,12 @@ def _run_browser(tmp_path: Path, test_script: str, *, include_effects=False):
         [
             str(_browser_path()),
             "--headless=new",
+            "--no-sandbox",
             "--disable-gpu",
             "--disable-background-networking",
             "--no-first-run",
             "--no-default-browser-check",
+            "--virtual-time-budget=1000",
             f"--user-data-dir={profile}",
             "--dump-dom",
             page.as_uri(),
@@ -184,6 +191,142 @@ def test_render_toast_uses_comment_fallback(tmp_path):
         """,
     )
     assert actual["rendered"] == f"“{actual['fallback']}”"
+
+
+def test_publish_action_renders_inside_toast_and_handles_success(tmp_path):
+    actual = _run_browser(
+        tmp_path,
+        """
+        return (async function () {
+          var toast = document.getElementById("fixture");
+          toast.id = "first-toast";
+          var calls = 0;
+          window.COMBINE_FEEDBACK.renderPublishAction(document, toast, {
+            publish: async function () {
+              calls += 1;
+              return { ok: true };
+            }
+          });
+          toast.querySelector(".first-toast-actions button").click();
+          await Promise.resolve();
+          await Promise.resolve();
+          return {
+            calls: calls,
+            standalone: document.querySelector(".formula-publish") !== null,
+            text: toast.querySelector(".first-toast-actions").textContent,
+            href: toast.querySelector(".first-toast-actions a").getAttribute("href")
+          };
+        })();
+        """,
+    )
+    assert actual == {
+        "calls": 1,
+        "standalone": False,
+        "text": "✅ 已公开，社区现在可以投票查看广场",
+        "href": "/community.html",
+    }
+
+
+def test_publish_action_restores_button_with_safe_server_error(tmp_path):
+    hostile_detail = '<img id="publish-xss" src=x onerror="window.__xss=1">'
+    actual = _run_browser(
+        tmp_path,
+        f"""
+        return (async function () {{
+          window.__xss = 0;
+          var toast = document.getElementById("fixture");
+          window.COMBINE_FEEDBACK.renderPublishAction(document, toast, {{
+            publish: async function () {{
+              return {{ ok: false, detail: {json.dumps(hostile_detail)} }};
+            }}
+          }});
+          toast.querySelector("button").click();
+          await Promise.resolve();
+          await Promise.resolve();
+          var button = toast.querySelector("button");
+          return {{
+            disabled: button.disabled,
+            text: button.textContent,
+            injected: toast.querySelector("#publish-xss") !== null,
+            xss: window.__xss
+          }};
+        }})();
+        """,
+    )
+    assert actual == {
+        "disabled": False,
+        "text": hostile_detail,
+        "injected": False,
+        "xss": 0,
+    }
+
+
+def test_publish_action_recovers_from_network_error(tmp_path):
+    actual = _run_browser(
+        tmp_path,
+        """
+        return (async function () {
+          var toast = document.getElementById("fixture");
+          window.COMBINE_FEEDBACK.renderPublishAction(document, toast, {
+            publish: async function () {
+              throw new Error("offline");
+            }
+          });
+          toast.querySelector("button").click();
+          await Promise.resolve();
+          await Promise.resolve();
+          var button = toast.querySelector("button");
+          return {
+            disabled: button.disabled,
+            text: button.textContent
+          };
+        })();
+        """,
+    )
+    assert actual == {
+        "disabled": False,
+        "text": "公开失败，请重试",
+    }
+
+
+def test_stale_publish_request_does_not_replace_newer_feedback(tmp_path):
+    actual = _run_browser(
+        tmp_path,
+        """
+        return (async function () {
+          var toast = document.getElementById("fixture");
+          var finish;
+          window.COMBINE_FEEDBACK.renderPublishAction(document, toast, {
+            publish: function () {
+              return new Promise(function (resolve) { finish = resolve; });
+            }
+          });
+          toast.querySelector("button").click();
+          window.COMBINE_FEEDBACK.renderToast(document, toast, {
+            tier: "seen",
+            emoji: "🆕",
+            name: "下一次结果",
+            comment: "新点评"
+          });
+          window.COMBINE_FEEDBACK.renderPublishAction(document, toast, {
+            publish: async function () { return { ok: true }; }
+          });
+          finish({ ok: true });
+          await Promise.resolve();
+          await Promise.resolve();
+          return {
+            result: toast.querySelector(".first-toast-result").textContent,
+            hasButton: toast.querySelector(".first-toast-actions button") !== null,
+            published: toast.textContent.indexOf("已公开") >= 0
+          };
+        })();
+        """,
+    )
+    assert actual == {
+        "result": "🆕 下一次结果",
+        "hasButton": True,
+        "published": False,
+    }
 
 
 def test_hostile_emoji_name_and_comment_are_rendered_as_text(tmp_path):

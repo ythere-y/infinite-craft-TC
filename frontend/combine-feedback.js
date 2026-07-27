@@ -36,6 +36,7 @@
   }
 
   function renderToast(doc, target, payload) {
+    target.classList.remove("has-actions");
     clearChildren(target);
     var labels = {
       global_new: "🌍 全球首发",
@@ -51,10 +52,60 @@
       "“" + String(payload.comment || DEFAULT_COMMENT) + "”");
   }
 
+  function renderPublishAction(doc, target, payload) {
+    var actions = appendTextNode(
+      doc, target, "div", "first-toast-actions", ""
+    );
+    var button = appendTextNode(
+      doc, actions, "button", "first-toast-publish", "公开到公式广场"
+    );
+    button.type = "button";
+    target.classList.add("has-actions");
+
+    button.addEventListener("click", function () {
+      button.disabled = true;
+
+      function finish(outcome) {
+        if (!actions.isConnected) return;
+        if (outcome && outcome.ok) {
+          clearChildren(actions);
+          appendTextNode(
+            doc, actions, "span", "first-toast-published",
+            "✅ 已公开，社区现在可以投票"
+          );
+          var link = appendTextNode(
+            doc, actions, "a", "first-toast-community-link", "查看广场"
+          );
+          link.href = "/community.html";
+          return;
+        }
+
+        button.disabled = false;
+        button.textContent =
+          outcome && outcome.detail
+            ? String(outcome.detail)
+            : "公开失败，请重试";
+      }
+
+      var request;
+      try {
+        request = payload.publish();
+      } catch (_error) {
+        finish({ ok: false });
+        return;
+      }
+      Promise.resolve(request)
+        .then(finish, function () { finish({ ok: false }); });
+    });
+
+    return actions;
+  }
+
   root.COMBINE_FEEDBACK = {
     DEFAULT_COMMENT: DEFAULT_COMMENT,
     classify: classify,
     renderElement: renderElement,
-    renderToast: renderToast
+    renderToast: renderToast,
+    renderPublishAction: renderPublishAction
   };
 })(typeof window !== "undefined" ? window : this);
