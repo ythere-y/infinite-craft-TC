@@ -442,7 +442,6 @@ body.ura-on .element.on-canvas.is-starter {
 .element.ghost {
   opacity: 0.85;
   box-shadow: 0 6px 16px rgba(0,0,0,0.18);
-  transform: scale(1.05);
 }
 
 .element.dropping {
@@ -1981,6 +1980,7 @@ body.ura-on .recipebook {
    - 侧栏 / 配方库的 chip 不在此列，允许保持里模式的"疯狂字体"风味。
    ============================================================ */
 body.ura-on .workspace .element.on-canvas {
+  position: absolute;
   /* 回到白天的字体栈，杜绝字形度量差导致的宽度抖动 */
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
                "Helvetica Neue", Arial, sans-serif;

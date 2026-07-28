@@ -110,6 +110,31 @@ git pull --ff-only
 npm run dev
 ```
 
+### Icon 系统维护
+
+图标素材和 591 个预设元素映射都是提交到仓库的固定产物。普通构建只校验和
+复制这些产物，不读取被 Git 忽略的 `words/`：
+
+```bash
+npm run generate:icons      # 需要本地 words/emoji-data 和开发依赖
+npm run generate:icon-data  # 根据种子、规则与知识层重建预设映射
+npm run audit:icons         # 执行实体语义与完整签名重复率门禁
+npm run build               # 只校验已提交产物；不依赖 words/
+```
+
+品牌、人物、职位和缩写的语义修订应写入
+`backend/icon_knowledge.json`，不要直接编辑生成的
+`element-icon-map.json` 或 Makers `icon-data.js`。审计报告也只通过生成器更新：
+
+```bash
+npm run audit:icons -- --write-report docs/icon-system-audit.md
+```
+
+元素渲染依次使用 API 已持久化的 Icon 配方、预设映射、语义 Emoji 对应的本地
+PNG、原生 Emoji，最后回退到 `❓`。徽章图片失败时只隐藏徽章；主图失败时保留
+贴纸外壳并显示原生 Emoji。浏览器运行时不会从第三方 Icon 或 Emoji CDN 加载
+素材。
+
 提交或创建 PR 前：
 
 ```bash

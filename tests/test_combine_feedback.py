@@ -13,6 +13,7 @@ import subprocess
 SOURCE = Path("frontend/combine-feedback.js")
 ICON_SOURCE = Path("frontend/icon-system.js")
 ICON_CSS_SOURCE = Path("frontend/icon-system.css")
+STYLE_SOURCE = Path("frontend/style.css")
 EFFECTS_SOURCE = Path("frontend/effects.js")
 APP_SOURCE = Path("frontend/app.js")
 INDEX_SOURCE = Path("frontend/index.html")
@@ -46,7 +47,13 @@ def _browser_path() -> Path:
     )
 
 
-def _run_browser(tmp_path: Path, test_script: str, *, include_effects=False):
+def _run_browser(
+    tmp_path: Path,
+    test_script: str,
+    *,
+    include_effects=False,
+    include_app_styles=False,
+):
     scripts = [ICON_SOURCE.read_text(encoding="utf-8"), SOURCE.read_text(encoding="utf-8")]
     if include_effects:
         scripts.append(EFFECTS_SOURCE.read_text(encoding="utf-8"))
@@ -56,7 +63,14 @@ def _run_browser(tmp_path: Path, test_script: str, *, include_effects=False):
         "\n".join(
             [
                 "<!doctype html><meta charset=\"utf-8\">",
-                f"<style>{ICON_CSS_SOURCE.read_text(encoding='utf-8')}</style>",
+                "<style>"
+                + (
+                    STYLE_SOURCE.read_text(encoding="utf-8")
+                    if include_app_styles
+                    else ""
+                )
+                + ICON_CSS_SOURCE.read_text(encoding="utf-8")
+                + "</style>",
                 '<div id="fixture"></div><pre id="__result"></pre>',
                 "<script>",
                 "window.fetch = function (url) {",
@@ -235,6 +249,30 @@ def test_icon_system_resolution_and_dom_fallbacks(tmp_path):
     }
 
 
+def test_icon_system_accepts_curated_entity_recipes(tmp_path):
+    actual = _run_browser(
+        tmp_path,
+        """
+        return window.ICON_SYSTEM.ready.then(function () {
+          return window.ICON_SYSTEM.resolveElementRecipe({
+            name: "Riot",
+            emoji: "❓",
+            icon: {
+              base: "👊", badge: "🎮",
+              palette: "studio", source: "curated"
+            }
+          });
+        });
+        """,
+    )
+    assert actual == {
+        "base": "👊",
+        "badge": "🎮",
+        "palette": "studio",
+        "source": "curated",
+    }
+
+
 def test_icon_system_uses_allowlisted_action_icons(tmp_path):
     actual = _run_browser(
         tmp_path,
@@ -265,6 +303,34 @@ def test_icon_system_uses_allowlisted_action_icons(tmp_path):
         "validImageLoading": "lazy",
         "validImageDecoding": "async",
     }
+
+
+def test_canvas_ghost_and_recipe_stickers_keep_the_30px_visual_size(tmp_path):
+    actual = _run_browser(
+        tmp_path,
+        """
+        return window.ICON_SYSTEM.ready.then(function () {
+          function render(className) {
+            var target = document.createElement("div");
+            target.className = className;
+            document.body.appendChild(target);
+            window.ICON_SYSTEM.renderElement(document, target, {
+              name: "预设", emoji: "🧩",
+              icon: { base: "🧩", palette: "product", source: "entity" },
+              size: "canvas"
+            });
+            return target.querySelector(".element-icon").getBoundingClientRect().width;
+          }
+          return {
+            canvas: render("element on-canvas"),
+            ghost: render("element ghost"),
+            recipe: render("element recipe-chip")
+          };
+        });
+        """,
+        include_app_styles=True,
+    )
+    assert actual == {"canvas": 30, "ghost": 30, "recipe": 30}
 
 
 def test_combine_target_overrides_legacy_dragging_visuals(tmp_path):
@@ -545,7 +611,7 @@ def test_boss_mode_preserves_canvas_element_geometry_and_restores_icon(tmp_path)
             target.style.cssText =
               "display:inline-flex;align-items:center;gap:6px;padding:6px 12px;"
               + "border:1px solid transparent;font:14px sans-serif;white-space:nowrap;"
-              + "position:absolute;left:" + left + "px";
+              + "left:" + left + "px;top:" + (left / 2) + "px";
             var info = {
               name: name,
               emoji: "🔥",
@@ -565,7 +631,7 @@ def test_boss_mode_preserves_canvas_element_geometry_and_restores_icon(tmp_path)
           function geometry() {
             return targets.map(function (target) {
               var rect = target.getBoundingClientRect();
-              return [rect.width, rect.height];
+              return [rect.x, rect.y, rect.width, rect.height];
             });
           }
           var before = geometry();
@@ -602,6 +668,7 @@ def test_boss_mode_preserves_canvas_element_geometry_and_restores_icon(tmp_path)
         });
         """,
         include_effects=True,
+        include_app_styles=True,
     )
     assert actual["during"] == actual["before"]
     assert actual["after"] == actual["before"]

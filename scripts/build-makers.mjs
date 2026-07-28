@@ -1,8 +1,10 @@
-import { access, cp, mkdir, rm, stat } from "node:fs/promises";
+import { access, cp, mkdir, readFile, rm, stat } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { runIconAudit } from "./audit-icon-map.mjs";
 import { generateMakersData } from "./generate-makers-data.mjs";
+import { validateCommittedIconAssets } from "./icon-data-lib.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const FRONTEND = resolve(ROOT, "frontend");
@@ -36,7 +38,63 @@ async function assertPublicEntries() {
   }
 }
 
+async function readJson(path, label) {
+  try {
+    return JSON.parse(await readFile(path, "utf8"));
+  } catch (error) {
+    throw new Error(`${label} is invalid: ${error.message}`);
+  }
+}
+
+async function loadMakersIconRecipes(root) {
+  const source = await readFile(
+    resolve(root, "edge-functions/_generated/icon-data.js"),
+    "utf8",
+  );
+  const url = `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`;
+  const generated = await import(url);
+  return generated.ELEMENT_ICONS;
+}
+
+export async function auditCommittedIconMap({ root = ROOT } = {}) {
+  const projectRoot = resolve(root);
+  const audit = await runIconAudit({ root: projectRoot });
+  if (audit.violations.length) {
+    throw new Error(
+      `Committed icon map audit failed: ${audit.violations.join("; ")}`,
+    );
+  }
+
+  const [browserRecipes, makersRecipes] = await Promise.all([
+    readJson(
+      resolve(
+        projectRoot,
+        "frontend/assets/icons/generated/element-icon-map.json",
+      ),
+      "Browser icon map",
+    ),
+    loadMakersIconRecipes(projectRoot),
+  ]);
+  const browserNames = Object.keys(browserRecipes);
+  const makersNames = Object.keys(makersRecipes ?? {});
+  if (browserNames.length !== 591 || makersNames.length !== 591) {
+    throw new Error(
+      `Icon recipe drift: expected 591 recipes, found browser=${browserNames.length}, Makers=${makersNames.length}`,
+    );
+  }
+  for (const name of new Set([...browserNames, ...makersNames])) {
+    if (
+      JSON.stringify(browserRecipes[name]) !== JSON.stringify(makersRecipes[name])
+    ) {
+      throw new Error(`Icon recipe drift for ${name}`);
+    }
+  }
+  return audit;
+}
+
 export async function buildMakersSite() {
+  await validateCommittedIconAssets({ root: ROOT });
+  await auditCommittedIconMap({ root: ROOT });
   await generateMakersData();
   await rm(OUTPUT, { recursive: true, force: true });
   await mkdir(OUTPUT, { recursive: true });

@@ -2,7 +2,7 @@
   "use strict";
 
   var PALETTES = ["nature", "product", "office", "studio", "people", "place"];
-  var SOURCES = ["entity", "generated", "fallback", "preset"];
+  var SOURCES = ["curated", "entity", "generated", "fallback", "preset"];
   var SIZES = ["sidebar", "canvas", "detail"];
   var ACTIONS = {
     back: "arrow-left",
