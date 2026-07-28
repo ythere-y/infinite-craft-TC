@@ -1,0 +1,19 @@
+{
+  "generatedAt": "2026-07-28T08:42:30.957Z",
+  "sources": {
+    "notoEmoji": {
+      "version": "2.048 (Emoji 16.0)",
+      "license": "Apache-2.0"
+    },
+    "phosphor": {
+      "version": "2.1.1",
+      "license": "MIT"
+    }
+  },
+  "counts": {
+    "actionSvgs": 21,
+    "emojiManifestEntries": 9111,
+    "emojiPngs": 3786
+  },
+  "sha256": "2a00f5e7a72003f1f9feeaef9d450ce72b7848f2f3f2dcc3b2f9a9a1e526a964"
+}
