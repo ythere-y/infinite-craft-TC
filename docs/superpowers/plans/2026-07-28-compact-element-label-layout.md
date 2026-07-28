@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Display every sidebar element name without clipping and keep a visible gap between the successful-combination sticker and result name.
+**Goal:** Display every sidebar element name without clipping, keep a visible gap between the successful-combination sticker and result name, and restore persisted AI comments in recipe detail cards.
 
 **Architecture:** Keep the approved three-column sidebar and compact its standard chips. The shared icon system will measure real rendered text fragments and progressively mark chips to span two or three columns when two lines are insufficient. The toast receives a local flex layout on its existing `.first-toast-icon` target, preserving the safe renderer and 40px detail sticker.
 
@@ -15,7 +15,9 @@
 - Sidebar stickers are 22px; sidebar names are 12px and never ellipsized, clamped or hidden.
 - Standard chips use at most two lines; overflow first spans two columns, then all three columns if still necessary.
 - The toast detail sticker remains 40px and has at least 12px physical separation from its name.
-- Do not modify icon mappings, generated assets, persistence, APIs or databases.
+- Do not modify icon mappings, generated assets, persistence schemas or
+  database write behavior. Recipe-detail read projections may add the existing
+  optional `comment` field.
 - Use real rendered geometry in Chromium; do not infer fit from character counts.
 - Stage or commit only this plan's isolated changes. Do not stage concurrent user changes.
 
@@ -286,13 +288,124 @@ Expected: all selected tests PASS.
 
 ---
 
-### Task 3: Verify and Reload the Existing Service
+### Task 3: Project and Render Persisted AI Recipe Comments
+
+**Files:**
+- Modify: `tests/test_comments.py`
+- Modify: `tests-makers/router.test.mjs`
+- Modify: `tests-makers/frontend.test.mjs`
+- Modify: `backend/archive.py`
+- Modify: `backend/main.py`
+- Modify: `edge-functions/_lib/router.js`
+- Create: `frontend/wall/recipe-comments.js`
+- Modify: `frontend/wall/wall.js`
+
+**Interfaces:**
+- Consumes: persisted combination records with optional `comment`.
+- Produces: recipe-detail rows with `comment: string` and
+  `recipeCommentFor(recipe, openFormula) -> string | null`.
+
+- [ ] **Step 1: Add failing persistence and API projection tests**
+
+In `tests/test_comments.py`, use a temporary archive and write:
+
+```python
+archive.upsert_combination(
+    "张志东 + 秃头循环",
+    "张志东",
+    "💻",
+    "llm",
+    None,
+    comment="大佬面前，秃头循环只能绕道走。",
+)
+```
+
+Assert `archive.recipes_for("张志东")[0]["comment"]` and
+`asyncio.run(main.api_element_recipes("张志东"))["recipes"][0]["comment"]`
+equal the literal text.
+
+In `tests-makers/router.test.mjs`, persist a dynamic recipe with a literal
+comment, request `/api/element/<result>/recipes`, and assert the matching
+recipe row returns it while the seed row comment is `""`.
+
+- [ ] **Step 2: Run backend tests and verify RED**
+
+```bash
+python3 -m pytest tests/test_comments.py -q
+node --test tests-makers/router.test.mjs
+```
+
+Expected: Python fails because the SQLite recipe row has no `comment`; Makers
+fails because `recipePayload()` omits it.
+
+- [ ] **Step 3: Project comments without changing writes**
+
+Change the SQLite query to:
+
+```sql
+SELECT key, source, chain, comment, hit_count
+FROM combinations
+WHERE result = ?
+```
+
+Return `comment: r["comment"] or ""` from `archive.recipes_for()`, pass that
+field through `backend.main.api_element_recipes()`, and add
+`comment: recipe.comment || ""` to Makers `recipePayload()`.
+
+- [ ] **Step 4: Add a real pure frontend comment selector**
+
+Create `frontend/wall/recipe-comments.js`:
+
+```javascript
+function sameRecipePair(recipe, formula) {
+  if (!recipe || !formula) return false;
+  return [recipe.a || "", recipe.b || ""].sort().join("\n") ===
+    [formula.a || "", formula.b || ""].sort().join("\n");
+}
+
+export function recipeCommentFor(recipe, openFormula = null) {
+  const archived = typeof recipe?.comment === "string"
+    ? recipe.comment.trim()
+    : "";
+  if (archived) return archived;
+  if (!openFormula?.id || !sameRecipePair(recipe, openFormula)) return null;
+  const fallback = typeof openFormula.comment === "string"
+    ? openFormula.comment.trim()
+    : "";
+  return fallback || null;
+}
+```
+
+Import it from `wall.js`, remove the old closure-bound
+`sameRecipePair()/recipeCommentFor()`, and call
+`recipeCommentFor(r, _recipeOpenFormula)`. Existing `node()` rendering remains
+safe text-only.
+
+In `tests-makers/frontend.test.mjs`, import the helper and assert:
+
+- an archived AI comment wins;
+- a matching legacy formula supplies the fallback;
+- a seed row and an empty comment return `null`;
+- reversed operand order still matches.
+
+- [ ] **Step 5: Run recipe comment GREEN**
+
+```bash
+python3 -m pytest tests/test_comments.py -q
+node --test tests-makers/router.test.mjs tests-makers/frontend.test.mjs
+```
+
+Expected: PASS.
+
+---
+
+### Task 4: Verify and Reload the Existing Service
 
 **Files:**
 - Verify only: all files changed above plus pre-existing concurrent files.
 
 **Interfaces:**
-- Consumes: the completed sidebar and toast fixes.
+- Consumes: the completed sidebar, toast and recipe-comment fixes.
 - Produces: fresh test/build evidence and an HTTP-accessible service on port 8000.
 
 - [ ] **Step 1: Run focused frontend verification**
@@ -329,7 +442,15 @@ curl --noproxy '*' --fail http://21.214.53.194:8000/
 ```
 
 Expected: containers running, health `200`, public-IP root `200`, and served
-HTML references cache version `20260728e`.
+HTML references cache version `20260728e`. Also request:
+
+```bash
+curl --noproxy '*' --fail \
+  'http://21.214.53.194:8000/api/element/%E5%BC%A0%E5%BF%97%E4%B8%9C/recipes'
+```
+
+Expected: the `llm` recipe row includes
+`"comment":"大佬面前，秃头循环只能绕道走。"`.
 
 - [ ] **Step 4: Preserve concurrent changes in handoff**
 

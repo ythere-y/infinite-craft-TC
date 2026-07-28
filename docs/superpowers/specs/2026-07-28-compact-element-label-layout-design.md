@@ -5,12 +5,14 @@
 
 ## Goal
 
-Fix two layout regressions without undoing the approved compact three-column
+Fix three regressions without undoing the approved compact three-column
 icon system:
 
 1. every discovered element name in the sidebar repository remains readable;
 2. the successful-combination toast keeps a visible gap between its sticker
-   and result name.
+   and result name;
+3. AI-generated recipes show their persisted synthesis comment as secondary
+   text in the element recipe modal.
 
 ## Root Causes
 
@@ -23,6 +25,11 @@ The toast declares a gap on `.first-toast-result`, but the sticker and name are
 both children of the nested `.first-toast-icon` target. That target has no flex
 layout or gap, so the declared outer gap does not separate the two visible
 items.
+
+AI comments are present in SQLite and Makers KV recipe records, but both recipe
+detail projections omit the field. The wall additionally reads comments only
+from a matching currently-open community formula, so opening an element card
+directly cannot display the archived recipe comment.
 
 ## Approved Layout
 
@@ -59,11 +66,25 @@ with the active font.
 - Preserve the existing safe text-node renderer, discovery-state decoration,
   comment, publish action and mobile positioning.
 
+### Recipe comments
+
+- Include the persisted `comment` in FastAPI and Makers
+  `/api/element/{name}/recipes` rows.
+- Keep seed recipes with an empty comment empty; do not synthesize fallback
+  prose for them.
+- In the wall recipe modal, prefer the row's own non-empty comment. Fall back to
+  a matching open community formula only for legacy responses that omit it.
+- Render a `.recipe-comment` node only when the selected comment is non-empty.
+- Continue using `textContent`; comments must never be interpolated as HTML.
+- Keep the existing 12px secondary-text styling and do not add an empty row
+  beneath preset recipes.
+
 ## Implementation Boundaries
 
 Expected production changes are limited to the sidebar render/layout code,
-shared icon sizing/layout CSS and the main page asset cache version. No icon
-mapping, asset, persistence, API or database behavior changes are required.
+shared icon sizing/layout CSS, the main page asset cache version, recipe-detail
+read projections and the wall modal's comment selection. No icon mapping,
+asset, persistence schema or database write behavior changes are required.
 
 The running Docker Compose service mounts `frontend/`, so the verified frontend
 change should become available through the existing service without deleting
@@ -82,7 +103,10 @@ Add real Chromium regressions before production changes:
 4. Sidebar stickers measure 22px and chip pointer targets remain usable.
 5. In the successful-combination toast, sticker and name rectangles have at
    least 12px separation and never overlap at desktop or narrow mobile widths.
-6. Existing icon fallback, state, Boss geometry and safe-rendering tests remain
+6. A persisted LLM recipe comment survives SQLite/KV reads and both API
+   projections, then appears exactly once below its matching modal row.
+7. A seed recipe with no comment renders no `.recipe-comment` node.
+8. Existing icon fallback, state, Boss geometry and safe-rendering tests remain
    green.
 
 After the focused RED/GREEN cycle, run the full Node suite, full Python suite
