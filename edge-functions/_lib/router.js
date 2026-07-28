@@ -30,6 +30,7 @@ import {
   playerIdentity,
 } from "./community.js";
 import {
+  attachIcon,
   normalizeIcon,
   resolveIconRecipe,
 } from "./icon-recipes.js";
@@ -116,7 +117,13 @@ export function createRouter({
   }
 
   async function combinedElements() {
-    return dynamicAndSeedElements(await store.dynamicElements());
+    const elements = dynamicAndSeedElements(await store.dynamicElements());
+    return Object.fromEntries(
+      Object.entries(elements).map(([name, info]) => [
+        name,
+        attachIcon(name, info),
+      ]),
+    );
   }
 
   function elementIcon(elements, name, emoji = "❓") {

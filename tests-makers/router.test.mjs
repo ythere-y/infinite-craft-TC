@@ -104,6 +104,35 @@ test("dynamic KV metadata never overwrites authoritative seed elements", async (
   assert.deepEqual(elements.body.elements["企鹅"].icon, persistedIcon);
 });
 
+test("legacy KV elements gain response icons across element projections", async () => {
+  const legacySnapshot = JSON.stringify({
+    "旧咖啡": { emoji: "☕", category: "ai", depth: 2 },
+  });
+  const kv = new FakeKV({ snapshot_elements: legacySnapshot });
+  const router = createRouter({ kv, env: {} });
+  const expected = {
+    base: "☕",
+    badge: "🧠",
+    palette: "product",
+    source: "generated",
+  };
+
+  const elements = await json(router, "/api/elements");
+  assert.deepEqual(elements.body.elements["旧咖啡"], {
+    emoji: "☕",
+    category: "ai",
+    depth: 2,
+    icon: expected,
+  });
+
+  const category = await json(router, "/api/wall/category/ai");
+  const legacyItem = category.body.items.find(
+    (item) => item.name === "旧咖啡",
+  );
+  assert.deepEqual(legacyItem.icon, expected);
+  assert.equal(kv.values.get("snapshot_elements"), legacySnapshot);
+});
+
 test("nickname, combine, wall, bounty and admin routes share KV state", async () => {
   const router = makeRouter();
 
