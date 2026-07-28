@@ -64,6 +64,13 @@ def init() -> None:
                 updated_at REAL NOT NULL,
                 PRIMARY KEY(formula_id, player_id)
             );
+            CREATE TABLE IF NOT EXISTS result_votes (
+                result TEXT NOT NULL,
+                player_id TEXT NOT NULL,
+                value INTEGER NOT NULL CHECK(value IN (-1, 1)),
+                updated_at REAL NOT NULL,
+                PRIMARY KEY(result, player_id)
+            );
             CREATE TABLE IF NOT EXISTS formula_moderation (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 formula_id TEXT NOT NULL,
@@ -211,6 +218,136 @@ def list_public(limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
             (min(max(limit, 1), 100), max(offset, 0)),
         ).fetchall()
         return [dict(row) for row in rows]
+    finally:
+        con.close()
+
+
+def public_by_results(
+    results: list[str], player_id: str | None = None,
+) -> dict[str, dict[str, Any]]:
+    wanted = [str(item or "").strip() for item in results if str(item or "").strip()]
+    if not wanted:
+        return {}
+    placeholders = ",".join("?" for _ in wanted)
+    con = archive._conn()
+    try:
+        rows = con.execute(
+            f"""SELECT id,a,b,result,emoji,comment,version,status,first_publisher,
+                       published_at,up_votes,down_votes,(up_votes-down_votes) net_score,
+                       protected
+                FROM formula_versions
+                WHERE visibility='public' AND status='active'
+                  AND result IN ({placeholders})
+                ORDER BY result ASC, net_score DESC, published_at DESC""",
+            wanted,
+        ).fetchall()
+        votes: dict[str, int] = {}
+        if player_id and rows:
+            formula_ids = [row["id"] for row in rows]
+            id_placeholders = ",".join("?" for _ in formula_ids)
+            vote_rows = con.execute(
+                f"""SELECT formula_id,value FROM formula_votes
+                    WHERE player_id=? AND formula_id IN ({id_placeholders})""",
+                [player_id, *formula_ids],
+            ).fetchall()
+            votes = {row["formula_id"]: row["value"] for row in vote_rows}
+        output: dict[str, dict[str, Any]] = {}
+        for row in rows:
+            result = row["result"]
+            if result in output:
+                continue
+            item = dict(row)
+            item["my_vote"] = votes.get(item["id"])
+            output[result] = item
+        return output
+    finally:
+        con.close()
+
+
+def _empty_reaction(my_vote: int | None = None) -> dict[str, Any]:
+    return {
+        "up_votes": 0,
+        "down_votes": 0,
+        "net_score": 0,
+        "my_vote": my_vote,
+    }
+
+
+def reactions_by_results(
+    results: list[str], player_id: str | None = None,
+) -> dict[str, dict[str, Any]]:
+    wanted = [str(item or "").strip() for item in results if str(item or "").strip()]
+    output = {result: _empty_reaction() for result in wanted}
+    if not wanted:
+        return output
+    placeholders = ",".join("?" for _ in wanted)
+    con = archive._conn()
+    try:
+        rows = con.execute(
+            f"""SELECT result,
+                       COALESCE(SUM(value=1),0) up_votes,
+                       COALESCE(SUM(value=-1),0) down_votes
+                FROM result_votes
+                WHERE result IN ({placeholders})
+                GROUP BY result""",
+            wanted,
+        ).fetchall()
+        for row in rows:
+            up_votes = int(row["up_votes"] or 0)
+            down_votes = int(row["down_votes"] or 0)
+            output[row["result"]] = {
+                "up_votes": up_votes,
+                "down_votes": down_votes,
+                "net_score": up_votes - down_votes,
+                "my_vote": None,
+            }
+        if player_id:
+            vote_rows = con.execute(
+                f"""SELECT result,value FROM result_votes
+                    WHERE player_id=? AND result IN ({placeholders})""",
+                [player_id, *wanted],
+            ).fetchall()
+            for row in vote_rows:
+                if row["result"] in output:
+                    output[row["result"]]["my_vote"] = row["value"]
+        return output
+    finally:
+        con.close()
+
+
+def vote_result(result: str, player_id: str, value: int) -> dict[str, Any]:
+    """value -1/1 toggles that reaction; 0 cancels any existing reaction."""
+    clean_result = str(result or "").strip()
+    clean_player = str(player_id or "").strip()
+    if not clean_result:
+        raise ValueError("result 不能为空")
+    if not clean_player:
+        raise ValueError("player_id 不能为空")
+    if value not in (-1, 0, 1):
+        raise ValueError("vote 必须是 -1、0 或 1")
+    con = archive._conn()
+    try:
+        con.execute("BEGIN IMMEDIATE")
+        existing = con.execute(
+            "SELECT value FROM result_votes WHERE result=? AND player_id=?",
+            (clean_result, clean_player),
+        ).fetchone()
+        old_value = existing["value"] if existing else None
+        next_value = None if value == 0 or old_value == value else value
+        if next_value is None:
+            con.execute(
+                "DELETE FROM result_votes WHERE result=? AND player_id=?",
+                (clean_result, clean_player),
+            )
+        else:
+            con.execute(
+                """INSERT INTO result_votes VALUES (?, ?, ?, ?)
+                   ON CONFLICT(result,player_id) DO UPDATE SET
+                   value=excluded.value, updated_at=excluded.updated_at""",
+                (clean_result, clean_player, next_value, time.time()),
+            )
+        con.commit()
+        return reactions_by_results([clean_result], clean_player)[clean_result]
     finally:
         con.close()
 

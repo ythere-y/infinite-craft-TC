@@ -11,6 +11,7 @@ SQLite 归档层 —— 作为 Redis 的冷副本 + 数据真相源。
 from __future__ import annotations
 
 import os
+import json
 import sqlite3
 import threading
 import time
@@ -59,7 +60,8 @@ def init_archive() -> None:
                     emoji      TEXT NOT NULL,
                     category   TEXT,
                     is_starter INTEGER NOT NULL DEFAULT 0,
-                    created_at REAL NOT NULL
+                    created_at REAL NOT NULL,
+                    icon_json  TEXT
                 );
 
                 CREATE TABLE IF NOT EXISTS first_discoveries (
@@ -98,6 +100,14 @@ def init_archive() -> None:
                     "ALTER TABLE combinations "
                     "ADD COLUMN comment TEXT NOT NULL DEFAULT ''"
                 )
+            element_columns = {
+                row["name"]
+                for row in con.execute(
+                    "PRAGMA table_info(elements)"
+                ).fetchall()
+            }
+            if "icon_json" not in element_columns:
+                con.execute("ALTER TABLE elements ADD COLUMN icon_json TEXT")
             con.commit()
             print(f"[sqlite] archive ready: {_db_path()}")
         finally:
@@ -145,17 +155,46 @@ def upsert_combination(
             con.close()
 
 
-def upsert_element(name: str, emoji: str, category: Optional[str], is_starter: bool = False) -> None:
+def upsert_element(
+    name: str,
+    emoji: str,
+    category: Optional[str],
+    is_starter: bool = False,
+    icon: Optional[dict] = None,
+) -> None:
+    from .icon_recipes import normalize_icon
+
+    normalized_icon = normalize_icon(icon)
+    icon_json = (
+        json.dumps(normalized_icon, ensure_ascii=False, separators=(",", ":"))
+        if normalized_icon is not None
+        else None
+    )
     with _lock:
         con = _conn()
         try:
             con.execute(
                 """
-                INSERT INTO elements(name, emoji, category, is_starter, created_at)
-                VALUES (?, ?, ?, ?, ?)
-                ON CONFLICT(name) DO NOTHING
+                INSERT INTO elements(
+                    name, emoji, category, is_starter, created_at, icon_json
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(name) DO UPDATE SET
+                    icon_json = CASE
+                        WHEN elements.icon_json IS NULL
+                             OR TRIM(elements.icon_json) = ''
+                        THEN excluded.icon_json
+                        ELSE elements.icon_json
+                    END
                 """,
-                (name, emoji, category or "", 1 if is_starter else 0, time.time()),
+                (
+                    name,
+                    emoji,
+                    category or "",
+                    1 if is_starter else 0,
+                    time.time(),
+                    icon_json,
+                ),
             )
             con.commit()
         finally:
@@ -221,9 +260,21 @@ def all_elements() -> List[Dict]:
     con = _conn()
     try:
         rows = con.execute(
-            "SELECT name, emoji, category, is_starter FROM elements"
+            "SELECT name, emoji, category, is_starter, icon_json FROM elements"
         ).fetchall()
-        return [dict(r) for r in rows]
+        out: List[Dict] = []
+        for row in rows:
+            item = dict(row)
+            raw_icon = item.pop("icon_json", None)
+            try:
+                decoded = json.loads(raw_icon) if raw_icon else None
+            except (json.JSONDecodeError, TypeError):
+                decoded = None
+            from .icon_recipes import normalize_icon
+
+            item["icon"] = normalize_icon(decoded)
+            out.append(item)
+        return out
     finally:
         con.close()
 

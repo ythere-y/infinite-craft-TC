@@ -110,7 +110,15 @@ function renderWallAction(target, name, label = "", tone = "default") {
 
 function itemMatches(item, q) {
   if (!q) return true;
-  const hay = `${item.result || ""}\n${item.emoji || ""}\n${item.discoverer || ""}`.toLowerCase();
+  const formula = item.formula || {};
+  const hay = [
+    item.result || "",
+    item.emoji || "",
+    item.discoverer || "",
+    formula.a || "",
+    formula.b || "",
+    formula.comment || "",
+  ].join("\n").toLowerCase();
   return hay.includes(q);
 }
 
@@ -134,6 +142,37 @@ function fmtTimeFull(d) {
          `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
+function buildReaction(item, reaction = {}) {
+  const myVote = Number(reaction.my_vote || 0);
+  const score = Number(reaction.net_score || 0);
+  const scoreClass = score > 0 ? " positive" : score < 0 ? " negative" : "";
+  const wrap = node("div", "first-reaction");
+  for (const [value, action, tone] of [[1, "like", "positive"], [-1, "dislike", "negative"]]) {
+    if (value === -1) wrap.append(node("span", `element-score${scoreClass}`, score));
+    const button = node(
+      "button",
+      `element-vote ${value === 1 ? "up" : "down"}${myVote === value ? " active" : ""}`,
+    );
+    button.type = "button";
+    button.dataset.vote = String(value);
+    button.setAttribute("aria-label", value === 1 ? "支持这个元素" : "反对这个元素");
+    renderWallAction(button, action, "", tone);
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      voteElement(item, value, button);
+    });
+    wrap.append(button);
+  }
+  return wrap;
+}
+
+function updateReactionDom(card, item, reaction) {
+  if (!card) return;
+  const current = card.querySelector(".first-reaction");
+  if (!current) return;
+  current.replaceWith(buildReaction(item, reaction));
+}
+
 // ============================================================
 // feed 渲染
 // ============================================================
@@ -150,8 +189,12 @@ function buildCard(item, { pop = false, q = "" } = {}) {
   if (seqStr) corner.append(node("span", "first-seq", seqStr));
   corner.append(node("span", "first-time", fmtTime(ts)));
 
-  const element = node("div", "first-element element");
+  const element = node("button", "first-element element first-name-button");
+  element.type = "button";
   renderWallElement(element, item, {name: item.result, query: q});
+  element.addEventListener("click", () => {
+    openRecipeModal(item.result, item.result, item.emoji, item.formula, item);
+  });
 
   const meta = node("div", "first-meta");
   const nick = node("span", "first-meta-nick");
@@ -161,8 +204,34 @@ function buildCard(item, { pop = false, q = "" } = {}) {
   nick.append(nickName);
   meta.append(nick);
 
-  card.append(corner, element, meta);
+  card.append(corner, element, meta, buildReaction(item, item.reaction));
   return card;
+}
+
+async function voteElement(item, value, button) {
+  const resultName = item?.result;
+  if (!resultName || !button) return;
+  button.disabled = true;
+  try {
+    const response = await fetch(`/api/wall/elements/${encodeURIComponent(resultName)}/vote`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ value }),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.detail || "投票失败");
+    for (const item of state.items) {
+      if (item.result === resultName) {
+        item.reaction = payload;
+      }
+    }
+    updateReactionDom(button.closest(".first-card"), item, payload);
+  } catch (error) {
+    console.warn("element vote failed", error);
+    button.disabled = false;
+    button.classList.add("failed");
+    setTimeout(() => button.classList.remove("failed"), 900);
+  }
 }
 
 function renderFeed() {
@@ -545,11 +614,11 @@ function buildCatChip(item) {
     const queryName = item.hit_as || (isFounder ? item.real : item.name);
     const displayEmoji = item.emoji || "✨";
     const displayName = isFounder ? `${item.real} · ${item.alias}` : item.name;
-    chip.addEventListener("click", () => openRecipeModal(queryName, displayName, displayEmoji, item));
+    chip.addEventListener("click", () => openRecipeModal(queryName, displayName, displayEmoji, null, item));
     chip.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        openRecipeModal(queryName, displayName, displayEmoji, item);
+        openRecipeModal(queryName, displayName, displayEmoji, null, item);
       }
     });
   }
@@ -796,6 +865,7 @@ const recipeNameEl    = document.getElementById("recipe-modal-name");
 const recipeBodyEl    = document.getElementById("recipe-modal-body");
 
 let _recipeOpenForName = null;    // 去重：同 name 连续点不重复请求
+let _recipeOpenFormula = null;
 let _recipeOpenDisplayInfo = null;
 
 function renderRecipeResult(info, displayName) {
@@ -804,9 +874,10 @@ function renderRecipeResult(info, displayName) {
   if (nameNode) nameNode.textContent = displayName || info.name || "";
 }
 
-function openRecipeModal(queryName, displayName, displayEmoji, displayInfo = null) {
+function openRecipeModal(queryName, displayName, displayEmoji, formula = null, displayInfo = null) {
   if (!recipeModal) return;
   _recipeOpenForName = queryName;
+  _recipeOpenFormula = formula || null;
   _recipeOpenDisplayInfo = {
     ...(displayInfo || {}),
     name: queryName,
@@ -826,7 +897,20 @@ function closeRecipeModal() {
   recipeModal.setAttribute("aria-hidden", "true");
   document.body.style.overflow = "";
   _recipeOpenForName = null;
+  _recipeOpenFormula = null;
   _recipeOpenDisplayInfo = null;
+}
+
+function sameRecipePair(recipe, formula) {
+  if (!recipe || !formula) return false;
+  const recipeNames = [recipe.a || "", recipe.b || ""].sort().join("\n");
+  const formulaNames = [formula.a || "", formula.b || ""].sort().join("\n");
+  return recipeNames === formulaNames;
+}
+
+function recipeCommentFor(recipe) {
+  if (!_recipeOpenFormula?.id || !sameRecipePair(recipe, _recipeOpenFormula)) return null;
+  return _recipeOpenFormula.comment || "";
 }
 
 async function fetchRecipes(name) {
@@ -885,6 +969,8 @@ function renderRecipes(data) {
   const list = node("div", "recipe-list");
   for (const r of recipes) {
     const src = r.source || "";
+    const comment = recipeCommentFor(r);
+    const entry = node("div", "recipe-entry");
     const row = node("div", "recipe-row");
     const source = node(
       "span",
@@ -907,7 +993,9 @@ function renderRecipes(data) {
       }),
       source,
     );
-    list.append(row);
+    entry.append(row);
+    if (comment !== null) entry.append(node("div", "recipe-comment", comment));
+    list.append(entry);
   }
   recipeBodyEl.replaceChildren(count, list);
 }

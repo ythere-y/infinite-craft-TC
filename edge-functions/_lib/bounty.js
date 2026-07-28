@@ -1,13 +1,5 @@
 const TABS = [{ key: "tencent", label: "鹅厂生态", emoji: "🐧" }];
 
-const HALL_OF_FAME = [
-  { real: "马化腾", alias: "Pony", emoji: "🐎", title: "创始人 · 董事会主席兼 CEO" },
-  { real: "张志东", alias: "Tony", emoji: "💻", title: "创始人 · 首任 CTO" },
-  { real: "许晨晔", alias: "Daniel", emoji: "📡", title: "创始人 · 首席信息官 (CIO)" },
-  { real: "陈一丹", alias: "Charles", emoji: "📜", title: "创始人 · 首席行政官 (CAO)" },
-  { real: "曾李青", alias: "Jason", emoji: "🚀", title: "创始人 · 首席运营官 (COO)" },
-];
-
 const GROUPS = [
   {
     category: "tencent",
@@ -95,33 +87,6 @@ function addFirstMetadata(item, first) {
   };
 }
 
-function buildHall(firstByName) {
-  const items = HALL_OF_FAME.map((person) => {
-    const hitAs = [person.real, person.alias].find((name) => firstByName.has(name));
-    const item = {
-      name: `${person.real} · ${person.alias}`,
-      real: person.real,
-      alias: person.alias,
-      title: person.title,
-      emoji: person.emoji,
-      category: "boss",
-      is_starter: false,
-      discovered: Boolean(hitAs),
-      ...(hitAs ? { hit_as: hitAs } : {}),
-    };
-    return addFirstMetadata(item, hitAs ? firstByName.get(hitAs) : null);
-  });
-  return {
-    category: "boss",
-    label: "角色",
-    emoji: "🏛️",
-    tab: "tencent",
-    total: items.length,
-    found: items.filter((item) => item.discovered).length,
-    items,
-  };
-}
-
 function buildGroup(definition, elements, starters, firstByName) {
   const starterNames = new Set(
     starters
@@ -154,12 +119,9 @@ export function buildBounty({ elements, starters, firsts }) {
   const firstByName = new Map(
     (firsts || []).map((item) => [item.result, item]),
   );
-  const groups = [
-    buildHall(firstByName),
-    ...GROUPS.map((definition) =>
-      buildGroup(definition, elements, starters, firstByName),
-    ),
-  ];
+  const groups = GROUPS.map((definition) =>
+    buildGroup(definition, elements, starters, firstByName),
+  );
   const tabs = TABS.map((tab) => {
     const owned = groups.filter((group) => group.tab === tab.key);
     return {
@@ -216,14 +178,15 @@ export function selectBountyCandidates({
   firsts,
   limit = 12,
 }) {
-  const payload = buildBounty({ elements, starters, firsts });
+  const firstByName = new Map(
+    (firsts || []).map((item) => [item.result, item]),
+  );
+  const groups = GROUPS.map((definition) =>
+    buildGroup(definition, elements, starters, firstByName),
+  );
   const inputCategories = new Set(
     [elements[a]?.category, elements[b]?.category].filter(Boolean),
   );
-  const founderSignals = new Set([
-    "创始人", "老板", "Pony", "代码", "RTX", "工牌", "投资", "COO",
-    "iWiki", "门禁",
-  ]);
   const bgHints = {
     "游戏": "IEG",
     "微信": "WXG",
@@ -248,7 +211,7 @@ export function selectBountyCandidates({
   const inputs = new Set([a, b]);
   const scored = [];
 
-  for (const group of payload.groups) {
+  for (const group of groups) {
     for (const item of group.items) {
       if (item.discovered || !item.name) continue;
       let score = 0;
@@ -257,12 +220,6 @@ export function selectBountyCandidates({
       if (b && item.name.includes(b)) score += 3;
       if ((a && a.includes(item.name)) || (b && b.includes(item.name))) {
         score += 2;
-      }
-      if (
-        group.category === "boss" &&
-        [...inputs].some((value) => founderSignals.has(value))
-      ) {
-        score += 5;
       }
       for (const [trigger, target] of Object.entries(bgHints)) {
         if (inputs.has(trigger) && item.name === target) score += 6;

@@ -8,12 +8,34 @@ import {
 } from "../frontend/wall/polling.js";
 
 test("wall uses visibility-aware incremental polling instead of SSE", async () => {
-  const source = await readFile("frontend/wall/wall.js", "utf8");
+  const [source, html] = await Promise.all([
+    readFile("frontend/wall/wall.js", "utf8"),
+    readFile("frontend/wall/index.html", "utf8"),
+  ]);
 
   assert.doesNotMatch(source, /new EventSource\s*\(/);
   assert.match(source, /offset=\$\{offset\}&limit=\$\{POLL_PAGE_SIZE\}/);
   assert.match(source, /visibilitychange/);
   assert.match(source, /pollNewFirsts/);
+  assert.match(source, /buildReaction/);
+  assert.match(source, /voteElement/);
+  assert.match(source, /updateReactionDom/);
+  assert.doesNotMatch(
+    source,
+    /async function voteElement[\s\S]*?renderFeed\(\);[\s\S]*?function renderFeed/,
+  );
+  assert.match(source, /recipeCommentFor/);
+  assert.match(source, /recipe-comment/);
+  assert.doesNotMatch(source, /recipe-public-formula/);
+  assert.doesNotMatch(source, /公开公式/);
+  assert.match(source, /renderWallAction\(button,\s*action/);
+  assert.doesNotMatch(source, /data-vote="1">👍</);
+  assert.doesNotMatch(source, /data-vote="-1">👎</);
+  assert.doesNotMatch(source, /formula-vote cancel/);
+  assert.doesNotMatch(source, /👍 点赞/);
+  assert.doesNotMatch(source, /👎 点菜/);
+  assert.match(html, /\/wall\/wall\.css\?v=/);
+  assert.match(html, /\/wall\/wall\.js\?v=/);
 });
 
 test("secondary pages load the shared icon system before page scripts", async () => {

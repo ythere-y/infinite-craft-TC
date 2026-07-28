@@ -21,6 +21,7 @@ function makeRouter() {
     env: {
       APP_ENV: "test",
       DASHBOARD_PUBLIC: "1",
+      SESSION_SECRET: "test-secret",
       MAKERS_MODELS_KEY: "secret",
       LLM_MODEL: "test-model",
     },
@@ -113,6 +114,40 @@ test("nickname, combine, wall, bounty and admin routes share KV state", async ()
   const page = await json(router, "/api/wall/page?offset=0&limit=40");
   assert.equal(page.body.total, 1);
   assert.equal(page.body.items[0].discoverer, "测试鹅");
+  assert.deepEqual(page.body.items[0].reaction, {
+    up_votes: 0,
+    down_votes: 0,
+    net_score: 0,
+    my_vote: null,
+  });
+
+  const playerCookie = combine.response.headers.get("set-cookie");
+  const reaction = await json(router, `/api/wall/elements/${encodeURIComponent("蒸汽")}/vote`, {
+    method: "PUT",
+    headers: playerCookie ? { cookie: playerCookie } : {},
+    body: { value: 1 },
+  });
+  assert.equal(reaction.body.net_score, 1);
+  assert.equal(reaction.body.my_vote, 1);
+  const reactionCancelled = await json(router, `/api/wall/elements/${encodeURIComponent("蒸汽")}/vote`, {
+    method: "PUT",
+    headers: playerCookie ? { cookie: playerCookie } : {},
+    body: { value: 1 },
+  });
+  assert.equal(reactionCancelled.body.net_score, 0);
+  assert.equal(reactionCancelled.body.my_vote, null);
+
+  const publish = await json(router, `/api/community/formulas/${combine.body.formula_id}/publish`, {
+    method: "POST",
+    headers: playerCookie ? { cookie: playerCookie } : {},
+  });
+  assert.equal(publish.response.status, 200);
+  const pageWithFormula = await json(router, "/api/wall/page?offset=0&limit=40", {
+    headers: playerCookie ? { cookie: playerCookie } : {},
+  });
+  assert.equal(pageWithFormula.body.items[0].formula.id, combine.body.formula_id);
+  assert.equal(pageWithFormula.body.items[0].formula.a, "水");
+  assert.equal(pageWithFormula.body.items[0].formula.b, "火");
 
   const leaderboard = await json(
     router,

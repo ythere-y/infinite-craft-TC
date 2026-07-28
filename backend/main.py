@@ -31,7 +31,11 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from . import db, kpi, archive, community, depth as depth_mod, bounty as bounty_mod
-from .community_api import router as community_router, player as community_player
+from .community_api import (
+    router as community_router,
+    player as community_player,
+    rate_limit as community_rate_limit,
+)
 from .comments import normalize_comment
 from .seed_loader import store
 from .nickname import generate_unique, stats as nickname_stats
@@ -116,6 +120,10 @@ class KPIReq(BaseModel):
     session_id: str
     delta: int
     reason: str
+
+
+class VoteReq(BaseModel):
+    value: int
 
 
 # ============================================================
@@ -685,8 +693,42 @@ async def api_wall_recent(limit: int = 50):
     return {"items": db.recent_firsts(limit=limit)}
 
 
+def _attach_wall_context_to_firsts(
+    items: list[dict],
+    player_id: str | None = None,
+) -> list[dict]:
+    results = [item.get("result", "") for item in items]
+    formulas = community.public_by_results(
+        results,
+        player_id,
+    )
+    reactions = community.reactions_by_results(results, player_id)
+    return [
+        {
+            **item,
+            "reaction": reactions.get(item.get("result"), {
+                "up_votes": 0,
+                "down_votes": 0,
+                "net_score": 0,
+                "my_vote": None,
+            }),
+            **(
+                {"formula": formulas[item.get("result")]}
+                if item.get("result") in formulas
+                else {}
+            ),
+        }
+        for item in items
+    ]
+
+
 @app.get("/api/wall/page")
-async def api_wall_page(offset: int = 0, limit: int = 100):
+async def api_wall_page(
+    request: Request,
+    response: Response,
+    offset: int = 0,
+    limit: int = 100,
+):
     """
     首发墙分页接口：按 ts DESC（最新首发在前）分页返回。
     - offset: 从第几条开始（0-based）
@@ -696,6 +738,10 @@ async def api_wall_page(offset: int = 0, limit: int = 100):
     offset = max(0, int(offset))
     limit = max(1, min(500, int(limit)))
     items = db.recent_firsts(limit=limit, offset=offset)
+    items = _attach_wall_context_to_firsts(
+        items,
+        community_player(request, response),
+    )
     total = db.firsts_total()
     return {
         "items": items,
@@ -715,6 +761,21 @@ async def api_wall_leaderboard(limit: int = 20, me: Optional[str] = None):
     """
     limit = max(1, min(100, int(limit)))
     return db.leaderboard(limit=limit, me=me)
+
+
+@app.put("/api/wall/elements/{name}/vote")
+async def api_wall_element_vote(
+    name: str,
+    body: VoteReq,
+    request: Request,
+    response: Response,
+):
+    player_id = community_player(request, response)
+    community_rate_limit(player_id, "element-vote", 60)
+    try:
+        return community.vote_result(name, player_id, body.value)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
 
 
 @app.get("/api/wall/category/{category}")

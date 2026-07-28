@@ -140,8 +140,6 @@ def _select_bounty_candidates(a: str, b: str, limit: int = 12) -> List[Dict]:
     - 同 category 的词加权（a/b 在 seed 里的 category 决定方向）
     - BG/产品线/工作室/办公楼对具体触发词更敏感
     - 名字里含 a 或 b 的子串的优先
-    - 创始人类词在含"创始人/老板/Pony/代码/RTX/工牌/投资"时加权
-
     返回 [{"name": str, "emoji": str, "hint": str}, ...] 最多 limit 条，都是**未发现**的。
     """
     try:
@@ -187,21 +185,6 @@ def _select_bounty_candidates(a: str, b: str, limit: int = 12) -> List[Dict]:
             # 名字与 a/b 互为包含的反向（a="腾讯云"→"云"）
             if name in a or name in b:
                 score += 2
-            # 创始人类目——a/b 含高管/创始人信号时加权
-            founder_signals = {
-                "创始人",
-                "老板",
-                "Pony",
-                "代码",
-                "RTX",
-                "工牌",
-                "投资",
-                "COO",
-                "iWiki",
-                "门禁",
-            }
-            if gcat == "boss" and ({a, b} & founder_signals):
-                score += 5
             # BG 类——含具体业务触发词时加权
             bg_hints = {
                 "游戏": "IEG",

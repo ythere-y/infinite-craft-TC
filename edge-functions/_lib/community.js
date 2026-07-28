@@ -149,6 +149,70 @@ export class CommunityStore {
     return values.map((item) => this.publicView(item)).filter(Boolean)
       .sort((a, b) => b.net_score - a.net_score || b.published_at - a.published_at);
   }
+  async publicByResults(results = [], playerId = null) {
+    const wanted = new Set(results.map((item) => cleanText(item)).filter(Boolean));
+    if (!wanted.size) return {};
+    const items = (await this.listPublic()).filter(
+      (item) => item.status === "active" && wanted.has(item.result),
+    );
+    const votes = {};
+    if (playerId) {
+      await Promise.all(items.map(async (item) => {
+        votes[item.id] = Number(await this.kv.get(`community_vote_${item.id}_${await sha256Hex(playerId)}`) || 0) || null;
+      }));
+    }
+    const output = {};
+    for (const item of items) {
+      if (output[item.result]) continue;
+      output[item.result] = { ...item, my_vote: votes[item.id] || null };
+    }
+    return output;
+  }
+  emptyReaction(myVote = null) {
+    return { up_votes: 0, down_votes: 0, net_score: 0, my_vote: myVote };
+  }
+  async resultVoteKeys(result, playerId = "") {
+    const resultHash = await sha256Hex(cleanText(result));
+    const playerHash = playerId ? await sha256Hex(playerId) : "";
+    return {
+      counts: `community_result_reaction_${resultHash}`,
+      vote: playerHash ? `community_result_vote_${resultHash}_${playerHash}` : "",
+    };
+  }
+  async reactionsByResults(results = [], playerId = null) {
+    const names = [...new Set(results.map((item) => cleanText(item)).filter(Boolean))];
+    const output = Object.fromEntries(names.map((name) => [name, this.emptyReaction()]));
+    await Promise.all(names.map(async (name) => {
+      const keys = await this.resultVoteKeys(name, playerId || "");
+      const counts = await this.get(keys.counts, {});
+      const up = Number(counts?.up_votes || 0);
+      const down = Number(counts?.down_votes || 0);
+      const myVote = keys.vote ? Number(await this.kv.get(keys.vote) || 0) || null : null;
+      output[name] = { up_votes: up, down_votes: down, net_score: up - down, my_vote: myVote };
+    }));
+    return output;
+  }
+  async voteResult(result, playerId, value) {
+    const name = cleanText(result);
+    if (!name) throw Object.assign(new Error("result 不能为空"), { status: 400 });
+    if (![1, 0, -1].includes(value)) throw Object.assign(new Error("vote 必须是 -1、0 或 1"), { status: 400 });
+    const keys = await this.resultVoteKeys(name, playerId);
+    const old = Number(await this.kv.get(keys.vote) || 0);
+    const next = value === 0 || old === value ? 0 : value;
+    const counts = await this.get(keys.counts, {});
+    let up = Number(counts?.up_votes || 0);
+    let down = Number(counts?.down_votes || 0);
+    if (old === 1) up -= 1;
+    if (old === -1) down -= 1;
+    if (next === 1) up += 1;
+    if (next === -1) down += 1;
+    up = Math.max(0, up);
+    down = Math.max(0, down);
+    if (next) await this.kv.put(keys.vote, String(next));
+    else await this.kv.delete(keys.vote);
+    await this.put(keys.counts, { up_votes: up, down_votes: down, updated_at: this.now() / 1000 });
+    return { up_votes: up, down_votes: down, net_score: up - down, my_vote: next || null };
+  }
   async vote(id, playerId, value) {
     const formula = await this.get(`community_formula_${id}`);
     if (!formula || formula.status !== "active") {

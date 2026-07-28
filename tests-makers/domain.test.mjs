@@ -43,7 +43,7 @@ test("nickname generator preserves the established display format", () => {
   assert.ok(stats.effective_combo_space >= 30_000_000);
 });
 
-test("bounty retains groups, starter discoveries and first metadata", () => {
+test("bounty hides role group while retaining starter discoveries and first metadata", () => {
   const bounty = buildBounty({
     elements: ELEMENTS,
     starters: STARTERS,
@@ -59,13 +59,25 @@ test("bounty retains groups, starter discoveries and first metadata", () => {
   });
 
   assert.equal(bounty.tabs[0].key, "tencent");
-  assert.ok(bounty.groups.some((group) => group.category === "boss"));
+  assert.ok(!bounty.groups.some((group) => group.category === "boss"));
+  assert.ok(!bounty.groups.some((group) => group.label === "角色"));
   const tencent = bounty.groups.find((group) => group.category === "tencent");
   assert.ok(tencent.items.find((item) => item.name === "企鹅").discovered);
   const buildings = bounty.groups.find((group) => group.category === "building");
   const tower = buildings.items.find((item) => item.name === "腾讯大厦");
   assert.equal(tower.discoverer, "测试鹅");
   assert.equal(tower.seq, 1);
+});
+
+test("bounty candidates do not prioritize hidden role targets", () => {
+  const candidates = selectBountyCandidates({
+    a: "创始人",
+    b: "代码",
+    elements: ELEMENTS,
+    starters: STARTERS,
+    firsts: [],
+  });
+  assert.ok(!candidates.some((item) => item.category === "boss"));
 });
 
 test("bounty candidates preserve input-aware Makers model hints", () => {

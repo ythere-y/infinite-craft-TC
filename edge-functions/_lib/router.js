@@ -480,12 +480,41 @@ export function createRouter({
     }
     if (path === "/api/wall/page") {
       requireMethod(request, "GET");
-      return jsonResponse(
-        await store.firstPage({
+      const identity = await playerIdentity(request, env);
+      const page = await store.firstPage({
           offset: intParam(url.searchParams, "offset", 0, 0, 10_000_000),
           limit: intParam(url.searchParams, "limit", 100, 1, 500),
-        }),
+        });
+      const formulas = await community.publicByResults(
+        page.items.map((item) => item.result),
+        identity.id,
       );
+      const reactions = await community.reactionsByResults(
+        page.items.map((item) => item.result),
+        identity.id,
+      );
+      const items = page.items.map((item) => (
+        {
+          ...item,
+          reaction: reactions[item.result] || community.emptyReaction(),
+          ...(formulas[item.result] ? { formula: formulas[item.result] } : {}),
+        }
+      ));
+      return jsonResponse({ ...page, items }, {
+        headers: identity.setCookie ? { "set-cookie": identity.setCookie } : {},
+      });
+    }
+    const elementVoteMatch = path.match(/^\/api\/wall\/elements\/([^/]+)\/vote$/);
+    if (elementVoteMatch) {
+      requireMethod(request, "PUT");
+      const identity = await playerIdentity(request, env);
+      await requireCommunityRate(identity.id, "element-vote", 60);
+      const body = await readJson(request);
+      const value = Number(body?.value);
+      const result = cleanText(decoded(elementVoteMatch[1], "name"));
+      return jsonResponse(await community.voteResult(result, identity.id, value), {
+        headers: identity.setCookie ? { "set-cookie": identity.setCookie } : {},
+      });
     }
     if (path === "/api/wall/leaderboard") {
       requireMethod(request, "GET");

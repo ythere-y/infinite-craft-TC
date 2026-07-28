@@ -46,6 +46,95 @@ def test_vote_is_unique_switchable_and_cancellable(tmp_path, monkeypatch):
     assert (cancelled["up_votes"], cancelled["down_votes"], cancelled["net_score"]) == (0, 0, 0)
 
 
+def test_public_formulas_are_grouped_by_result_for_wall(tmp_path, monkeypatch):
+    setup_db(tmp_path, monkeypatch)
+    first = formula()
+    community.record_reproduction(first["id"], "publisher")
+    community.publish(first["id"], "publisher")
+    community.vote(first["id"], "up-1", 1)
+
+    second = community.ensure_formula(
+        "产品 + 日历", "产品", "日历", "排期", "🗓️", "新的排期。",
+        "llm", "另一个首发者",
+    )
+    community.record_reproduction(second["id"], "publisher")
+    community.publish(second["id"], "publisher")
+    community.vote(second["id"], "down-1", -1)
+
+    formulas = community.public_by_results(["排期"], "up-1")
+
+    assert formulas["排期"]["id"] == first["id"]
+    assert formulas["排期"]["a"] == "需求"
+    assert formulas["排期"]["b"] == "会议"
+    assert formulas["排期"]["net_score"] == 1
+    assert formulas["排期"]["my_vote"] == 1
+
+
+def test_result_reactions_toggle_and_group_by_result(tmp_path, monkeypatch):
+    setup_db(tmp_path, monkeypatch)
+
+    liked = community.vote_result("排期", "p1", 1)
+    assert liked == {
+        "up_votes": 1,
+        "down_votes": 0,
+        "net_score": 1,
+        "my_vote": 1,
+    }
+    cancelled = community.vote_result("排期", "p1", 1)
+    assert cancelled == {
+        "up_votes": 0,
+        "down_votes": 0,
+        "net_score": 0,
+        "my_vote": None,
+    }
+    disliked = community.vote_result("排期", "p1", -1)
+    assert disliked["down_votes"] == 1
+    assert disliked["net_score"] == -1
+    assert disliked["my_vote"] == -1
+
+    reactions = community.reactions_by_results(["排期", "未知"], "p1")
+    assert reactions["排期"]["my_vote"] == -1
+    assert reactions["未知"] == {
+        "up_votes": 0,
+        "down_votes": 0,
+        "net_score": 0,
+        "my_vote": None,
+    }
+
+
+def test_wall_page_attaches_formula_and_reaction_to_first_items(tmp_path, monkeypatch):
+    setup_db(tmp_path, monkeypatch)
+    row = formula()
+    community.record_reproduction(row["id"], "publisher")
+    community.publish(row["id"], "publisher")
+    community.vote_result("排期", "p1", 1)
+
+    from backend import main
+
+    items = main._attach_wall_context_to_firsts(
+        [
+            {
+                "result": "排期",
+                "emoji": "📅",
+                "discoverer": "全球首发者",
+                "ts": 1_700_000_000,
+            }
+        ],
+        "p1",
+    )
+
+    assert items[0]["formula"]["id"] == row["id"]
+    assert items[0]["formula"]["a"] == "需求"
+    assert items[0]["formula"]["b"] == "会议"
+    assert items[0]["formula"]["net_score"] == 0
+    assert items[0]["reaction"] == {
+        "up_votes": 1,
+        "down_votes": 0,
+        "net_score": 1,
+        "my_vote": 1,
+    }
+
+
 def test_hidden_active_formula_can_receive_votes_without_becoming_public(tmp_path, monkeypatch):
     setup_db(tmp_path, monkeypatch)
     row = formula()

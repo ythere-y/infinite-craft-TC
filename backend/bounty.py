@@ -23,43 +23,6 @@ TABS: List[Dict] = [
 
 
 # ============================================================
-# 名人堂：腾讯 1998 年成立时的五位创始人
-#
-# ⚠️ 花名（alias）准确性备注：
-#   - "Pony"   —— 100% 确认（马化腾本人公开使用超过 20 年）
-#   - 其余四位的花名来自公开资料，**使用前建议再核实**；有错改这里即可。
-# 任一"花名 / 真名"被首发过即视为该创始人被发现
-# ============================================================
-HALL_OF_FAME: List[Dict] = [
-    {
-        "real": "马化腾",
-        "alias": "Pony",
-        "emoji": "🐎",
-        "title": "创始人 · 董事会主席兼 CEO",
-    },
-    {"real": "张志东", "alias": "Tony", "emoji": "💻", "title": "创始人 · 首任 CTO"},
-    {
-        "real": "许晨晔",
-        "alias": "Daniel",
-        "emoji": "📡",
-        "title": "创始人 · 首席信息官 (CIO)",
-    },
-    {
-        "real": "陈一丹",
-        "alias": "Charles",
-        "emoji": "📜",
-        "title": "创始人 · 首席行政官 (CAO)",
-    },
-    {
-        "real": "曾李青",
-        "alias": "Jason",
-        "emoji": "🚀",
-        "title": "创始人 · 首席运营官 (COO)",
-    },
-]
-
-
-# ============================================================
 # 各子分组定义
 #
 # category: 对应 seed_elements.json 里的 category key（用于从 store.elements 读 emoji/is_starter）
@@ -333,54 +296,6 @@ def _fill_discovery(item: dict, first_row: Optional[dict], seq: Optional[int]) -
     return item
 
 
-def build_hall_of_fame(db_mod) -> dict:
-    """名人堂 payload：5 位创始人，真名或花名任一被首发即算发现。
-
-    返回的每个 item 会带 real / alias / title 三个字段，供前端分开排版。
-    `name` 字段保留作兼容（= "真名 · 花名"）。
-    """
-    items: List[dict] = []
-    found = 0
-    for person in HALL_OF_FAME:
-        hit_name = None
-        first_row = None
-        seq = None
-        for candidate in (person["real"], person["alias"]):
-            row, s = _first_row_and_seq(db_mod, candidate)
-            if row:
-                hit_name = candidate
-                first_row = row
-                seq = s
-                break
-        discovered = bool(first_row)
-        if discovered:
-            found += 1
-        item = {
-            "name": f'{person["real"]} · {person["alias"]}',
-            "real": person["real"],
-            "alias": person["alias"],
-            "title": person.get("title", ""),
-            "emoji": person["emoji"],
-            "category": "boss",
-            "is_starter": False,
-            "discovered": discovered,
-        }
-        _fill_discovery(item, first_row, seq)
-        if hit_name:
-            item["hit_as"] = hit_name
-        items.append(item)
-
-    return {
-        "category": "boss",
-        "label": "角色",
-        "emoji": "🏛️",
-        "tab": "tencent",
-        "total": len(HALL_OF_FAME),
-        "found": found,
-        "items": items,
-    }
-
-
 def build_group(group_def: Dict, db_mod, store) -> dict:
     """
     按 group_def 的 whitelist 生成一个 group payload。
@@ -431,9 +346,6 @@ def build_bounty(db_mod, store) -> dict:
     }
     """
     groups: List[dict] = []
-    # 名人堂置顶
-    groups.append(build_hall_of_fame(db_mod))
-    # 其余白名单分组
     for g in GROUPS:
         groups.append(build_group(g, db_mod, store))
 
@@ -462,9 +374,6 @@ def build_bounty(db_mod, store) -> dict:
 def all_whitelisted_names() -> set:
     """供 SSE 判断一条新首发是否属于悬赏清单。"""
     names: set = set()
-    for person in HALL_OF_FAME:
-        names.add(person["real"])
-        names.add(person["alias"])
     for g in GROUPS:
         names.update(g.get("whitelist", []))
     return names

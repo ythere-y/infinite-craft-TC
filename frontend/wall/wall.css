@@ -553,6 +553,7 @@ html, body {
   font-size: 12px;
   color: #666;
   margin-top: 8px;
+  padding-right: 104px;
 }
 .first-meta-nick {
   display: block;
@@ -561,6 +562,73 @@ html, body {
   white-space: nowrap;
 }
 .first-meta b { color: #B8860B; }
+
+.first-name-button {
+  display: flex;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+}
+.first-name-button:hover {
+  color: #1565C0;
+}
+.first-name-button:hover .name { color: #1565C0; }
+.first-reaction {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.element-vote {
+  width: 26px;
+  height: 24px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #666;
+  border-radius: 999px;
+  padding: 0;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.element-vote:hover {
+  background: #F6FAFF;
+  border-color: #D8E9FF;
+  color: #1565C0;
+}
+.element-vote.active.up {
+  background: #EEF8F0;
+  border-color: #CAE8CC;
+  color: #2E7D32;
+}
+.element-vote.active.down {
+  background: #FFF7EA;
+  border-color: #FFE0A8;
+  color: #B26A00;
+}
+.element-vote:disabled {
+  cursor: default;
+  opacity: .6;
+}
+.element-score {
+  min-width: 20px;
+  text-align: center;
+  color: #333;
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.element-score.negative {
+  color: #B26A00;
+}
+.element-score.positive {
+  color: #2E7D32;
+}
 
 .feed-status {
   grid-column: 1 / -1;
@@ -836,6 +904,11 @@ html, body {
   flex-direction: column;
   gap: 10px;
 }
+.recipe-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
 .recipe-row {
   display: flex;
   align-items: center;
@@ -846,6 +919,13 @@ html, body {
   border-radius: 12px;
 }
 .recipe-row:hover { background: #F4F4F4; }
+.recipe-comment {
+  min-height: 18px;
+  padding: 0 4px 0 12px;
+  color: #999;
+  font-size: 12px;
+  line-height: 1.5;
+}
 .recipe-pill {
   display: inline-flex;
   align-items: center;
