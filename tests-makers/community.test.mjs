@@ -36,6 +36,26 @@ test("Makers votes switch and cancel without duplicating a player", async () => 
   assert.deepEqual([cancelled.up_votes, cancelled.down_votes], [0, 0]);
 });
 
+test("Makers hidden active formulas can receive votes without becoming public", async () => {
+  const community = service();
+  const formula = await hiddenFormula(community);
+
+  const voted = await community.vote(formula.id, "early-voter", 1);
+
+  assert.deepEqual(voted, {
+    id: formula.id,
+    visibility: "hidden",
+    status: "active",
+    up_votes: 1,
+    down_votes: 0,
+    net_score: 1,
+    my_vote: 1,
+  });
+  assert.equal(Object.hasOwn(voted, "result"), false);
+  assert.equal(Object.hasOwn(voted, "comment"), false);
+  assert.deepEqual(await community.listPublic(), []);
+});
+
 test("Makers retirement preserves v1 and allows an active v2", async () => {
   const community = service();
   const first = await hiddenFormula(community);

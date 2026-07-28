@@ -70,10 +70,11 @@ test("frontend supports protected admin stats and batched recipe verification", 
 });
 
 test("combine feedback owns the only formula publication bubble", async () => {
-  const [app, effects, styles] = await Promise.all([
+  const [app, effects, styles, feedback] = await Promise.all([
     readFile("frontend/app.js", "utf8"),
     readFile("frontend/effects.js", "utf8"),
     readFile("frontend/style.css", "utf8"),
+    readFile("frontend/combine-feedback.js", "utf8"),
   ]);
 
   assert.match(app, /renderPublishAction\(document,\s*toast,/);
@@ -86,4 +87,9 @@ test("combine feedback owns the only formula publication bubble", async () => {
   assert.doesNotMatch(styles, /\.formula-publish\b/);
   assert.match(styles, /\.first-toast-actions\b/);
   assert.match(styles, /min-height:\s*44px/);
+  assert.match(feedback, /"公开这个公式"/);
+  assert.match(feedback, /"✅ 已公开"/);
+  assert.doesNotMatch(feedback, /first-toast-community-link/);
+  assert.doesNotMatch(feedback, /查看广场/);
+  assert.doesNotMatch(feedback, /社区现在可以投票/);
 });

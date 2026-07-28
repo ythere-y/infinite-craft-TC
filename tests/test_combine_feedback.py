@@ -211,11 +211,12 @@ def test_publish_action_renders_inside_toast_and_handles_success(tmp_path):
           toast.querySelector(".first-toast-actions button").click();
           await Promise.resolve();
           await Promise.resolve();
+          var link = toast.querySelector(".first-toast-actions a");
           return {
             calls: calls,
             standalone: document.querySelector(".formula-publish") !== null,
             text: toast.querySelector(".first-toast-actions").textContent,
-            href: toast.querySelector(".first-toast-actions a").getAttribute("href")
+            href: link && link.getAttribute("href")
           };
         })();
         """,
@@ -223,8 +224,8 @@ def test_publish_action_renders_inside_toast_and_handles_success(tmp_path):
     assert actual == {
         "calls": 1,
         "standalone": False,
-        "text": "✅ 已公开，社区现在可以投票查看广场",
-        "href": "/community.html",
+        "text": "✅ 已公开",
+        "href": None,
     }
 
 

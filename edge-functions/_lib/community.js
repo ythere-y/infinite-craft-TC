@@ -131,6 +131,18 @@ export class CommunityStore {
     const { combo_key, global_discoverer, ...safe } = formula;
     return { ...safe, net_score: formula.up_votes - formula.down_votes, my_vote: myVote };
   }
+  voteView(formula, myVote = null) {
+    if (formula.visibility === "public") return this.publicView(formula, myVote);
+    return {
+      id: formula.id,
+      visibility: formula.visibility,
+      status: formula.status,
+      up_votes: formula.up_votes,
+      down_votes: formula.down_votes,
+      net_score: formula.up_votes - formula.down_votes,
+      my_vote: myVote,
+    };
+  }
   async listPublic() {
     const ids = await this.get(INDEX_KEY, []);
     const values = await Promise.all(ids.slice(0, 100).map((id) => this.get(`community_formula_${id}`)));
@@ -139,8 +151,8 @@ export class CommunityStore {
   }
   async vote(id, playerId, value) {
     const formula = await this.get(`community_formula_${id}`);
-    if (!formula || formula.visibility !== "public" || formula.status !== "active") {
-      throw Object.assign(new Error("只能为公开且有效的公式投票"), { status: 400 });
+    if (!formula || formula.status !== "active") {
+      throw Object.assign(new Error("只能为有效公式投票"), { status: 400 });
     }
     const key = `community_vote_${id}_${await sha256Hex(playerId)}`;
     const old = Number(await this.kv.get(key) || 0);
@@ -154,7 +166,7 @@ export class CommunityStore {
     }
     formula.updated_at = this.now() / 1000;
     await this.put(`community_formula_${id}`, formula);
-    return this.publicView(formula, value || null);
+    return this.voteView(formula, value || null);
   }
   async queue(env = {}) {
     const down = Number(env.FORMULA_DOWN_THRESHOLD ?? -5);

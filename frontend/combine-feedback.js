@@ -57,7 +57,7 @@
       doc, target, "div", "first-toast-actions", ""
     );
     var button = appendTextNode(
-      doc, actions, "button", "first-toast-publish", "公开到公式广场"
+      doc, actions, "button", "first-toast-publish", "公开这个公式"
     );
     button.type = "button";
     target.classList.add("has-actions");
@@ -71,12 +71,8 @@
           clearChildren(actions);
           appendTextNode(
             doc, actions, "span", "first-toast-published",
-            "✅ 已公开，社区现在可以投票"
+            "✅ 已公开"
           );
-          var link = appendTextNode(
-            doc, actions, "a", "first-toast-community-link", "查看广场"
-          );
-          link.href = "/community.html";
           return;
         }
 

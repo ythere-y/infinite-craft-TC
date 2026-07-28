@@ -46,6 +46,24 @@ def test_vote_is_unique_switchable_and_cancellable(tmp_path, monkeypatch):
     assert (cancelled["up_votes"], cancelled["down_votes"], cancelled["net_score"]) == (0, 0, 0)
 
 
+def test_hidden_active_formula_can_receive_votes_without_becoming_public(tmp_path, monkeypatch):
+    setup_db(tmp_path, monkeypatch)
+    row = formula()
+
+    voted = community.vote(row["id"], "early-voter", 1)
+
+    assert voted == {
+        "id": row["id"],
+        "visibility": "hidden",
+        "status": "active",
+        "up_votes": 1,
+        "down_votes": 0,
+        "net_score": 1,
+        "my_vote": 1,
+    }
+    assert community.list_public() == []
+
+
 def test_low_score_queues_but_never_auto_retires(tmp_path, monkeypatch):
     setup_db(tmp_path, monkeypatch)
     row = formula()

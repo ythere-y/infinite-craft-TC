@@ -215,6 +215,22 @@ def list_public(limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
         con.close()
 
 
+def _vote_view(row: Any, player_id: str | None = None) -> dict[str, Any]:
+    out = dict(row)
+    out["net_score"] = out["up_votes"] - out["down_votes"]
+    if out["visibility"] == "public":
+        return public_formula(out["id"], player_id) or {}
+    return {
+        "id": out["id"],
+        "visibility": out["visibility"],
+        "status": out["status"],
+        "up_votes": out["up_votes"],
+        "down_votes": out["down_votes"],
+        "net_score": out["net_score"],
+        "my_vote": None,
+    }
+
+
 def vote(formula_id: str, player_id: str, value: int) -> dict[str, Any]:
     """value -1/1 sets or switches a vote; 0 cancels it."""
     if value not in (-1, 0, 1):
@@ -223,12 +239,12 @@ def vote(formula_id: str, player_id: str, value: int) -> dict[str, Any]:
     try:
         con.execute("BEGIN IMMEDIATE")
         formula = con.execute(
-            """SELECT 1 FROM formula_versions
-               WHERE id=? AND visibility='public' AND status='active'""",
+            """SELECT id,visibility,status,up_votes,down_votes FROM formula_versions
+               WHERE id=? AND status='active'""",
             (formula_id,),
         ).fetchone()
         if not formula:
-            raise LookupError("只能为公开且有效的公式投票")
+            raise LookupError("只能为有效公式投票")
         if value == 0:
             con.execute(
                 "DELETE FROM formula_votes WHERE formula_id=? AND player_id=?",
@@ -251,7 +267,13 @@ def vote(formula_id: str, player_id: str, value: int) -> dict[str, Any]:
             (counts[0], counts[1], time.time(), formula_id),
         )
         con.commit()
-        return public_formula(formula_id, player_id) or {}
+        updated = con.execute(
+            "SELECT id,visibility,status,up_votes,down_votes FROM formula_versions WHERE id=?",
+            (formula_id,),
+        ).fetchone()
+        out = _vote_view(updated, player_id)
+        out["my_vote"] = value or None
+        return out
     finally:
         con.close()
 
