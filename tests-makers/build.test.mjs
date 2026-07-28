@@ -141,6 +141,18 @@ test("build fixture copies only paths retained in the source Git index", async (
     );
     await execFileAsync(
       "git",
+      ["-C", sourceRoot, "config", "user.name", "Icon Build Test"],
+    );
+    await execFileAsync(
+      "git",
+      ["-C", sourceRoot, "config", "user.email", "icon-build-test@example.invalid"],
+    );
+    await execFileAsync(
+      "git",
+      ["-C", sourceRoot, "commit", "-q", "-m", "fixture baseline"],
+    );
+    await execFileAsync(
+      "git",
       [
         "-C",
         sourceRoot,
@@ -148,6 +160,31 @@ test("build fixture copies only paths retained in the source Git index", async (
         "--cached",
         "frontend/required-index-deleted.txt",
       ],
+    );
+    const residualPath = "frontend/required-index-deleted.txt";
+    const [{ stdout: cachedDiff }, { stdout: residualStatus }] =
+      await Promise.all([
+        execFileAsync(
+          "git",
+          ["-C", sourceRoot, "diff", "--cached", "--name-status", "--", residualPath],
+        ),
+        execFileAsync(
+          "git",
+          [
+            "-C",
+            sourceRoot,
+            "status",
+            "--porcelain=v1",
+            "--untracked-files=all",
+            "--",
+            residualPath,
+          ],
+        ),
+      ]);
+    assert.equal(cachedDiff.trim(), `D\t${residualPath}`);
+    assert.deepEqual(
+      residualStatus.trim().split("\n"),
+      [`D  ${residualPath}`, `?? ${residualPath}`],
     );
 
     await copyCommittedBuildFixture(fixtureRoot, {
