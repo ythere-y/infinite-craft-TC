@@ -12,6 +12,7 @@ import subprocess
 
 SOURCE = Path("frontend/combine-feedback.js")
 ICON_SOURCE = Path("frontend/icon-system.js")
+ICON_CSS_SOURCE = Path("frontend/icon-system.css")
 EFFECTS_SOURCE = Path("frontend/effects.js")
 APP_SOURCE = Path("frontend/app.js")
 INDEX_SOURCE = Path("frontend/index.html")
@@ -55,6 +56,7 @@ def _run_browser(tmp_path: Path, test_script: str, *, include_effects=False):
         "\n".join(
             [
                 "<!doctype html><meta charset=\"utf-8\">",
+                f"<style>{ICON_CSS_SOURCE.read_text(encoding='utf-8')}</style>",
                 '<div id="fixture"></div><pre id="__result"></pre>',
                 "<script>",
                 "window.fetch = function (url) {",
@@ -262,6 +264,35 @@ def test_icon_system_uses_allowlisted_action_icons(tmp_path):
         "image": True,
         "validImageLoading": "lazy",
         "validImageDecoding": "async",
+    }
+
+
+def test_combine_target_overrides_legacy_dragging_visuals(tmp_path):
+    actual = _run_browser(
+        tmp_path,
+        """
+        return window.ICON_SYSTEM.ready.then(function () {
+          var target = document.getElementById("fixture");
+          target.className = "element dragging";
+          window.ICON_SYSTEM.renderElement(document, target, {
+            name: "目标", emoji: "🧩", combineTarget: true
+          });
+          var icon = target.querySelector(".emoji");
+          var styles = window.getComputedStyle(icon);
+          return {
+            stateClasses: Array.from(target.classList).filter(function (className) {
+              return className.indexOf("state-") === 0;
+            }),
+            opacity: styles.opacity,
+            filter: styles.filter
+          };
+        });
+        """,
+    )
+    assert actual == {
+        "stateClasses": ["state-combine-target"],
+        "opacity": "1",
+        "filter": "saturate(1.25)",
     }
 
 

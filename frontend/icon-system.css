@@ -38,7 +38,8 @@
 .state-starter .element-icon-base, .state-starter .element-icon-native { outline: 1px solid #81b96a; }
 .state-global-new .element-icon::after, .state-personal-new .element-icon::after { content: "✦"; position: absolute; top: -5px; left: -5px; font-size: 11px; color: #d28a00; }
 .state-personal-new .element-icon::after { content: "＋"; color: #2676b8; }
-.state-dragging .element-icon, .element.dragging .element-icon { opacity: .55; }
+.state-dragging .element-icon,
+.element.dragging:not(.state-starter):not(.state-global-new):not(.state-personal-new):not(.state-combine-target) .element-icon { opacity: .55; }
 .state-combine-target .element-icon { filter: saturate(1.25); }
 .element { min-width: max-content; }
 
