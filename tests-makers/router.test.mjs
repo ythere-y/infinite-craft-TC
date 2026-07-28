@@ -50,6 +50,14 @@ test("static, health and rank routes keep their public contracts", async () => {
   const starters = await json(router, "/api/starters");
   assert.equal(starters.response.status, 200);
   assert.equal(starters.body.starters.length, 10);
+  assert.deepEqual(
+    starters.body.starters.find((item) => item.name === "水")?.icon,
+    {
+      base: "💧",
+      palette: "nature",
+      source: "fallback",
+    },
+  );
 
   const elements = await json(router, "/api/elements");
   assert.ok(elements.body.elements["企鹅"]);

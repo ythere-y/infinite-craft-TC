@@ -28,6 +28,7 @@ const FALLBACK = {
   source: "fallback",
   chain: null,
 };
+const ELEMENT_WRITE_NEEDED = Symbol("element-write-needed");
 
 function badRequest(message) {
   const error = new TypeError(message);
@@ -65,25 +66,30 @@ export function createGameService({
   async function elementInfo(name) {
     const dynamic = (await store.getElement(name)) || {};
     const seed = ELEMENTS[name] || {};
-    const persisted = normalizeIcon(dynamic.icon);
+    const dynamicIcon = normalizeIcon(dynamic.icon);
+    const seedIcon = normalizeIcon(seed.icon);
     return {
-      ...dynamic,
-      ...seed,
-      ...(persisted ? { icon: persisted } : {}),
+      info: {
+        ...dynamic,
+        ...seed,
+        ...(dynamicIcon ? { icon: dynamicIcon } : {}),
+      },
+      dynamicIcon,
+      seedIcon,
     };
   }
 
-  async function withResolvedIcon(
-    hit,
-    a,
-    b,
-    { remember = true } = {},
-  ) {
+  async function withResolvedIcon(hit, a, b) {
     if (!hit?.result) return hit;
     try {
-      const info = await elementInfo(hit.result);
+      const {
+        info,
+        dynamicIcon,
+        seedIcon,
+      } = await elementInfo(hit.result);
       const persisted =
-        normalizeIcon(info.icon) ||
+        dynamicIcon ||
+        seedIcon ||
         normalizeIcon(hit.icon);
       const icon = resolveIconRecipe({
         name: hit.result,
@@ -94,14 +100,11 @@ export function createGameService({
         comment: normalizeComment(hit.comment),
         persisted,
       });
-      if (remember) {
-        await store.rememberElement(hit.result, {
-          emoji: hit.emoji,
-          category: info.category || hit.chain || "ai",
-          icon,
-        });
-      }
-      return { ...hit, icon };
+      const enriched = { ...hit, icon };
+      Object.defineProperty(enriched, ELEMENT_WRITE_NEEDED, {
+        value: !dynamicIcon && !seedIcon,
+      });
+      return enriched;
     } catch {
       return hit;
     }
@@ -159,16 +162,22 @@ export function createGameService({
       },
       a,
       b,
-      { remember: false },
     );
-    return store.putCombination(a, b, {
+    const stored = await store.putCombination(a, b, {
       result: generated.name,
       emoji: generated.emoji,
       comment: generated.comment,
       source: "llm",
       chain: null,
       ...(generatedHit.icon ? { icon: generatedHit.icon } : {}),
+    }, {
+      rememberElement: false,
     });
+    Object.defineProperty(stored, ELEMENT_WRITE_NEEDED, {
+      value: generatedHit[ELEMENT_WRITE_NEEDED] !== false,
+      configurable: true,
+    });
+    return stored;
   }
 
   async function depthFor(a, b, result) {
@@ -226,12 +235,14 @@ export function createGameService({
       isFirst = first.created;
       recordedDiscoverer = first.record?.discoverer || null;
       depth = await depthFor(a, b, hit.result);
-      await store.rememberElement(hit.result, {
-        emoji: hit.emoji,
-        category: chain || ELEMENTS[hit.result]?.category || "ai",
-        depth,
-        ...(icon ? { icon } : {}),
-      });
+      if (hit[ELEMENT_WRITE_NEEDED]) {
+        await store.rememberElement(hit.result, {
+          emoji: hit.emoji,
+          category: chain || ELEMENTS[hit.result]?.category || "ai",
+          depth,
+          ...(icon ? { icon } : {}),
+        });
+      }
       kpi = scoreFor(chain, isFirst);
       await store.addKpi(sessionId, kpi.delta, kpi.reason);
     }

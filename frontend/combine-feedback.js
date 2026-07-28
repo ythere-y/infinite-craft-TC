@@ -43,6 +43,7 @@
       emoji: String(payload.emoji || "❓"),
       icon: payload.icon,
       category: payload.category,
+      tier: payload.tier,
       size: "detail"
     });
     appendTextNode(doc, target, "div", "first-toast-comment",

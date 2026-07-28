@@ -233,6 +233,34 @@ test("normal build rejects drift between browser and Makers icon recipes", async
   }
 });
 
+test("normal build rejects a non-empty mutation to a referenced icon asset", async () => {
+  const root = await mkdtemp(join(tmpdir(), "icon-build-asset-drift-"));
+  try {
+    await copyCommittedBuildFixture(root);
+    const manifest = JSON.parse(
+      await readFile(
+        join(
+          root,
+          "frontend/assets/icons/generated/emoji-icon-manifest.json",
+        ),
+        "utf8",
+      ),
+    );
+    const referencedAsset = [...new Set(Object.values(manifest))][0];
+    await appendFile(join(root, "frontend", referencedAsset.slice(1)), "drift");
+
+    const result = await runFixtureBuild(root);
+
+    assert.notEqual(result.code, 0, "a mutated icon asset must fail the build");
+    assert.match(
+      `${result.stdout}\n${result.stderr}`,
+      /icon asset digest.*does not match metadata/i,
+    );
+  } finally {
+    await rm(root, { force: true, recursive: true });
+  }
+});
+
 test("normal build needs no words checkout and ships only local icon assets", async () => {
   const root = await mkdtemp(join(tmpdir(), "icon-build-committed-"));
   try {

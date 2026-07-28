@@ -306,6 +306,151 @@ def test_icon_system_accepts_curated_entity_recipes(tmp_path):
     }
 
 
+def test_icon_tooltip_refreshes_metadata_when_reusing_a_target(tmp_path):
+    actual = _run_browser(
+        tmp_path,
+        """
+        return window.ICON_SYSTEM.ready.then(function () {
+          var target = document.getElementById("fixture");
+          target.title = "旧的调用方标题";
+          window.ICON_SYSTEM.renderElement(document, target, {
+            name: "水", emoji: "💧", category: "classic",
+            icon: { base: "💧", palette: "nature", source: "curated" },
+            state: "starter"
+          });
+          var first = target.title;
+          window.ICON_SYSTEM.renderElement(document, target, {
+            name: "智能咖啡", emoji: "☕", category: "ai",
+            icon: {
+              base: "☕", badge: "🧠",
+              palette: "product", source: "generated"
+            },
+            state: "combine-target"
+          });
+          var second = target.title;
+          window.ICON_SYSTEM.renderElement(document, target, {
+            name: "显式提示", emoji: "✨", category: "abstract",
+            tooltip: "自定义 Tooltip"
+          });
+          var tooltipOverride = target.title;
+          window.ICON_SYSTEM.renderElement(document, target, {
+            name: "显式标题", emoji: "✨", category: "abstract",
+            title: "自定义 Title"
+          });
+          return {
+            first: first,
+            second: second,
+            tooltipOverride: tooltipOverride,
+            titleOverride: target.title
+          };
+        });
+        """,
+    )
+    assert actual == {
+        "first": "水 · 类别：classic · 来源：curated · 状态：基础元素",
+        "second": "智能咖啡 · 类别：ai · 来源：generated · 状态：合成目标",
+        "tooltipOverride": "自定义 Tooltip",
+        "titleOverride": "自定义 Title",
+    }
+
+
+def test_element_sticker_tilt_never_exceeds_two_degrees(tmp_path):
+    actual = _run_browser(
+        tmp_path,
+        """
+        return window.ICON_SYSTEM.ready.then(function () {
+          return ["a", "b", "Riot", "智能咖啡", "水"].map(function (name) {
+            var target = document.createElement("div");
+            window.ICON_SYSTEM.renderElement(document, target, {
+              name: name, emoji: "🧩"
+            });
+            return Number.parseFloat(
+              target.querySelector(".element-icon").style
+                .getPropertyValue("--element-icon-tilt")
+            );
+          });
+        });
+        """,
+    )
+    assert all(-2 <= angle <= 2 for angle in actual), actual
+
+
+def test_approved_sticker_states_have_exclusive_visuals_and_toast_tiers(tmp_path):
+    actual = _run_browser(
+        tmp_path,
+        """
+        return window.ICON_SYSTEM.ready.then(function () {
+          function renderState(state) {
+            var target = document.createElement("div");
+            document.body.appendChild(target);
+            window.ICON_SYSTEM.renderElement(document, target, {
+              name: state, emoji: "🧩", state: state
+            });
+            var sticker = target.querySelector(".element-icon");
+            var styles = window.getComputedStyle(sticker);
+            return {
+              states: Array.from(target.classList).filter(function (name) {
+                return name.indexOf("state-") === 0;
+              }),
+              outlineStyle: styles.outlineStyle,
+              outlineColor: styles.outlineColor,
+              marker: window.getComputedStyle(sticker, "::after").content
+            };
+          }
+          var toast = document.createElement("div");
+          window.COMBINE_FEEDBACK.renderToast(document, toast, {
+            tier: "global_new", name: "全球结果", emoji: "✨"
+          });
+          var globalToastStates = Array.from(
+            toast.querySelector(".first-toast-icon").classList
+          ).filter(function (name) { return name.indexOf("state-") === 0; });
+          window.COMBINE_FEEDBACK.renderToast(document, toast, {
+            tier: "global_known", name: "个人结果", emoji: "✨"
+          });
+          var personalToastStates = Array.from(
+            toast.querySelector(".first-toast-icon").classList
+          ).filter(function (name) { return name.indexOf("state-") === 0; });
+          return {
+            starter: renderState("starter"),
+            global: renderState("global-new"),
+            personal: renderState("personal-new"),
+            combine: renderState("combine-target"),
+            globalToastStates: globalToastStates,
+            personalToastStates: personalToastStates
+          };
+        });
+        """,
+    )
+    assert actual == {
+        "starter": {
+            "states": ["state-starter"],
+            "outlineStyle": "none",
+            "outlineColor": "rgb(0, 0, 0)",
+            "marker": '"原"',
+        },
+        "global": {
+            "states": ["state-global-new"],
+            "outlineStyle": "solid",
+            "outlineColor": "rgb(210, 138, 0)",
+            "marker": '"✦"',
+        },
+        "personal": {
+            "states": ["state-personal-new"],
+            "outlineStyle": "solid",
+            "outlineColor": "rgb(128, 73, 167)",
+            "marker": '"＋"',
+        },
+        "combine": {
+            "states": ["state-combine-target"],
+            "outlineStyle": "solid",
+            "outlineColor": "rgb(47, 128, 237)",
+            "marker": "none",
+        },
+        "globalToastStates": ["state-global-new"],
+        "personalToastStates": ["state-personal-new"],
+    }
+
+
 def test_icon_system_uses_allowlisted_action_icons(tmp_path):
     actual = _run_browser(
         tmp_path,

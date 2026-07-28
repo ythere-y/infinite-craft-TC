@@ -270,7 +270,12 @@ export class KvStore {
     return this.getJson(await entityKey("combo", normalizePair(a, b)));
   }
 
-  async putCombination(a, b, rawRecord) {
+  async putCombination(
+    a,
+    b,
+    rawRecord,
+    { rememberElement = true } = {},
+  ) {
     const [left, right] = [cleanText(a), cleanText(b)].sort();
     const key = await entityKey("combo", normalizePair(left, right));
     const existing = await this.getJson(key);
@@ -290,14 +295,17 @@ export class KvStore {
       ts: this.timestamp(),
     };
     await this.putJson(key, record);
-    await Promise.all([
-      this.rememberElement(record.result, {
+    const writes = [
+      this.rememberRecipe(record),
+    ];
+    if (rememberElement) {
+      writes.push(this.rememberElement(record.result, {
         emoji: record.emoji,
         category: record.chain || "ai",
         ...(icon ? { icon } : {}),
-      }),
-      this.rememberRecipe(record),
-    ]);
+      }));
+    }
+    await Promise.all(writes);
     return record;
   }
 

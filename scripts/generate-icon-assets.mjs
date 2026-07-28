@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import {
   copyFile,
   mkdir,
@@ -15,6 +14,7 @@ import { fileURLToPath } from "node:url";
 import {
   emojiCodepointCandidates,
   requiredActionIcons,
+  sha256ForFiles,
   validateCommittedIconAssets,
 } from "./icon-data-lib.mjs";
 
@@ -57,17 +57,6 @@ async function requireDirectory(path, label) {
     }
     throw error;
   }
-}
-
-async function sha256ForFiles(files) {
-  const digest = createHash("sha256");
-  for (const [relativePath, path] of files.sort(([a], [b]) => a.localeCompare(b))) {
-    digest.update(relativePath);
-    digest.update("\0");
-    digest.update(await readFile(path));
-    digest.update("\0");
-  }
-  return digest.digest("hex");
 }
 
 export async function copyEmojiPngs(sourceRoot, destinationRoot) {

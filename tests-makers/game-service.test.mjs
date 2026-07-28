@@ -33,6 +33,30 @@ function makeService({ env = {}, fetchImpl } = {}) {
   };
 }
 
+async function recordElementWrites(kv, elementName, operation) {
+  const canonicalKey = await entityKey("element", elementName);
+  const writes = [];
+  const put = kv.put.bind(kv);
+  kv.put = async (key, value) => {
+    writes.push({ key, value });
+    return put(key, value);
+  };
+  try {
+    await operation();
+  } finally {
+    kv.put = put;
+  }
+  return {
+    canonical: writes.filter(({ key }) => key === canonicalKey).length,
+    index: writes.filter(({ key, value }) => {
+      if (!key.startsWith("index_element_") || typeof value !== "string") {
+        return false;
+      }
+      return Object.hasOwn(JSON.parse(value)?.items || {}, canonicalKey);
+    }).length,
+  };
+}
+
 test("model parser accepts clean or fenced JSON and rejects invalid output", () => {
   assert.deepEqual(parseModelCombination('{"name":"智能水","emoji":"🧠"}'), {
     name: "智能水",
@@ -154,6 +178,21 @@ test("seed combinations keep the existing response contract and persist firsts",
   assert.equal((await store.firstPage()).total, 1);
 });
 
+test("seeded combination hits do not rewrite canonical or indexed elements", async () => {
+  const { service, kv } = makeService();
+
+  const writes = await recordElementWrites(kv, "蒸汽", () =>
+    service.combine({
+      a: "水",
+      b: "火",
+      discoverer: "种子鹅",
+      session_id: "seed-write-count",
+    }),
+  );
+
+  assert.deepEqual(writes, { canonical: 0, index: 0 });
+});
+
 test("authoritative seed combinations cannot be shadowed by KV", async () => {
   const comboKey = await entityKey("combo", normalizePair("水", "火"));
   const kv = new FakeKV({
@@ -266,6 +305,121 @@ test("legacy cached combinations reuse a valid persisted element icon", async ()
 
   assert.deepEqual(result.icon, persisted);
   assert.deepEqual((await store.getElement("缓存咖啡")).icon, persisted);
+});
+
+test("cached combinations with valid element metadata stay read-only", async () => {
+  const { service, store, kv } = makeService();
+  const icon = {
+    base: "🫘",
+    badge: "⚙️",
+    palette: "office",
+    source: "generated",
+  };
+  await store.rememberElement("只读缓存", {
+    emoji: "☕",
+    category: "ai",
+    depth: 2,
+    icon,
+  });
+  await kv.put(
+    await entityKey("combo", normalizePair("缓存左", "缓存右")),
+    JSON.stringify({
+      a: "缓存右",
+      b: "缓存左",
+      result: "只读缓存",
+      emoji: "☕",
+      comment: DEFAULT_COMMENT,
+      source: "llm",
+      chain: "ai",
+      icon,
+      hit_count: 0,
+      ts: 1_700_000_000,
+    }),
+  );
+
+  const writes = await recordElementWrites(kv, "只读缓存", () =>
+    service.combine({
+      a: "缓存左",
+      b: "缓存右",
+      discoverer: "缓存鹅",
+      session_id: "cache-write-count",
+    }),
+  );
+
+  assert.deepEqual(writes, { canonical: 0, index: 0 });
+});
+
+test("new dynamic combinations persist icon and depth in one element write", async () => {
+  const { service, kv } = makeService({
+    env: { MAKERS_MODELS_KEY: "secret" },
+    fetchImpl: async () =>
+      new Response(
+        JSON.stringify({
+          choices: [
+            { message: { content: '{"name":"一次写入","emoji":"☕"}' } },
+          ],
+        }),
+        { status: 200 },
+      ),
+  });
+
+  const writes = await recordElementWrites(kv, "一次写入", () =>
+    service.combine({
+      a: "AI",
+      b: "咖啡豆",
+      discoverer: "模型鹅",
+      session_id: "dynamic-write-count",
+    }),
+  );
+
+  assert.deepEqual(writes, { canonical: 1, index: 1 });
+});
+
+test("legacy elements repair missing icons with one merged element write", async () => {
+  const { service, kv } = makeService();
+  const elementKey = await entityKey("element", "待修复缓存");
+  await kv.put(
+    elementKey,
+    JSON.stringify({
+      name: "待修复缓存",
+      emoji: "☕",
+      category: "ai",
+      depth: 2,
+      updated_at: 1_700_000_000,
+      storage_key: elementKey,
+    }),
+  );
+  await kv.put(
+    await entityKey("combo", normalizePair("旧左", "旧右")),
+    JSON.stringify({
+      a: "旧右",
+      b: "旧左",
+      result: "待修复缓存",
+      emoji: "☕",
+      comment: DEFAULT_COMMENT,
+      source: "llm",
+      chain: "ai",
+      hit_count: 0,
+      ts: 1_700_000_000,
+    }),
+  );
+
+  const writes = await recordElementWrites(kv, "待修复缓存", () =>
+    service.combine({
+      a: "旧左",
+      b: "旧右",
+      discoverer: "修复鹅",
+      session_id: "repair-write-count",
+    }),
+  );
+
+  assert.deepEqual(writes, { canonical: 1, index: 1 });
+  assert.deepEqual((await new KvStore(kv).getElement("待修复缓存")).icon, {
+    base: "☕",
+    badge: "🧠",
+    palette: "product",
+    source: "generated",
+  });
 });
 
 test("LLM comments are persisted in KV and reused with the cached result", async () => {

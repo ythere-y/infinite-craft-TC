@@ -27,6 +27,24 @@
   };
   var ACTION_TONES = ["default", "positive", "negative", "neutral"];
   var ACTION_SIZES = ["default", "compact", "large"];
+  var STATE_CLASSES = {
+    starter: "state-starter",
+    "global-new": "state-global-new",
+    global_new: "state-global-new",
+    "personal-new": "state-personal-new",
+    personal_new: "state-personal-new",
+    global_known: "state-personal-new",
+    dragging: "state-dragging",
+    "combine-target": "state-combine-target",
+    combine_target: "state-combine-target"
+  };
+  var STATE_LABELS = {
+    "state-starter": "基础元素",
+    "state-global-new": "全球首发",
+    "state-personal-new": "我的新发现",
+    "state-dragging": "拖拽中",
+    "state-combine-target": "合成目标"
+  };
   var elementMap = {};
   var emojiManifest = {};
   var manifestsLoaded = false;
@@ -97,7 +115,7 @@
     for (var index = 0; index < text.length; index += 1) {
       hash = ((hash << 5) - hash + text.charCodeAt(index)) | 0;
     }
-    return (Math.abs(hash) % 7) - 3;
+    return (Math.abs(hash) % 5) - 2;
   }
 
   function nativeEmojiNode(doc, emoji) {
@@ -132,19 +150,51 @@
     return image;
   }
 
+  function elementState(target, payload) {
+    var explicit = STATE_CLASSES[payload.state] || "";
+    if (payload.combineTarget || explicit === "state-combine-target") return "state-combine-target";
+    if (
+      payload.dragging ||
+      explicit === "state-dragging" ||
+      target.classList.contains("dragging")
+    ) return "state-dragging";
+    if (
+      payload.isFirst ||
+      payload.isGlobalNew ||
+      payload.tier === "global_new" ||
+      explicit === "state-global-new"
+    ) return "state-global-new";
+    if (
+      payload.isPersonalNew ||
+      payload.tier === "global_known" ||
+      explicit === "state-personal-new"
+    ) return "state-personal-new";
+    if (payload.isStarter || explicit === "state-starter") return "state-starter";
+    return "";
+  }
+
   function setElementClasses(target, recipe, payload) {
     PALETTES.forEach(function (palette) { target.classList.remove("palette-" + palette); });
     ["state-starter", "state-global-new", "state-personal-new", "state-dragging", "state-combine-target"].forEach(function (state) {
       target.classList.remove(state);
     });
     target.classList.add("palette-" + allowed(recipe.palette, PALETTES, "place"));
-    var state = "";
-    if (payload.combineTarget) state = "state-combine-target";
-    else if (payload.dragging || target.classList.contains("dragging")) state = "state-dragging";
-    else if (payload.isFirst || payload.isGlobalNew || payload.tier === "global_new") state = "state-global-new";
-    else if (payload.isPersonalNew || payload.tier === "global_known") state = "state-personal-new";
-    else if (payload.isStarter) state = "state-starter";
+    var state = elementState(target, payload);
     if (state) target.classList.add(state);
+    return state;
+  }
+
+  function elementTooltip(payload, recipe, state) {
+    if (typeof payload.tooltip === "string") return payload.tooltip;
+    if (typeof payload.title === "string") return payload.title;
+    var parts = [];
+    var name = typeof payload.name === "string" ? payload.name : "";
+    var category = typeof payload.category === "string" ? payload.category : "";
+    if (name) parts.push(name);
+    if (category) parts.push("类别：" + category);
+    if (recipe.source) parts.push("来源：" + recipe.source);
+    if (state && STATE_LABELS[state]) parts.push("状态：" + STATE_LABELS[state]);
+    return parts.length ? parts.join(" · ") : recipe.base;
   }
 
   function renderElement(doc, target, payload) {
@@ -163,8 +213,8 @@
     nameNode.className = "name";
     nameNode.textContent = name;
     target.replaceChildren(sticker, nameNode);
-    setElementClasses(target, recipe, payload);
-    if (!target.title) target.title = name ? name + " · " + recipe.base : recipe.base;
+    var state = setElementClasses(target, recipe, payload);
+    target.title = elementTooltip(payload, recipe, state);
     if (!manifestsLoaded) {
       ready.then(function () {
         if (target.isConnected) renderElement(doc, target, payload);

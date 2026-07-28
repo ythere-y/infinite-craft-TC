@@ -1,4 +1,5 @@
-import { access, readFile, stat } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { access, readFile, readdir, stat } from "node:fs/promises";
 import { dirname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -123,6 +124,20 @@ export function requiredActionIcons() {
   return [...ACTION_ICONS];
 }
 
+export async function sha256ForFiles(files) {
+  const digest = createHash("sha256");
+  const sorted = [...files].sort(([left], [right]) =>
+    left < right ? -1 : left > right ? 1 : 0
+  );
+  for (const [relativePath, path] of sorted) {
+    digest.update(relativePath);
+    digest.update("\0");
+    digest.update(await readFile(path));
+    digest.update("\0");
+  }
+  return digest.digest("hex");
+}
+
 export async function validateCommittedIconAssets({ root = ROOT } = {}) {
   const projectRoot = resolve(root);
   const generatedRoot = resolve(
@@ -185,10 +200,44 @@ export async function validateCommittedIconAssets({ root = ROOT } = {}) {
     ),
   );
 
+  const emojiFiles = (await readdir(resolve(generatedRoot, "emoji")))
+    .filter((name) => name.toLowerCase().endsWith(".png"))
+    .map((name) => [
+      `generated/emoji/${name}`,
+      resolve(generatedRoot, "emoji", name),
+    ]);
+  const actionFiles = (await readdir(
+    resolve(projectRoot, "frontend/assets/icons/actions"),
+  ))
+    .filter((name) => name.toLowerCase().endsWith(".svg"))
+    .map((name) => [
+      `actions/${name}`,
+      resolve(projectRoot, "frontend/assets/icons/actions", name),
+    ]);
+  const actualCounts = {
+    actionSvgs: actionFiles.length,
+    emojiManifestEntries: Object.keys(manifest).length,
+    emojiPngs: emojiFiles.length,
+  };
+  for (const [name, actual] of Object.entries(actualCounts)) {
+    if (metadata?.counts?.[name] !== actual) {
+      throw new Error(
+        `Icon asset count ${name} (${actual}) does not match metadata (${String(metadata?.counts?.[name])})`,
+      );
+    }
+  }
+
+  const digest = await sha256ForFiles([...emojiFiles, ...actionFiles]);
+  if (metadata.sha256 !== digest) {
+    throw new Error(
+      `Icon asset digest ${digest} does not match metadata (${String(metadata.sha256)})`,
+    );
+  }
+
   return {
-    actionIcons: requiredActionIcons().length,
+    actionIcons: actionFiles.length,
     elementEntries,
     emojiEntries: Object.keys(manifest).length,
-    emojiFiles: new Set(manifestReferences).size,
+    emojiFiles: emojiFiles.length,
   };
 }

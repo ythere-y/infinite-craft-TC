@@ -126,6 +126,16 @@ export function createRouter({
     );
   }
 
+  async function combinedStarters() {
+    const elements = await combinedElements();
+    return STARTERS.map((starter) => ({
+      ...starter,
+      ...(normalizeIcon(elements[starter.name]?.icon)
+        ? { icon: elements[starter.name].icon }
+        : {}),
+    }));
+  }
+
   function elementIcon(elements, name, emoji = "❓") {
     const info = elements[name] || {};
     return resolveIconRecipe({
@@ -274,7 +284,7 @@ export function createRouter({
     }
     if (path === "/api/starters") {
       requireMethod(request, "GET");
-      return jsonResponse({ starters: STARTERS });
+      return jsonResponse({ starters: await combinedStarters() });
     }
     if (path === "/api/elements") {
       requireMethod(request, "GET");

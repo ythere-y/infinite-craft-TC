@@ -35,12 +35,43 @@
 .palette-studio .element-icon-base, .palette-studio .element-icon-native { background: #f6dded; }
 .palette-people .element-icon-base, .palette-people .element-icon-native { background: #f7e4b6; }
 .palette-place .element-icon-base, .palette-place .element-icon-native { background: #e8e4f9; }
-.state-starter .element-icon-base, .state-starter .element-icon-native { outline: 1px solid #81b96a; }
+.state-starter .element-icon::after {
+  content: "原";
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  display: grid;
+  width: 14px;
+  height: 14px;
+  place-items: center;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  background: #5f994b;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+}
+.state-global-new .element-icon {
+  border-radius: 10px;
+  outline: 2px solid #d28a00;
+  outline-offset: 2px;
+}
+.state-personal-new .element-icon {
+  border-radius: 10px;
+  outline: 2px solid #8049a7;
+  outline-offset: 2px;
+}
 .state-global-new .element-icon::after, .state-personal-new .element-icon::after { content: "✦"; position: absolute; top: -5px; left: -5px; font-size: 11px; color: #d28a00; }
 .state-personal-new .element-icon::after { content: "＋"; color: #2676b8; }
 .state-dragging .element-icon,
 .element.dragging:not(.state-starter):not(.state-global-new):not(.state-personal-new):not(.state-combine-target) .element-icon { opacity: .55; }
-.state-combine-target .element-icon { filter: saturate(1.25); }
+.state-combine-target .element-icon {
+  border-radius: 10px;
+  outline: 2px solid #2f80ed;
+  outline-offset: 2px;
+  filter: saturate(1.25);
+}
 .element { min-width: max-content; }
 
 .action-icon { display: inline-flex; align-items: center; justify-content: center; gap: 4px; width: var(--action-icon-well); min-width: var(--action-icon-well); height: var(--action-icon-well); }
