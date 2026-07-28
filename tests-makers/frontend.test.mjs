@@ -16,6 +16,59 @@ test("wall uses visibility-aware incremental polling instead of SSE", async () =
   assert.match(source, /pollNewFirsts/);
 });
 
+test("secondary pages load the shared icon system before page scripts", async () => {
+  const entries = [
+    ["frontend/wall/index.html", "wall/wall.js"],
+    ["frontend/community.html", "community.js"],
+    ["frontend/community-admin.html", "community-admin.js"],
+    ["frontend/admin/index.html", "<script>"],
+  ];
+
+  for (const [file, pageScript] of entries) {
+    const html = await readFile(file, "utf8");
+    assert.match(html, /\/icon-system\.css/, `${file} should load shared icon CSS`);
+    assert.match(html, /\/icon-system\.js/, `${file} should load shared icon JS`);
+    assert.ok(
+      html.indexOf("icon-system.js") < html.indexOf(pageScript),
+      `${file} should load shared icon JS before ${pageScript}`,
+    );
+  }
+});
+
+test("secondary element views use safe sticker and action renderers", async () => {
+  const [wall, community, communityAdmin, admin] = await Promise.all([
+    readFile("frontend/wall/wall.js", "utf8"),
+    readFile("frontend/community.js", "utf8"),
+    readFile("frontend/community-admin.js", "utf8"),
+    readFile("frontend/admin/index.html", "utf8"),
+  ]);
+
+  assert.match(wall, /function renderWallElement\(/);
+  assert.match(wall, /ICON_SYSTEM\.renderElement\(document,\s*target,/);
+  assert.match(wall, /function buildCatChip\([^]*?renderWallElement\(/);
+  assert.match(wall, /function buildRecipePill\([^]*?renderWallElement\(/);
+  assert.match(wall, /ICON_SYSTEM\.renderAction\(document,/);
+  assert.doesNotMatch(wall, /innerHTML\s*=\s*`[^`]*\$\{[^}]*(?:icon|emoji|result|name)/i);
+
+  for (const [file, source] of [
+    ["frontend/community.js", community],
+    ["frontend/community-admin.js", communityAdmin],
+  ]) {
+    assert.match(source, /fetch\(["']\/api\/elements["']\)/, `${file} should load elements`);
+    assert.match(source, /ICON_SYSTEM\.renderElement\(document,/, `${file} should render stickers`);
+    assert.match(source, /ICON_SYSTEM\.renderAction\(document,/, `${file} should render actions`);
+    assert.doesNotMatch(
+      source,
+      /innerHTML\s*=\s*`[^`]*\$\{[^}]*(?:icon|emoji|result|name|comment)/i,
+      `${file} should not interpolate API display fields into HTML`,
+    );
+  }
+
+  assert.match(admin, /function renderRecentFirsts\(/);
+  assert.match(admin, /ICON_SYSTEM\.renderElement\(document,\s*elementCell,/);
+  assert.doesNotMatch(admin, /recent_firsts\.map\([^]*?innerHTML/);
+});
+
 test("wall polling stops at the first known row instead of replaying history", () => {
   const known = new Set(["已见最新", "旧记录"]);
   const result = collectUnseenPrefix(

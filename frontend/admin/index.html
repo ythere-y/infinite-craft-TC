@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🎛️ 后台监控 · 鹅厂无限合成 ♾️</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%90%A7%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/icon-system.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     html, body {
@@ -108,7 +109,8 @@
     tbody tr:nth-child(odd) { background: #131725; }
     tbody td.num { font-variant-numeric: tabular-nums; text-align: right; color: #FFD54F; }
     tbody td.rank { color: #62677A; width: 28px; }
-    tbody td.emoji { width: 28px; font-size: 18px; text-align: center; }
+    tbody td.recent-element { min-width: 150px; }
+    tbody td.recent-element .name { color: #E6E8EE; font-weight: 600; }
 
     /* 时间序列图 */
     .chart {
@@ -167,7 +169,8 @@
 <body>
   <header>
     <h1>
-      🎛️ <span>鹅厂无限合成 ♾️ · 后台监控</span>
+      <span data-icon-action="score" aria-hidden="true"></span>
+      <span>鹅厂无限合成 ♾️ · 后台监控</span>
       <span id="env-chip" class="env-chip">…</span>
     </h1>
     <div class="status">
@@ -181,37 +184,37 @@
     <!-- 核心实时指标 -->
     <div class="grid">
       <div class="card live">
-        <div class="label">🟢 在线活跃</div>
+        <div class="label"><span data-icon-action="user" aria-hidden="true"></span>在线活跃</div>
         <div class="value" id="active-sessions">—</div>
         <div class="sub">5 分钟内有合成</div>
       </div>
       <div class="card">
-        <div class="label">🐧 在册花名</div>
+        <div class="label"><span data-icon-action="user" aria-hidden="true"></span>在册花名</div>
         <div class="value" id="nick-count">—</div>
         <div class="sub">累计注册</div>
       </div>
       <div class="card hot">
-        <div class="label">⚡ 当前 1 分钟</div>
+        <div class="label"><span data-icon-action="sparkle" aria-hidden="true"></span>当前 1 分钟</div>
         <div class="value" id="calls-1m">—</div>
         <div class="sub">次合成</div>
       </div>
       <div class="card">
-        <div class="label">📊 5 分钟</div>
+        <div class="label"><span data-icon-action="score" aria-hidden="true"></span>5 分钟</div>
         <div class="value" id="calls-5m">—</div>
         <div class="sub">次合成</div>
       </div>
       <div class="card">
-        <div class="label">📈 60 分钟</div>
+        <div class="label"><span data-icon-action="score" aria-hidden="true"></span>60 分钟</div>
         <div class="value" id="calls-60m">—</div>
         <div class="sub">次合成</div>
       </div>
       <div class="card">
-        <div class="label">🎯 累计合成（约）</div>
+        <div class="label"><span data-icon-action="combine" aria-hidden="true"></span>累计合成（约）</div>
         <div class="value" id="total-calls">—</div>
         <div class="sub">KV 最终一致近似遥测</div>
       </div>
       <div class="card">
-        <div class="label">🏆 全球首发</div>
+        <div class="label"><span data-icon-action="score" aria-hidden="true"></span>全球首发</div>
         <div class="value" id="firsts-total">—</div>
         <div class="sub">个元素被首次合出</div>
       </div>
@@ -219,7 +222,7 @@
 
     <!-- 时间序列 -->
     <div class="panel" style="margin-bottom:14px">
-      <h2>📈 最近 30 分钟合成节奏（每分钟一根）</h2>
+      <h2><span data-icon-action="score" aria-hidden="true"></span>最近 30 分钟合成节奏（每分钟一根）</h2>
       <div class="chart" id="chart"></div>
       <div class="chart-axis">
         <span>30 分钟前</span>
@@ -230,7 +233,7 @@
 
     <!-- 24h 折线图 -->
     <div class="panel" style="margin-bottom:14px">
-      <h2>📉 最近 24 小时合成节奏（每小时一点）</h2>
+      <h2><span data-icon-action="score" aria-hidden="true"></span>最近 24 小时合成节奏（每小时一点）</h2>
       <svg id="chart-24h" viewBox="0 0 1000 180" preserveAspectRatio="none"
            style="width:100%;height:180px;display:block"></svg>
       <div class="chart-axis" id="chart-24h-axis"></div>
@@ -239,7 +242,7 @@
     <!-- 双栏：造梗榜 + 最近首发 + Chain 分布 -->
     <div class="panels">
       <div class="panel">
-        <h2>🏅 造梗榜 Top 10 <span class="count" id="discoverers-count"></span></h2>
+        <h2><span data-icon-action="score" aria-hidden="true"></span>造梗榜 Top 10 <span class="count" id="discoverers-count"></span></h2>
         <table id="discoverers">
           <thead><tr><th>#</th><th>花名</th><th class="num">首发数</th></tr></thead>
           <tbody></tbody>
@@ -247,15 +250,15 @@
       </div>
 
       <div class="panel">
-        <h2>⏱️ 最近首发 <span class="count" id="firsts-count"></span></h2>
+        <h2><span data-icon-action="wall" aria-hidden="true"></span>最近首发 <span class="count" id="firsts-count"></span></h2>
         <table id="firsts">
-          <thead><tr><th></th><th>元素</th><th>发现者</th><th class="num">时间</th></tr></thead>
+          <thead><tr><th>元素</th><th>发现者</th><th class="num">时间</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
 
       <div class="panel" style="grid-column: 1 / -1">
-        <h2>🎨 Chain 分布</h2>
+        <h2><span data-icon-action="recipes" aria-hidden="true"></span>Chain 分布</h2>
         <div class="chip-row" id="chains"></div>
       </div>
     </div>
@@ -265,11 +268,14 @@
     每 3 秒自动刷新 · 关闭页面即停止轮询 · 数据源 <code>/api/admin/stats</code>
   </footer>
 
+  <script src="/icon-system.js"></script>
   <script>
     const REFRESH_SEC = 3;
     const ADMIN_TOKEN_KEY = "infinity_admin_token";
     let countdown = REFRESH_SEC;
     let authPrompted = false;
+    let elementsPromise = null;
+    const elementsByName = new Map();
 
     function fmtNum(n) { return n == null ? "—" : Number(n).toLocaleString("en-US"); }
     function fmtTimeAgo(ts) {
@@ -279,9 +285,27 @@
       if (diff < 86400) return `${Math.floor(diff/3600)}小时前`;
       return new Date(ts * 1000).toLocaleDateString("zh-CN");
     }
-    function esc(s) {
-      return String(s || "").replace(/[&<>"']/g, c =>
-        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    function node(tag, className = "", value = null) {
+      const target = document.createElement(tag);
+      if (className) target.className = className;
+      if (value !== null) target.textContent = String(value);
+      return target;
+    }
+    function cell(value, className = "") {
+      return node("td", className, value);
+    }
+    function loadElements() {
+      if (!elementsPromise) {
+        elementsPromise = fetch("/api/elements")
+          .then(response => response.ok ? response.json() : {elements: {}})
+          .then(data => {
+            for (const [name, info] of Object.entries(data.elements || {})) {
+              elementsByName.set(name, info || {});
+            }
+          })
+          .catch(() => {});
+      }
+      return elementsPromise;
     }
 
     // 24h 折线图：SVG 画填充面积 + 折线 + 数据点
@@ -395,13 +419,85 @@
 
     async function tick() {
       try {
-        const d = await fetchStats();
+        const [d] = await Promise.all([fetchStats(), loadElements()]);
         render(d);
         document.getElementById("status").textContent =
           "最近更新 " + new Date().toLocaleTimeString("zh-CN");
       } catch (e) {
-        document.getElementById("status").textContent = "❌ " + e.message;
+        window.ICON_SYSTEM.renderAction(document, document.getElementById("status"), {
+          name: "warning",
+          label: e.message,
+          tone: "negative",
+        });
       }
+    }
+
+    function renderDiscoverers(items) {
+      const tbody = document.querySelector("#discoverers tbody");
+      if (items.length === 0) {
+        const row = document.createElement("tr");
+        const empty = cell("还没人首发过", "empty");
+        empty.colSpan = 3;
+        row.append(empty);
+        tbody.replaceChildren(row);
+        return;
+      }
+      tbody.replaceChildren(...items.map(item => {
+        const row = document.createElement("tr");
+        row.append(
+          cell(item.rank, "rank"),
+          cell(item.discoverer),
+          cell(item.firsts, "num"),
+        );
+        return row;
+      }));
+    }
+
+    function renderChains(items) {
+      const chainsBox = document.getElementById("chains");
+      if (items.length === 0) {
+        chainsBox.replaceChildren(node("div", "empty", "暂无数据"));
+        return;
+      }
+      chainsBox.replaceChildren(...items.map(item => {
+        const chip = node("span", "chip", item.chain || "未分类");
+        chip.append(node("b", "", item.total_hits || item.cnt));
+        return chip;
+      }));
+    }
+
+    function renderRecentFirsts(items) {
+      const tbody = document.querySelector("#firsts tbody");
+      if (items.length === 0) {
+        const row = document.createElement("tr");
+        const empty = cell("暂无首发记录", "empty");
+        empty.colSpan = 3;
+        row.append(empty);
+        tbody.replaceChildren(row);
+        return;
+      }
+      tbody.replaceChildren(...items.map(item => {
+        const row = document.createElement("tr");
+        const elementCell = document.createElement("td");
+        elementCell.className = "recent-element element";
+        const saved = elementsByName.get(item.result) || {};
+        window.ICON_SYSTEM.renderElement(document, elementCell, {
+          ...saved,
+          ...item,
+          name: item.result,
+          emoji: item.emoji || saved.emoji || "🎉",
+          icon: item.icon || saved.icon,
+          category: item.category || saved.category,
+          size: "detail",
+        });
+        row.append(
+          elementCell,
+          cell(item.discoverer || "匿名鹅"),
+          cell(fmtTimeAgo(item.ts), "num"),
+        );
+        row.lastElementChild.style.color = "#62677A";
+        return row;
+      }));
     }
 
     function render(d) {
@@ -433,41 +529,19 @@
       renderChart24h(d.timeseries_24h || []);
 
       // 造梗榜
-      const discTbody = document.querySelector("#discoverers tbody");
       document.getElementById("discoverers-count").textContent =
         d.top_discoverers.length > 0 ? `(${d.top_discoverers.length})` : "";
-      discTbody.innerHTML = d.top_discoverers.length === 0
-        ? `<tr><td colspan="3" class="empty">还没人首发过</td></tr>`
-        : d.top_discoverers.map(x => `
-            <tr>
-              <td class="rank">${x.rank}</td>
-              <td>${esc(x.discoverer)}</td>
-              <td class="num">${x.firsts}</td>
-            </tr>`).join("");
+      renderDiscoverers(d.top_discoverers);
 
       // 热门合成表已删除（无有效更新效果）
 
       // Chain 分布
-      const chainsBox = document.getElementById("chains");
-      chainsBox.innerHTML = d.top_chains.length === 0
-        ? `<div class="empty">暂无数据</div>`
-        : d.top_chains.map(x =>
-            `<span class="chip">${esc(x.chain || "未分类")}<b>${x.total_hits || x.cnt}</b></span>`
-          ).join("");
+      renderChains(d.top_chains);
 
       // 最近首发
-      const firstsTbody = document.querySelector("#firsts tbody");
       document.getElementById("firsts-count").textContent =
         d.recent_firsts.length > 0 ? `(显示 ${d.recent_firsts.length} / 共 ${d.firsts_total})` : "";
-      firstsTbody.innerHTML = d.recent_firsts.length === 0
-        ? `<tr><td colspan="4" class="empty">暂无首发记录</td></tr>`
-        : d.recent_firsts.map(x => `
-            <tr>
-              <td class="emoji">${esc(x.emoji || "🎉")}</td>
-              <td>${esc(x.result)}</td>
-              <td>${esc(x.discoverer || "匿名鹅")}</td>
-              <td class="num" style="color:#62677A">${fmtTimeAgo(x.ts)}</td>
-            </tr>`).join("");
+      renderRecentFirsts(d.recent_firsts);
     }
 
     // 倒计时刷新
@@ -483,6 +557,7 @@
         }
       }, 1000);
     }
+    window.ICON_SYSTEM.hydrateActions(document);
     loop();
   </script>
 </body>

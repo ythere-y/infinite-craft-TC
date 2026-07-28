@@ -52,26 +52,60 @@ const MY_NICK = (() => {
 // ============================================================
 // 工具
 // ============================================================
-function escapeHTML(s) {
-  return String(s).replace(/[&<>"']/g, c => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;",
-    '"': "&quot;", "'": "&#39;",
-  })[c]);
-}
-
 function escapeRegex(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-/** 在 HTML 转义后的字符串里做不区分大小写的高亮。q 必须非空小写。 */
-function highlight(escapedText, q) {
-  if (!q) return escapedText;
+function node(tag, className = "", value = null) {
+  const target = document.createElement(tag);
+  if (className) target.className = className;
+  if (value !== null) target.textContent = String(value);
+  return target;
+}
+
+/** 用纯文本节点高亮搜索词，不把 API 文本重新解析成 HTML。 */
+function appendHighlightedText(target, value, q) {
+  const source = String(value || "");
+  target.replaceChildren();
+  if (!q) {
+    target.textContent = source;
+    return;
+  }
   try {
     const re = new RegExp(escapeRegex(q), "gi");
-    return escapedText.replace(re, m => `<mark>${m}</mark>`);
+    let cursor = 0;
+    for (const match of source.matchAll(re)) {
+      target.append(document.createTextNode(source.slice(cursor, match.index)));
+      target.append(node("mark", "", match[0]));
+      cursor = match.index + match[0].length;
+    }
+    target.append(document.createTextNode(source.slice(cursor)));
   } catch (_) {
-    return escapedText;
+    target.textContent = source;
   }
+}
+
+function renderWallElement(target, item, overrides = {}) {
+  const name = overrides.name ?? item.result ?? item.name ?? "";
+  window.ICON_SYSTEM.renderElement(document, target, {
+    name,
+    emoji: overrides.emoji ?? item.emoji,
+    category: overrides.category ?? item.category,
+    icon: overrides.icon ?? item.icon,
+    state: item.is_starter ? "starter" : null,
+    isStarter: Boolean(item.is_starter),
+    size: overrides.size || "detail",
+  });
+  if (overrides.query) {
+    const nameNode = target.querySelector(".name");
+    if (nameNode) appendHighlightedText(nameNode, name, overrides.query);
+  }
+  return target;
+}
+
+function renderWallAction(target, name, label = "", tone = "default") {
+  window.ICON_SYSTEM.renderAction(document, target, {name, label, tone});
+  return target;
 }
 
 function itemMatches(item, q) {
@@ -104,32 +138,35 @@ function fmtTimeFull(d) {
 // feed 渲染
 // ============================================================
 function buildCard(item, { pop = false, q = "" } = {}) {
-  const card = document.createElement("div");
+  const card = node("div");
   card.className = "first-card" + (pop ? " pop" : "");
   card.dataset.result = item.result;
 
   const ts = item.ts ? new Date(item.ts * 1000) : new Date();
-  const nameHtml = highlight(escapeHTML(item.result || ""), q);
-  const emojiHtml = highlight(escapeHTML(item.emoji || "✨"), q);
-  const nickHtml = highlight(escapeHTML(item.discoverer || "匿名鹅"), q);
   const seqStr = item.seq != null ? `#${padSeq(item.seq)}` : "";
 
-  card.innerHTML = `
-    <div class="first-corner" title="${fmtTimeFull(ts)}">
-      ${seqStr ? `<span class="first-seq">${seqStr}</span>` : ""}
-      <span class="first-time">${fmtTime(ts)}</span>
-    </div>
-    <div class="first-emoji">${emojiHtml}</div>
-    <div class="first-name">${nameHtml}</div>
-    <div class="first-meta">
-      <span class="first-meta-nick">首发 · <b>${nickHtml}</b></span>
-    </div>
-  `;
+  const corner = node("div", "first-corner");
+  corner.title = fmtTimeFull(ts);
+  if (seqStr) corner.append(node("span", "first-seq", seqStr));
+  corner.append(node("span", "first-time", fmtTime(ts)));
+
+  const element = node("div", "first-element element");
+  renderWallElement(element, item, {name: item.result, query: q});
+
+  const meta = node("div", "first-meta");
+  const nick = node("span", "first-meta-nick");
+  nick.append(document.createTextNode("首发 · "));
+  const nickName = node("b");
+  appendHighlightedText(nickName, item.discoverer || "匿名鹅", q);
+  nick.append(nickName);
+  meta.append(nick);
+
+  card.append(corner, element, meta);
   return card;
 }
 
 function renderFeed() {
-  feed.innerHTML = "";
+  feed.replaceChildren();
   const q = state.query;
   let shown = 0;
   for (const item of state.items) {
@@ -158,7 +195,7 @@ function updateStatusLine() {
 
   if (state.loadingPage) {
     statusLine.className = "feed-status";
-    statusLine.innerHTML = `<span class="spinner"></span>加载中……`;
+    statusLine.replaceChildren(node("span", "spinner"), document.createTextNode("加载中……"));
     statusLine.style.display = "block";
   } else if (state.exhausted && state.items.length > 0) {
     statusLine.className = "feed-status end";
@@ -331,7 +368,7 @@ function renderMeCard(data) {
   if (!MY_NICK) {
     lbMeCard.classList.add("no-rank");
     lbMeNick.textContent = "未登录昵称";
-    lbMeRow.innerHTML = `回主页点击顶部昵称领一个花名，就能出现在这里了`;
+    lbMeRow.textContent = "回主页点击顶部昵称领一个花名，就能出现在这里了";
     return;
   }
 
@@ -339,23 +376,30 @@ function renderMeCard(data) {
 
   if (me && me.rank) {
     lbMeCard.classList.remove("no-rank");
-    lbMeRow.innerHTML =
-      `您的排名：<b>第 ${me.rank} 名</b> · ` +
-      `首发 <b>${me.firsts}</b> 个 · ` +
-      `共 <b>${total_players}</b> 位打工人`;
+    lbMeRow.replaceChildren(
+      document.createTextNode("您的排名："),
+      node("b", "", `第 ${me.rank} 名`),
+      document.createTextNode(" · 首发 "),
+      node("b", "", me.firsts),
+      document.createTextNode(" 个 · 共 "),
+      node("b", "", total_players),
+      document.createTextNode(" 位打工人"),
+    );
   } else {
     lbMeCard.classList.add("no-rank");
-    lbMeRow.innerHTML =
-      `您还未上榜 · 共 <b>${total_players}</b> 位打工人 · ` +
-      `去合成一个没见过的元素吧！`;
+    lbMeRow.replaceChildren(
+      document.createTextNode("您还未上榜 · 共 "),
+      node("b", "", total_players),
+      document.createTextNode(" 位打工人 · 去合成一个没见过的元素吧！"),
+    );
   }
 }
 
 function renderTop(data) {
   const { top = [] } = data || {};
-  lbListEl.innerHTML = "";
+  lbListEl.replaceChildren();
   if (top.length === 0) {
-    lbListEl.innerHTML = `<div class="lb-empty">还没有首发，快去合成吧～</div>`;
+    lbListEl.append(node("div", "lb-empty", "还没有首发，快去合成吧～"));
     return;
   }
   for (const row of top) {
@@ -368,17 +412,17 @@ function renderTop(data) {
     if (MY_NICK && row.discoverer === MY_NICK) classes.push("me");
     div.className = classes.join(" ");
     const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
-    div.innerHTML = `
-      <span class="lb-rank">${medal}</span>
-      <span class="lb-name" title="${escapeHTML(row.discoverer)}">${escapeHTML(row.discoverer)}</span>
-      <span class="lb-score">${row.firsts}<span class="lb-score-suffix">个</span></span>
-    `;
+    const name = node("span", "lb-name", row.discoverer);
+    name.title = row.discoverer || "";
+    const score = node("span", "lb-score", row.firsts);
+    score.append(node("span", "lb-score-suffix", "个"));
+    div.append(node("span", "lb-rank", medal), name, score);
     lbListEl.appendChild(div);
   }
 }
 
 function renderLeaderboardError(msg) {
-  lbListEl.innerHTML = `<div class="lb-empty">榜单加载失败：${escapeHTML(msg)}</div>`;
+  lbListEl.replaceChildren(node("div", "lb-empty", `榜单加载失败：${msg}`));
 }
 
 async function fetchLeaderboard() {
@@ -440,7 +484,7 @@ function persistCollapsed() {
 
 // 同 .first-card 的版式
 function buildCatChip(item) {
-  const chip = document.createElement("div");
+  const chip = node("div");
   const classes = ["cat-chip"];
   if (item.is_starter) classes.push("starter");
   else if (item.discovered) classes.push("discovered");
@@ -453,42 +497,43 @@ function buildCatChip(item) {
   const seqStr = item.seq != null ? `#${padSeq(item.seq)}` : "";
   const ts = item.ts ? new Date(item.ts * 1000) : null;
 
-  let meta = "尚未发现";
+  if (seqStr || ts) {
+    const corner = node("div", "cat-chip-corner");
+    if (ts) corner.title = fmtTimeFull(ts);
+    if (seqStr) corner.append(node("span", "seq", seqStr));
+    if (ts) corner.append(node("span", "time", fmtTime(ts)));
+    chip.append(corner);
+  }
+
+  const element = node("div", "cat-chip-element element");
+  renderWallElement(element, item, {name: item.name});
+  const renderedName = element.querySelector(".name");
+  if (isFounder && renderedName) {
+    renderedName.replaceChildren(
+      document.createTextNode(item.real || ""),
+      node("span", "cat-chip-alias", item.alias || ""),
+    );
+  }
+  chip.append(element);
+
+  if (isFounder && item.title) {
+    const title = node("div", "cat-chip-title", item.title);
+    title.title = item.title;
+    chip.append(title);
+  }
+
+  const meta = node("div", "cat-chip-meta");
   if (item.is_starter) {
-    meta = `🌱 基础元素`;
+    meta.textContent = "基础元素";
   } else if (item.discovered) {
-    const who = item.discoverer || "匿名鹅";
-    meta = `首发 · <b>${escapeHTML(who)}</b>`;
-  }
-
-  const cornerHtml = (seqStr || ts) ? `
-    <div class="cat-chip-corner" ${ts ? `title="${fmtTimeFull(ts)}"` : ""}>
-      ${seqStr ? `<span class="seq">${seqStr}</span>` : ""}
-      ${ts ? `<span class="time">${fmtTime(ts)}</span>` : ""}
-    </div>
-  ` : "";
-
-  if (isFounder) {
-    // 名人堂版式：大字真名 + 英文花名 + 职务
-    const titleLine = item.title ? `<div class="cat-chip-title" title="${escapeHTML(item.title)}">${escapeHTML(item.title)}</div>` : "";
-    chip.innerHTML = `
-      ${cornerHtml}
-      <div class="cat-chip-emoji">${escapeHTML(item.emoji || "❓")}</div>
-      <div class="cat-chip-name" title="${escapeHTML(item.name)}">
-        ${escapeHTML(item.real)}
-        <span class="cat-chip-alias">${escapeHTML(item.alias)}</span>
-      </div>
-      ${titleLine}
-      <div class="cat-chip-meta">${meta}</div>
-    `;
+    meta.append(
+      document.createTextNode("首发 · "),
+      node("b", "", item.discoverer || "匿名鹅"),
+    );
   } else {
-    chip.innerHTML = `
-      ${cornerHtml}
-      <div class="cat-chip-emoji">${escapeHTML(item.emoji || "❓")}</div>
-      <div class="cat-chip-name" title="${escapeHTML(item.name)}">${escapeHTML(item.name)}</div>
-      <div class="cat-chip-meta">${meta}</div>
-    `;
+    meta.textContent = "尚未发现";
   }
+  chip.append(meta);
 
   // 已发现（含 starter）→ 可点击查看合成配方
   // 名人堂要用 hit_as（首发时的花名/真名）才能查到记录，否则用 name
@@ -500,11 +545,11 @@ function buildCatChip(item) {
     const queryName = item.hit_as || (isFounder ? item.real : item.name);
     const displayEmoji = item.emoji || "✨";
     const displayName = isFounder ? `${item.real} · ${item.alias}` : item.name;
-    chip.addEventListener("click", () => openRecipeModal(queryName, displayName, displayEmoji));
+    chip.addEventListener("click", () => openRecipeModal(queryName, displayName, displayEmoji, item));
     chip.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        openRecipeModal(queryName, displayName, displayEmoji);
+        openRecipeModal(queryName, displayName, displayEmoji, item);
       }
     });
   }
@@ -535,14 +580,20 @@ function buildGroupBlock(group) {
   header.className = "bounty-group-header";
   header.setAttribute("aria-expanded", collapsed ? "false" : "true");
   const progressCls = (group.found >= group.total && group.total > 0) ? "all-found" : "";
-  header.innerHTML = `
-    <span class="chevron">▾</span>
-    <span class="g-emoji">${escapeHTML(group.emoji || "🏷️")}</span>
-    <span class="g-label">${escapeHTML(group.label)}</span>
-    <span class="g-progress ${progressCls}">
-      <b>${group.found}</b>/<b>${group.total}</b>
-    </span>
-  `;
+  const chevron = node("span", "chevron");
+  renderWallAction(chevron, "next");
+  const progress = node("span", `g-progress ${progressCls}`.trim());
+  progress.append(
+    node("b", "", group.found),
+    document.createTextNode("/"),
+    node("b", "", group.total),
+  );
+  header.append(
+    chevron,
+    node("span", "g-emoji", group.emoji || "🏷️"),
+    node("span", "g-label", group.label),
+    progress,
+  );
 
   const body = document.createElement("div");
   body.className = "bounty-group-body" + (collapsed ? " collapsed" : "");
@@ -550,7 +601,7 @@ function buildGroupBlock(group) {
   const grid = document.createElement("div");
   grid.className = "category-grid";
   if (!group.items.length) {
-    grid.innerHTML = `<div class="category-loading">（这个分类还没有元素）</div>`;
+    grid.append(node("div", "category-loading", "（这个分类还没有元素）"));
   } else {
     for (const it of sortChipItems(group.items)) {
       grid.appendChild(buildCatChip(it));
@@ -587,7 +638,7 @@ function buildGroupBlock(group) {
 }
 
 function renderBountyTabs() {
-  bountyTabsEl.innerHTML = "";
+  bountyTabsEl.replaceChildren();
   bountyState.nameToTab.clear();
   // 只剩一个 tab 时，隐藏切换栏（避免无意义的单按钮）
   if (bountyState.tabs.length <= 1) {
@@ -602,11 +653,11 @@ function renderBountyTabs() {
     if (t.key === bountyState.activeTab) classes.push("active");
     if (t.total > 0 && t.found >= t.total) classes.push("all-found");
     btn.className = classes.join(" ");
-    btn.innerHTML = `
-      <span class="t-emoji">${escapeHTML(t.emoji || "🏷️")}</span>
-      <span>${escapeHTML(t.label)}</span>
-      <span class="t-count">${t.found}/${t.total}</span>
-    `;
+    btn.append(
+      node("span", "t-emoji", t.emoji || "🏷️"),
+      node("span", "", t.label),
+      node("span", "t-count", `${t.found}/${t.total}`),
+    );
     btn.addEventListener("click", () => {
       if (bountyState.activeTab === t.key) return;
       bountyState.activeTab = t.key;
@@ -619,11 +670,11 @@ function renderBountyTabs() {
 }
 
 function renderBountyGroups() {
-  bountyGroupsEl.innerHTML = "";
+  bountyGroupsEl.replaceChildren();
   const active = bountyState.activeTab;
   const groups = bountyState.groups.filter(g => g.tab === active);
   if (!groups.length) {
-    bountyGroupsEl.innerHTML = `<div class="category-loading">这个分组还没有元素</div>`;
+    bountyGroupsEl.append(node("div", "category-loading", "这个分组还没有元素"));
     return;
   }
   for (const g of groups) bountyGroupsEl.appendChild(buildGroupBlock(g));
@@ -654,15 +705,16 @@ async function fetchBounty() {
   try {
     const r = await fetch("/api/wall/bounty");
     if (!r.ok) {
-      bountyGroupsEl.innerHTML = `<div class="category-loading">加载失败：HTTP ${r.status}</div>`;
+      bountyGroupsEl.replaceChildren(node("div", "category-loading", `加载失败：HTTP ${r.status}`));
       return;
     }
     const data = await r.json();
     renderBounty(data);
   } catch (e) {
     console.error("fetchBounty failed", e);
-    bountyGroupsEl.innerHTML =
-      `<div class="category-loading">加载失败：${escapeHTML(String(e.message || e))}</div>`;
+    bountyGroupsEl.replaceChildren(
+      node("div", "category-loading", `加载失败：${String(e.message || e)}`),
+    );
   }
 }
 
@@ -741,17 +793,27 @@ const recipeModal     = document.getElementById("recipe-modal");
 const recipeBackdrop  = document.getElementById("recipe-modal-backdrop");
 const recipeCloseBtn  = document.getElementById("recipe-modal-close");
 const recipeNameEl    = document.getElementById("recipe-modal-name");
-const recipeEmojiEl   = document.getElementById("recipe-modal-emoji");
 const recipeBodyEl    = document.getElementById("recipe-modal-body");
 
 let _recipeOpenForName = null;    // 去重：同 name 连续点不重复请求
+let _recipeOpenDisplayInfo = null;
 
-function openRecipeModal(queryName, displayName, displayEmoji) {
+function renderRecipeResult(info, displayName) {
+  renderWallElement(recipeNameEl, info, {name: info.name || displayName});
+  const nameNode = recipeNameEl.querySelector(".name");
+  if (nameNode) nameNode.textContent = displayName || info.name || "";
+}
+
+function openRecipeModal(queryName, displayName, displayEmoji, displayInfo = null) {
   if (!recipeModal) return;
   _recipeOpenForName = queryName;
-  recipeNameEl.textContent = displayName || queryName;
-  recipeEmojiEl.textContent = displayEmoji || "✨";
-  recipeBodyEl.innerHTML = `<div class="recipe-loading">加载中…</div>`;
+  _recipeOpenDisplayInfo = {
+    ...(displayInfo || {}),
+    name: queryName,
+    emoji: displayInfo?.emoji || displayEmoji || "✨",
+  };
+  renderRecipeResult(_recipeOpenDisplayInfo, displayName || queryName);
+  recipeBodyEl.replaceChildren(node("div", "recipe-loading", "加载中…"));
   recipeModal.classList.add("show");
   recipeModal.setAttribute("aria-hidden", "false");
   document.body.style.overflow = "hidden";
@@ -764,6 +826,7 @@ function closeRecipeModal() {
   recipeModal.setAttribute("aria-hidden", "true");
   document.body.style.overflow = "";
   _recipeOpenForName = null;
+  _recipeOpenDisplayInfo = null;
 }
 
 async function fetchRecipes(name) {
@@ -786,12 +849,24 @@ async function fetchRecipes(name) {
 
 function renderRecipes(data) {
   const recipes = Array.isArray(data.recipes) ? data.recipes : [];
+  if (_recipeOpenDisplayInfo) {
+    _recipeOpenDisplayInfo = {
+      ..._recipeOpenDisplayInfo,
+      emoji: data.result_emoji || _recipeOpenDisplayInfo.emoji,
+      icon: data.result_icon || _recipeOpenDisplayInfo.icon,
+      category: data.result_category || _recipeOpenDisplayInfo.category,
+    };
+    const displayName = recipeNameEl.querySelector(".name")?.textContent || data.result;
+    renderRecipeResult(_recipeOpenDisplayInfo, displayName);
+  }
   if (recipes.length === 0) {
-    recipeBodyEl.innerHTML = `
-      <div class="recipe-empty">
-        还没有已知配方。<br>
-        可能是首发时由 AI 自由生成 —— 去画布尝试把几个元素拖到一起看看？
-      </div>`;
+    const empty = node("div", "recipe-empty");
+    empty.append(
+      document.createTextNode("还没有已知配方。"),
+      document.createElement("br"),
+      document.createTextNode("可能是首发时由 AI 自由生成 —— 去画布尝试把几个元素拖到一起看看？"),
+    );
+    recipeBodyEl.replaceChildren(empty);
     return;
   }
 
@@ -801,31 +876,50 @@ function renderRecipes(data) {
     return s || "—";
   };
 
-  let html = `<div class="recipe-count-line">共 <b>${recipes.length}</b> 种配方</div>`;
-  html += `<div class="recipe-list">`;
+  const count = node("div", "recipe-count-line");
+  count.append(
+    document.createTextNode("共 "),
+    node("b", "", recipes.length),
+    document.createTextNode(" 种配方"),
+  );
+  const list = node("div", "recipe-list");
   for (const r of recipes) {
     const src = r.source || "";
-    html += `
-      <div class="recipe-row">
-        <span class="recipe-pill" title="${escapeHTML(r.a)}">
-          <span class="e">${escapeHTML(r.a_emoji || "❓")}</span>
-          <span class="n">${escapeHTML(r.a)}</span>
-        </span>
-        <span class="recipe-plus">+</span>
-        <span class="recipe-pill" title="${escapeHTML(r.b)}">
-          <span class="e">${escapeHTML(r.b_emoji || "❓")}</span>
-          <span class="n">${escapeHTML(r.b)}</span>
-        </span>
-        <span class="recipe-source-tag ${escapeHTML(src)}">${escapeHTML(sourceLabel(src))}</span>
-      </div>
-    `;
+    const row = node("div", "recipe-row");
+    const source = node(
+      "span",
+      `recipe-source-tag${["seed", "llm"].includes(src) ? ` ${src}` : ""}`,
+      sourceLabel(src),
+    );
+    row.append(
+      buildRecipePill({
+        name: r.a,
+        emoji: r.a_emoji,
+        icon: r.a_icon,
+        category: r.a_category,
+      }),
+      node("span", "recipe-plus", "+"),
+      buildRecipePill({
+        name: r.b,
+        emoji: r.b_emoji,
+        icon: r.b_icon,
+        category: r.b_category,
+      }),
+      source,
+    );
+    list.append(row);
   }
-  html += `</div>`;
-  recipeBodyEl.innerHTML = html;
+  recipeBodyEl.replaceChildren(count, list);
+}
+
+function buildRecipePill(item) {
+  const pill = node("span", "recipe-pill element");
+  pill.title = item.name || "";
+  return renderWallElement(pill, item, {name: item.name});
 }
 
 function renderRecipesError(msg) {
-  recipeBodyEl.innerHTML = `<div class="recipe-error">加载失败：${escapeHTML(msg)}</div>`;
+  recipeBodyEl.replaceChildren(node("div", "recipe-error", `加载失败：${msg}`));
 }
 
 // 绑定关闭事件（全局只绑一次）
@@ -843,6 +937,8 @@ if (recipeModal) {
 // 启动
 // ============================================================
 async function init() {
+  await window.ICON_SYSTEM.ready;
+  window.ICON_SYSTEM.hydrateActions(document);
   feedScroll.addEventListener("scroll", onScroll, { passive: true });
   // 折叠面板
   bindCollapsible("bounty-toggle", "bounty-body", "bounty");

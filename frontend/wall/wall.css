@@ -53,17 +53,6 @@ html, body {
   background: #F4F4F4;
   transform: translateX(-1px);
 }
-.wall-title:hover::before {
-  content: "←";
-  color: #1E88E5;
-  font-weight: 700;
-  margin-right: 6px;
-  animation: title-back-nudge .4s ease;
-}
-@keyframes title-back-nudge {
-  from { transform: translateX(4px); opacity: 0; }
-  to   { transform: translateX(0);   opacity: 1; }
-}
 .wall-title b {
   background: linear-gradient(90deg, #1E88E5, #FFD54F);
   -webkit-background-clip: text;
@@ -181,6 +170,7 @@ html, body {
   display: inline-block;
   width: 32px;
   color: #1E88E5;
+  transform: rotate(90deg);
   transition: transform .2s ease;
   font-size: 30px;
   line-height: 1;
@@ -188,7 +178,7 @@ html, body {
   font-weight: 800;
 }
 .section-header[aria-expanded="false"] .chevron {
-  transform: rotate(-90deg);
+  transform: rotate(0deg);
 }
 .section-header .section-title {
   flex: 1;
@@ -328,10 +318,11 @@ html, body {
   line-height: 1;
   text-align: center;
   font-weight: 800;
+  transform: rotate(90deg);
   transition: transform .2s ease;
 }
 .bounty-group-header[aria-expanded="false"] .chevron {
-  transform: rotate(-90deg);
+  transform: rotate(0deg);
 }
 .bounty-group-header .g-emoji { font-size: 16px; }
 .bounty-group-header .g-label {
@@ -431,18 +422,20 @@ html, body {
 .cat-chip.discovered .cat-chip-corner .seq { color: #B8860B; }
 .cat-chip.starter .cat-chip-corner .seq { color: #1E88E5; }
 
-.cat-chip-emoji { font-size: 40px; line-height: 1; }
-.cat-chip.undiscovered .cat-chip-emoji { filter: grayscale(0.85); opacity: 0.55; }
-
-.cat-chip-name {
+.cat-chip-element {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cat-chip-element .name {
   font-size: 20px;
   font-weight: 700;
-  margin-top: 4px;
   padding-right: 78px;
   word-break: break-all;
   color: #222;
 }
-.cat-chip.undiscovered .cat-chip-name { color: #888; }
+.cat-chip.undiscovered .cat-chip-element { filter: grayscale(0.85); opacity: 0.68; }
+.cat-chip.undiscovered .cat-chip-element .name { color: #888; }
 
 .cat-chip-meta {
   font-size: 12px;
@@ -468,7 +461,7 @@ html, body {
   background: linear-gradient(135deg, #FFEEA8 0%, #FFFCE3 100%);
   box-shadow: 0 4px 16px rgba(255,213,79,0.25);
 }
-.cat-chip.founder .cat-chip-name {
+.cat-chip.founder .cat-chip-element .name {
   display: flex;
   align-items: baseline;
   gap: 8px;
@@ -544,11 +537,14 @@ html, body {
 .first-seq { color: #888; font-weight: 600; }
 .first-time { color: #AAA; font-variant-numeric: tabular-nums; }
 
-.first-emoji { font-size: 40px; line-height: 1; }
-.first-name {
+.first-element {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.first-element .name {
   font-size: 20px;
   font-weight: 700;
-  margin-top: 4px;
   padding-right: 76px;
   word-break: break-all;
   color: #222;
@@ -805,6 +801,9 @@ html, body {
   flex: 1;
 }
 .recipe-modal-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-size: 22px;
   font-weight: 700;
   color: #222;
@@ -854,14 +853,13 @@ html, body {
   padding: 6px 12px;
   background: #FFF;
   border: 1px solid #E0E0E0;
-  border-radius: 999px;
+  border-radius: 12px;
   font-size: 14px;
   min-width: 0;
   overflow: hidden;
   flex: 1;
 }
-.recipe-pill .e { font-size: 18px; line-height: 1; flex-shrink: 0; }
-.recipe-pill .n {
+.recipe-pill .name {
   font-weight: 600;
   color: #333;
   overflow: hidden;
