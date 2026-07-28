@@ -1,0 +1,1332 @@
+{
+  "Riot": {
+    "entity_type": "company",
+    "canonical_name": "Riot Games",
+    "aliases": [
+      "拳头",
+      "拳头游戏"
+    ],
+    "contexts": [
+      "studio",
+      "invest"
+    ],
+    "forbidden_senses": [
+      "riot=暴乱",
+      "riot=闪电"
+    ],
+    "icon": {
+      "base": "👊",
+      "badge": "🎮",
+      "palette": "studio",
+      "source": "curated"
+    },
+    "rationale": "腾讯投资的游戏工作室；中文通称拳头游戏"
+  },
+  "Epic": {
+    "entity_type": "company",
+    "canonical_name": "Epic Games",
+    "aliases": [
+      "Epic Games",
+      "Epic游戏"
+    ],
+    "contexts": [
+      "studio",
+      "invest"
+    ],
+    "forbidden_senses": [
+      "epic=史诗",
+      "epic=宏大"
+    ],
+    "icon": {
+      "base": "🛡️",
+      "badge": "🎮",
+      "palette": "studio",
+      "source": "curated"
+    },
+    "rationale": "游戏工作室 Epic Games；盾牌主图配游戏徽章表示其公司语境"
+  },
+  "COO": {
+    "entity_type": "role",
+    "canonical_name": "Chief Operating Officer",
+    "aliases": [
+      "首席运营官",
+      "运营负责人"
+    ],
+    "contexts": [
+      "boss",
+      "operations"
+    ],
+    "forbidden_senses": [
+      "coo=咕咕声"
+    ],
+    "icon": {
+      "base": "🧑‍💼",
+      "badge": "⚙️",
+      "palette": "office",
+      "source": "curated"
+    },
+    "rationale": "公司首席运营官职位；职业人士与流程齿轮共同表达运营管理"
+  },
+  "任宇昕": {
+    "entity_type": "person",
+    "canonical_name": "任宇昕",
+    "aliases": [
+      "Mark Ren",
+      "任总"
+    ],
+    "contexts": [
+      "boss",
+      "studio"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "👔",
+      "badge": "🎮",
+      "palette": "people",
+      "source": "curated"
+    },
+    "rationale": "腾讯高级管理者并长期负责互动娱乐业务；领带配游戏徽章标示人物与业务"
+  },
+  "996": {
+    "entity_type": "work_pattern",
+    "canonical_name": "996工作制",
+    "aliases": ["早九晚九工作制", "每周工作六天"],
+    "contexts": ["worker"],
+    "forbidden_senses": ["996=普通数字"],
+    "icon": {"base": "⏰", "badge": "💼", "palette": "office", "source": "entity"},
+    "rationale": "互联网行业加班作息简称；时钟配办公徽章表达工作制度"
+  },
+  "007": {
+    "entity_type": "work_pattern",
+    "canonical_name": "007工作制",
+    "aliases": ["零点到零点工作制", "每周工作七天"],
+    "contexts": ["worker"],
+    "forbidden_senses": ["007=特工代号"],
+    "icon": {"base": "🌚", "badge": "💼", "palette": "office", "source": "entity"},
+    "rationale": "全天候加班作息简称；深夜月亮配办公徽章表达极端工时"
+  },
+  "iWiki": {
+    "entity_type": "product",
+    "canonical_name": "腾讯 iWiki",
+    "aliases": ["iWiki知识库", "腾讯内部知识库"],
+    "contexts": ["tencent", "office"],
+    "forbidden_senses": ["wiki=维基百科"],
+    "icon": {"base": "📘", "badge": "🐧", "palette": "product", "source": "entity"},
+    "rationale": "腾讯内部知识管理产品；蓝色书本配企鹅徽章"
+  },
+  "RTX": {
+    "entity_type": "product",
+    "canonical_name": "腾讯通 RTX",
+    "aliases": ["腾讯通", "腾讯RTX"],
+    "contexts": ["tencent", "office"],
+    "forbidden_senses": ["RTX=显卡型号"],
+    "icon": {"base": "📧", "badge": "🐧", "palette": "product", "source": "entity"},
+    "rationale": "腾讯内部即时通讯产品；消息信封配企鹅徽章"
+  },
+  "TAPD": {
+    "entity_type": "product",
+    "canonical_name": "腾讯敏捷产品研发平台",
+    "aliases": ["TAPD平台", "腾讯TAPD"],
+    "contexts": ["tencent", "office"],
+    "forbidden_senses": [],
+    "icon": {"base": "📋", "badge": "🐧", "palette": "product", "source": "entity"},
+    "rationale": "腾讯敏捷研发协作平台；任务板配企鹅徽章"
+  },
+  "QQ": {
+    "entity_type": "product",
+    "canonical_name": "腾讯 QQ",
+    "aliases": ["腾讯QQ", "QQ聊天"],
+    "contexts": ["tencent", "product"],
+    "forbidden_senses": ["QQ=普通企鹅"],
+    "icon": {"base": "🐧", "badge": "💬", "palette": "product", "source": "entity"},
+    "rationale": "腾讯即时通讯品牌；企鹅主图配聊天徽章避免与动物概念混淆"
+  },
+  "IEG": {
+    "entity_type": "organization",
+    "canonical_name": "互动娱乐事业群",
+    "aliases": ["腾讯IEG", "Interactive Entertainment Group"],
+    "contexts": ["tencent", "studio"],
+    "forbidden_senses": [],
+    "icon": {"base": "🎮", "badge": "🐧", "palette": "studio", "source": "entity"},
+    "rationale": "腾讯互动娱乐事业群缩写；游戏主图配企鹅徽章"
+  },
+  "WXG": {
+    "entity_type": "organization",
+    "canonical_name": "微信事业群",
+    "aliases": ["腾讯WXG", "Weixin Group"],
+    "contexts": ["tencent", "product"],
+    "forbidden_senses": [],
+    "icon": {"base": "💚", "badge": "🐧", "palette": "product", "source": "entity"},
+    "rationale": "腾讯微信事业群缩写；绿色品牌意象配企鹅徽章"
+  },
+  "CSIG": {
+    "entity_type": "organization",
+    "canonical_name": "云与智慧产业事业群",
+    "aliases": ["腾讯CSIG", "Cloud and Smart Industries Group"],
+    "contexts": ["tencent", "product"],
+    "forbidden_senses": [],
+    "icon": {"base": "☁️", "badge": "🏢", "palette": "product", "source": "entity"},
+    "rationale": "腾讯云与智慧产业事业群缩写；云主图配企业徽章"
+  },
+  "PCG": {
+    "entity_type": "organization",
+    "canonical_name": "平台与内容事业群",
+    "aliases": ["腾讯PCG", "Platform and Content Group"],
+    "contexts": ["tencent", "product"],
+    "forbidden_senses": [],
+    "icon": {"base": "💻", "badge": "🐧", "palette": "product", "source": "entity"},
+    "rationale": "腾讯平台与内容事业群缩写；数字终端配企鹅徽章"
+  },
+  "TEG": {
+    "entity_type": "organization",
+    "canonical_name": "技术工程事业群",
+    "aliases": ["腾讯TEG", "Technology and Engineering Group"],
+    "contexts": ["tencent", "office"],
+    "forbidden_senses": [],
+    "icon": {"base": "🔧", "badge": "🐧", "palette": "office", "source": "entity"},
+    "rationale": "腾讯技术工程事业群缩写；工程工具配企鹅徽章"
+  },
+  "CDG": {
+    "entity_type": "organization",
+    "canonical_name": "企业发展事业群",
+    "aliases": ["腾讯CDG", "Corporate Development Group"],
+    "contexts": ["tencent", "invest"],
+    "forbidden_senses": [],
+    "icon": {"base": "📈", "badge": "🐧", "palette": "office", "source": "entity"},
+    "rationale": "腾讯企业发展事业群缩写；增长图表配企鹅徽章"
+  },
+  "OKR": {
+    "entity_type": "abbreviation",
+    "canonical_name": "Objectives and Key Results",
+    "aliases": ["目标与关键成果", "OKR目标管理"],
+    "contexts": ["worker", "office"],
+    "forbidden_senses": [],
+    "icon": {"base": "🎯", "badge": "💼", "palette": "office", "source": "entity"},
+    "rationale": "目标管理方法缩写；靶心配办公徽章"
+  },
+  "KPI": {
+    "entity_type": "abbreviation",
+    "canonical_name": "Key Performance Indicator",
+    "aliases": ["关键绩效指标", "绩效指标"],
+    "contexts": ["worker", "office"],
+    "forbidden_senses": [],
+    "icon": {"base": "📏", "badge": "💼", "palette": "office", "source": "entity"},
+    "rationale": "关键绩效指标缩写；量尺配办公徽章表达衡量"
+  },
+  "SBTI": {
+    "entity_type": "meme_abbreviation",
+    "canonical_name": "SBTI 人格测试梗",
+    "aliases": ["SBTI测试", "SBTI人格"],
+    "contexts": ["meme_2026w16", "personality"],
+    "forbidden_senses": ["SBTI=科学减碳倡议"],
+    "icon": {"base": "🧠", "badge": "🤣", "palette": "people", "source": "entity"},
+    "rationale": "种子配方中的人格测试热梗缩写；大脑配热梗徽章"
+  },
+  "gap year": {
+    "entity_type": "english_term",
+    "canonical_name": "Gap year",
+    "aliases": ["间隔年", "休整年"],
+    "contexts": ["meme_classic", "life"],
+    "forbidden_senses": [],
+    "icon": {"base": "🏖️", "badge": "🤣", "palette": "people", "source": "entity"},
+    "rationale": "暂离学习或工作的间隔年；海滩配轻松梗徽章"
+  },
+  "AI": {
+    "entity_type": "abbreviation",
+    "canonical_name": "Artificial Intelligence",
+    "aliases": ["人工智能", "AI技术"],
+    "contexts": ["abstract", "technology"],
+    "forbidden_senses": ["AI=人名拼音"],
+    "icon": {"base": "🤖", "badge": "💭", "palette": "place", "source": "entity"},
+    "rationale": "人工智能英文缩写；机器人配抽象思考徽章"
+  },
+  "INFP": {
+    "entity_type": "personality_type",
+    "canonical_name": "INFP 人格类型",
+    "aliases": ["调停者人格", "INFP人格"],
+    "contexts": ["abstract", "personality"],
+    "forbidden_senses": [],
+    "icon": {"base": "🎭", "badge": "💭", "palette": "place", "source": "entity"},
+    "rationale": "人格类型缩写；面具配抽象思考徽章"
+  },
+  "emo": {
+    "entity_type": "english_term",
+    "canonical_name": "emo 情绪梗",
+    "aliases": ["网抑云情绪", "伤感状态"],
+    "contexts": ["meme_classic", "emotion"],
+    "forbidden_senses": ["emo=音乐流派"],
+    "icon": {"base": "🥀", "badge": "🤣", "palette": "people", "source": "entity"},
+    "rationale": "网络语境中的低落情绪梗；枯萎花朵配热梗徽章"
+  },
+  "QQ邮箱": {
+    "entity_type": "product",
+    "canonical_name": "QQ邮箱",
+    "aliases": ["腾讯QQ邮箱", "mail.qq.com"],
+    "contexts": ["product", "communication"],
+    "forbidden_senses": [],
+    "icon": {"base": "📬", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "腾讯电子邮件产品；邮箱主图配产品徽章"
+  },
+  "QQ音乐": {
+    "entity_type": "product",
+    "canonical_name": "QQ音乐",
+    "aliases": ["腾讯QQ音乐", "QQ Music"],
+    "contexts": ["product", "music"],
+    "forbidden_senses": [],
+    "icon": {"base": "🎵", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "腾讯音乐流媒体产品；音符配产品徽章"
+  },
+  "QQ浏览器": {
+    "entity_type": "product",
+    "canonical_name": "QQ浏览器",
+    "aliases": ["腾讯QQ浏览器", "QQ Browser"],
+    "contexts": ["product", "browser"],
+    "forbidden_senses": [],
+    "icon": {"base": "🌐", "badge": "🐧", "palette": "product", "source": "entity"},
+    "rationale": "腾讯浏览器产品；网络主图配企鹅品牌徽章"
+  },
+  "QQ空间": {
+    "entity_type": "product",
+    "canonical_name": "QQ空间",
+    "aliases": ["腾讯QQ空间", "Qzone"],
+    "contexts": ["product", "social"],
+    "forbidden_senses": ["空间=宇宙"],
+    "icon": {"base": "🌌", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "腾讯社交空间产品；星空主图配产品徽章"
+  },
+  "TIM": {
+    "entity_type": "product",
+    "canonical_name": "腾讯 TIM",
+    "aliases": ["腾讯TIM", "TIM办公版QQ"],
+    "contexts": ["product", "office"],
+    "forbidden_senses": ["TIM=人名"],
+    "icon": {"base": "💼", "badge": "💬", "palette": "product", "source": "entity"},
+    "rationale": "面向办公协作的即时通讯产品；公文包配聊天徽章"
+  },
+  "企业微信": {
+    "entity_type": "product",
+    "canonical_name": "企业微信",
+    "aliases": ["WeCom", "腾讯企业微信"],
+    "contexts": ["product", "office"],
+    "forbidden_senses": [],
+    "icon": {"base": "💼", "badge": "🏢", "palette": "product", "source": "entity"},
+    "rationale": "腾讯企业通讯与协作产品；公文包配企业徽章"
+  },
+  "微云": {
+    "entity_type": "product",
+    "canonical_name": "腾讯微云",
+    "aliases": ["腾讯微云", "Weiyun"],
+    "contexts": ["product", "cloud_storage"],
+    "forbidden_senses": ["微云=小片云朵"],
+    "icon": {"base": "☁️", "badge": "📁", "palette": "product", "source": "entity"},
+    "rationale": "腾讯云端文件存储产品；云主图配文件夹徽章"
+  },
+  "腾讯云": {
+    "entity_type": "product",
+    "canonical_name": "腾讯云",
+    "aliases": ["Tencent Cloud", "腾讯云计算"],
+    "contexts": ["product", "cloud"],
+    "forbidden_senses": ["腾讯云=天气云层"],
+    "icon": {"base": "☁️", "badge": "🖥️", "palette": "product", "source": "entity"},
+    "rationale": "腾讯云计算平台；云主图配计算终端徽章"
+  },
+  "TME": {
+    "entity_type": "company",
+    "canonical_name": "Tencent Music Entertainment",
+    "aliases": ["腾讯音乐娱乐集团", "腾讯音乐"],
+    "contexts": ["product", "music"],
+    "forbidden_senses": [],
+    "icon": {"base": "🎶", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "腾讯音乐娱乐集团英文缩写；多音符配产品徽章"
+  },
+  "CODING": {
+    "entity_type": "product",
+    "canonical_name": "CODING DevOps",
+    "aliases": ["腾讯云CODING", "CODING研发平台"],
+    "contexts": ["product", "development"],
+    "forbidden_senses": ["coding=泛指编程"],
+    "icon": {"base": "💻", "badge": "🧑‍💻", "palette": "product", "source": "entity"},
+    "rationale": "腾讯云软件研发协作平台；电脑配开发者徽章"
+  },
+  "CodeBuddy": {
+    "entity_type": "product",
+    "canonical_name": "Tencent Cloud CodeBuddy",
+    "aliases": ["腾讯云CodeBuddy", "CodeBuddy编程助手"],
+    "contexts": ["product", "ai"],
+    "forbidden_senses": [],
+    "icon": {"base": "🤖", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "腾讯云 AI 编程助手；机器人配产品徽章"
+  },
+  "WorkBuddy": {
+    "entity_type": "product",
+    "canonical_name": "WorkBuddy",
+    "aliases": ["WorkBuddy工作助手", "腾讯WorkBuddy"],
+    "contexts": ["product", "office"],
+    "forbidden_senses": [],
+    "icon": {"base": "🧑‍💼", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "面向工作场景的智能助手；职业人士配产品徽章"
+  },
+  "AnyDev": {
+    "entity_type": "product",
+    "canonical_name": "AnyDev",
+    "aliases": ["AnyDev开发平台", "腾讯AnyDev"],
+    "contexts": ["product", "development"],
+    "forbidden_senses": [],
+    "icon": {"base": "🛠️", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "开发工具产品；工具主图配产品徽章"
+  },
+  "Wedata": {
+    "entity_type": "product",
+    "canonical_name": "WeData",
+    "aliases": ["腾讯云WeData", "WeData数据开发治理"],
+    "contexts": ["product", "data"],
+    "forbidden_senses": [],
+    "icon": {"base": "📊", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "数据开发治理平台；数据图表配产品徽章"
+  },
+  "ima.copilot": {
+    "entity_type": "product",
+    "canonical_name": "ima.copilot",
+    "aliases": ["腾讯ima", "ima知识助手"],
+    "contexts": ["product", "ai"],
+    "forbidden_senses": ["copilot=飞行副驾驶"],
+    "icon": {"base": "📚", "badge": "🤖", "palette": "product", "source": "entity"},
+    "rationale": "腾讯 AI 知识助手；书本配机器人徽章"
+  },
+  "CDC": {
+    "entity_type": "organization",
+    "canonical_name": "Tencent Customer Research and User Experience Design Center",
+    "aliases": ["腾讯CDC", "腾讯用户研究与体验设计部"],
+    "contexts": ["product", "design"],
+    "forbidden_senses": ["CDC=疾病控制中心"],
+    "icon": {"base": "🎨", "badge": "🏢", "palette": "product", "source": "entity"},
+    "rationale": "腾讯用户研究与体验设计组织缩写；调色板配组织徽章"
+  },
+  "DNF": {
+    "entity_type": "product",
+    "canonical_name": "Dungeon & Fighter",
+    "aliases": ["地下城与勇士", "DNF端游"],
+    "contexts": ["product", "game"],
+    "forbidden_senses": [],
+    "icon": {"base": "⚔️", "badge": "🎮", "palette": "product", "source": "entity"},
+    "rationale": "动作游戏《地下城与勇士》缩写；武器配游戏徽章"
+  },
+  "PUBG": {
+    "entity_type": "product",
+    "canonical_name": "PUBG: Battlegrounds",
+    "aliases": ["绝地求生", "PUBG端游"],
+    "contexts": ["product", "game"],
+    "forbidden_senses": [],
+    "icon": {"base": "🪂", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "战术竞技游戏；降落伞配产品徽章"
+  },
+  "Valorant": {
+    "entity_type": "product",
+    "canonical_name": "VALORANT",
+    "aliases": ["无畏契约", "瓦罗兰特"],
+    "contexts": ["product", "game"],
+    "forbidden_senses": [],
+    "icon": {"base": "🎯", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "拳头游戏开发的战术射击产品；靶心配产品徽章"
+  },
+  "公众号": {
+    "entity_type": "product_feature",
+    "canonical_name": "微信公众平台公众号",
+    "aliases": ["微信公众号", "微信公众账号"],
+    "contexts": ["product", "content"],
+    "forbidden_senses": ["公众号=普通公共号码"],
+    "icon": {"base": "📢", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "微信公众平台内容账号能力；扩音器配产品徽章"
+  },
+  "小程序": {
+    "entity_type": "product_feature",
+    "canonical_name": "微信小程序",
+    "aliases": ["微信小程序", "Mini Program"],
+    "contexts": ["product", "application"],
+    "forbidden_senses": ["小程序=任意短小代码"],
+    "icon": {"base": "🔲", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "微信内轻量应用平台；模块方块配产品徽章"
+  },
+  "微信支付": {
+    "entity_type": "product",
+    "canonical_name": "微信支付",
+    "aliases": ["WeChat Pay", "腾讯微信支付"],
+    "contexts": ["product", "payment"],
+    "forbidden_senses": [],
+    "icon": {"base": "💸", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "微信支付产品；流动钱币配产品徽章"
+  },
+  "腾讯视频": {
+    "entity_type": "product",
+    "canonical_name": "腾讯视频",
+    "aliases": ["Tencent Video", "腾讯视频客户端"],
+    "contexts": ["product", "video"],
+    "forbidden_senses": [],
+    "icon": {"base": "📺", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "腾讯长视频平台；电视主图配产品徽章"
+  },
+  "微视": {
+    "entity_type": "product",
+    "canonical_name": "腾讯微视",
+    "aliases": ["腾讯微视", "Weishi"],
+    "contexts": ["product", "short_video"],
+    "forbidden_senses": ["微视=轻微视力"],
+    "icon": {"base": "🎬", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "腾讯短视频产品；场记板配产品徽章"
+  },
+  "腾讯新闻": {
+    "entity_type": "product",
+    "canonical_name": "腾讯新闻",
+    "aliases": ["Tencent News", "腾讯新闻客户端"],
+    "contexts": ["product", "news"],
+    "forbidden_senses": [],
+    "icon": {"base": "📰", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "腾讯新闻资讯产品；报纸主图配产品徽章"
+  },
+  "腾讯体育": {
+    "entity_type": "product",
+    "canonical_name": "腾讯体育",
+    "aliases": ["Tencent Sports", "腾讯体育频道"],
+    "contexts": ["product", "sports"],
+    "forbidden_senses": [],
+    "icon": {"base": "⚽", "badge": "🐧", "palette": "product", "source": "entity"},
+    "rationale": "腾讯体育内容产品；足球主图配企鹅品牌徽章"
+  },
+  "腾讯动漫": {
+    "entity_type": "product",
+    "canonical_name": "腾讯动漫",
+    "aliases": ["Tencent Animation & Comics", "腾讯动漫平台"],
+    "contexts": ["product", "comics"],
+    "forbidden_senses": [],
+    "icon": {"base": "📖", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "腾讯动漫内容平台；翻开的书配产品徽章"
+  },
+  "阅文集团": {
+    "entity_type": "company",
+    "canonical_name": "阅文集团",
+    "aliases": ["China Literature", "腾讯阅文"],
+    "contexts": ["product", "literature"],
+    "forbidden_senses": [],
+    "icon": {"base": "📚", "badge": "🏢", "palette": "product", "source": "entity"},
+    "rationale": "网络文学企业阅文集团；书本配企业徽章"
+  },
+  "酷狗": {
+    "entity_type": "product",
+    "canonical_name": "酷狗音乐",
+    "aliases": ["KuGou Music", "腾讯酷狗音乐"],
+    "contexts": ["product", "music"],
+    "forbidden_senses": ["酷狗=很酷的狗"],
+    "icon": {"base": "🎧", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "在线音乐产品酷狗音乐；耳机配产品徽章"
+  },
+  "酷我": {
+    "entity_type": "product",
+    "canonical_name": "酷我音乐",
+    "aliases": ["Kuwo Music", "腾讯酷我音乐"],
+    "contexts": ["product", "music"],
+    "forbidden_senses": [],
+    "icon": {"base": "🎤", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "在线音乐产品酷我音乐；麦克风配产品徽章"
+  },
+  "全民K歌": {
+    "entity_type": "product",
+    "canonical_name": "全民K歌",
+    "aliases": ["WeSing", "腾讯全民K歌"],
+    "contexts": ["product", "music"],
+    "forbidden_senses": [],
+    "icon": {"base": "🎤", "badge": "🎵", "palette": "product", "source": "entity"},
+    "rationale": "腾讯在线卡拉 OK 产品；麦克风配音符徽章"
+  },
+  "应用宝": {
+    "entity_type": "product",
+    "canonical_name": "腾讯应用宝",
+    "aliases": ["腾讯应用宝", "Tencent App Store"],
+    "contexts": ["product", "application"],
+    "forbidden_senses": ["应用宝=抽象宝物"],
+    "icon": {"base": "📦", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "腾讯应用分发产品；软件包裹配产品徽章"
+  },
+  "电脑管家": {
+    "entity_type": "product",
+    "canonical_name": "腾讯电脑管家",
+    "aliases": ["腾讯电脑管家", "Tencent PC Manager"],
+    "contexts": ["product", "security"],
+    "forbidden_senses": ["管家=家庭服务人员"],
+    "icon": {"base": "🛡️", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "腾讯终端安全产品；盾牌配产品徽章"
+  },
+  "腾讯地图": {
+    "entity_type": "product",
+    "canonical_name": "腾讯地图",
+    "aliases": ["Tencent Maps", "腾讯地图客户端"],
+    "contexts": ["product", "map"],
+    "forbidden_senses": [],
+    "icon": {"base": "🗺️", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "腾讯地图与导航产品；地图主图配产品徽章"
+  },
+  "腾讯翻译君": {
+    "entity_type": "product",
+    "canonical_name": "腾讯翻译君",
+    "aliases": ["Tencent Translator", "翻译君"],
+    "contexts": ["product", "translation"],
+    "forbidden_senses": [],
+    "icon": {"base": "🔤", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "腾讯翻译产品；字母主图配产品徽章"
+  },
+  "混元大模型": {
+    "entity_type": "product",
+    "canonical_name": "腾讯混元大模型",
+    "aliases": ["腾讯混元", "Hunyuan"],
+    "contexts": ["product", "ai"],
+    "forbidden_senses": ["混元=传统哲学概念"],
+    "icon": {"base": "🧠", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "腾讯基础大模型品牌；大脑配产品徽章"
+  },
+  "元宝": {
+    "entity_type": "product",
+    "canonical_name": "腾讯元宝",
+    "aliases": ["腾讯元宝", "Yuanbao AI"],
+    "contexts": ["product", "ai"],
+    "forbidden_senses": ["元宝=古代货币"],
+    "icon": {"base": "💎", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "腾讯 AI 助手产品；宝石主图配产品徽章以限定品牌语境"
+  },
+  "腾讯企点": {
+    "entity_type": "product",
+    "canonical_name": "腾讯企点",
+    "aliases": ["Tencent Qidian", "腾讯企点客服"],
+    "contexts": ["product", "enterprise"],
+    "forbidden_senses": [],
+    "icon": {"base": "🎯", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "腾讯企业客户连接产品；目标主图配产品徽章"
+  },
+  "英雄联盟": {
+    "entity_type": "product",
+    "canonical_name": "League of Legends",
+    "aliases": ["LOL端游", "英雄联盟端游"],
+    "contexts": ["product", "game"],
+    "forbidden_senses": [],
+    "icon": {"base": "🎮", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "拳头游戏开发的多人竞技游戏；手柄配产品徽章"
+  },
+  "英雄联盟手游": {
+    "entity_type": "product",
+    "canonical_name": "League of Legends: Wild Rift",
+    "aliases": ["LOL手游", "Wild Rift"],
+    "contexts": ["product", "game"],
+    "forbidden_senses": [],
+    "icon": {"base": "📱", "badge": "🎮", "palette": "product", "source": "entity"},
+    "rationale": "英雄联盟移动游戏产品；手机主图配游戏徽章"
+  },
+  "金铲铲": {
+    "entity_type": "product",
+    "canonical_name": "金铲铲之战",
+    "aliases": ["金铲铲之战", "腾讯金铲铲"],
+    "contexts": ["product", "game"],
+    "forbidden_senses": ["金铲铲=普通铲子"],
+    "icon": {"base": "♟️", "badge": "⛏️", "palette": "product", "source": "entity"},
+    "rationale": "自走棋游戏《金铲铲之战》；棋子配铲子徽章"
+  },
+  "穿越火线": {
+    "entity_type": "product",
+    "canonical_name": "CrossFire",
+    "aliases": ["CF端游", "穿越火线端游"],
+    "contexts": ["product", "game"],
+    "forbidden_senses": [],
+    "icon": {"base": "🔫", "badge": "🎮", "palette": "product", "source": "entity"},
+    "rationale": "射击游戏《穿越火线》；枪械配游戏徽章"
+  },
+  "火影忍者手游": {
+    "entity_type": "product",
+    "canonical_name": "火影忍者手游",
+    "aliases": ["腾讯火影忍者手游", "火影手游"],
+    "contexts": ["product", "game"],
+    "forbidden_senses": ["火影=火焰影子"],
+    "icon": {"base": "🥷", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "腾讯发行的火影忍者移动游戏；忍者配产品徽章"
+  },
+  "元梦之星": {
+    "entity_type": "product",
+    "canonical_name": "元梦之星",
+    "aliases": ["腾讯元梦之星", "元梦"],
+    "contexts": ["product", "game"],
+    "forbidden_senses": ["元梦之星=普通星体"],
+    "icon": {"base": "⭐", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "腾讯派对游戏产品；星星主图配产品徽章"
+  },
+  "欢乐斗地主": {
+    "entity_type": "product",
+    "canonical_name": "腾讯欢乐斗地主",
+    "aliases": ["腾讯欢乐斗地主", "欢乐斗地主游戏"],
+    "contexts": ["product", "game"],
+    "forbidden_senses": ["斗地主=线下扑克玩法"],
+    "icon": {"base": "🃏", "badge": "🎮", "palette": "product", "source": "entity"},
+    "rationale": "腾讯数字扑克游戏；纸牌配游戏徽章"
+  },
+  "欢乐麻将": {
+    "entity_type": "product",
+    "canonical_name": "腾讯欢乐麻将",
+    "aliases": ["腾讯欢乐麻将", "欢乐麻将全集"],
+    "contexts": ["product", "game"],
+    "forbidden_senses": ["麻将=线下桌游"],
+    "icon": {"base": "🀄", "badge": "🎮", "palette": "product", "source": "entity"},
+    "rationale": "腾讯数字麻将游戏；麻将牌配游戏徽章"
+  },
+  "天美": {
+    "entity_type": "studio",
+    "canonical_name": "天美工作室群",
+    "aliases": ["TiMi Studio Group", "腾讯天美"],
+    "contexts": ["studio", "tencent"],
+    "forbidden_senses": ["天美=天气美好"],
+    "icon": {"base": "⚔️", "badge": "🎮", "palette": "studio", "source": "entity"},
+    "rationale": "腾讯游戏工作室群；武器配游戏徽章"
+  },
+  "光子": {
+    "entity_type": "studio",
+    "canonical_name": "光子工作室群",
+    "aliases": ["Lightspeed Studios", "腾讯光子"],
+    "contexts": ["studio", "tencent"],
+    "forbidden_senses": ["光子=物理粒子"],
+    "icon": {"base": "💡", "badge": "🎮", "palette": "studio", "source": "entity"},
+    "rationale": "腾讯游戏工作室群；光源配游戏徽章限定实体语境"
+  },
+  "魔方": {
+    "entity_type": "studio",
+    "canonical_name": "魔方工作室群",
+    "aliases": ["Morefun Studios", "腾讯魔方"],
+    "contexts": ["studio", "tencent"],
+    "forbidden_senses": ["魔方=益智玩具"],
+    "icon": {"base": "🎲", "badge": "🎮", "palette": "studio", "source": "entity"},
+    "rationale": "腾讯游戏工作室群；立方体玩具意象配游戏徽章"
+  },
+  "北极光": {
+    "entity_type": "studio",
+    "canonical_name": "北极光工作室群",
+    "aliases": ["Aurora Studios", "腾讯北极光"],
+    "contexts": ["studio", "tencent"],
+    "forbidden_senses": ["北极光=自然极光"],
+    "icon": {"base": "🌌", "badge": "🎮", "palette": "studio", "source": "entity"},
+    "rationale": "腾讯游戏工作室群；极光夜空配游戏徽章"
+  },
+  "量子": {
+    "entity_type": "studio",
+    "canonical_name": "量子工作室",
+    "aliases": ["Quantum Studio", "腾讯量子"],
+    "contexts": ["studio", "tencent"],
+    "forbidden_senses": ["量子=物理概念"],
+    "icon": {"base": "⚛️", "badge": "🎮", "palette": "studio", "source": "entity"},
+    "rationale": "腾讯游戏工作室；原子意象配游戏徽章限定实体语境"
+  },
+  "极光": {
+    "entity_type": "studio",
+    "canonical_name": "极光计划",
+    "aliases": ["腾讯极光计划", "Aurora Project"],
+    "contexts": ["studio", "tencent"],
+    "forbidden_senses": ["极光=自然现象"],
+    "icon": {"base": "✨", "badge": "🎮", "palette": "studio", "source": "entity"},
+    "rationale": "腾讯游戏发行品牌语境；闪光配游戏徽章"
+  },
+  "波士顿": {
+    "entity_type": "studio",
+    "canonical_name": "腾讯波士顿工作室语境",
+    "aliases": ["腾讯波士顿工作室", "Boston studio"],
+    "contexts": ["studio", "tencent"],
+    "forbidden_senses": ["波士顿=普通城市"],
+    "icon": {"base": "🦞", "badge": "🎮", "palette": "studio", "source": "entity"},
+    "rationale": "种子工作室链中的波士顿实体；当地龙虾意象配游戏徽章"
+  },
+  "拳头": {
+    "entity_type": "company",
+    "canonical_name": "Riot Games",
+    "aliases": ["拳头游戏", "Riot Games中文名"],
+    "contexts": ["studio", "invest"],
+    "forbidden_senses": ["拳头=身体部位"],
+    "icon": {"base": "👊", "badge": "🎮", "palette": "studio", "source": "entity"},
+    "rationale": "Riot Games 的中文通称；拳头主图配游戏徽章"
+  },
+  "Supercell": {
+    "entity_type": "company",
+    "canonical_name": "Supercell",
+    "aliases": ["Supercell游戏公司", "超级细胞"],
+    "contexts": ["studio", "invest"],
+    "forbidden_senses": ["supercell=超级单体雷暴"],
+    "icon": {"base": "🏰", "badge": "🎮", "palette": "studio", "source": "entity"},
+    "rationale": "移动游戏公司 Supercell；城堡主图配游戏徽章"
+  },
+  "拼多多": {
+    "entity_type": "company",
+    "canonical_name": "拼多多",
+    "aliases": ["Pinduoduo", "PDD电商"],
+    "contexts": ["invest", "ecommerce"],
+    "forbidden_senses": [],
+    "icon": {"base": "🛒", "badge": "💰", "palette": "product", "source": "entity"},
+    "rationale": "腾讯投资语境中的电商公司；购物车配投资徽章"
+  },
+  "美团": {
+    "entity_type": "company",
+    "canonical_name": "美团",
+    "aliases": ["Meituan", "美团平台"],
+    "contexts": ["invest", "local_services"],
+    "forbidden_senses": [],
+    "icon": {"base": "🛵", "badge": "💰", "palette": "product", "source": "entity"},
+    "rationale": "腾讯投资语境中的本地生活公司；配送车配投资徽章"
+  },
+  "快手": {
+    "entity_type": "company",
+    "canonical_name": "快手",
+    "aliases": ["Kuaishou", "快手科技"],
+    "contexts": ["invest", "short_video"],
+    "forbidden_senses": ["快手=动作很快的人"],
+    "icon": {"base": "📹", "badge": "💰", "palette": "product", "source": "entity"},
+    "rationale": "腾讯投资语境中的短视频公司；摄像机配投资徽章"
+  },
+  "B站": {
+    "entity_type": "company",
+    "canonical_name": "哔哩哔哩",
+    "aliases": ["Bilibili", "哔哩哔哩"],
+    "contexts": ["invest", "video"],
+    "forbidden_senses": ["B站=普通B号站点"],
+    "icon": {"base": "📺", "badge": "💰", "palette": "product", "source": "entity"},
+    "rationale": "腾讯投资语境中的视频社区；电视配投资徽章"
+  },
+  "京东": {
+    "entity_type": "company",
+    "canonical_name": "京东",
+    "aliases": ["JD.com", "京东集团"],
+    "contexts": ["invest", "ecommerce"],
+    "forbidden_senses": [],
+    "icon": {"base": "📦", "badge": "💰", "palette": "product", "source": "entity"},
+    "rationale": "腾讯投资语境中的电商与物流公司；包裹配投资徽章"
+  },
+  "知乎": {
+    "entity_type": "company",
+    "canonical_name": "知乎",
+    "aliases": ["Zhihu", "知乎社区"],
+    "contexts": ["invest", "knowledge"],
+    "forbidden_senses": ["知乎=古文疑问词"],
+    "icon": {"base": "💡", "badge": "💰", "palette": "product", "source": "entity"},
+    "rationale": "腾讯投资语境中的问答社区；灯泡配投资徽章"
+  },
+  "蔚来": {
+    "entity_type": "company",
+    "canonical_name": "蔚来汽车",
+    "aliases": ["NIO", "蔚来"],
+    "contexts": ["invest", "vehicle"],
+    "forbidden_senses": ["蔚来=未来谐音"],
+    "icon": {"base": "🚗", "badge": "💰", "palette": "product", "source": "entity"},
+    "rationale": "腾讯投资语境中的新能源汽车公司；汽车配投资徽章"
+  },
+  "小红书": {
+    "entity_type": "company",
+    "canonical_name": "小红书",
+    "aliases": ["Xiaohongshu", "RED社区"],
+    "contexts": ["invest", "social"],
+    "forbidden_senses": ["小红书=红色小册子"],
+    "icon": {"base": "📕", "badge": "💰", "palette": "product", "source": "entity"},
+    "rationale": "腾讯投资语境中的生活方式社区；红书配投资徽章"
+  },
+  "99公益日": {
+    "entity_type": "campaign",
+    "canonical_name": "腾讯99公益日",
+    "aliases": ["99公益日", "腾讯公益日"],
+    "contexts": ["invest", "charity"],
+    "forbidden_senses": ["99=普通数字"],
+    "icon": {"base": "❤️", "badge": "💰", "palette": "product", "source": "entity"},
+    "rationale": "腾讯公益年度活动；爱心配公益筹款徽章"
+  },
+  "T族": {
+    "entity_type": "role_family",
+    "canonical_name": "腾讯 T 族职级",
+    "aliases": ["腾讯T序列", "技术族职级"],
+    "contexts": ["level", "technology"],
+    "forbidden_senses": ["T=普通字母"],
+    "icon": {"base": "🧪", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "腾讯技术族职级体系；实验器具配晋升阶梯徽章"
+  },
+  "P族": {
+    "entity_type": "role_family",
+    "canonical_name": "腾讯 P 族职级",
+    "aliases": ["腾讯P序列", "产品专业族职级"],
+    "contexts": ["level", "product"],
+    "forbidden_senses": ["P=普通字母"],
+    "icon": {"base": "📋", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "腾讯产品专业族职级体系；任务板配晋升阶梯徽章"
+  },
+  "M族": {
+    "entity_type": "role_family",
+    "canonical_name": "腾讯 M 族职级",
+    "aliases": ["腾讯M序列", "管理族职级"],
+    "contexts": ["level", "management"],
+    "forbidden_senses": ["M=普通字母"],
+    "icon": {"base": "👔", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "腾讯管理族职级体系；领带配晋升阶梯徽章"
+  },
+  "S族": {
+    "entity_type": "role_family",
+    "canonical_name": "腾讯 S 族职级",
+    "aliases": ["腾讯S序列", "技术支持族职级"],
+    "contexts": ["level", "operations"],
+    "forbidden_senses": ["S=普通字母"],
+    "icon": {"base": "🛠️", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "腾讯技术支持族职级体系；工具配晋升阶梯徽章"
+  },
+  "应届生": {
+    "entity_type": "role",
+    "canonical_name": "应届毕业生岗位",
+    "aliases": ["校招生", "应届校招员工"],
+    "contexts": ["level", "career"],
+    "forbidden_senses": [],
+    "icon": {"base": "🎓", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "校招职业阶段；毕业帽配职级阶梯徽章"
+  },
+  "实习生": {
+    "entity_type": "role",
+    "canonical_name": "实习员工",
+    "aliases": ["intern", "实习岗位"],
+    "contexts": ["level", "career"],
+    "forbidden_senses": [],
+    "icon": {"base": "🔰", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "实习职业阶段；新手标记配职级阶梯徽章"
+  },
+  "正式员工": {
+    "entity_type": "role",
+    "canonical_name": "正式员工",
+    "aliases": ["正式编制员工", "regular employee"],
+    "contexts": ["level", "career"],
+    "forbidden_senses": [],
+    "icon": {"base": "🪪", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "正式雇佣身份；工牌配职级阶梯徽章"
+  },
+  "外包": {
+    "entity_type": "role",
+    "canonical_name": "外包员工",
+    "aliases": ["外包岗位", "contractor"],
+    "contexts": ["level", "career"],
+    "forbidden_senses": ["外包=包裹外包装"],
+    "icon": {"base": "📎", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "外包雇佣身份；附件意象配职级阶梯徽章"
+  },
+  "专家": {
+    "entity_type": "role",
+    "canonical_name": "专家岗位",
+    "aliases": ["专业专家", "expert"],
+    "contexts": ["level", "career"],
+    "forbidden_senses": [],
+    "icon": {"base": "🧙", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "高级专业岗位；智者主图配职级阶梯徽章"
+  },
+  "总监": {
+    "entity_type": "role",
+    "canonical_name": "总监岗位",
+    "aliases": ["业务总监", "director"],
+    "contexts": ["level", "management"],
+    "forbidden_senses": [],
+    "icon": {"base": "🎩", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "组织管理岗位；礼帽配职级阶梯徽章"
+  },
+  "VP": {
+    "entity_type": "role",
+    "canonical_name": "Vice President",
+    "aliases": ["副总裁", "公司VP"],
+    "contexts": ["level", "boss"],
+    "forbidden_senses": ["VP=普通字母组合"],
+    "icon": {"base": "🎖️", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "公司副总裁职位缩写；勋章配职级阶梯徽章"
+  },
+  "T1": {
+    "entity_type": "role_level",
+    "canonical_name": "腾讯 T1 职级",
+    "aliases": ["T1级", "腾讯技术1级"],
+    "contexts": ["level", "technology"],
+    "forbidden_senses": ["T1=塔楼名称"],
+    "icon": {"base": "1️⃣", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "腾讯技术族一级职级；数字一配职级阶梯徽章"
+  },
+  "T2": {
+    "entity_type": "role_level",
+    "canonical_name": "腾讯 T2 职级",
+    "aliases": ["T2级", "腾讯技术2级"],
+    "contexts": ["level", "technology"],
+    "forbidden_senses": ["T2=终结者电影"],
+    "icon": {"base": "2️⃣", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "腾讯技术族二级职级；数字二配职级阶梯徽章"
+  },
+  "T3": {
+    "entity_type": "role_level",
+    "canonical_name": "腾讯 T3 职级",
+    "aliases": ["T3级", "腾讯技术3级"],
+    "contexts": ["level", "technology"],
+    "forbidden_senses": [],
+    "icon": {"base": "3️⃣", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "腾讯技术族三级职级；数字三配职级阶梯徽章"
+  },
+  "T4": {
+    "entity_type": "role_level",
+    "canonical_name": "腾讯 T4 职级",
+    "aliases": ["T4级", "腾讯技术4级"],
+    "contexts": ["level", "technology"],
+    "forbidden_senses": [],
+    "icon": {"base": "4️⃣", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "腾讯技术族四级职级；数字四配职级阶梯徽章"
+  },
+  "T5": {
+    "entity_type": "role_level",
+    "canonical_name": "腾讯 T5 职级",
+    "aliases": ["T5级", "腾讯技术5级"],
+    "contexts": ["level", "technology"],
+    "forbidden_senses": [],
+    "icon": {"base": "5️⃣", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "腾讯技术族五级职级；数字五配职级阶梯徽章"
+  },
+  "T6": {
+    "entity_type": "role_level",
+    "canonical_name": "腾讯 T6 职级",
+    "aliases": ["T6级", "腾讯技术6级"],
+    "contexts": ["level", "technology"],
+    "forbidden_senses": [],
+    "icon": {"base": "6️⃣", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "腾讯技术族六级职级；数字六配职级阶梯徽章"
+  },
+  "T7": {
+    "entity_type": "role_level",
+    "canonical_name": "腾讯 T7 职级",
+    "aliases": ["T7级", "腾讯技术7级"],
+    "contexts": ["level", "technology"],
+    "forbidden_senses": [],
+    "icon": {"base": "7️⃣", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "腾讯技术族七级职级；数字七配职级阶梯徽章"
+  },
+  "T8": {
+    "entity_type": "role_level",
+    "canonical_name": "腾讯 T8 职级",
+    "aliases": ["T8级", "腾讯技术8级"],
+    "contexts": ["level", "technology"],
+    "forbidden_senses": [],
+    "icon": {"base": "8️⃣", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "腾讯技术族八级职级；数字八配职级阶梯徽章"
+  },
+  "T9": {
+    "entity_type": "role_level",
+    "canonical_name": "腾讯 T9 职级",
+    "aliases": ["T9级", "腾讯技术9级"],
+    "contexts": ["level", "technology"],
+    "forbidden_senses": [],
+    "icon": {"base": "9️⃣", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "腾讯技术族九级职级；数字九配职级阶梯徽章"
+  },
+  "T10": {
+    "entity_type": "role_level",
+    "canonical_name": "腾讯 T10 职级",
+    "aliases": ["T10级", "腾讯技术10级"],
+    "contexts": ["level", "technology"],
+    "forbidden_senses": [],
+    "icon": {"base": "🔟", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "腾讯技术族十级职级；数字十配职级阶梯徽章"
+  },
+  "T11": {
+    "entity_type": "role_level",
+    "canonical_name": "腾讯 T11 职级",
+    "aliases": ["T11级", "腾讯技术11级"],
+    "contexts": ["level", "technology"],
+    "forbidden_senses": [],
+    "icon": {"base": "🎖️", "badge": "🧑‍💻", "palette": "office", "source": "entity"},
+    "rationale": "腾讯高级技术职级；勋章配开发者徽章"
+  },
+  "T12": {
+    "entity_type": "role_level",
+    "canonical_name": "腾讯 T12 职级",
+    "aliases": ["T12级", "腾讯技术12级"],
+    "contexts": ["level", "technology"],
+    "forbidden_senses": [],
+    "icon": {"base": "🏅", "badge": "🪜", "palette": "office", "source": "entity"},
+    "rationale": "腾讯高级技术职级；奖牌配职级阶梯徽章"
+  },
+  "Pony": {
+    "entity_type": "person",
+    "canonical_name": "马化腾",
+    "aliases": ["Pony Ma", "马化腾英文名"],
+    "contexts": ["boss", "tencent"],
+    "forbidden_senses": ["pony=小马"],
+    "icon": {"base": "🐎", "badge": "👔", "palette": "people", "source": "entity"},
+    "rationale": "腾讯主要创始人马化腾的英文名；马意象配高管徽章"
+  },
+  "马化腾": {
+    "entity_type": "person",
+    "canonical_name": "马化腾",
+    "aliases": ["Pony Ma", "小马哥"],
+    "contexts": ["boss", "tencent"],
+    "forbidden_senses": ["马化腾=马匹"],
+    "icon": {"base": "🐎", "badge": "👔", "palette": "people", "source": "entity"},
+    "rationale": "腾讯主要创始人马化腾；马意象配高管徽章"
+  },
+  "Martin": {
+    "entity_type": "person",
+    "canonical_name": "刘炽平",
+    "aliases": ["Martin Lau", "刘炽平英文名"],
+    "contexts": ["boss", "invest"],
+    "forbidden_senses": ["Martin=泛指英文人名"],
+    "icon": {"base": "💼", "badge": "🌐", "palette": "people", "source": "entity"},
+    "rationale": "腾讯高级管理者刘炽平的英文名；公文包配国际业务徽章"
+  },
+  "刘炽平": {
+    "entity_type": "person",
+    "canonical_name": "刘炽平",
+    "aliases": ["Martin Lau", "刘总"],
+    "contexts": ["boss", "invest"],
+    "forbidden_senses": [],
+    "icon": {"base": "💼", "badge": "📈", "palette": "people", "source": "entity"},
+    "rationale": "腾讯高级管理者刘炽平；公文包配经营增长徽章"
+  },
+  "Mark": {
+    "entity_type": "person",
+    "canonical_name": "任宇昕",
+    "aliases": ["Mark Ren", "任宇昕英文名"],
+    "contexts": ["boss", "studio"],
+    "forbidden_senses": ["mark=标记"],
+    "icon": {"base": "👔", "badge": "🎮", "palette": "people", "source": "entity"},
+    "rationale": "腾讯高级管理者任宇昕的英文名；领带配游戏业务徽章"
+  },
+  "张小龙": {
+    "entity_type": "person",
+    "canonical_name": "张小龙",
+    "aliases": ["Allen Zhang", "微信张小龙"],
+    "contexts": ["boss", "product"],
+    "forbidden_senses": ["小龙=幼龙"],
+    "icon": {"base": "💚", "badge": "👔", "palette": "people", "source": "entity"},
+    "rationale": "微信业务代表人物张小龙；绿色品牌意象配高管徽章"
+  },
+  "张志东": {
+    "entity_type": "person",
+    "canonical_name": "张志东",
+    "aliases": ["Tony Zhang", "腾讯张志东"],
+    "contexts": ["boss", "technology"],
+    "forbidden_senses": [],
+    "icon": {"base": "💻", "badge": "👔", "palette": "people", "source": "entity"},
+    "rationale": "腾讯创始团队成员张志东；电脑配高管徽章"
+  },
+  "Tony": {
+    "entity_type": "person",
+    "canonical_name": "张志东",
+    "aliases": ["Tony Zhang", "张志东英文名"],
+    "contexts": ["boss", "technology"],
+    "forbidden_senses": ["Tony=泛指英文人名"],
+    "icon": {"base": "💻", "badge": "👔", "palette": "people", "source": "entity"},
+    "rationale": "张志东的英文名；电脑配高管徽章"
+  },
+  "许晨晔": {
+    "entity_type": "person",
+    "canonical_name": "许晨晔",
+    "aliases": ["Daniel Xu", "腾讯许晨晔"],
+    "contexts": ["boss", "technology"],
+    "forbidden_senses": [],
+    "icon": {"base": "📡", "badge": "👔", "palette": "people", "source": "entity"},
+    "rationale": "腾讯创始团队成员许晨晔；通信天线配高管徽章"
+  },
+  "Daniel": {
+    "entity_type": "person",
+    "canonical_name": "许晨晔",
+    "aliases": ["Daniel Xu", "许晨晔英文名"],
+    "contexts": ["boss", "technology"],
+    "forbidden_senses": ["Daniel=泛指英文人名"],
+    "icon": {"base": "📡", "badge": "👔", "palette": "people", "source": "entity"},
+    "rationale": "许晨晔的英文名；通信天线配高管徽章"
+  },
+  "陈一丹": {
+    "entity_type": "person",
+    "canonical_name": "陈一丹",
+    "aliases": ["Charles Chen", "腾讯陈一丹"],
+    "contexts": ["boss", "tencent"],
+    "forbidden_senses": [],
+    "icon": {"base": "📜", "badge": "👔", "palette": "people", "source": "entity"},
+    "rationale": "腾讯创始团队成员陈一丹；文书配高管徽章"
+  },
+  "Charles": {
+    "entity_type": "person",
+    "canonical_name": "陈一丹",
+    "aliases": ["Charles Chen", "陈一丹英文名"],
+    "contexts": ["boss", "tencent"],
+    "forbidden_senses": ["Charles=泛指英文人名"],
+    "icon": {"base": "📜", "badge": "👔", "palette": "people", "source": "entity"},
+    "rationale": "陈一丹的英文名；文书配高管徽章"
+  },
+  "曾李青": {
+    "entity_type": "person",
+    "canonical_name": "曾李青",
+    "aliases": ["Jason Zeng", "腾讯曾李青"],
+    "contexts": ["boss", "tencent"],
+    "forbidden_senses": [],
+    "icon": {"base": "🚀", "badge": "👔", "palette": "people", "source": "entity"},
+    "rationale": "腾讯创始团队成员曾李青；火箭配高管徽章"
+  },
+  "Jason": {
+    "entity_type": "person",
+    "canonical_name": "曾李青",
+    "aliases": ["Jason Zeng", "曾李青英文名"],
+    "contexts": ["boss", "tencent"],
+    "forbidden_senses": ["Jason=泛指英文人名"],
+    "icon": {"base": "🚀", "badge": "👔", "palette": "people", "source": "entity"},
+    "rationale": "曾李青的英文名；火箭配高管徽章"
+  },
+  "董事长": {
+    "entity_type": "role",
+    "canonical_name": "董事长",
+    "aliases": ["董事会主席", "chairperson"],
+    "contexts": ["boss", "management"],
+    "forbidden_senses": [],
+    "icon": {"base": "👑", "badge": "👔", "palette": "people", "source": "entity"},
+    "rationale": "公司董事会最高职位；皇冠配高管徽章"
+  },
+  "总裁": {
+    "entity_type": "role",
+    "canonical_name": "公司总裁",
+    "aliases": ["president", "企业总裁"],
+    "contexts": ["boss", "management"],
+    "forbidden_senses": [],
+    "icon": {"base": "💼", "badge": "👑", "palette": "people", "source": "entity"},
+    "rationale": "公司经营管理职位；公文包配最高管理徽章"
+  },
+  "HR": {
+    "entity_type": "role",
+    "canonical_name": "Human Resources",
+    "aliases": ["人力资源", "HR岗位"],
+    "contexts": ["boss", "office"],
+    "forbidden_senses": ["HR=心率"],
+    "icon": {"base": "💼", "badge": "👥", "palette": "office", "source": "entity"},
+    "rationale": "人力资源职能缩写；公文包配人员徽章"
+  },
+  "创始人": {
+    "entity_type": "role",
+    "canonical_name": "公司创始人",
+    "aliases": ["founder", "企业创办人"],
+    "contexts": ["boss", "management"],
+    "forbidden_senses": [],
+    "icon": {"base": "👑", "badge": "👔", "palette": "people", "source": "entity"},
+    "rationale": "企业创办者角色；皇冠配高管徽章"
+  },
+  "副总裁": {
+    "entity_type": "role",
+    "canonical_name": "Vice President",
+    "aliases": ["VP职位", "公司副总裁"],
+    "contexts": ["boss", "management"],
+    "forbidden_senses": [],
+    "icon": {"base": "🎖️", "badge": "👔", "palette": "people", "source": "entity"},
+    "rationale": "公司副总裁职位；勋章配高管徽章"
+  },
+  "高管": {
+    "entity_type": "role",
+    "canonical_name": "高级管理人员",
+    "aliases": ["公司高管", "executive"],
+    "contexts": ["boss", "management"],
+    "forbidden_senses": [],
+    "icon": {"base": "👔", "badge": "👔", "palette": "people", "source": "entity"},
+    "rationale": "高级管理人员统称；领带主图与高管徽章"
+  },
+  "红包": {
+    "entity_type": "product_feature",
+    "canonical_name": "微信红包",
+    "aliases": ["微信红包", "WeChat Red Packet"],
+    "contexts": ["product", "payment"],
+    "forbidden_senses": ["红包=普通现金礼封"],
+    "icon": {"base": "🧧", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "微信支付内的红包功能；红包主图配产品徽章"
+  },
+  "王者": {
+    "entity_type": "product_reference",
+    "canonical_name": "王者荣耀",
+    "aliases": ["王者荣耀简称", "Honor of Kings简称"],
+    "contexts": ["product", "game"],
+    "forbidden_senses": ["王者=泛指冠军"],
+    "icon": {"base": "👑", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "种子产品链中对《王者荣耀》的简称；皇冠配产品徽章"
+  },
+  "火影": {
+    "entity_type": "product_reference",
+    "canonical_name": "火影忍者手游",
+    "aliases": ["火影忍者简称", "火影手游简称"],
+    "contexts": ["product", "game"],
+    "forbidden_senses": ["火影=火焰影子"],
+    "icon": {"base": "🥷", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "种子产品链中对火影忍者游戏的简称；忍者配产品徽章"
+  },
+  "地下城": {
+    "entity_type": "product_reference",
+    "canonical_name": "地下城与勇士",
+    "aliases": ["DNF地下城", "地下城与勇士前半名"],
+    "contexts": ["product", "game"],
+    "forbidden_senses": ["地下城=普通地下建筑"],
+    "icon": {"base": "🏰", "badge": "⛏️", "palette": "product", "source": "entity"},
+    "rationale": "种子产品链中指向《地下城与勇士》；城堡配地下探索徽章"
+  },
+  "勇士": {
+    "entity_type": "product_reference",
+    "canonical_name": "地下城与勇士",
+    "aliases": ["DNF勇士", "地下城与勇士后半名"],
+    "contexts": ["product", "game"],
+    "forbidden_senses": ["勇士=泛指勇敢的人"],
+    "icon": {"base": "⚔️", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "种子产品链中指向《地下城与勇士》；武器配产品徽章"
+  },
+  "部落冲突": {
+    "entity_type": "product",
+    "canonical_name": "Clash of Clans",
+    "aliases": ["部落冲突游戏", "COC"],
+    "contexts": ["product", "game"],
+    "forbidden_senses": ["部落冲突=普通社会冲突"],
+    "icon": {"base": "🏰", "badge": "⚔️", "palette": "product", "source": "entity"},
+    "rationale": "Supercell 开发的策略游戏；城堡配战斗徽章"
+  },
+  "堡垒之夜": {
+    "entity_type": "product",
+    "canonical_name": "Fortnite",
+    "aliases": ["Fortnite", "堡垒之夜游戏"],
+    "contexts": ["product", "game"],
+    "forbidden_senses": ["堡垒之夜=普通夜间堡垒"],
+    "icon": {"base": "🏰", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "Epic Games 开发的游戏产品；城堡主图配产品徽章"
+  },
+  "CF": {
+    "entity_type": "product_reference",
+    "canonical_name": "CrossFire",
+    "aliases": ["穿越火线简称", "CF游戏"],
+    "contexts": ["product", "game"],
+    "forbidden_senses": ["CF=普通字母缩写"],
+    "icon": {"base": "🔫", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "《穿越火线》的英文缩写；枪械配产品徽章"
+  },
+  "蛋仔": {
+    "entity_type": "product_reference",
+    "canonical_name": "蛋仔派对",
+    "aliases": ["蛋仔派对简称", "蛋仔游戏"],
+    "contexts": ["product", "game"],
+    "forbidden_senses": ["蛋仔=普通蛋形角色"],
+    "icon": {"base": "🥚", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "种子产品链中的《蛋仔派对》简称；蛋主图配产品徽章"
+  },
+  "腾讯音乐娱乐": {
+    "entity_type": "company",
+    "canonical_name": "Tencent Music Entertainment",
+    "aliases": ["腾讯音乐娱乐集团", "TME中文名"],
+    "contexts": ["product", "music"],
+    "forbidden_senses": [],
+    "icon": {"base": "🎶", "badge": "📱", "palette": "product", "source": "entity"},
+    "rationale": "腾讯音乐娱乐集团中文名；多音符配产品徽章"
+  },
+  "微信之夜": {
+    "entity_type": "event",
+    "canonical_name": "微信之夜",
+    "aliases": ["微信公开课夜场", "WeChat Night"],
+    "contexts": ["boss", "product"],
+    "forbidden_senses": ["微信之夜=普通夜晚"],
+    "icon": {"base": "🌃", "badge": "👔", "palette": "people", "source": "entity"},
+    "rationale": "微信业务活动语境；城市夜景配业务人物徽章"
+  },
+  "Boss直聘": {
+    "entity_type": "company",
+    "canonical_name": "BOSS直聘",
+    "aliases": ["BOSS Zhipin", "直聘平台"],
+    "contexts": ["worker", "recruitment"],
+    "forbidden_senses": ["Boss=普通老板角色"],
+    "icon": {"base": "💼", "badge": "💼", "palette": "office", "source": "entity"},
+    "rationale": "在线招聘平台品牌；公文包双重表达求职与招聘"
+  }
+}
