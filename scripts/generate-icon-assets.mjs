@@ -70,22 +70,79 @@ async function sha256ForFiles(files) {
   return digest.digest("hex");
 }
 
-async function replaceFileAtomically(stagedPath, targetPath, backupRoot) {
-  const backupPath = resolve(backupRoot, `${Math.random().toString(16).slice(2)}.bak`);
-  let movedExisting = false;
-  try {
-    await rename(targetPath, backupPath);
-    movedExisting = true;
-  } catch (error) {
-    if (error.code !== "ENOENT") throw error;
+export async function copyEmojiPngs(sourceRoot, destinationRoot) {
+  const pngSources = (await readdir(sourceRoot))
+    .filter((name) => name.toLowerCase().endsWith(".png"))
+    .map((sourceName) => ({
+      destinationName: sourceName.toLowerCase(),
+      sourceName,
+    }))
+    .sort((left, right) =>
+      left.destinationName.localeCompare(right.destinationName),
+    );
+  const pngNames = pngSources.map(({ destinationName }) => destinationName);
+  if (new Set(pngNames).size !== pngNames.length) {
+    throw new Error("Google emoji source contains PNG filenames that collide after lowercasing");
   }
+
+  await Promise.all(
+    pngSources.map(({ destinationName, sourceName }) =>
+      copyFile(
+        resolve(sourceRoot, sourceName),
+        resolve(destinationRoot, destinationName),
+      ),
+    ),
+  );
+  return pngNames;
+}
+
+export async function replaceStagedTargetsTransactionally(
+  targets,
+  { backupRoot, operations = { rename, rm } },
+) {
+  const replacements = [];
   try {
-    await rename(stagedPath, targetPath);
+    for (const [index, target] of targets.entries()) {
+      const replacement = {
+        ...target,
+        backupPath: resolve(backupRoot, `${index}-${target.name}.backup`),
+        hadExisting: false,
+        replacementInstalled: false,
+      };
+      replacements.push(replacement);
+
+      try {
+        await operations.rename(target.targetPath, replacement.backupPath);
+        replacement.hadExisting = true;
+      } catch (error) {
+        if (error.code !== "ENOENT") throw error;
+      }
+
+      await operations.rename(target.stagedPath, target.targetPath);
+      replacement.replacementInstalled = true;
+    }
   } catch (error) {
-    if (movedExisting) await rename(backupPath, targetPath);
+    for (const replacement of replacements.reverse()) {
+      if (replacement.replacementInstalled) {
+        await operations.rm(replacement.targetPath, {
+          force: true,
+          recursive: true,
+        });
+      }
+      if (replacement.hadExisting) {
+        await operations.rename(replacement.backupPath, replacement.targetPath);
+      }
+    }
     throw error;
   }
-  if (movedExisting) await rm(backupPath, { force: true, recursive: true });
+
+  await Promise.all(
+    replacements
+      .filter(({ hadExisting }) => hadExisting)
+      .map(({ backupPath }) =>
+        operations.rm(backupPath, { force: true, recursive: true }),
+      ),
+  );
 }
 
 async function main() {
@@ -106,18 +163,7 @@ async function main() {
     await mkdir(stagedEmojiRoot, { recursive: true });
     await mkdir(stagedActionsRoot, { recursive: true });
 
-    const pngNames = (await readdir(SOURCE_PNGS))
-      .filter((name) => name.toLowerCase().endsWith(".png"))
-      .map((name) => name.toLowerCase())
-      .sort();
-    if (new Set(pngNames).size !== pngNames.length) {
-      throw new Error("Google emoji source contains PNG filenames that collide after lowercasing");
-    }
-    await Promise.all(
-      pngNames.map((name) =>
-        copyFile(resolve(SOURCE_PNGS, name), resolve(stagedEmojiRoot, name)),
-      ),
-    );
+    const pngNames = await copyEmojiPngs(SOURCE_PNGS, stagedEmojiRoot);
 
     const emojiData = JSON.parse(await readFile(SOURCE_EMOJI_JSON, "utf8"));
     const manifest = {};
@@ -182,10 +228,31 @@ async function main() {
     await writeFile(stagedMetadata, `${JSON.stringify(metadata, null, 2)}\n`);
 
     await mkdir(GENERATED_ROOT, { recursive: true });
-    await replaceFileAtomically(stagedEmojiRoot, resolve(GENERATED_ROOT, "emoji"), stagingRoot);
-    await replaceFileAtomically(stagedActionsRoot, resolve(ICONS_ROOT, "actions"), stagingRoot);
-    await replaceFileAtomically(stagedManifest, resolve(GENERATED_ROOT, "emoji-icon-manifest.json"), stagingRoot);
-    await replaceFileAtomically(stagedMetadata, resolve(GENERATED_ROOT, "icon-build-metadata.json"), stagingRoot);
+    await replaceStagedTargetsTransactionally(
+      [
+        {
+          name: "emoji",
+          stagedPath: stagedEmojiRoot,
+          targetPath: resolve(GENERATED_ROOT, "emoji"),
+        },
+        {
+          name: "actions",
+          stagedPath: stagedActionsRoot,
+          targetPath: resolve(ICONS_ROOT, "actions"),
+        },
+        {
+          name: "emoji-icon-manifest",
+          stagedPath: stagedManifest,
+          targetPath: resolve(GENERATED_ROOT, "emoji-icon-manifest.json"),
+        },
+        {
+          name: "icon-build-metadata",
+          stagedPath: stagedMetadata,
+          targetPath: resolve(GENERATED_ROOT, "icon-build-metadata.json"),
+        },
+      ],
+      { backupRoot: stagingRoot },
+    );
 
     const summary = await validateCommittedIconAssets();
     console.log(
@@ -196,7 +263,9 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(`Icon asset generation failed: ${error.message}`);
-  process.exitCode = 1;
-});
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error) => {
+    console.error(`Icon asset generation failed: ${error.message}`);
+    process.exitCode = 1;
+  });
+}

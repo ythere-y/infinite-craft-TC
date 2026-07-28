@@ -1,5 +1,13 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rename,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -9,6 +17,10 @@ import {
   requiredActionIcons,
   validateCommittedIconAssets,
 } from "../scripts/icon-data-lib.mjs";
+import {
+  copyEmojiPngs,
+  replaceStagedTargetsTransactionally,
+} from "../scripts/generate-icon-assets.mjs";
 
 test("emoji codepoint candidates retain qualified, fallback, and joined sequences", () => {
   assert.deepEqual(emojiCodepointCandidates("❤️"), ["2764-fe0f", "2764"]);
@@ -46,4 +58,67 @@ test("the committed emoji manifest references every vendored emoji PNG", async (
   );
 
   assert.equal(new Set(Object.values(manifest)).size, files.length);
+});
+
+test("emoji copying reads uppercase source names and writes lowercase destinations", async () => {
+  const root = await mkdtemp(join(tmpdir(), "icon-assets-copy-"));
+  const source = join(root, "source");
+  const destination = join(root, "destination");
+  await mkdir(source);
+  await mkdir(destination);
+  await writeFile(join(source, "1F600.PNG"), "png data");
+
+  try {
+    assert.deepEqual(await copyEmojiPngs(source, destination), ["1f600.png"]);
+    assert.equal(await readFile(join(destination, "1f600.png"), "utf8"), "png data");
+  } finally {
+    await rm(root, { force: true, recursive: true });
+  }
+});
+
+test("asset replacement restores earlier targets when a later swap fails", async () => {
+  const root = await mkdtemp(join(tmpdir(), "icon-assets-swap-"));
+  const staging = join(root, "staging");
+  const targets = join(root, "targets");
+  const stagedEmoji = join(staging, "emoji");
+  const stagedActions = join(staging, "actions");
+  const targetEmoji = join(targets, "emoji");
+  const targetActions = join(targets, "actions");
+  await Promise.all(
+    [stagedEmoji, stagedActions, targetEmoji, targetActions].map((path) =>
+      mkdir(path, { recursive: true }),
+    ),
+  );
+  await Promise.all([
+    writeFile(join(stagedEmoji, "state"), "new emoji"),
+    writeFile(join(stagedActions, "state"), "new actions"),
+    writeFile(join(targetEmoji, "state"), "old emoji"),
+    writeFile(join(targetActions, "state"), "old actions"),
+  ]);
+
+  const moveWithActionFailure = async (from, to) => {
+    if (from === stagedActions && to === targetActions) {
+      const error = new Error("simulated rename failure");
+      error.code = "EIO";
+      throw error;
+    }
+    await rename(from, to);
+  };
+
+  try {
+    await assert.rejects(
+      replaceStagedTargetsTransactionally(
+        [
+          { name: "emoji", stagedPath: stagedEmoji, targetPath: targetEmoji },
+          { name: "actions", stagedPath: stagedActions, targetPath: targetActions },
+        ],
+        { backupRoot: staging, operations: { rename: moveWithActionFailure, rm } },
+      ),
+      /simulated rename failure/,
+    );
+    assert.equal(await readFile(join(targetEmoji, "state"), "utf8"), "old emoji");
+    assert.equal(await readFile(join(targetActions, "state"), "utf8"), "old actions");
+  } finally {
+    await rm(root, { force: true, recursive: true });
+  }
 });
