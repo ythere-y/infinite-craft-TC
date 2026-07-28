@@ -453,7 +453,7 @@ export class KvStore {
     return next;
   }
 
-  async recordFirst(result, emoji, discoverer) {
+  async recordFirst(result, emoji, discoverer, comment = "") {
     const name = cleanText(result);
     const key = await entityKey("first", name);
     const existing = await this.getJson(key);
@@ -473,6 +473,7 @@ export class KvStore {
       result: name,
       emoji: cleanText(emoji) || "❓",
       discoverer: cleanText(discoverer) || "匿名鹅",
+      comment: normalizeComment(comment),
       ts: this.timestamp(),
       seq: maxSeq + 1,
       claim_token: this.uniqueSuffix(),

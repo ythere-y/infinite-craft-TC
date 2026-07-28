@@ -253,6 +253,10 @@ test("LLM comments are persisted in KV and reused with the cached result", async
     (await store.getCombination("需求甲", "会议乙")).comment,
     first.comment,
   );
+  assert.equal(
+    (await store.firstPage({ offset: 0, limit: 1 })).items[0].comment,
+    first.comment,
+  );
   assert.equal(calls, 1);
 });
 

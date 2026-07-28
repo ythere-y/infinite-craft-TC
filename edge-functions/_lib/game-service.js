@@ -158,6 +158,7 @@ export function createGameService({
         hit.result,
         hit.emoji,
         discoverer,
+        comment,
       );
       isFirst = first.created;
       recordedDiscoverer = first.record?.discoverer || null;
