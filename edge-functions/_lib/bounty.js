@@ -98,6 +98,7 @@ function buildGroup(definition, elements, starters, firstByName) {
     const item = {
       name,
       emoji: elements[name]?.emoji || "❓",
+      ...(elements[name]?.icon ? { icon: elements[name].icon } : {}),
       category: definition.category,
       is_starter: starterNames.has(name),
       discovered: starterNames.has(name) || Boolean(first),
@@ -154,6 +155,7 @@ export function buildCategory({ category, elements, starters, firsts }) {
         {
           name,
           emoji: info?.emoji || "❓",
+          ...(info?.icon ? { icon: info.icon } : {}),
           category,
           is_starter: starterNames.has(name),
           discovered: starterNames.has(name) || firstByName.has(name),

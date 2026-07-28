@@ -6852,9 +6852,24 @@ export const ICON_RULES = {
     "building": "place",
     "level": "office",
     "boss": "people",
-    "invest": "product"
+    "invest": "product",
+    "ai": "product"
   },
   "keyword_badges": [
+    {
+      "keywords": [
+        "AI",
+        "智能",
+        "GPT",
+        "大模型",
+        "copilot"
+      ],
+      "badge": "🧠",
+      "reason": "人工智能语义",
+      "categories": [
+        "ai"
+      ]
+    },
     {
       "keywords": [
         "Martin"

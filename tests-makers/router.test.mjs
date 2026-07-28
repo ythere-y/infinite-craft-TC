@@ -53,6 +53,11 @@ test("static, health and rank routes keep their public contracts", async () => {
 
   const elements = await json(router, "/api/elements");
   assert.ok(elements.body.elements["企鹅"]);
+  assert.deepEqual(elements.body.elements["企鹅"].icon, {
+    base: "🐧",
+    palette: "product",
+    source: "fallback",
+  });
 
   const tiers = await json(router, "/api/tiers");
   assert.equal(tiers.body.tiers[0].grade, "3-");
@@ -74,10 +79,21 @@ test("static, health and rank routes keep their public contracts", async () => {
 });
 
 test("dynamic KV metadata never overwrites authoritative seed elements", async () => {
+  const persistedIcon = {
+    base: "🪨",
+    badge: "🧭",
+    palette: "place",
+    source: "generated",
+  };
   const router = createRouter({
     kv: new FakeKV({
       snapshot_elements: JSON.stringify({
-        "企鹅": { emoji: "❌", category: "ai", depth: 99 },
+        "企鹅": {
+          emoji: "❌",
+          category: "ai",
+          depth: 99,
+          icon: persistedIcon,
+        },
       }),
     }),
     env: {},
@@ -85,6 +101,7 @@ test("dynamic KV metadata never overwrites authoritative seed elements", async (
   const elements = await json(router, "/api/elements");
   assert.equal(elements.body.elements["企鹅"].emoji, "🐧");
   assert.equal(elements.body.elements["企鹅"].category, "tencent");
+  assert.deepEqual(elements.body.elements["企鹅"].icon, persistedIcon);
 });
 
 test("nickname, combine, wall, bounty and admin routes share KV state", async () => {
@@ -110,10 +127,16 @@ test("nickname, combine, wall, bounty and admin routes share KV state", async ()
   });
   assert.equal(combine.body.result, "蒸汽");
   assert.equal(combine.body.is_first, true);
+  assert.deepEqual(combine.body.icon, {
+    base: "♨️",
+    palette: "nature",
+    source: "fallback",
+  });
 
   const page = await json(router, "/api/wall/page?offset=0&limit=40");
   assert.equal(page.body.total, 1);
   assert.equal(page.body.items[0].discoverer, "测试鹅");
+  assert.deepEqual(page.body.items[0].icon, combine.body.icon);
   assert.deepEqual(page.body.items[0].reaction, {
     up_votes: 0,
     down_votes: 0,
@@ -148,6 +171,31 @@ test("nickname, combine, wall, bounty and admin routes share KV state", async ()
   assert.equal(pageWithFormula.body.items[0].formula.id, combine.body.formula_id);
   assert.equal(pageWithFormula.body.items[0].formula.a, "水");
   assert.equal(pageWithFormula.body.items[0].formula.b, "火");
+  assert.deepEqual(
+    pageWithFormula.body.items[0].formula.result_icon,
+    combine.body.icon,
+  );
+  assert.deepEqual(pageWithFormula.body.items[0].formula.a_icon, {
+    base: "💧",
+    palette: "nature",
+    source: "fallback",
+  });
+  assert.deepEqual(pageWithFormula.body.items[0].formula.b_icon, {
+    base: "🔥",
+    palette: "nature",
+    source: "fallback",
+  });
+
+  const formulas = await json(router, "/api/community/formulas");
+  assert.deepEqual(formulas.body.items[0].result_icon, combine.body.icon);
+  assert.deepEqual(
+    formulas.body.items[0].a_icon,
+    pageWithFormula.body.items[0].formula.a_icon,
+  );
+  assert.deepEqual(
+    formulas.body.items[0].b_icon,
+    pageWithFormula.body.items[0].formula.b_icon,
+  );
 
   const leaderboard = await json(
     router,
@@ -158,6 +206,15 @@ test("nickname, combine, wall, bounty and admin routes share KV state", async ()
   const bounty = await json(router, "/api/wall/bounty");
   assert.ok(bounty.body.total > 0);
   assert.ok(Array.isArray(bounty.body.groups));
+  const riot = bounty.body.groups
+    .flatMap((group) => group.items)
+    .find((item) => item.name === "Riot");
+  assert.deepEqual(riot.icon, {
+    base: "👊",
+    badge: "🎮",
+    palette: "studio",
+    source: "curated",
+  });
 
   const admin = await json(router, "/api/admin/stats");
   assert.equal(admin.body.approximate, true);
@@ -165,6 +222,7 @@ test("nickname, combine, wall, bounty and admin routes share KV state", async ()
   assert.equal(admin.body.firsts_total, 1);
   assert.equal(admin.body.nick_count, 1);
   assert.equal(admin.body.recent_firsts[0].result, "蒸汽");
+  assert.deepEqual(admin.body.recent_firsts[0].icon, combine.body.icon);
 });
 
 test("recipes, verification, KPI and analytics routes remain available", async () => {
@@ -188,7 +246,23 @@ test("recipes, verification, KPI and analytics routes remain available", async (
     router,
     `/api/element/${encodeURIComponent("蒸汽")}/recipes`,
   );
-  assert.ok(recipes.body.recipes.some((item) => item.a === "水"));
+  const waterRecipe = recipes.body.recipes.find((item) => item.a === "水");
+  assert.ok(waterRecipe);
+  assert.deepEqual(recipes.body.result_icon, {
+    base: "♨️",
+    palette: "nature",
+    source: "fallback",
+  });
+  assert.deepEqual(waterRecipe.a_icon, {
+    base: "💧",
+    palette: "nature",
+    source: "fallback",
+  });
+  assert.deepEqual(waterRecipe.b_icon, {
+    base: "🔥",
+    palette: "nature",
+    source: "fallback",
+  });
 
   const kpi = await json(router, "/api/session/kpi", {
     method: "POST",
@@ -204,12 +278,16 @@ test("recipes, verification, KPI and analytics routes remain available", async (
     "/api/analytics/discoverers",
     "/api/analytics/combinations",
     "/api/nickname/stats",
-    "/api/wall/recent",
-    "/api/wall/category/tencent",
   ]) {
     const result = await json(router, path);
     assert.equal(result.response.status, 200, path);
   }
+
+  const recent = await json(router, "/api/wall/recent");
+  assert.deepEqual(recent.body.items, []);
+  const category = await json(router, "/api/wall/category/tencent");
+  assert.ok(category.body.items.length > 0);
+  assert.ok(category.body.items.every((item) => item.icon));
 });
 
 test("recipe verification rejects oversized imports and bounds KV concurrency", async () => {

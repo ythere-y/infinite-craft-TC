@@ -45,6 +45,81 @@ test("dynamic combinations are created as JSON records", async () => {
   });
 });
 
+test("rememberElement never replaces an existing valid icon recipe", async () => {
+  const store = new KvStore(new FakeKV(), {
+    now: () => 1_700_000_000_000,
+  });
+  const original = {
+    base: "🫘",
+    badge: "⚙️",
+    palette: "office",
+    source: "generated",
+  };
+
+  await store.rememberElement("智能咖啡", {
+    emoji: "☕",
+    category: "ai",
+    icon: original,
+  });
+  await store.rememberElement("智能咖啡", {
+    emoji: "☕",
+    category: "ai",
+    icon: {
+      base: "☕",
+      badge: "🧠",
+      palette: "product",
+      source: "generated",
+    },
+  });
+  await store.rememberElement("智能咖啡", {
+    emoji: "☕",
+    category: "ai",
+  });
+
+  assert.deepEqual((await store.getElement("智能咖啡")).icon, original);
+});
+
+test("putCombination saves the first dynamic icon and exposes it publicly", async () => {
+  const store = new KvStore(new FakeKV(), {
+    now: () => 1_700_000_000_000,
+  });
+  const icon = {
+    base: "☕",
+    badge: "🧠",
+    palette: "product",
+    source: "generated",
+  };
+
+  const combination = await store.putCombination("AI", "咖啡", {
+    result: "智能咖啡",
+    emoji: "☕",
+    comment: "咖啡完成智能升级",
+    source: "llm",
+    chain: "ai",
+    icon,
+  });
+
+  assert.deepEqual(combination.icon, icon);
+  assert.deepEqual((await store.dynamicElements())["智能咖啡"].icon, icon);
+});
+
+test("legacy dynamic element records without icons remain readable", async () => {
+  const store = new KvStore(
+    new FakeKV({
+      snapshot_elements: JSON.stringify({
+        "旧元素": { emoji: "🕰️", category: "ai", depth: 2 },
+      }),
+    }),
+    { now: () => 1_700_000_000_000 },
+  );
+
+  assert.deepEqual((await store.dynamicElements())["旧元素"], {
+    emoji: "🕰️",
+    category: "ai",
+    depth: 2,
+  });
+});
+
 test("JSON records are decoded from plain Makers KV text reads", async () => {
   class TextOnlyKV extends FakeKV {
     async get(key, options) {

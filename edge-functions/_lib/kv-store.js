@@ -5,6 +5,7 @@ import {
   sha256Hex,
 } from "./keys.js";
 import { normalizeComment } from "./comments.js";
+import { normalizeIcon } from "./icon-recipes.js";
 
 const RECENT_KEY = "snapshot_recent";
 const ELEMENTS_KEY = "snapshot_elements";
@@ -275,6 +276,7 @@ export class KvStore {
     const existing = await this.getJson(key);
     if (existing?.result) return existing;
 
+    const icon = normalizeIcon(rawRecord.icon);
     const record = {
       a: left,
       b: right,
@@ -283,6 +285,7 @@ export class KvStore {
       comment: normalizeComment(rawRecord.comment),
       source: cleanText(rawRecord.source) || "llm",
       chain: cleanText(rawRecord.chain) || null,
+      ...(icon ? { icon } : {}),
       hit_count: 0,
       ts: this.timestamp(),
     };
@@ -291,6 +294,7 @@ export class KvStore {
       this.rememberElement(record.result, {
         emoji: record.emoji,
         category: record.chain || "ai",
+        ...(icon ? { icon } : {}),
       }),
       this.rememberRecipe(record),
     ]);
@@ -312,14 +316,22 @@ export class KvStore {
 
     const key = await entityKey("element", cleanName);
     const existing = await this.getJson(key, {});
+    const {
+      icon: existingIconValue,
+      ...existingFields
+    } = existing || {};
+    const icon =
+      normalizeIcon(existingIconValue) ||
+      normalizeIcon(info?.icon);
     const record = {
-      ...existing,
+      ...existingFields,
       name: cleanName,
       emoji: cleanText(info?.emoji) || "❓",
       category: cleanText(info?.category) || "ai",
       ...(Number.isFinite(Number(info?.depth))
         ? { depth: Math.max(0, finiteInteger(info.depth)) }
         : {}),
+      ...(icon ? { icon } : {}),
       updated_at: this.timestamp(),
       storage_key: key,
     };
@@ -338,16 +350,26 @@ export class KvStore {
       if (name) elements[name] = record;
     }
     return Object.fromEntries(
-      Object.entries(elements).map(([name, value]) => {
-        const {
-          name: _name,
-          storage_key: _storageKey,
-          updated_at: _updatedAt,
-          ...publicValue
-        } = value || {};
-        return [name, publicValue];
-      }),
+      Object.entries(elements).map(([name, value]) => [
+        name,
+        this.publicElement(value),
+      ]),
     );
+  }
+
+  publicElement(value) {
+    const {
+      name: _name,
+      storage_key: _storageKey,
+      updated_at: _updatedAt,
+      icon: rawIcon,
+      ...publicValue
+    } = value || {};
+    const icon = normalizeIcon(rawIcon);
+    return {
+      ...publicValue,
+      ...(icon ? { icon } : {}),
+    };
   }
 
   async getElement(name) {
@@ -355,13 +377,7 @@ export class KvStore {
     if (!cleanName) return null;
     const value = await this.getJson(await entityKey("element", cleanName));
     if (!value) return null;
-    const {
-      name: _name,
-      storage_key: _storageKey,
-      updated_at: _updatedAt,
-      ...publicValue
-    } = value;
-    return publicValue;
+    return this.publicElement(value);
   }
 
   async rememberRecipe(record) {

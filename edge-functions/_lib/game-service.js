@@ -16,6 +16,10 @@ import {
   normalizeComment,
 } from "./comments.js";
 import { CommunityStore } from "./community.js";
+import {
+  normalizeIcon,
+  resolveIconRecipe,
+} from "./icon-recipes.js";
 
 const FALLBACK = {
   result: "未知产物",
@@ -58,16 +62,61 @@ export function createGameService({
     Math.min(1_000, Number(env.MODEL_CALLS_PER_MINUTE) || 20),
   );
 
+  async function elementInfo(name) {
+    const dynamic = (await store.getElement(name)) || {};
+    const seed = ELEMENTS[name] || {};
+    const persisted = normalizeIcon(dynamic.icon);
+    return {
+      ...dynamic,
+      ...seed,
+      ...(persisted ? { icon: persisted } : {}),
+    };
+  }
+
+  async function withResolvedIcon(
+    hit,
+    a,
+    b,
+    { remember = true } = {},
+  ) {
+    if (!hit?.result) return hit;
+    try {
+      const info = await elementInfo(hit.result);
+      const persisted =
+        normalizeIcon(info.icon) ||
+        normalizeIcon(hit.icon);
+      const icon = resolveIconRecipe({
+        name: hit.result,
+        emoji: hit.emoji,
+        category: info.category || hit.chain || "ai",
+        parents: [a, b],
+        chain: hit.chain || null,
+        comment: normalizeComment(hit.comment),
+        persisted,
+      });
+      if (remember) {
+        await store.rememberElement(hit.result, {
+          emoji: hit.emoji,
+          category: info.category || hit.chain || "ai",
+          icon,
+        });
+      }
+      return { ...hit, icon };
+    } catch {
+      return hit;
+    }
+  }
+
   async function resolveCombination(a, b, clientIdentity = "anonymous") {
     const communityState = await community.combinationState(a, b);
     const cached = await store.getCombination(a, b);
     if (communityState?.status === "active" && communityState.version > 1 && cached?.result) {
-      return cached;
+      return withResolvedIcon(cached, a, b);
     }
     if (communityState?.status !== "retired") {
       const seeded = COMBINATIONS[normalizePair(a, b)];
-      if (seeded?.result) return seeded;
-      if (cached?.result) return cached;
+      if (seeded?.result) return withResolvedIcon(seeded, a, b);
+      if (cached?.result) return withResolvedIcon(cached, a, b);
     }
     if (!modelConfigured) return null;
 
@@ -100,12 +149,25 @@ export function createGameService({
       fetchImpl,
     });
     if (!generated) return null;
+    const generatedHit = await withResolvedIcon(
+      {
+        result: generated.name,
+        emoji: generated.emoji,
+        comment: generated.comment,
+        source: "llm",
+        chain: null,
+      },
+      a,
+      b,
+      { remember: false },
+    );
     return store.putCombination(a, b, {
       result: generated.name,
       emoji: generated.emoji,
       comment: generated.comment,
       source: "llm",
       chain: null,
+      ...(generatedHit.icon ? { icon: generatedHit.icon } : {}),
     });
   }
 
@@ -148,6 +210,7 @@ export function createGameService({
     const source = hit.source || "seed";
     const chain = hit.chain || null;
     const comment = normalizeComment(hit.comment);
+    const icon = normalizeIcon(hit.icon);
     let isFirst = false;
     let recordedDiscoverer = null;
     let depth = 0;
@@ -167,6 +230,7 @@ export function createGameService({
         emoji: hit.emoji,
         category: chain || ELEMENTS[hit.result]?.category || "ai",
         depth,
+        ...(icon ? { icon } : {}),
       });
       kpi = scoreFor(chain, isFirst);
       await store.addKpi(sessionId, kpi.delta, kpi.reason);
@@ -196,6 +260,7 @@ export function createGameService({
       b,
       result: hit.result,
       emoji: hit.emoji,
+      ...(icon ? { icon } : {}),
       comment,
       source,
       chain,

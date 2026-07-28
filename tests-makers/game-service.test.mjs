@@ -144,6 +144,11 @@ test("seed combinations keep the existing response contract and persist firsts",
   assert.equal(first.depth, 1);
   assert.equal(first.full_score, 10);
   assert.equal(first.comment, DEFAULT_COMMENT);
+  assert.deepEqual(first.icon, {
+    base: "♨️",
+    palette: "nature",
+    source: "fallback",
+  });
   assert.equal(repeat.is_first, false);
   assert.equal(repeat.discoverer, "勇敢鹅");
   assert.equal((await store.firstPage()).total, 1);
@@ -208,8 +213,59 @@ test("LLM misses are cached in KV and reused without another model request", asy
   assert.equal(first.comment, DEFAULT_COMMENT);
   assert.equal(repeat.result, "智能咖啡");
   assert.equal(repeat.comment, DEFAULT_COMMENT);
+  assert.deepEqual(first.icon, {
+    base: "☕",
+    palette: "product",
+    source: "generated",
+    badge: "🧠",
+  });
+  assert.deepEqual(repeat.icon, first.icon);
   assert.equal(calls, 1);
-  assert.equal((await store.getCombination("AI", "咖啡")).result, "智能咖啡");
+  assert.deepEqual(
+    (await store.getCombination("AI", "咖啡")).icon,
+    first.icon,
+  );
+  assert.deepEqual((await store.getElement("智能咖啡")).icon, first.icon);
+});
+
+test("legacy cached combinations reuse a valid persisted element icon", async () => {
+  const { service, store, kv } = makeService();
+  const persisted = {
+    base: "🫘",
+    badge: "⚙️",
+    palette: "office",
+    source: "generated",
+  };
+  await store.rememberElement("缓存咖啡", {
+    emoji: "☕",
+    category: "ai",
+    icon: persisted,
+  });
+  const key = await entityKey("combo", normalizePair("缓存甲", "缓存乙"));
+  await kv.put(
+    key,
+    JSON.stringify({
+      a: "缓存甲",
+      b: "缓存乙",
+      result: "缓存咖啡",
+      emoji: "☕",
+      comment: DEFAULT_COMMENT,
+      source: "llm",
+      chain: "ai",
+      hit_count: 0,
+      ts: 1_700_000_000,
+    }),
+  );
+
+  const result = await service.combine({
+    a: "缓存甲",
+    b: "缓存乙",
+    discoverer: "缓存鹅",
+    session_id: "cached-icon",
+  });
+
+  assert.deepEqual(result.icon, persisted);
+  assert.deepEqual((await store.getElement("缓存咖啡")).icon, persisted);
 });
 
 test("LLM comments are persisted in KV and reused with the cached result", async () => {
@@ -316,4 +372,5 @@ test("missing model configuration degrades to the established fallback", async (
   assert.equal(result.is_first, false);
   assert.equal(result.kpi_delta, 0);
   assert.equal(result.comment, DEFAULT_COMMENT);
+  assert.equal(result.icon, undefined);
 });
