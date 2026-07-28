@@ -354,7 +354,7 @@ function onPointerDown(e, el, { name, emoji, source }) {
   // 创建 ghost（跟手的元素副本）
   const ghost = document.createElement("div");
   ghost.className = "element ghost";
-  window.COMBINE_FEEDBACK.renderElement(document, ghost, { name, emoji });
+  window.COMBINE_FEEDBACK.renderElement(document, ghost, { name, emoji, size: "canvas" });
   ghost.style.position = "fixed";
   ghost.style.left = (e.clientX - offsetX) + "px";
   ghost.style.top = (e.clientY - offsetY) + "px";
@@ -469,6 +469,7 @@ function spawnOnCanvas(name, emoji, x, y) {
     name,
     emoji,
     isStarter,
+    size: "canvas",
   });
   el.style.left = (x - 30) + "px";
   el.style.top = (y - 16) + "px";

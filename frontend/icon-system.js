@@ -138,11 +138,13 @@
       target.classList.remove(state);
     });
     target.classList.add("palette-" + allowed(recipe.palette, PALETTES, "place"));
-    if (payload.isStarter) target.classList.add("state-starter");
-    if (payload.isFirst || payload.isGlobalNew || payload.tier === "global_new") target.classList.add("state-global-new");
-    if (payload.isPersonalNew || payload.tier === "global_known") target.classList.add("state-personal-new");
-    if (payload.dragging || target.classList.contains("dragging")) target.classList.add("state-dragging");
-    if (payload.combineTarget) target.classList.add("state-combine-target");
+    var state = "";
+    if (payload.combineTarget) state = "state-combine-target";
+    else if (payload.dragging || target.classList.contains("dragging")) state = "state-dragging";
+    else if (payload.isFirst || payload.isGlobalNew || payload.tier === "global_new") state = "state-global-new";
+    else if (payload.isPersonalNew || payload.tier === "global_known") state = "state-personal-new";
+    else if (payload.isStarter) state = "state-starter";
+    if (state) target.classList.add(state);
   }
 
   function renderElement(doc, target, payload) {
@@ -183,6 +185,7 @@
       var image = doc.createElement("img");
       image.src = "/assets/icons/actions/" + action + ".svg";
       image.alt = "";
+      image.loading = "lazy";
       image.decoding = "async";
       actionNode.appendChild(image);
     }

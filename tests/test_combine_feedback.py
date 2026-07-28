@@ -193,7 +193,9 @@ def test_icon_system_resolution_and_dom_fallbacks(tmp_path):
           var target = document.getElementById("fixture");
           window.ICON_SYSTEM.renderElement(document, target, {{
             name: {json.dumps(hostile_name)}, emoji: "🧩",
-            icon: {{ base: "🧩", badge: "⭐", palette: "product", source: "entity" }}
+            icon: {{ base: "🧩", badge: "⭐", palette: "product", source: "entity" }},
+            isStarter: true, isFirst: true, isPersonalNew: true,
+            dragging: true, combineTarget: true
           }});
           var sticker = target.querySelector(".emoji");
           var base = sticker.querySelector(".element-icon-base");
@@ -206,6 +208,9 @@ def test_icon_system_resolution_and_dom_fallbacks(tmp_path):
             outerClass: sticker.className,
             baseFallback: sticker.textContent,
             badgeGone: sticker.querySelector(".element-icon-badge") === null,
+            stateClasses: Array.from(target.classList).filter(function (className) {{
+              return className.indexOf("state-") === 0;
+            }}),
             nameIsText: target.querySelector(".name").firstChild.nodeType === Node.TEXT_NODE,
             nameText: target.querySelector(".name").textContent,
             injected: target.querySelector("#chip-name-xss") !== null,
@@ -220,6 +225,7 @@ def test_icon_system_resolution_and_dom_fallbacks(tmp_path):
         "outerClass": "emoji element-icon palette-product element-icon-sidebar",
         "baseFallback": "🧩",
         "badgeGone": True,
+        "stateClasses": ["state-combine-target"],
         "nameIsText": True,
         "nameText": hostile_name,
         "injected": False,
@@ -237,10 +243,15 @@ def test_icon_system_uses_allowlisted_action_icons(tmp_path):
             name: "not-allowed", label: "", tone: "hostile", size: "large"
           });
           var button = target.firstChild;
+          var validTarget = document.createElement("div");
+          window.ICON_SYSTEM.renderAction(document, validTarget, { name: "reset", label: "" });
+          var image = validTarget.querySelector("img");
           return {
             className: button.className,
             ariaLabel: button.getAttribute("aria-label"),
-            image: button.querySelector("img") === null
+            image: button.querySelector("img") === null,
+            validImageLoading: image.loading,
+            validImageDecoding: image.decoding
           };
         });
         """,
@@ -249,6 +260,8 @@ def test_icon_system_uses_allowlisted_action_icons(tmp_path):
         "className": "action-icon tone-default size-large",
         "ariaLabel": "操作",
         "image": True,
+        "validImageLoading": "lazy",
+        "validImageDecoding": "async",
     }
 
 
@@ -478,6 +491,11 @@ def test_hostile_element_payload_is_text_and_app_has_no_inner_html_sinks(tmp_pat
     app_source = APP_SOURCE.read_text(encoding="utf-8")
     assert ".innerHTML" not in app_source
     assert app_source.count("window.COMBINE_FEEDBACK.renderElement") == 5
+    assert 'renderElement(document, ghost, { name, emoji, size: "canvas" })' in app_source
+    assert re.search(
+        r"renderElement\(document, el, \{\s+name,\s+emoji,\s+isStarter,\s+size: \"canvas\",",
+        app_source,
+    )
 
 
 def test_first_toast_uses_exact_design_duration(tmp_path):
