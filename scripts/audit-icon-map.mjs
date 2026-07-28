@@ -56,8 +56,15 @@ const LOCKED_ENTITIES = {
   },
 };
 
-const ENTITY_CATEGORIES = new Set(["product", "studio", "level", "boss", "invest"]);
-const ENGLISH_TOKEN = /(?:^|[.\s])(?:[A-Za-z][A-Za-z0-9.]*|[A-Z0-9]{2,})(?:$|[.\s])/u;
+const ENTITY_CATEGORIES = new Set(["studio", "level", "boss", "invest"]);
+const NON_ENTITY_NAMES = new Set([
+  "全员",
+  "全员信",
+  "工作室",
+  "收购",
+]);
+const ASCII_NAME = /[A-Za-z]/u;
+const NUMERIC_ABBREVIATION = /^(?:007|996)$/u;
 
 async function readJson(path, label) {
   let contents;
@@ -137,13 +144,18 @@ function findEntityCandidates(seedElements, knowledge) {
   return Object.entries(seedElements.elements)
     .filter(
       ([name, seed]) =>
-        ENTITY_CATEGORIES.has(seed.category) || ENGLISH_TOKEN.test(name),
+        Object.hasOwn(knowledge, name) ||
+        ASCII_NAME.test(name) ||
+        NUMERIC_ABBREVIATION.test(name) ||
+        (ENTITY_CATEGORIES.has(seed.category) && !NON_ENTITY_NAMES.has(name)),
     )
     .map(([name, seed]) => ({
       name,
       category: seed.category,
       status: knowledge[name] ? "mapped" : "review",
-      reason: ENTITY_CATEGORIES.has(seed.category)
+      reason: knowledge[name]
+        ? "explicit knowledge row"
+        : ENTITY_CATEGORIES.has(seed.category)
         ? `${seed.category} category`
         : "English name or abbreviation",
     }));
@@ -171,6 +183,9 @@ export function auditIconMap({
     }
     if (entry.icon?.badge && !emojiManifest[entry.icon.badge]) {
       invalidAssets.push(`${name}: badge does not resolve through the Emoji manifest`);
+    }
+    if (entry.icon?.badge && entry.icon.base === entry.icon.badge) {
+      invalidAssets.push(`${name}: base and badge must differ`);
     }
     if (!PALETTES.has(entry.icon?.palette)) {
       invalidAssets.push(`${name}: invalid palette`);
@@ -204,7 +219,7 @@ export function auditIconMap({
   );
   const fullSignatureReuseGroups = collectReuseGroups(iconMap, iconSignature);
   const duplicateEntries = fullSignatureReuseGroups.reduce(
-    (total, group) => total + group.count - 1,
+    (total, group) => total + group.count,
     0,
   );
   const duplicateRate = mapNames.length
@@ -236,6 +251,10 @@ export function auditIconMap({
   }
 
   const lockedResults = lockedEntityResults(iconMap);
+  const entityCandidates = findEntityCandidates(seedElements, knowledge);
+  const unresolvedEntityCandidates = entityCandidates.filter(
+    (candidate) => candidate.status === "review",
+  );
   const violations = [];
   if (mapNames.length !== seedNames.length) {
     violations.push(
@@ -247,6 +266,13 @@ export function auditIconMap({
   }
   if (entityIssues.length) {
     violations.push(`${entityIssues.length} entity rows lack rationale or aliases`);
+  }
+  if (unresolvedEntityCandidates.length) {
+    violations.push(
+      `${unresolvedEntityCandidates.length} unresolved entity or abbreviation candidates: ${unresolvedEntityCandidates
+        .map((candidate) => candidate.name)
+        .join(", ")}`,
+    );
   }
   for (const result of lockedResults.filter((item) => !item.passed)) {
     violations.push(
@@ -267,7 +293,7 @@ export function auditIconMap({
   return {
     acceptedExceptions,
     baseReuseGroups,
-    entityCandidates: findEntityCandidates(seedElements, knowledge),
+    entityCandidates,
     entityIssues,
     fullSignatureReuseGroups,
     invalidAssets,
@@ -281,6 +307,7 @@ export function auditIconMap({
       seedElements: seedNames.length,
     },
     signaturesOverTwice,
+    unresolvedEntityCandidates,
     violations,
   };
 }
@@ -329,8 +356,9 @@ knowledge layer, rules, and Emoji manifest.
 - **Base reuse group**: two or more rows sharing the same base Emoji, regardless
   of badge or palette.
 - **Full signature**: \`base + badge + palette\`.
-- **Duplicate entries**: for every reused full signature, all uses after its
-  first use. The duplicate rate is duplicate entries divided by mapped elements.
+- **Elements in repeated full signatures**: every mapped row belonging to a
+  full signature used by two or more rows. The duplicate rate is that complete
+  repeated-member count divided by mapped elements.
 - **Signature overuse**: a full signature used by more than two rows. It is
   accepted only when every affected row provides a non-empty
   \`duplicate_exception\` explaining why the shared visual meaning is correct.
@@ -341,9 +369,10 @@ knowledge layer, rules, and Emoji manifest.
 - Missing or invalid assets/recipes: ${audit.invalidAssets.length}
 - Base reuse groups: ${audit.metrics.baseReuseGroups}
 - Full-signature reuse groups: ${audit.metrics.fullSignatureReuseGroups}
-- Duplicate entries: ${audit.metrics.duplicateEntries}
+- Elements in repeated full signatures: ${audit.metrics.duplicateEntries}
 - Full-signature duplicate rate: ${percentage}%
 - Signatures used more than twice: ${audit.signaturesOverTwice.length}
+- Unresolved entity/abbreviation candidates: ${audit.unresolvedEntityCandidates.length}
 - Gate violations: ${audit.violations.length}
 
 ## Top 20 base reuse groups

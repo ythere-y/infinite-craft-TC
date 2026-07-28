@@ -30,6 +30,12 @@ function requireManifestEmoji(emojiManifest, emoji, label) {
   }
 }
 
+function requireDistinctBaseAndBadge(icon, label) {
+  if (icon.badge !== undefined && icon.base === icon.badge) {
+    throw new Error(`${label} base and badge must differ`);
+  }
+}
+
 function validateRules(rules, categories, emojiManifest) {
   const paletteSet = new Set(rules.palettes);
   for (const category of categories) {
@@ -56,24 +62,62 @@ function validateRules(rules, categories, emojiManifest) {
   }
 }
 
-function findKeywordRule(name, category, rules) {
+function buildResultContexts(seedCombinations) {
+  const combinations = seedCombinations?.combinations;
+  if (
+    !combinations ||
+    Array.isArray(combinations) ||
+    typeof combinations !== "object"
+  ) {
+    throw new Error("Seed combinations must expose a combinations object");
+  }
+
+  const resultContexts = new Map();
+  for (const [combination, recipe] of Object.entries(combinations)) {
+    if (!recipe?.result) continue;
+    const contexts = resultContexts.get(recipe.result) ?? [];
+    contexts.push({
+      chain: recipe.chain,
+      combination,
+      parents: combination.split(" + "),
+    });
+    resultContexts.set(recipe.result, contexts);
+  }
+  return resultContexts;
+}
+
+function findKeywordRule(name, category, contexts, rules) {
   return rules.keyword_badges.find(
     (rule) =>
       rule.keywords.includes(name) &&
-      (!rule.categories || rule.categories.includes(category)),
+      (!rule.categories ||
+        rule.categories.includes(category) ||
+        contexts.some((context) => rule.categories.includes(context.chain))),
   );
 }
 
-function rationaleForSeed(emoji, category, qualifier) {
+function contextDescription(contexts) {
+  if (!contexts.length) return "";
+  const context = contexts[0];
+  return `种子配方“${context.parents.join(" + ")}”${
+    context.chain ? `（${context.chain} 链）` : ""
+  }`;
+}
+
+function rationaleForSeed(name, emoji, category, qualifier, contexts) {
+  const context = contextDescription(contexts);
   if (qualifier) {
-    return `沿用种子语义“${emoji}”，以“${qualifier}”徽章区分${category}概念`;
+    return `沿用种子语义“${emoji}”，依据${context || `${category}类别`}以“${qualifier}”徽章区分“${name}”`;
+  }
+  if (context) {
+    return `沿用种子语义“${emoji}”；${context}确认“${name}”概念，无需附加徽章`;
   }
   return `沿用种子元素的“${emoji}”语义；${category}类别无需附加徽章`;
 }
 
 export function buildElementIconMap({
   seedElements,
-  seedCombinations: _seedCombinations,
+  seedCombinations,
   rules,
   knowledge,
   emojiManifest,
@@ -87,6 +131,7 @@ export function buildElementIconMap({
     Object.values(elements).map((entry) => entry.category),
   );
   validateRules(rules, categories, emojiManifest);
+  const resultContexts = buildResultContexts(seedCombinations);
 
   const unknownKnowledge = Object.keys(knowledge).filter(
     (name) => !Object.hasOwn(elements, name),
@@ -111,26 +156,30 @@ export function buildElementIconMap({
           `${name}.icon.badge`,
         );
       }
+      requireDistinctBaseAndBadge(entity.icon, `${name}.icon`);
       iconMap[name] = structuredClone(entity);
       continue;
     }
 
     const palette = rules.category_palettes[seed.category];
-    const keywordRule = findKeywordRule(name, seed.category, rules);
-    const categoryBadge = rules.category_badges[seed.category];
-    const badge = keywordRule?.badge ?? categoryBadge;
+    const contexts = resultContexts.get(name) ?? [];
+    const keywordRule = findKeywordRule(name, seed.category, contexts, rules);
+    const badge = keywordRule?.badge;
     const icon = {
       base: seed.emoji,
       ...(badge ? { badge } : {}),
       palette,
       source: badge ? "generated" : "fallback",
     };
+    requireDistinctBaseAndBadge(icon, `${name}.icon`);
     iconMap[name] = {
       icon,
       rationale: rationaleForSeed(
+        name,
         seed.emoji,
         seed.category,
-        keywordRule?.reason ?? (categoryBadge ? `${seed.category}类别` : ""),
+        keywordRule?.reason,
+        contexts,
       ),
     };
   }

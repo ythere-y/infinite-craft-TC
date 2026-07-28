@@ -576,25 +576,183 @@
       "categories": [
         "product"
       ]
+    },
+    {
+      "keywords": ["北京"],
+      "badge": "🏙️",
+      "reason": "北京城市",
+      "categories": ["geo"]
+    },
+    {
+      "keywords": ["北京总部"],
+      "badge": "🏢",
+      "reason": "北京办公总部",
+      "categories": ["building"]
+    },
+    {
+      "keywords": ["老板"],
+      "badge": "👤",
+      "reason": "管理者个人角色",
+      "categories": ["worker"]
+    },
+    {
+      "keywords": ["甲方"],
+      "badge": "🤝",
+      "reason": "商业委托关系",
+      "categories": ["worker"]
+    },
+    {
+      "keywords": ["人类丰容"],
+      "badge": "🐒",
+      "reason": "借动物丰容讨论人类处境",
+      "categories": ["meme_2026w16"]
+    },
+    {
+      "keywords": ["绿植"],
+      "badge": "🌿",
+      "reason": "绿色叶片植物",
+      "categories": ["life"]
+    },
+    {
+      "keywords": ["滨海大厦"],
+      "badge": "🌊",
+      "reason": "滨海办公建筑",
+      "categories": ["building"]
+    },
+    {
+      "keywords": ["硅谷"],
+      "badge": "💻",
+      "reason": "科技产业地区",
+      "categories": ["geo"]
+    },
+    {
+      "keywords": ["不做人"],
+      "badge": "🙈",
+      "reason": "拒绝做人热梗",
+      "categories": ["meme_2026w16"]
+    },
+    {
+      "keywords": ["乐享"],
+      "badge": "🐧",
+      "reason": "腾讯内部内容平台",
+      "categories": ["tencent"]
+    },
+    {
+      "keywords": ["健身房"],
+      "badge": "🏢",
+      "reason": "室内健身场所",
+      "categories": ["tencent"]
+    },
+    {
+      "keywords": ["钢架"],
+      "badge": "🔩",
+      "reason": "金属连接构件",
+      "categories": ["building"]
+    },
+    {
+      "keywords": ["国家"],
+      "badge": "🗺️",
+      "reason": "国家疆域",
+      "categories": ["social"]
+    },
+    {
+      "keywords": ["首都"],
+      "badge": "👑",
+      "reason": "国家政治中心",
+      "categories": ["geo"]
+    },
+    {
+      "keywords": ["琶洲"],
+      "badge": "🏙️",
+      "reason": "广州琶洲城区",
+      "categories": ["geo"]
+    },
+    {
+      "keywords": ["园中园"],
+      "badge": "🌳",
+      "reason": "园区嵌套绿化空间",
+      "categories": ["building"]
+    },
+    {
+      "keywords": ["开放办公区"],
+      "badge": "👥",
+      "reason": "多人共享办公空间",
+      "categories": ["social"]
+    },
+    {
+      "keywords": ["腾讯大厦"],
+      "badge": "🐧",
+      "reason": "腾讯办公建筑",
+      "categories": ["building"]
+    },
+    {
+      "keywords": ["鹅厂"],
+      "badge": "🐧",
+      "reason": "腾讯公司昵称",
+      "categories": ["tencent"]
+    },
+    {
+      "keywords": ["漕河泾"],
+      "badge": "🏙️",
+      "reason": "上海产业城区",
+      "categories": ["geo"]
+    },
+    {
+      "keywords": ["小马哥"],
+      "badge": "👔",
+      "reason": "马化腾人物昵称",
+      "categories": ["tencent"]
+    },
+    {
+      "keywords": ["成都办公楼"],
+      "badge": "🏢",
+      "reason": "成都办公建筑",
+      "categories": ["building"]
+    },
+    {
+      "keywords": ["实名认证爆料"],
+      "badge": "🪪",
+      "reason": "实名身份认证",
+      "categories": ["worker"]
+    },
+    {
+      "keywords": ["三口之家"],
+      "badge": "3️⃣",
+      "reason": "三名家庭成员",
+      "categories": ["social"]
+    },
+    {
+      "keywords": ["对抗路姨甥"],
+      "badge": "⚔️",
+      "reason": "对抗关系热梗",
+      "categories": ["meme_2026w16"]
+    },
+    {
+      "keywords": ["带薪养生"],
+      "badge": "💼",
+      "reason": "工作时间内养生",
+      "categories": ["tencent"]
+    },
+    {
+      "keywords": ["删库跑路"],
+      "badge": "🏃",
+      "reason": "删库后逃离",
+      "categories": ["worker"]
+    },
+    {
+      "keywords": ["鹅式小憩"],
+      "badge": "🐧",
+      "reason": "腾讯员工小憩",
+      "categories": ["tencent"]
+    },
+    {
+      "keywords": ["太湖"],
+      "badge": "🏞️",
+      "reason": "大型湖泊地理语义",
+      "categories": ["geo"]
     }
   ],
-  "category_badges": {
-    "tencent": "🐧",
-    "worker": "💼",
-    "meme_2026w16": "🤣",
-    "meme_classic": "🤣",
-    "bizspeak": "💬",
-    "life": "❤️",
-    "abstract": "💭",
-    "social": "👥",
-    "geo": "📍",
-    "product": "📱",
-    "studio": "🎮",
-    "building": "🏢",
-    "level": "🪜",
-    "boss": "👔",
-    "invest": "💰"
-  },
+  "category_badges": {},
   "allowed_sources": [
     "curated",
     "entity",

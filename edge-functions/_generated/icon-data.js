@@ -57,11 +57,10 @@ export const ELEMENT_ICONS = {
   "企鹅": {
     "icon": {
       "base": "🐧",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🐧”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子元素的“🐧”语义；tencent类别无需附加徽章"
   },
   "鹅厂": {
     "icon": {
@@ -70,52 +69,47 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🏢”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🏢”，依据种子配方“企鹅 + 水”（tencent 链）以“腾讯公司昵称”徽章区分“鹅厂”"
   },
   "工牌": {
     "icon": {
       "base": "🪪",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🪪”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🪪”；种子配方“身份 + 鹅厂”（tencent 链）确认“工牌”概念，无需附加徽章"
   },
   "门禁": {
     "icon": {
       "base": "🚪",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🚪”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🚪”；种子配方“工牌 + 工牌”（tencent 链）确认“门禁”概念，无需附加徽章"
   },
   "电梯": {
     "icon": {
       "base": "🛗",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🛗”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🛗”；种子配方“工位 + 门禁”（tencent 链）确认“电梯”概念，无需附加徽章"
   },
   "打卡": {
     "icon": {
       "base": "⏱️",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“⏱️”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“⏱️”；种子配方“工牌 + 门禁”（tencent 链）确认“打卡”概念，无需附加徽章"
   },
   "掌纹": {
     "icon": {
       "base": "🫴",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🫴”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🫴”；种子配方“人 + 工牌”（tencent 链）确认“掌纹”概念，无需附加徽章"
   },
   "iWiki": {
     "entity_type": "product",
@@ -168,16 +162,15 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎨”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🎨”，依据种子配方“iWiki + 老板”（tencent 链）以“腾讯内部内容平台”徽章区分“乐享”"
   },
   "鹅卡": {
     "icon": {
       "base": "💳",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💳”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“💳”；种子配方“工牌 + 食堂”（tencent 链）确认“鹅卡”概念，无需附加徽章"
   },
   "食堂": {
     "icon": {
@@ -186,97 +179,89 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🍱”，以“员工就餐场所”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🍱”，依据种子配方“灶台 + 鹅厂”（tencent 链）以“员工就餐场所”徽章区分“食堂”"
   },
   "鹅餐": {
     "icon": {
       "base": "🍱",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🍱”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🍱”；种子配方“打工人 + 食堂”（tencent 链）确认“鹅餐”概念，无需附加徽章"
   },
   "班车": {
     "icon": {
       "base": "🚌",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🚌”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🚌”；种子配方“轨道 + 鹅厂”（tencent 链）确认“班车”概念，无需附加徽章"
   },
   "健身房": {
     "icon": {
       "base": "🏋️",
-      "badge": "🐧",
+      "badge": "🏢",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🏋️”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🏋️”，依据种子配方“工位 + 打工人”（tencent 链）以“室内健身场所”徽章区分“健身房”"
   },
   "按摩椅": {
     "icon": {
       "base": "💆",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💆”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“💆”；种子配方“健身房 + 工位”（tencent 链）确认“按摩椅”概念，无需附加徽章"
   },
   "小马哥": {
     "icon": {
       "base": "🐎",
-      "badge": "🐧",
+      "badge": "👔",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🐎”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🐎”，依据种子配方“小马 + 鹅厂”（tencent 链）以“马化腾人物昵称”徽章区分“小马哥”"
   },
   "南极圈": {
     "icon": {
       "base": "🧊",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧊”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🧊”；种子配方“企鹅 + 离职”（tencent 链）确认“南极圈”概念，无需附加徽章"
   },
   "活水": {
     "icon": {
       "base": "🌊",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌊”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🌊”；种子配方“打工鹅 + 转岗”（tencent 链）确认“活水”概念，无需附加徽章"
   },
   "瑞雪": {
     "icon": {
       "base": "❄️",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“❄️”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“❄️”；种子配方“OKR + 夜宵券”（tencent 链）确认“瑞雪”概念，无需附加徽章"
   },
   "赛马": {
     "icon": {
       "base": "🐎",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🐎”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🐎”；种子配方“PCG + WXG”（tencent 链）确认“赛马”概念，无需附加徽章"
   },
   "中台": {
     "icon": {
       "base": "🏗️",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏗️”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🏗️”；种子配方“赛马 + 赛马”（tencent 链）确认“中台”概念，无需附加徽章"
   },
   "TAPD": {
     "entity_type": "product",
@@ -301,20 +286,18 @@ export const ELEMENT_ICONS = {
   "腾讯会议": {
     "icon": {
       "base": "📹",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📹”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“📹”；种子配方“会议 + 腾讯云”（product 链）确认“腾讯会议”概念，无需附加徽章"
   },
   "腾讯文档": {
     "icon": {
       "base": "📄",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📄”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“📄”；种子配方“会议 + 腾讯会议”（tencent 链）确认“腾讯文档”概念，无需附加徽章"
   },
   "微信": {
     "icon": {
@@ -323,7 +306,7 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“💬”，以“移动社交产品”徽章区分tencent概念"
+    "rationale": "沿用种子语义“💬”，依据tencent类别以“移动社交产品”徽章区分“微信”"
   },
   "QQ": {
     "entity_type": "product",
@@ -350,38 +333,34 @@ export const ELEMENT_ICONS = {
   "朋友圈": {
     "icon": {
       "base": "🔵",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔵”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🔵”；种子配方“微信 + 微信”（product 链）确认“朋友圈”概念，无需附加徽章"
   },
   "视频号": {
     "icon": {
       "base": "📺",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📺”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“📺”；种子配方“微信 + 朋友圈”（product 链）确认“视频号”概念，无需附加徽章"
   },
   "王者荣耀": {
     "icon": {
       "base": "⚔️",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“⚔️”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“⚔️”；种子配方“天美 + 赛马”（studio 链）确认“王者荣耀”概念，无需附加徽章"
   },
   "和平精英": {
     "icon": {
       "base": "🔫",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔫”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🔫”；种子配方“光子 + 赛马”（studio 链）确认“和平精英”概念，无需附加徽章"
   },
   "IEG": {
     "entity_type": "organization",
@@ -506,65 +485,73 @@ export const ELEMENT_ICONS = {
   "组织架构调整": {
     "icon": {
       "base": "🔄",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔄”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🔄”；种子配方“中台 + 中台”（tencent 链）确认“组织架构调整”概念，无需附加徽章"
   },
   "鹅厂大楼": {
     "icon": {
       "base": "🏛️",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏛️”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🏛️”；种子配方“腾讯大厦 + 鹅厂”（building 链）确认“鹅厂大楼”概念，无需附加徽章"
   },
   "滨海大厦": {
     "icon": {
       "base": "🌆",
-      "badge": "🏢",
+      "badge": "🌊",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🌆”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“🌆”，依据种子配方“大厦 + 海洋”（building 链）以“滨海办公建筑”徽章区分“滨海大厦”"
   },
   "周报": {
     "icon": {
       "base": "📝",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📝”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“📝”；种子配方“打工人 + 腾讯会议”（tencent 链）确认“周报”概念，无需附加徽章"
   },
   "月报": {
     "icon": {
       "base": "📊",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📊”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“📊”；种子配方“周报 + 周报”（tencent 链）确认“月报”概念，无需附加徽章"
   },
   "季报": {
     "icon": {
       "base": "📈",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📈”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“📈”；种子配方“月报 + 月报”（tencent 链）确认“季报”概念，无需附加徽章"
   },
   "述职PPT": {
+    "entity_type": "office_abbreviation",
+    "canonical_name": "述职演示文稿",
+    "aliases": [
+      "述职PPT文档",
+      "述职演示"
+    ],
+    "contexts": [
+      "worker",
+      "presentation"
+    ],
+    "forbidden_senses": [
+      "PPT=任意幻灯片"
+    ],
     "icon": {
       "base": "📑",
-      "badge": "💼",
+      "badge": "🗣️",
       "palette": "office",
-      "source": "generated"
+      "source": "entity"
     },
-    "rationale": "沿用种子语义“📑”，以“worker类别”徽章区分worker概念"
+    "rationale": "员工述职演示文稿；分页文档配汇报发言徽章"
   },
   "OKR": {
     "entity_type": "abbreviation",
@@ -609,11 +596,10 @@ export const ELEMENT_ICONS = {
   "咖啡": {
     "icon": {
       "base": "☕",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“☕”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“☕”；种子配方“加班 + 水”（worker 链）确认“咖啡”概念，无需附加徽章"
   },
   "美式": {
     "icon": {
@@ -622,124 +608,112 @@ export const ELEMENT_ICONS = {
       "palette": "office",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“☕”，以“美式咖啡”徽章区分worker概念"
+    "rationale": "沿用种子语义“☕”，依据种子配方“咖啡 + 水”（worker 链）以“美式咖啡”徽章区分“美式”"
   },
   "瑞幸": {
     "icon": {
       "base": "🥤",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🥤”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🥤”；种子配方“咖啡 + 鹅卡”（worker 链）确认“瑞幸”概念，无需附加徽章"
   },
   "夜宵券": {
     "icon": {
       "base": "🍜",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🍜”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🍜”；种子配方“加班 + 打卡”（tencent 链）确认“夜宵券”概念，无需附加徽章"
   },
   "工位": {
     "icon": {
       "base": "🪑",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🪑”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子元素的“🪑”语义；worker类别无需附加徽章"
   },
   "老板": {
     "icon": {
       "base": "👔",
-      "badge": "💼",
+      "badge": "👤",
       "palette": "office",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“👔”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“👔”，依据种子配方“打工人 + 资历”（worker 链）以“管理者个人角色”徽章区分“老板”"
   },
   "画饼": {
     "icon": {
       "base": "🥧",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🥧”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🥧”；种子配方“承诺 + 谎言”（worker 链）确认“画饼”概念，无需附加徽章"
   },
   "空头支票": {
     "icon": {
       "base": "📃",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📃”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“📃”；种子配方“KPI + 画饼”（worker 链）确认“空头支票”概念，无需附加徽章"
   },
   "打工人": {
     "icon": {
       "base": "🧑‍💻",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧑‍💻”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🧑‍💻”；种子配方“人 + 工位”（social 链）确认“打工人”概念，无需附加徽章"
   },
   "打工鹅": {
     "icon": {
       "base": "🐧",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🐧”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🐧”；种子配方“企鹅 + 打工人”（tencent 链）确认“打工鹅”概念，无需附加徽章"
   },
   "秃头": {
     "icon": {
       "base": "👨‍🦲",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“👨‍🦲”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“👨‍🦲”；种子配方“头发 + 火”（worker 链）确认“秃头”概念，无需附加徽章"
   },
   "黑眼圈": {
     "icon": {
       "base": "🐼",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🐼”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🐼”；种子配方“熬夜 + 熬夜”（worker 链）确认“黑眼圈”概念，无需附加徽章"
   },
   "摸鱼": {
     "icon": {
       "base": "🐟",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🐟”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🐟”；种子配方“打工人 + 海洋”（worker 链）确认“摸鱼”概念，无需附加徽章"
   },
   "带薪摸鱼": {
     "icon": {
       "base": "🐠",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🐠”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🐠”；种子配方“厕所 + 手机”（worker 链）确认“带薪摸鱼”概念，无需附加徽章"
   },
   "带薪拉屎": {
     "icon": {
       "base": "🚽",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🚽”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🚽”；种子配方“厕所 + 周报”（worker 链）确认“带薪拉屎”概念，无需附加徽章"
   },
   "007": {
     "entity_type": "work_pattern",
@@ -765,65 +739,58 @@ export const ELEMENT_ICONS = {
   "年终奖": {
     "icon": {
       "base": "🧧",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧧”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🧧”；种子配方“KPI + 眼泪”（worker 链）确认“年终奖”概念，无需附加徽章"
   },
   "绩效3.5": {
     "icon": {
       "base": "😐",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😐”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“😐”；种子配方“老板 + 述职PPT”（tencent 链）确认“绩效3.5”概念，无需附加徽章"
   },
   "绩效3.75": {
     "icon": {
       "base": "😊",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😊”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“😊”；种子配方“加班 + 述职PPT”（tencent 链）确认“绩效3.75”概念，无需附加徽章"
   },
   "绩效4": {
     "icon": {
       "base": "🏆",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏆”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🏆”；种子配方“瑞雪 + 述职PPT”（tencent 链）确认“绩效4”概念，无需附加徽章"
   },
   "离职": {
     "icon": {
       "base": "🚪",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🚪”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🚪”；种子配方“发疯 + 打工人”（worker 链）确认“离职”概念，无需附加徽章"
   },
   "转岗": {
     "icon": {
       "base": "🔀",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔀”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🔀”；种子配方“加班 + 离职”（worker 链）确认“转岗”概念，无需附加徽章"
   },
   "脉脉": {
     "icon": {
       "base": "👀",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“👀”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“👀”；种子配方“打工人 + 离职”（worker 链）确认“脉脉”概念，无需附加徽章"
   },
   "Boss直聘": {
     "entity_type": "company",
@@ -841,146 +808,148 @@ export const ELEMENT_ICONS = {
     ],
     "icon": {
       "base": "💼",
-      "badge": "💼",
+      "badge": "👥",
       "palette": "office",
       "source": "entity"
     },
-    "rationale": "在线招聘平台品牌；公文包双重表达求职与招聘"
+    "rationale": "在线招聘平台品牌；公文包配人才徽章表达招聘"
   },
   "删库跑路": {
     "icon": {
       "base": "💣",
-      "badge": "💼",
+      "badge": "🏃",
       "palette": "office",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“💣”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“💣”，依据种子配方“周报 + 火”（worker 链）以“删库后逃离”徽章区分“删库跑路”"
   },
   "P0故障": {
+    "entity_type": "incident_abbreviation",
+    "canonical_name": "P0 级生产故障",
+    "aliases": [
+      "P0事故",
+      "最高优先级故障"
+    ],
+    "contexts": [
+      "worker",
+      "incident"
+    ],
+    "forbidden_senses": [
+      "P0=普通编号"
+    ],
     "icon": {
       "base": "🚨",
-      "badge": "💼",
+      "badge": "🧯",
       "palette": "office",
-      "source": "generated"
+      "source": "entity"
     },
-    "rationale": "沿用种子语义“🚨”，以“worker类别”徽章区分worker概念"
+    "rationale": "最高优先级生产事故；警报灯配应急灭火徽章"
   },
   "上线": {
     "icon": {
       "base": "🚀",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🚀”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🚀”；种子配方“代码 + 需求变更”（worker 链）确认“上线”概念，无需附加徽章"
   },
   "回滚": {
     "icon": {
       "base": "⏪",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“⏪”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“⏪”；种子配方“P0故障 + 老板”（worker 链）确认“回滚”概念，无需附加徽章"
   },
   "需求变更": {
     "icon": {
       "base": "🔁",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔁”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🔁”；种子配方“甲方 + 腾讯会议”（tencent 链）确认“需求变更”概念，无需附加徽章"
   },
   "酱板鸭": {
     "icon": {
       "base": "🦆",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🦆”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“🦆”；种子配方“火 + 雪山狐狸”（meme_2026w16 链）确认“酱板鸭”概念，无需附加徽章"
   },
   "雪山狐狸": {
     "icon": {
       "base": "🦊",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🦊”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“🦊”；种子配方“狐狸 + 雪”（meme_2026w16 链）确认“雪山狐狸”概念，无需附加徽章"
   },
   "画饼可以直说": {
     "icon": {
       "base": "😾",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😾”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“😾”；种子配方“画饼 + 画饼”（meme_2026w16 链）确认“画饼可以直说”概念，无需附加徽章"
   },
   "人类丰容": {
     "icon": {
       "base": "🪴",
-      "badge": "🤣",
+      "badge": "🐒",
       "palette": "people",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🪴”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“🪴”，依据种子配方“工位 + 绿植”（worker 链）以“借动物丰容讨论人类处境”徽章区分“人类丰容”"
   },
   "我要验牌": {
     "icon": {
       "base": "🎴",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🎴”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“🎴”；种子配方“证据 + 质疑”（meme_2026w16 链）确认“我要验牌”概念，无需附加徽章"
   },
   "太湖三霸": {
     "icon": {
       "base": "⚽",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“⚽”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“⚽”；种子配方“太湖 + 足球”（meme_2026w16 链）确认“太湖三霸”概念，无需附加徽章"
   },
   "爱你老己": {
     "icon": {
       "base": "💘",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💘”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“💘”；种子配方“爱 + 自己”（meme_2026w16 链）确认“爱你老己”概念，无需附加徽章"
   },
   "老贝榨": {
     "icon": {
       "base": "🥒",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🥒”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“🥒”；种子配方“榨菜 + 游戏”（meme_2026w16 链）确认“老贝榨”概念，无需附加徽章"
   },
   "不做人": {
     "icon": {
       "base": "🍲",
-      "badge": "🤣",
+      "badge": "🙈",
       "palette": "people",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🍲”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“🍲”，依据种子配方“独居 + 锅”（meme_2026w16 链）以“拒绝做人热梗”徽章区分“不做人”"
   },
   "我的身材很曼妙": {
     "icon": {
       "base": "💃",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💃”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“💃”；种子配方“自信 + 身材”（meme_2026w16 链）确认“我的身材很曼妙”概念，无需附加徽章"
   },
   "SBTI": {
     "entity_type": "meme_abbreviation",
@@ -1007,218 +976,195 @@ export const ELEMENT_ICONS = {
   "吗喽": {
     "icon": {
       "base": "🐒",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🐒”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“🐒”；种子配方“打工 + 猴子”（meme_2026w16 链）确认“吗喽”概念，无需附加徽章"
   },
   "死者人格": {
     "icon": {
       "base": "💀",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💀”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“💀”；种子配方“周一 + 班味”（meme_2026w16 链）确认“死者人格”概念，无需附加徽章"
   },
   "哭哭马": {
     "icon": {
       "base": "😢",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😢”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“😢”；种子配方“眼泪 + 眼泪”（meme_2026w16 链）确认“哭哭马”概念，无需附加徽章"
   },
   "养龙虾": {
     "icon": {
       "base": "🦞",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🦞”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“🦞”；种子配方“工位 + 龙虾”（meme_2026w16 链）确认“养龙虾”概念，无需附加徽章"
   },
   "班味": {
     "icon": {
       "base": "😮‍💨",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😮‍💨”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“😮‍💨”；种子配方“秃头 + 黑眼圈”（worker 链）确认“班味”概念，无需附加徽章"
   },
   "空降疲惫": {
     "icon": {
       "base": "🪂",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🪂”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“🪂”；种子配方“新岗位 + 老板”（meme_2026w16 链）确认“空降疲惫”概念，无需附加徽章"
   },
   "裁神爷": {
     "icon": {
       "base": "💸",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💸”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“💸”；种子配方“HR + 裁员”（meme_2026w16 链）确认“裁神爷”概念，无需附加徽章"
   },
   "松人": {
     "icon": {
       "base": "🌴",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌴”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“🌴”；种子配方“打工人 + 松弛感”（meme_2026w16 链）确认“松人”概念，无需附加徽章"
   },
   "紧人": {
     "icon": {
       "base": "😬",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😬”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“😬”；种子配方“KPI + 焦虑”（meme_2026w16 链）确认“紧人”概念，无需附加徽章"
   },
   "颠颠上班": {
     "icon": {
       "base": "🤪",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🤪”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“🤪”；种子配方“吗喽 + 班味”（meme_2026w16 链）确认“颠颠上班”概念，无需附加徽章"
   },
   "对抗路姨甥": {
     "icon": {
       "base": "👯",
-      "badge": "🤣",
+      "badge": "⚔️",
       "palette": "people",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“👯”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“👯”，依据种子配方“双胞胎 + 王者”（meme_2026w16 链）以“对抗关系热梗”徽章区分“对抗路姨甥”"
   },
   "孙红雷关人脸": {
     "icon": {
       "base": "😑",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😑”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“😑”；种子配方“孙红雷 + 表情”（meme_2026w16 链）确认“孙红雷关人脸”概念，无需附加徽章"
   },
   "过期酸奶": {
     "icon": {
       "base": "🥛",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🥛”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“🥛”；种子配方“嘎子 + 直播间”（meme_2026w16 链）确认“过期酸奶”概念，无需附加徽章"
   },
   "上坟都不敢这么烧": {
     "icon": {
       "base": "🕯️",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🕯️”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“🕯️”；种子配方“氪金 + 直播打赏”（meme_2026w16 链）确认“上坟都不敢这么烧”概念，无需附加徽章"
   },
   "鹿晗穿红": {
     "icon": {
       "base": "🧦",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧦”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“🧦”；种子配方“红袜子 + 鹿晗”（meme_2026w16 链）确认“鹿晗穿红”概念，无需附加徽章"
   },
   "发疯": {
     "icon": {
       "base": "🤯",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🤯”，以“meme_classic类别”徽章区分meme_classic概念"
+    "rationale": "沿用种子语义“🤯”；种子配方“周一 + 地铁”（worker 链）确认“发疯”概念，无需附加徽章"
   },
   "发癫": {
     "icon": {
       "base": "🤪",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🤪”，以“meme_classic类别”徽章区分meme_classic概念"
+    "rationale": "沿用种子语义“🤪”；种子配方“发疯 + 发疯”（meme_classic 链）确认“发癫”概念，无需附加徽章"
   },
   "已读不回": {
     "icon": {
       "base": "🙊",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🙊”，以“meme_classic类别”徽章区分meme_classic概念"
+    "rationale": "沿用种子语义“🙊”；种子配方“下班 + 老板”（worker 链）确认“已读不回”概念，无需附加徽章"
   },
   "已读乱回": {
     "icon": {
       "base": "🤡",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🤡”，以“meme_classic类别”徽章区分meme_classic概念"
+    "rationale": "沿用种子语义“🤡”；种子配方“已读不回 + 老板”（meme_classic 链）确认“已读乱回”概念，无需附加徽章"
   },
   "破防": {
     "icon": {
       "base": "🥲",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🥲”，以“meme_classic类别”徽章区分meme_classic概念"
+    "rationale": "沿用种子语义“🥲”；种子配方“画饼可以直说 + 老板”（meme_2026w16 链）确认“破防”概念，无需附加徽章"
   },
   "显眼包": {
     "icon": {
       "base": "🌟",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌟”，以“meme_classic类别”徽章区分meme_classic概念"
+    "rationale": "沿用种子语义“🌟”；种子配方“发疯 + 工位”（meme_classic 链）确认“显眼包”概念，无需附加徽章"
   },
   "紧绷感": {
     "icon": {
       "base": "😤",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😤”，以“meme_classic类别”徽章区分meme_classic概念"
+    "rationale": "沿用种子语义“😤”；种子配方“打工人 + 班味”（meme_classic 链）确认“紧绷感”概念，无需附加徽章"
   },
   "松弛感": {
     "icon": {
       "base": "😌",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😌”，以“meme_classic类别”徽章区分meme_classic概念"
+    "rationale": "沿用种子语义“😌”；种子配方“gap year + 班味”（worker 链）确认“松弛感”概念，无需附加徽章"
   },
   "班上不想上": {
     "icon": {
       "base": "😵",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😵”，以“meme_classic类别”徽章区分meme_classic概念"
+    "rationale": "沿用种子语义“😵”；种子配方“周一 + 精神状态”（meme_classic 链）确认“班上不想上”概念，无需附加徽章"
   },
   "gap year": {
     "entity_type": "english_term",
@@ -1243,110 +1189,98 @@ export const ELEMENT_ICONS = {
   "精神状态": {
     "icon": {
       "base": "⚡",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“⚡”，以“meme_classic类别”徽章区分meme_classic概念"
+    "rationale": "沿用种子语义“⚡”；种子配方“发疯 + 班味”（meme_classic 链）确认“精神状态”概念，无需附加徽章"
   },
   "闭环": {
     "icon": {
       "base": "🔄",
-      "badge": "💬",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔄”，以“bizspeak类别”徽章区分bizspeak概念"
+    "rationale": "沿用种子语义“🔄”；种子配方“对齐 + 对齐”（bizspeak 链）确认“闭环”概念，无需附加徽章"
   },
   "抓手": {
     "icon": {
       "base": "✊",
-      "badge": "💬",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“✊”，以“bizspeak类别”徽章区分bizspeak概念"
+    "rationale": "沿用种子语义“✊”；种子配方“闭环 + 闭环”（bizspeak 链）确认“抓手”概念，无需附加徽章"
   },
   "颗粒度": {
     "icon": {
       "base": "🔬",
-      "badge": "💬",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔬”，以“bizspeak类别”徽章区分bizspeak概念"
+    "rationale": "沿用种子语义“🔬”；种子配方“抓手 + 抓手”（bizspeak 链）确认“颗粒度”概念，无需附加徽章"
   },
   "对齐": {
     "icon": {
       "base": "📐",
-      "badge": "💬",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📐”，以“bizspeak类别”徽章区分bizspeak概念"
+    "rationale": "沿用种子语义“📐”；种子配方“会议 + 会议”（bizspeak 链）确认“对齐”概念，无需附加徽章"
   },
   "赋能": {
     "icon": {
       "base": "💪",
-      "badge": "💬",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💪”，以“bizspeak类别”徽章区分bizspeak概念"
+    "rationale": "沿用种子语义“💪”；种子配方“颗粒度 + 颗粒度”（bizspeak 链）确认“赋能”概念，无需附加徽章"
   },
   "链路": {
     "icon": {
       "base": "🔗",
-      "badge": "💬",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔗”，以“bizspeak类别”徽章区分bizspeak概念"
+    "rationale": "沿用种子语义“🔗”；种子配方“赋能 + 闭环”（bizspeak 链）确认“链路”概念，无需附加徽章"
   },
   "心智": {
     "icon": {
       "base": "🧠",
-      "badge": "💬",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧠”，以“bizspeak类别”徽章区分bizspeak概念"
+    "rationale": "沿用种子语义“🧠”；种子配方“赋能 + 链路”（bizspeak 链）确认“心智”概念，无需附加徽章"
   },
   "协同": {
     "icon": {
       "base": "🤝",
-      "badge": "💬",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🤝”，以“bizspeak类别”徽章区分bizspeak概念"
+    "rationale": "沿用种子语义“🤝”；种子配方“抓手 + 颗粒度”（bizspeak 链）确认“协同”概念，无需附加徽章"
   },
   "拉通": {
     "icon": {
       "base": "📣",
-      "badge": "💬",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📣”，以“bizspeak类别”徽章区分bizspeak概念"
+    "rationale": "沿用种子语义“📣”；种子配方“协同 + 协同”（bizspeak 链）确认“拉通”概念，无需附加徽章"
   },
   "下沉": {
     "icon": {
       "base": "⬇️",
-      "badge": "💬",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“⬇️”，以“bizspeak类别”徽章区分bizspeak概念"
+    "rationale": "沿用种子语义“⬇️”；种子配方“协同 + 闭环”（bizspeak 链）确认“下沉”概念，无需附加徽章"
   },
   "穿透": {
     "icon": {
       "base": "💥",
-      "badge": "💬",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💥”，以“bizspeak类别”徽章区分bizspeak概念"
+    "rationale": "沿用种子语义“💥”；种子配方“心智 + 闭环”（bizspeak 链）确认“穿透”概念，无需附加徽章"
   },
   "蒸汽": {
     "icon": {
@@ -1354,7 +1288,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“♨️”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“♨️”；种子配方“水 + 火”（classic 链）确认“蒸汽”概念，无需附加徽章"
   },
   "泥": {
     "icon": {
@@ -1362,7 +1296,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🟤”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🟤”；种子配方“土 + 水”（classic 链）确认“泥”概念，无需附加徽章"
   },
   "岩浆": {
     "icon": {
@@ -1370,7 +1304,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🌋”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🌋”；种子配方“土 + 火”（classic 链）确认“岩浆”概念，无需附加徽章"
   },
   "灰尘": {
     "icon": {
@@ -1378,7 +1312,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“💨”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“💨”；种子配方“土 + 风”（classic 链）确认“灰尘”概念，无需附加徽章"
   },
   "云": {
     "icon": {
@@ -1386,7 +1320,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“☁️”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“☁️”；种子配方“灰尘 + 蒸汽”（classic 链）确认“云”概念，无需附加徽章"
   },
   "雨": {
     "icon": {
@@ -1394,7 +1328,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🌧️”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🌧️”；种子配方“云 + 水”（classic 链）确认“雨”概念，无需附加徽章"
   },
   "雪": {
     "icon": {
@@ -1402,7 +1336,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“❄️”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“❄️”；种子配方“云 + 冰”（physical 链）确认“雪”概念，无需附加徽章"
   },
   "冰": {
     "icon": {
@@ -1410,7 +1344,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🧊”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🧊”；种子配方“冰晶 + 冰晶”（physical 链）确认“冰”概念，无需附加徽章"
   },
   "植物": {
     "icon": {
@@ -1418,7 +1352,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🌱”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🌱”；种子配方“土 + 雨”（classic 链）确认“植物”概念，无需附加徽章"
   },
   "生命": {
     "icon": {
@@ -1426,7 +1360,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🧬”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🧬”；种子配方“时间 + 植物”（physical 链）确认“生命”概念，无需附加徽章"
   },
   "时间": {
     "icon": {
@@ -1442,52 +1376,47 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“⚙️”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“⚙️”；种子配方“火 + 矿石”（physical 链）确认“金属”概念，无需附加徽章"
   },
   "地铁": {
     "icon": {
       "base": "🚇",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🚇”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🚇”；种子配方“人 + 轨道”（life 链）确认“地铁”概念，无需附加徽章"
   },
   "早高峰": {
     "icon": {
       "base": "🚶‍♂️",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🚶‍♂️”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🚶‍♂️”；种子配方“地铁 + 工位”（life 链）确认“早高峰”概念，无需附加徽章"
   },
   "外卖": {
     "icon": {
       "base": "🥡",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🥡”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🥡”；种子配方“小卖部 + 手机”（life 链）确认“外卖”概念，无需附加徽章"
   },
   "奶茶": {
     "icon": {
       "base": "🧋",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧋”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🧋”；种子配方“人 + 茶”（life 链）确认“奶茶”概念，无需附加徽章"
   },
   "周一": {
     "icon": {
       "base": "😫",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😫”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“😫”；种子配方“一周 + 工位”（life 链）确认“周一”概念，无需附加徽章"
   },
   "周五": {
     "icon": {
@@ -1496,133 +1425,120 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎉”，以“一周中的星期五”徽章区分life概念"
+    "rationale": "沿用种子语义“🎉”，依据种子配方“周一 + 时间”（life 链）以“一周中的星期五”徽章区分“周五”"
   },
   "下班": {
     "icon": {
       "base": "🏃",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏃”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🏃”；种子配方“打工人 + 钟声”（life 链）确认“下班”概念，无需附加徽章"
   },
   "加班": {
     "icon": {
       "base": "🌙",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌙”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🌙”；种子配方“996 + 工位”（worker 链）确认“加班”概念，无需附加徽章"
   },
   "绿植": {
     "icon": {
       "base": "🪴",
-      "badge": "❤️",
+      "badge": "🌿",
       "palette": "people",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🪴”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🪴”，依据种子配方“水 + 盆栽”（life 链）以“绿色叶片植物”徽章区分“绿植”"
   },
   "头发": {
     "icon": {
       "base": "💇",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💇”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“💇”；种子配方“打工人 + 秃头”（life 链）确认“头发”概念，无需附加徽章"
   },
   "眼泪": {
     "icon": {
       "base": "💧",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💧”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“💧”；种子配方“地铁 + 打工人”（life 链）确认“眼泪”概念，无需附加徽章"
   },
   "手机": {
     "icon": {
       "base": "📱",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📱”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“📱”；种子配方“人 + 电波”（life 链）确认“手机”概念，无需附加徽章"
   },
   "厕所": {
     "icon": {
       "base": "🚽",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🚽”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🚽”；种子配方“工位 + 手机”（life 链）确认“厕所”概念，无需附加徽章"
   },
   "电子厂": {
     "icon": {
       "base": "🏭",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏭”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🏭”；种子配方“城市 + 打工人”（life 链）确认“电子厂”概念，无需附加徽章"
   },
   "知识": {
     "icon": {
       "base": "📚",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📚”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“📚”；种子配方“云 + 植物”（classic 链）确认“知识”概念，无需附加徽章"
   },
   "梦想": {
     "icon": {
       "base": "💭",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💭”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“💭”；种子配方“知识 + 自由”（abstract 链）确认“梦想”概念，无需附加徽章"
   },
   "自由": {
     "icon": {
       "base": "🕊️",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🕊️”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“🕊️”；种子配方“下班 + 周五”（worker 链）确认“自由”概念，无需附加徽章"
   },
   "焦虑": {
     "icon": {
       "base": "😰",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😰”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“😰”；种子配方“加班 + 发疯”（abstract 链）确认“焦虑”概念，无需附加徽章"
   },
   "躺平": {
     "icon": {
       "base": "🛌",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🛌”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“🛌”；种子配方“内卷 + 内卷”（meme_classic 链）确认“躺平”概念，无需附加徽章"
   },
   "内卷": {
     "icon": {
       "base": "🌀",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌀”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“🌀”；种子配方“躺平 + 躺平”（abstract 链）确认“内卷”概念，无需附加徽章"
   },
   "AI": {
     "entity_type": "abbreviation",
@@ -1649,38 +1565,35 @@ export const ELEMENT_ICONS = {
   "人": {
     "icon": {
       "base": "🧍",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧍”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子元素的“🧍”语义；social类别无需附加徽章"
   },
   "夫妻": {
     "icon": {
       "base": "👫",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“👫”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“👫”；种子配方“情侣 + 情侣”（social 链）确认“夫妻”概念，无需附加徽章"
   },
   "家庭": {
     "icon": {
       "base": "👨‍👩‍👧",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“👨‍👩‍👧”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“👨‍👩‍👧”；种子配方“夫妻 + 夫妻”（social 链）确认“家庭”概念，无需附加徽章"
   },
   "三口之家": {
     "icon": {
       "base": "👨‍👩‍👧",
-      "badge": "👥",
+      "badge": "3️⃣",
       "palette": "people",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“👨‍👩‍👧”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“👨‍👩‍👧”，依据种子配方“人 + 夫妻”（social 链）以“三名家庭成员”徽章区分“三口之家”"
   },
   "邻居": {
     "icon": {
@@ -1689,7 +1602,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🏘️”，以“相邻居住的个人”徽章区分social概念"
+    "rationale": "沿用种子语义“🏘️”，依据种子配方“三口之家 + 三口之家”（social 链）以“相邻居住的个人”徽章区分“邻居”"
   },
   "小区": {
     "icon": {
@@ -1698,7 +1611,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🏘️”，以“住宅建筑群”徽章区分social概念"
+    "rationale": "沿用种子语义“🏘️”，依据种子配方“邻里 + 邻里”（social 链）以“住宅建筑群”徽章区分“小区”"
   },
   "社区": {
     "icon": {
@@ -1707,34 +1620,31 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🏙️”，以“居民社区结构”徽章区分social概念"
+    "rationale": "沿用种子语义“🏙️”，依据种子配方“小区 + 小区”（social 链）以“居民社区结构”徽章区分“社区”"
   },
   "街道": {
     "icon": {
       "base": "🛣️",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🛣️”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“🛣️”；种子配方“街区 + 街区”（social 链）确认“街道”概念，无需附加徽章"
   },
   "城中村": {
     "icon": {
       "base": "🏚️",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏚️”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“🏚️”；种子配方“人 + 城市”（social 链）确认“城中村”概念，无需附加徽章"
   },
   "区": {
     "icon": {
       "base": "🗺️",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🗺️”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“🗺️”；种子配方“街道 + 街道”（social 链）确认“区”概念，无需附加徽章"
   },
   "城市": {
     "icon": {
@@ -1743,43 +1653,40 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🏙️”，以“城市建筑密度”徽章区分social概念"
+    "rationale": "沿用种子语义“🏙️”，依据种子配方“区 + 区”（social 链）以“城市建筑密度”徽章区分“城市”"
   },
   "省": {
     "icon": {
       "base": "📍",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📍”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“📍”；种子配方“都市圈 + 都市圈”（social 链）确认“省”概念，无需附加徽章"
   },
   "国家": {
     "icon": {
       "base": "🏛️",
-      "badge": "👥",
+      "badge": "🗺️",
       "palette": "people",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🏛️”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“🏛️”，依据种子配方“省 + 省”（social 链）以“国家疆域”徽章区分“国家”"
   },
   "地球": {
     "icon": {
       "base": "🌍",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌍”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“🌍”；种子配方“国家 + 国家”（social 链）确认“地球”概念，无需附加徽章"
   },
   "宇宙": {
     "icon": {
       "base": "🌌",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌌”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“🌌”；种子配方“银河系 + 银河系”（social 链）确认“宇宙”概念，无需附加徽章"
   },
   "开放办公区": {
     "icon": {
@@ -1788,88 +1695,79 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🏢”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“🏢”，依据种子配方“打工人 + 打工人”（social 链）以“多人共享办公空间”徽章区分“开放办公区”"
   },
   "楼层": {
     "icon": {
       "base": "🏬",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏬”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“🏬”；种子配方“开放办公区 + 开放办公区”（social 链）确认“楼层”概念，无需附加徽章"
   },
   "大厦": {
     "icon": {
       "base": "🏢",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏢”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“🏢”；种子配方“小楼 + 小楼”（social 链）确认“大厦”概念，无需附加徽章"
   },
   "园区": {
     "icon": {
       "base": "🏞️",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏞️”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“🏞️”；种子配方“产业园 + 大厦”（building 链）确认“园区”概念，无需附加徽章"
   },
   "总部": {
     "icon": {
       "base": "🏛️",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏛️”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“🏛️”；种子配方“总部基地 + 总部基地”（social 链）确认“总部”概念，无需附加徽章"
   },
   "海洋": {
     "icon": {
       "base": "🌊",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌊”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🌊”；种子配方“湖泊 + 湖泊”（geo 链）确认“海洋”概念，无需附加徽章"
   },
   "山": {
     "icon": {
       "base": "⛰️",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“⛰️”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“⛰️”；种子配方“丘陵 + 丘陵”（geo 链）确认“山”概念，无需附加徽章"
   },
   "岛": {
     "icon": {
       "base": "🏝️",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏝️”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🏝️”；种子配方“山 + 水”（geo 链）确认“岛”概念，无需附加徽章"
   },
   "沙漠": {
     "icon": {
       "base": "🏜️",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏜️”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🏜️”；种子配方“土 + 灰尘”（geo 链）确认“沙漠”概念，无需附加徽章"
   },
   "森林": {
     "icon": {
       "base": "🌲",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌲”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🌲”；种子配方“树 + 树”（geo 链）确认“森林”概念，无需附加徽章"
   },
   "河流": {
     "icon": {
@@ -1878,25 +1776,23 @@ export const ELEMENT_ICONS = {
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🏞️”，以“流动水体”徽章区分geo概念"
+    "rationale": "沿用种子语义“🏞️”，依据种子配方“山 + 雨”（geo 链）以“流动水体”徽章区分“河流”"
   },
   "深圳": {
     "icon": {
       "base": "🌆",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌆”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🌆”；种子配方“海湾 + 经济特区”（geo 链）确认“深圳”概念，无需附加徽章"
   },
   "南山": {
     "icon": {
       "base": "🗻",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🗻”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🗻”；种子配方“山 + 深圳”（geo 链）确认“南山”概念，无需附加徽章"
   },
   "前海": {
     "icon": {
@@ -1905,7 +1801,7 @@ export const ELEMENT_ICONS = {
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🌊”，以“深圳前海城区”徽章区分geo概念"
+    "rationale": "沿用种子语义“🌊”，依据种子配方“海洋 + 深圳”（geo 链）以“深圳前海城区”徽章区分“前海”"
   },
   "滨海": {
     "icon": {
@@ -1914,61 +1810,57 @@ export const ELEMENT_ICONS = {
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🌅”，以“临海地理语义”徽章区分geo概念"
+    "rationale": "沿用种子语义“🌅”，依据种子配方“水 + 深圳”（geo 链）以“临海地理语义”徽章区分“滨海”"
   },
   "科兴": {
     "icon": {
       "base": "🔬",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔬”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🔬”；种子配方“深圳 + 金属”（geo 链）确认“科兴”概念，无需附加徽章"
   },
   "广州": {
     "icon": {
       "base": "🌃",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌃”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🌃”；种子配方“海湾 + 粤语”（geo 链）确认“广州”概念，无需附加徽章"
   },
   "海珠": {
     "icon": {
       "base": "🦪",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🦪”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🦪”；种子配方“广州 + 海洋”（geo 链）确认“海珠”概念，无需附加徽章"
   },
   "琶洲": {
     "icon": {
       "base": "🏝️",
-      "badge": "📍",
+      "badge": "🏙️",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🏝️”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🏝️”，依据种子配方“岛 + 海珠”（geo 链）以“广州琶洲城区”徽章区分“琶洲”"
   },
   "新港中路": {
     "icon": {
       "base": "🛣️",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🛣️”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🛣️”；种子配方“琶洲 + 街道”（geo 链）确认“新港中路”概念，无需附加徽章"
   },
   "北京": {
     "icon": {
       "base": "🏯",
-      "badge": "📍",
+      "badge": "🏙️",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🏯”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🏯”，依据种子配方“古都 + 首都”（geo 链）以“北京城市”徽章区分“北京”"
   },
   "朝阳": {
     "icon": {
@@ -1977,16 +1869,15 @@ export const ELEMENT_ICONS = {
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🌅”，以“朝阳区名称与日出语义”徽章区分geo概念"
+    "rationale": "沿用种子语义“🌅”，依据种子配方“北京 + 城市”（geo 链）以“朝阳区名称与日出语义”徽章区分“朝阳”"
   },
   "望京": {
     "icon": {
       "base": "🗼",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🗼”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🗼”；种子配方“北京 + 朝阳”（building 链）确认“望京”概念，无需附加徽章"
   },
   "上海": {
     "icon": {
@@ -1995,25 +1886,24 @@ export const ELEMENT_ICONS = {
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🌉”，以“国际都市地标”徽章区分geo概念"
+    "rationale": "沿用种子语义“🌉”，依据种子配方“海洋 + 港口”（geo 链）以“国际都市地标”徽章区分“上海”"
   },
   "漕河泾": {
     "icon": {
       "base": "🏭",
-      "badge": "📍",
+      "badge": "🏙️",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🏭”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🏭”，依据种子配方“上海 + 河流”（geo 链）以“上海产业城区”徽章区分“漕河泾”"
   },
   "成都": {
     "icon": {
       "base": "🐼",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🐼”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🐼”；种子配方“企鹅 + 森林”（geo 链）确认“成都”概念，无需附加徽章"
   },
   "武汉": {
     "icon": {
@@ -2022,70 +1912,93 @@ export const ELEMENT_ICONS = {
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🌉”，以“武汉城市与樱花意象”徽章区分geo概念"
+    "rationale": "沿用种子语义“🌉”，依据种子配方“山 + 河流”（geo 链）以“武汉城市与樱花意象”徽章区分“武汉”"
   },
   "硅谷": {
     "icon": {
       "base": "🌉",
-      "badge": "📍",
+      "badge": "💻",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🌉”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🌉”，依据种子配方“城市 + 美国”（geo 链）以“科技产业地区”徽章区分“硅谷”"
   },
   "腾讯大厦": {
     "icon": {
       "base": "🏢",
-      "badge": "🏢",
+      "badge": "🐧",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🏢”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“🏢”，依据种子配方“深圳 + 鹅厂”（building 链）以“腾讯办公建筑”徽章区分“腾讯大厦”"
   },
   "金地威新": {
     "icon": {
       "base": "🏬",
-      "badge": "🏢",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏬”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“🏬”；种子配方“大厦 + 金属”（building 链）确认“金地威新”概念，无需附加徽章"
   },
   "TIT创意园": {
+    "entity_type": "place",
+    "canonical_name": "TIT创意园",
+    "aliases": [
+      "广州TIT创意园",
+      "微信TIT园区"
+    ],
+    "contexts": [
+      "building",
+      "geo"
+    ],
+    "forbidden_senses": [
+      "TIT=普通字母缩写"
+    ],
     "icon": {
       "base": "🎨",
       "badge": "🏢",
       "palette": "place",
-      "source": "generated"
+      "source": "entity"
     },
-    "rationale": "沿用种子语义“🎨”，以“building类别”徽章区分building概念"
+    "rationale": "广州创意园与办公地点；调色板配建筑徽章"
   },
   "科兴科学园": {
     "icon": {
       "base": "🔬",
-      "badge": "🏢",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔬”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“🔬”；种子配方“科兴 + 鹅厂”（building 链）确认“科兴科学园”概念，无需附加徽章"
   },
   "琶洲新总部": {
     "icon": {
       "base": "🏗️",
-      "badge": "🏢",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏗️”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“🏗️”；种子配方“琶洲 + 鹅厂”（building 链）确认“琶洲新总部”概念，无需附加徽章"
   },
   "T1塔楼": {
+    "entity_type": "place",
+    "canonical_name": "T1塔楼",
+    "aliases": [
+      "腾讯T1塔楼",
+      "T1办公塔楼"
+    ],
+    "contexts": [
+      "building",
+      "office"
+    ],
+    "forbidden_senses": [
+      "T1=职级"
+    ],
     "icon": {
       "base": "🗼",
       "badge": "🏢",
       "palette": "place",
-      "source": "generated"
+      "source": "entity"
     },
-    "rationale": "沿用种子语义“🗼”，以“building类别”徽章区分building概念"
+    "rationale": "办公园区塔楼名称；高塔配建筑徽章"
   },
   "北京总部": {
     "icon": {
@@ -2094,16 +2007,15 @@ export const ELEMENT_ICONS = {
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🏯”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“🏯”，依据种子配方“北京 + 鹅厂”（building 链）以“北京办公总部”徽章区分“北京总部”"
   },
   "上海总部": {
     "icon": {
       "base": "🌉",
-      "badge": "🏢",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌉”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“🌉”；种子配方“上海 + 鹅厂”（building 链）确认“上海总部”概念，无需附加徽章"
   },
   "成都办公楼": {
     "icon": {
@@ -2112,7 +2024,7 @@ export const ELEMENT_ICONS = {
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🐼”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“🐼”，依据种子配方“成都 + 鹅厂”（building 链）以“成都办公建筑”徽章区分“成都办公楼”"
   },
   "纺织机械厂": {
     "icon": {
@@ -2121,34 +2033,31 @@ export const ELEMENT_ICONS = {
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🏭”，以“纺织工业旧址”徽章区分building概念"
+    "rationale": "沿用种子语义“🏭”，依据种子配方“红砖墙 + 红砖墙”（building 链）以“纺织工业旧址”徽章区分“纺织机械厂”"
   },
   "滑梯": {
     "icon": {
       "base": "🛝",
-      "badge": "🏢",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🛝”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“🛝”；种子配方“TIT创意园 + 欢乐”（building 链）确认“滑梯”概念，无需附加徽章"
   },
   "黑板墙": {
     "icon": {
       "base": "📋",
-      "badge": "🏢",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📋”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“📋”；种子配方“TIT创意园 + iWiki”（building 链）确认“黑板墙”概念，无需附加徽章"
   },
   "红砖墙": {
     "icon": {
       "base": "🧱",
-      "badge": "🏢",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧱”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“🧱”；种子配方“土 + 岩浆”（building 链）确认“红砖墙”概念，无需附加徽章"
   },
   "QQ邮箱": {
     "entity_type": "product",
@@ -2580,11 +2489,11 @@ export const ELEMENT_ICONS = {
     "forbidden_senses": [],
     "icon": {
       "base": "🎶",
-      "badge": "📱",
+      "badge": "🔤",
       "palette": "product",
       "source": "entity"
     },
-    "rationale": "腾讯音乐娱乐集团英文缩写；多音符配产品徽章"
+    "rationale": "腾讯音乐娱乐集团英文缩写；多音符配字母徽章标示缩写语境"
   },
   "腾讯云": {
     "entity_type": "product",
@@ -2874,11 +2783,11 @@ export const ELEMENT_ICONS = {
     "forbidden_senses": [],
     "icon": {
       "base": "🎯",
-      "badge": "📱",
+      "badge": "🏢",
       "palette": "product",
       "source": "entity"
     },
-    "rationale": "腾讯企业客户连接产品；目标主图配产品徽章"
+    "rationale": "腾讯企业客户连接产品；目标主图配企业服务徽章"
   },
   "CDC": {
     "entity_type": "organization",
@@ -3302,11 +3211,11 @@ export const ELEMENT_ICONS = {
     ],
     "icon": {
       "base": "👊",
-      "badge": "🎮",
+      "badge": "🐧",
       "palette": "studio",
       "source": "entity"
     },
-    "rationale": "Riot Games 的中文通称；拳头主图配游戏徽章"
+    "rationale": "Riot Games 的中文通称；拳头主图配企鹅徽章标示腾讯投资语境"
   },
   "Supercell": {
     "entity_type": "company",
@@ -3601,11 +3510,11 @@ export const ELEMENT_ICONS = {
     ],
     "icon": {
       "base": "🐎",
-      "badge": "👔",
+      "badge": "🔤",
       "palette": "people",
       "source": "entity"
     },
-    "rationale": "腾讯主要创始人马化腾的英文名；马意象配高管徽章"
+    "rationale": "腾讯主要创始人马化腾的英文名；马意象配字母徽章标示英文昵称"
   },
   "马化腾": {
     "entity_type": "person",
@@ -3686,12 +3595,12 @@ export const ELEMENT_ICONS = {
       "mark=标记"
     ],
     "icon": {
-      "base": "👔",
-      "badge": "🎮",
+      "base": "🎮",
+      "badge": "👔",
       "palette": "people",
       "source": "entity"
     },
-    "rationale": "腾讯高级管理者任宇昕的英文名；领带配游戏业务徽章"
+    "rationale": "腾讯高级管理者任宇昕的英文名；游戏主图配高管徽章"
   },
   "任宇昕": {
     "entity_type": "person",
@@ -3738,11 +3647,10 @@ export const ELEMENT_ICONS = {
   "全员信": {
     "icon": {
       "base": "📧",
-      "badge": "👔",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📧”，以“boss类别”徽章区分boss概念"
+    "rationale": "沿用种子语义“📧”；种子配方“全员 + 小马哥”（tencent 链）确认“全员信”概念，无需附加徽章"
   },
   "董事长": {
     "entity_type": "role",
@@ -3982,56 +3890,50 @@ export const ELEMENT_ICONS = {
   "游戏": {
     "icon": {
       "base": "🎮",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🎮”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🎮”；种子配方“手机 + 欢乐”（product 链）确认“游戏”概念，无需附加徽章"
   },
   "音乐": {
     "icon": {
       "base": "🎵",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🎵”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🎵”；种子配方“人 + 麦克风”（product 链）确认“音乐”概念，无需附加徽章"
   },
   "新闻": {
     "icon": {
       "base": "📰",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📰”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“📰”；种子配方“人 + 知识”（product 链）确认“新闻”概念，无需附加徽章"
   },
   "动漫": {
     "icon": {
       "base": "📖",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📖”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“📖”；种子配方“欢乐 + 知识”（product 链）确认“动漫”概念，无需附加徽章"
   },
   "小说": {
     "icon": {
       "base": "📚",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📚”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“📚”；种子配方“知识 + 知识”（product 链）确认“小说”概念，无需附加徽章"
   },
   "体育": {
     "icon": {
       "base": "⚽",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“⚽”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“⚽”；种子配方“打工人 + 自由”（product 链）确认“体育”概念，无需附加徽章"
   },
   "电脑": {
     "icon": {
@@ -4040,43 +3942,39 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“💻”，以“桌面计算设备”徽章区分product概念"
+    "rationale": "沿用种子语义“💻”，依据种子配方“AI + 屏幕”（product 链）以“桌面计算设备”徽章区分“电脑”"
   },
   "浏览器": {
     "icon": {
       "base": "🌐",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌐”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🌐”；种子配方“云 + 手机”（product 链）确认“浏览器”概念，无需附加徽章"
   },
   "邮箱": {
     "icon": {
       "base": "📬",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📬”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“📬”；种子配方“办公 + 手机”（product 链）确认“邮箱”概念，无需附加徽章"
   },
   "地图": {
     "icon": {
       "base": "🗺️",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🗺️”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🗺️”；种子配方“城市 + 知识”（product 链）确认“地图”概念，无需附加徽章"
   },
   "代码": {
     "icon": {
       "base": "👨‍💻",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“👨‍💻”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“👨‍💻”；种子配方“AI + 工位”（product 链）确认“代码”概念，无需附加徽章"
   },
   "办公": {
     "icon": {
@@ -4085,79 +3983,71 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“💼”，以“办公文件与事务”徽章区分product概念"
+    "rationale": "沿用种子语义“💼”，依据种子配方“会议 + 工位”（product 链）以“办公文件与事务”徽章区分“办公”"
   },
   "会议": {
     "icon": {
       "base": "📅",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📅”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“📅”；种子配方“人 + 腾讯会议”（product 链）确认“会议”概念，无需附加徽章"
   },
   "设计": {
     "icon": {
       "base": "🎨",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🎨”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🎨”；种子配方“工位 + 知识”（product 链）确认“设计”概念，无需附加徽章"
   },
   "派对": {
     "icon": {
       "base": "🎉",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🎉”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🎉”；种子配方“欢乐 + 游戏”（product 链）确认“派对”概念，无需附加徽章"
   },
   "自走棋": {
     "icon": {
       "base": "♟️",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“♟️”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“♟️”；种子配方“游戏 + 知识”（product 链）确认“自走棋”概念，无需附加徽章"
   },
   "竞技": {
     "icon": {
       "base": "🏆",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏆”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🏆”；种子配方“体育 + 游戏”（product 链）确认“竞技”概念，无需附加徽章"
   },
   "端游": {
     "icon": {
       "base": "🖥️",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🖥️”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🖥️”；种子配方“游戏 + 电脑”（product 链）确认“端游”概念，无需附加徽章"
   },
   "国际版": {
     "icon": {
       "base": "🌏",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌏”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🌏”；种子配方“海洋 + 游戏”（product 链）确认“国际版”概念，无需附加徽章"
   },
   "订阅": {
     "icon": {
       "base": "🔔",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔔”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🔔”；种子配方“RTX + RTX”（product 链）确认“订阅”概念，无需附加徽章"
   },
   "弹幕": {
     "icon": {
@@ -4166,133 +4056,119 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“💬”，以“视频画面上的实时评论”徽章区分product概念"
+    "rationale": "沿用种子语义“💬”，依据种子配方“打工人 + 视频号”（product 链）以“视频画面上的实时评论”徽章区分“弹幕”"
   },
   "短视频": {
     "icon": {
       "base": "🎬",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🎬”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🎬”；种子配方“微视 + 微视”（product 链）确认“短视频”概念，无需附加徽章"
   },
   "电商": {
     "icon": {
       "base": "🛒",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🛒”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🛒”；种子配方“手机 + 钱包”（product 链）确认“电商”概念，无需附加徽章"
   },
   "物流": {
     "icon": {
       "base": "📦",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📦”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“📦”；种子配方“城市 + 外卖”（product 链）确认“物流”概念，无需附加徽章"
   },
   "问答": {
     "icon": {
       "base": "❓",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“❓”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“❓”；种子配方“打工人 + 知识”（product 链）确认“问答”概念，无需附加徽章"
   },
   "种草": {
     "icon": {
       "base": "🌱",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌱”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🌱”；种子配方“植物 + 鹅厂”（product 链）确认“种草”概念，无需附加徽章"
   },
   "公益": {
     "icon": {
       "base": "❤️",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“❤️”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“❤️”；种子配方“爱 + 鹅厂”（product 链）确认“公益”概念，无需附加徽章"
   },
   "新能源": {
     "icon": {
       "base": "🔋",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔋”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🔋”；种子配方“冰 + 火”（product 链）确认“新能源”概念，无需附加徽章"
   },
   "轻量": {
     "icon": {
       "base": "🪶",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🪶”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🪶”；种子配方“微风 + 微风”（abstract 链）确认“轻量”概念，无需附加徽章"
   },
   "翻译": {
     "icon": {
       "base": "🔤",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔤”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🔤”；种子配方“国际版 + 知识”（product 链）确认“翻译”概念，无需附加徽章"
   },
   "企业": {
     "icon": {
       "base": "🏢",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏢”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🏢”；种子配方“鹅厂 + 鹅厂”（product 链）确认“企业”概念，无需附加徽章"
   },
   "自主研发": {
     "icon": {
       "base": "🛠️",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🛠️”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🛠️”；种子配方“代码 + 自由”（product 链）确认“自主研发”概念，无需附加徽章"
   },
   "工作室": {
     "icon": {
       "base": "🎮",
-      "badge": "🎮",
       "palette": "studio",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🎮”，以“studio类别”徽章区分studio概念"
+    "rationale": "沿用种子语义“🎮”；种子配方“企业 + 游戏”（studio 链）确认“工作室”概念，无需附加徽章"
   },
   "收购": {
     "icon": {
       "base": "🤝",
-      "badge": "🎮",
       "palette": "studio",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🤝”，以“studio类别”徽章区分studio概念"
+    "rationale": "沿用种子语义“🤝”；种子配方“投资 + 鹅厂”（studio 链）确认“收购”概念，无需附加徽章"
   },
   "美国": {
     "icon": {
       "base": "🗽",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🗽”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🗽”；种子配方“国家 + 地球”（geo 链）确认“美国”概念，无需附加徽章"
   },
   "王者": {
     "entity_type": "product_reference",
@@ -4433,7 +4309,7 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🔫”，以“射击器械与目标”徽章区分product概念"
+    "rationale": "沿用种子语义“🔫”，依据种子配方“刀 + 火”（product 链）以“射击器械与目标”徽章区分“枪”"
   },
   "足球": {
     "icon": {
@@ -4442,34 +4318,31 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“⚽”，以“球门限定足球运动”徽章区分product概念"
+    "rationale": "沿用种子语义“⚽”，依据种子配方“土 + 欢乐”（product 链）以“球门限定足球运动”徽章区分“足球”"
   },
   "扑克": {
     "icon": {
       "base": "🃏",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🃏”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🃏”；种子配方“欢乐 + 鹅厂”（product 链）确认“扑克”概念，无需附加徽章"
   },
   "麻将": {
     "icon": {
       "base": "🀄",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🀄”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🀄”；种子配方“家庭 + 欢乐”（product 链）确认“麻将”概念，无需附加徽章"
   },
   "欢乐": {
     "icon": {
       "base": "😄",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😄”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“😄”；种子配方“人 + 自由”（abstract 链）确认“欢乐”概念，无需附加徽章"
   },
   "CF": {
     "entity_type": "product_reference",
@@ -4521,7 +4394,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🦊”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🦊”；种子配方“土 + 森林”（physical 链）确认“狐狸”概念，无需附加徽章"
   },
   "狗": {
     "icon": {
@@ -4529,7 +4402,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🐕”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🐕”；种子配方“人 + 狐狸”（physical 链）确认“狗”概念，无需附加徽章"
   },
   "猴子": {
     "icon": {
@@ -4537,7 +4410,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🐒”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🐒”；种子配方“森林 + 森林”（physical 链）确认“猴子”概念，无需附加徽章"
   },
   "龙虾": {
     "icon": {
@@ -4545,259 +4418,233 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🦞”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🦞”；种子配方“土 + 海洋”（physical 链）确认“龙虾”概念，无需附加徽章"
   },
   "锅": {
     "icon": {
       "base": "🍲",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🍲”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🍲”；种子配方“植物 + 金属”（life 链）确认“锅”概念，无需附加徽章"
   },
   "冰箱": {
     "icon": {
       "base": "🧊",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧊”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🧊”；种子配方“冰 + 金属”（life 链）确认“冰箱”概念，无需附加徽章"
   },
   "飞机": {
     "icon": {
       "base": "✈️",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“✈️”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“✈️”；种子配方“金属 + 风”（life 链）确认“飞机”概念，无需附加徽章"
   },
   "麦克风": {
     "icon": {
       "base": "🎤",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🎤”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🎤”；种子配方“欢乐 + 金属”（life 链）确认“麦克风”概念，无需附加徽章"
   },
   "钱包": {
     "icon": {
       "base": "👛",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“👛”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“👛”；种子配方“人 + 金属”（life 链）确认“钱包”概念，无需附加徽章"
   },
   "背景": {
     "icon": {
       "base": "🖼️",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🖼️”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🖼️”；种子配方“人 + 夜”（life 链）确认“背景”概念，无需附加徽章"
   },
   "表情": {
     "icon": {
       "base": "🙂",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🙂”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🙂”；种子配方“人 + 手机”（life 链）确认“表情”概念，无需附加徽章"
   },
   "小床": {
     "icon": {
       "base": "🛏️",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🛏️”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🛏️”；种子配方“加班 + 工位”（life 链）确认“小床”概念，无需附加徽章"
   },
   "房贷": {
     "icon": {
       "base": "💰",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💰”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“💰”；种子配方“钱包 + 钱包”（life 链）确认“房贷”概念，无需附加徽章"
   },
   "新年": {
     "icon": {
       "base": "🧧",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧧”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🧧”；种子配方“时间 + 雪”（life 链）确认“新年”概念，无需附加徽章"
   },
   "周末": {
     "icon": {
       "base": "🎊",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🎊”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🎊”；种子配方“周五 + 周五”（life 链）确认“周末”概念，无需附加徽章"
   },
   "夜": {
     "icon": {
       "base": "🌃",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌃”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🌃”；种子配方“时间 + 火”（life 链）确认“夜”概念，无需附加徽章"
   },
   "早会": {
     "icon": {
       "base": "🌅",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌅”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🌅”；种子配方“周五 + 腾讯会议”（tencent 链）确认“早会”概念，无需附加徽章"
   },
   "晚班": {
     "icon": {
       "base": "🌙",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌙”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🌙”；种子配方“加班 + 夜”（tencent 链）确认“晚班”概念，无需附加徽章"
   },
   "午休": {
     "icon": {
       "base": "💤",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💤”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“💤”；种子配方“下班 + 摸鱼”（tencent 链）确认“午休”概念，无需附加徽章"
   },
   "独居": {
     "icon": {
       "base": "🏠",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏠”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🏠”；种子配方“周末 + 外卖”（life 链）确认“独居”概念，无需附加徽章"
   },
   "榨菜": {
     "icon": {
       "base": "🥒",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🥒”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🥒”；种子配方“人 + 独居”（life 链）确认“榨菜”概念，无需附加徽章"
   },
   "太湖": {
     "icon": {
       "base": "💧",
-      "badge": "📍",
+      "badge": "🏞️",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“💧”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“💧”，依据种子配方“水 + 河流”（geo 链）以“大型湖泊地理语义”徽章区分“太湖”"
   },
   "鹿晗": {
     "icon": {
       "base": "🦌",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🦌”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🦌”；种子配方“人 + 森林”（life 链）确认“鹿晗”概念，无需附加徽章"
   },
   "嘎子": {
     "icon": {
       "base": "🧒",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧒”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🧒”；种子配方“人 + 直播间”（life 链）确认“嘎子”概念，无需附加徽章"
   },
   "孙红雷": {
     "icon": {
       "base": "😑",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😑”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“😑”；种子配方“人 + 表情”（life 链）确认“孙红雷”概念，无需附加徽章"
   },
   "红袜子": {
     "icon": {
       "base": "🧦",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧦”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🧦”；种子配方“火 + 鹿晗”（life 链）确认“红袜子”概念，无需附加徽章"
   },
   "钢架": {
     "icon": {
       "base": "🏗️",
-      "badge": "🏢",
+      "badge": "🔩",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🏗️”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“🏗️”，依据种子配方“金属 + 金属”（building 链）以“金属连接构件”徽章区分“钢架”"
   },
   "通勤": {
     "icon": {
       "base": "🚌",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🚌”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🚌”；种子配方“城市 + 班车”（social 链）确认“通勤”概念，无需附加徽章"
   },
   "小马": {
     "icon": {
       "base": "🐴",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🐴”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🐴”；种子配方“Pony + 时间”（life 链）确认“小马”概念，无需附加徽章"
   },
   "管家": {
     "icon": {
       "base": "🛡️",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🛡️”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🛡️”；种子配方“人 + 家庭”（product 链）确认“管家”概念，无需附加徽章"
   },
   "宝": {
     "icon": {
       "base": "📦",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📦”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“📦”；种子配方“知识 + 金属”（abstract 链）确认“宝”概念，无需附加徽章"
   },
   "应用": {
     "icon": {
       "base": "📲",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📲”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“📲”；种子配方“代码 + 手机”（product 链）确认“应用”概念，无需附加徽章"
   },
   "聊天": {
     "icon": {
@@ -4806,70 +4653,63 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“💬”，以“人与人交谈”徽章区分product概念"
+    "rationale": "沿用种子语义“💬”，依据种子配方“微信 + 手机”（product 链）以“人与人交谈”徽章区分“聊天”"
   },
   "自己": {
     "icon": {
       "base": "🪞",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🪞”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“🪞”；种子配方“自由 + 自由”（abstract 链）确认“自己”概念，无需附加徽章"
   },
   "爱": {
     "icon": {
       "base": "❤️",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“❤️”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“❤️”；种子配方“家庭 + 时间”（abstract 链）确认“爱”概念，无需附加徽章"
   },
   "自信": {
     "icon": {
       "base": "😎",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😎”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“😎”；种子配方“梦想 + 自己”（abstract 链）确认“自信”概念，无需附加徽章"
   },
   "身材": {
     "icon": {
       "base": "💃",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💃”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“💃”；种子配方“人 + 健身房”（abstract 链）确认“身材”概念，无需附加徽章"
   },
   "质疑": {
     "icon": {
       "base": "🤔",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🤔”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“🤔”；种子配方“画饼 + 老板”（abstract 链）确认“质疑”概念，无需附加徽章"
   },
   "证据": {
     "icon": {
       "base": "🔍",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔍”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“🔍”；种子配方“知识 + 老板”（abstract 链）确认“证据”概念，无需附加徽章"
   },
   "测试": {
     "icon": {
       "base": "📝",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📝”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“📝”；种子配方“代码 + 打工人”（abstract 链）确认“测试”概念，无需附加徽章"
   },
   "INFP": {
     "entity_type": "personality_type",
@@ -4894,20 +4734,18 @@ export const ELEMENT_ICONS = {
   "复仇": {
     "icon": {
       "base": "😈",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😈”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“😈”；种子配方“发疯 + 眼泪”（abstract 链）确认“复仇”概念，无需附加徽章"
   },
   "投资": {
     "icon": {
       "base": "💰",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💰”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“💰”；种子配方“时间 + 钱包”（abstract 链）确认“投资”概念，无需附加徽章"
   },
   "总裁": {
     "entity_type": "role",
@@ -4976,11 +4814,10 @@ export const ELEMENT_ICONS = {
   "华尔街": {
     "icon": {
       "base": "📈",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📈”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“📈”；种子配方“投资 + 美国”（geo 链）确认“华尔街”概念，无需附加徽章"
   },
   "创始人": {
     "entity_type": "role",
@@ -4996,227 +4833,232 @@ export const ELEMENT_ICONS = {
     "forbidden_senses": [],
     "icon": {
       "base": "👑",
-      "badge": "👔",
+      "badge": "🌱",
       "palette": "people",
       "source": "entity"
     },
-    "rationale": "企业创办者角色；皇冠配高管徽章"
+    "rationale": "企业创办者角色；皇冠配萌芽徽章表达创建"
   },
   "全员": {
     "icon": {
       "base": "👥",
-      "badge": "👔",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“👥”，以“boss类别”徽章区分boss概念"
+    "rationale": "沿用种子语义“👥”；种子配方“RTX + 打工人”（boss 链）确认“全员”概念，无需附加徽章"
   },
   "双胞胎": {
     "icon": {
       "base": "👯",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“👯”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“👯”；种子配方“夫妻 + 时间”（social 链）确认“双胞胎”概念，无需附加徽章"
   },
   "甲方": {
     "icon": {
       "base": "👔",
-      "badge": "💼",
+      "badge": "🤝",
       "palette": "office",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“👔”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“👔”，依据种子配方“手机 + 老板”（worker 链）以“商业委托关系”徽章区分“甲方”"
   },
   "删库": {
     "icon": {
       "base": "💣",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💣”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“💣”；种子配方“代码 + 火”（worker 链）确认“删库”概念，无需附加徽章"
   },
   "跑路": {
     "icon": {
       "base": "🏃",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏃”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🏃”；种子配方“删库 + 老板”（worker 链）确认“跑路”概念，无需附加徽章"
   },
   "裁员": {
     "icon": {
       "base": "✂️",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“✂️”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“✂️”；种子配方“HR + 成本”（worker 链）确认“裁员”概念，无需附加徽章"
   },
   "毕业": {
     "icon": {
       "base": "🎓",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🎓”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🎓”；种子配方“应届生 + 打工人”（level 链）确认“毕业”概念，无需附加徽章"
   },
   "入职": {
     "icon": {
       "base": "🎉",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🎉”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🎉”；种子配方“毕业 + 鹅厂”（level 链）确认“入职”概念，无需附加徽章"
   },
   "暑假": {
     "icon": {
       "base": "🏖️",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏖️”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🏖️”；种子配方“gap year + 人”（worker 链）确认“暑假”概念，无需附加徽章"
   },
   "修bug": {
+    "entity_type": "english_term",
+    "canonical_name": "修复软件缺陷",
+    "aliases": [
+      "修复bug",
+      "bug修复"
+    ],
+    "contexts": [
+      "worker",
+      "development"
+    ],
+    "forbidden_senses": [
+      "bug=昆虫"
+    ],
     "icon": {
       "base": "🐛",
-      "badge": "💼",
+      "badge": "🧑‍💻",
       "palette": "office",
-      "source": "generated"
+      "source": "entity"
     },
-    "rationale": "沿用种子语义“🐛”，以“worker类别”徽章区分worker概念"
+    "rationale": "软件缺陷修复工作；虫子配开发者徽章"
   },
   "运维": {
     "icon": {
       "base": "🔧",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔧”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🔧”；种子配方“上线 + 修bug”（worker 链）确认“运维”概念，无需附加徽章"
   },
   "成本": {
     "icon": {
       "base": "💸",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💸”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“💸”；种子配方“KPI + 鹅厂”（worker 链）确认“成本”概念，无需附加徽章"
   },
   "新岗位": {
     "icon": {
       "base": "💺",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💺”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“💺”；种子配方“老板 + 转岗”（worker 链）确认“新岗位”概念，无需附加徽章"
   },
   "周年": {
     "icon": {
       "base": "🎂",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🎂”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🎂”；种子配方“时间 + 老板”（boss 链）确认“周年”概念，无需附加徽章"
   },
   "氪金": {
     "icon": {
       "base": "💎",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💎”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“💎”；种子配方“手机 + 游戏”（worker 链）确认“氪金”概念，无需附加徽章"
   },
   "直播间": {
     "icon": {
       "base": "📹",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📹”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“📹”；种子配方“氪金 + 视频号”（worker 链）确认“直播间”概念，无需附加徽章"
   },
   "直播打赏": {
     "icon": {
       "base": "💰",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💰”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“💰”；种子配方“氪金 + 直播间”（worker 链）确认“直播打赏”概念，无需附加徽章"
   },
   "广告": {
     "icon": {
       "base": "📢",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📢”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“📢”；种子配方“视频号 + 钱包”（worker 链）确认“广告”概念，无需附加徽章"
   },
   "老板黑话": {
     "icon": {
       "base": "👔",
-      "badge": "💬",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“👔”，以“bizspeak类别”徽章区分bizspeak概念"
+    "rationale": "沿用种子语义“👔”；种子配方“心智 + 穿透”（bizspeak 链）确认“老板黑话”概念，无需附加徽章"
   },
   "全员告警": {
     "icon": {
       "base": "📢",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📢”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“📢”；种子配方“P0故障 + P0故障”（easter_egg 链）确认“全员告警”概念，无需附加徽章"
   },
   "鹅厂双子塔": {
     "icon": {
       "base": "🏙️",
-      "badge": "🏢",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏙️”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“🏙️”；种子配方“滨海大厦 + 腾讯大厦”（building 链）确认“鹅厂双子塔”概念，无需附加徽章"
   },
   "微信总部": {
     "icon": {
       "base": "💚",
-      "badge": "🏢",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💚”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“💚”；种子配方“TIT创意园 + 滑梯”（building 链）确认“微信总部”概念，无需附加徽章"
   },
   "LOFT工业风": {
+    "entity_type": "design_term",
+    "canonical_name": "LOFT 工业风格",
+    "aliases": [
+      "工业风LOFT",
+      "LOFT办公风格"
+    ],
+    "contexts": [
+      "building",
+      "design"
+    ],
+    "forbidden_senses": [
+      "loft=普通阁楼"
+    ],
     "icon": {
       "base": "🏭",
       "badge": "🧱",
       "palette": "place",
-      "source": "generated"
+      "source": "entity"
     },
-    "rationale": "沿用种子语义“🏭”，以“砖墙工业建筑风格”徽章区分building概念"
+    "rationale": "工业建筑室内风格；厂房配砖墙徽章"
   },
   "硅谷风": {
     "icon": {
       "base": "🛝",
-      "badge": "🏢",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🛝”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“🛝”；种子配方“工位 + 滑梯”（building 链）确认“硅谷风”概念，无需附加徽章"
   },
   "腾讯音乐娱乐": {
     "entity_type": "company",
@@ -5267,25 +5109,23 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎉”，以“派对竞技游戏”徽章区分product概念"
+    "rationale": "沿用种子语义“🎉”，依据种子配方“元梦之星 + 蛋仔”（product 链）以“派对竞技游戏”徽章区分“派对大战”"
   },
   "双城生活": {
     "icon": {
       "base": "🚄",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🚄”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“🚄”；种子配方“家庭 + 打工鹅”（social 链）确认“双城生活”概念，无需附加徽章"
   },
   "打工人的命": {
     "icon": {
       "base": "🪦",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🪦”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“🪦”；种子配方“家庭 + 工位”（social 链）确认“打工人的命”概念，无需附加徽章"
   },
   "烟": {
     "icon": {
@@ -5293,7 +5133,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“💨”语义；classic类别无需附加徽章"
+    "rationale": "沿用种子语义“💨”；种子配方“火 + 风”（classic 链）确认“烟”概念，无需附加徽章"
   },
   "刀": {
     "icon": {
@@ -5301,7 +5141,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🔪”语义；classic类别无需附加徽章"
+    "rationale": "沿用种子语义“🔪”；种子配方“火 + 金属”（classic 链）确认“刀”概念，无需附加徽章"
   },
   "智慧": {
     "icon": {
@@ -5309,25 +5149,23 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🦉”语义；classic类别无需附加徽章"
+    "rationale": "沿用种子语义“🦉”；种子配方“时间 + 知识”（classic 链）确认“智慧”概念，无需附加徽章"
   },
   "南极": {
     "icon": {
       "base": "🧊",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧊”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🧊”；种子配方“企鹅 + 雪”（tencent 链）确认“南极”概念，无需附加徽章"
   },
   "烤企鹅": {
     "icon": {
       "base": "🔥",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔥”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🔥”；种子配方“企鹅 + 火”（tencent 链）确认“烤企鹅”概念，无需附加徽章"
   },
   "爆料": {
     "icon": {
@@ -5336,7 +5174,7 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“💬”，以“公开传播消息”徽章区分tencent概念"
+    "rationale": "沿用种子语义“💬”，依据种子配方“南极圈 + 脉脉”（tencent 链）以“公开传播消息”徽章区分“爆料”"
   },
   "续命鹅": {
     "icon": {
@@ -5345,16 +5183,15 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“☕”，以“咖啡续命的打工鹅”徽章区分tencent概念"
+    "rationale": "沿用种子语义“☕”，依据种子配方“咖啡 + 打工鹅”（tencent 链）以“咖啡续命的打工鹅”徽章区分“续命鹅”"
   },
   "静音挂机": {
     "icon": {
       "base": "🔇",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔇”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🔇”；种子配方“摸鱼 + 腾讯会议”（tencent 链）确认“静音挂机”概念，无需附加徽章"
   },
   "多人编辑打架": {
     "icon": {
@@ -5363,70 +5200,64 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“⚔️”，以“文档多人编辑冲突”徽章区分tencent概念"
+    "rationale": "沿用种子语义“⚔️”，依据种子配方“协同 + 腾讯文档”（tencent 链）以“文档多人编辑冲突”徽章区分“多人编辑打架”"
   },
   "灯火通明": {
     "icon": {
       "base": "🌃",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌃”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🌃”；种子配方“夜 + 滨海大厦”（tencent 链）确认“灯火通明”概念，无需附加徽章"
   },
   "迟到": {
     "icon": {
       "base": "🏃",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏃”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🏃”；种子配方“周一 + 打卡”（tencent 链）确认“迟到”概念，无需附加徽章"
   },
   "带薪养生": {
     "icon": {
       "base": "💆",
-      "badge": "🐧",
+      "badge": "💼",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“💆”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“💆”，依据种子配方“工位 + 按摩椅”（tencent 链）以“工作时间内养生”徽章区分“带薪养生”"
   },
   "排队堵梯": {
     "icon": {
       "base": "🕰️",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🕰️”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🕰️”；种子配方“早高峰 + 电梯”（tencent 链）确认“排队堵梯”概念，无需附加徽章"
   },
   "尴尬同框": {
     "icon": {
       "base": "😬",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😬”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“😬”；种子配方“电梯 + 老板”（tencent 链）确认“尴尬同框”概念，无需附加徽章"
   },
   "最后一班": {
     "icon": {
       "base": "🚌",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🚌”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🚌”；种子配方“晚班 + 班车”（tencent 链）确认“最后一班”概念，无需附加徽章"
   },
   "通勤睡眠": {
     "icon": {
       "base": "😴",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😴”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“😴”；种子配方“早高峰 + 班车”（tencent 链）确认“通勤睡眠”概念，无需附加徽章"
   },
   "深夜食堂": {
     "icon": {
@@ -5435,34 +5266,31 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🌙”，以“深夜餐食场景”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🌙”，依据种子配方“夜宵券 + 食堂”（tencent 链）以“深夜餐食场景”徽章区分“深夜食堂”"
   },
   "工位食堂": {
     "icon": {
       "base": "🥡",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🥡”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🥡”；种子配方“工位 + 鹅餐”（tencent 链）确认“工位食堂”概念，无需附加徽章"
   },
   "午间撸铁": {
     "icon": {
       "base": "🏋️",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏋️”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🏋️”；种子配方“健身房 + 打工人”（tencent 链）确认“午间撸铁”概念，无需附加徽章"
   },
   "带薪健身": {
     "icon": {
       "base": "💪",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💪”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“💪”；种子配方“健身房 + 摸鱼”（tencent 链）确认“带薪健身”概念，无需附加徽章"
   },
   "鹅式小憩": {
     "icon": {
@@ -5471,7 +5299,7 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“💤”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“💤”，依据种子配方“午休 + 按摩椅”（tencent 链）以“腾讯员工小憩”徽章区分“鹅式小憩”"
   },
   "免费午餐": {
     "icon": {
@@ -5480,61 +5308,55 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🍱”，以“免费福利餐”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🍱”，依据种子配方“食堂 + 鹅卡”（tencent 链）以“免费福利餐”徽章区分“免费午餐”"
   },
   "鹅咖": {
     "icon": {
       "base": "☕",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“☕”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“☕”；种子配方“瑞幸 + 鹅卡”（tencent 链）确认“鹅咖”概念，无需附加徽章"
   },
   "水帖": {
     "icon": {
       "base": "💬",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“💬”；种子配方“乐享 + 周五”（tencent 链）确认“水帖”概念，无需附加徽章"
   },
   "道别贴": {
     "icon": {
       "base": "👋",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“👋”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“👋”；种子配方“乐享 + 离职”（tencent 链）确认“道别贴”概念，无需附加徽章"
   },
   "文档不同步": {
     "icon": {
       "base": "📚",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📚”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“📚”；种子配方“iWiki + 需求变更”（tencent 链）确认“文档不同步”概念，无需附加徽章"
   },
   "@所有人": {
     "icon": {
       "base": "📧",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📧”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“📧”；种子配方“RTX + 老板”（tencent 链）确认“@所有人”概念，无需附加徽章"
   },
   "周会纪要": {
     "icon": {
       "base": "📋",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📋”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“📋”；种子配方“RTX + 周五”（tencent 链）确认“周会纪要”概念，无需附加徽章"
   },
   "晨会": {
     "icon": {
@@ -5543,169 +5365,166 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🌅”，以“晨间工作会议”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🌅”，依据种子配方“早会 + 腾讯会议”（tencent 链）以“晨间工作会议”徽章区分“晨会”"
   },
   "周会": {
     "icon": {
       "base": "🔁",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔁”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🔁”；种子配方“周报 + 腾讯会议”（tencent 链）确认“周会”概念，无需附加徽章"
   },
   "黑屏挂机": {
     "icon": {
       "base": "⬛",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“⬛”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“⬛”；种子配方“电脑 + 腾讯会议”（tencent 链）确认“黑屏挂机”概念，无需附加徽章"
   },
   "虚拟背景": {
     "icon": {
       "base": "🖼️",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🖼️”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🖼️”；种子配方“背景 + 腾讯会议”（tencent 链）确认“虚拟背景”概念，无需附加徽章"
   },
   "背景音": {
     "icon": {
       "base": "🐕",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🐕”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🐕”；种子配方“狗 + 腾讯会议”（tencent 链）确认“背景音”概念，无需附加徽章"
   },
   "续命": {
     "icon": {
       "base": "💉",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💉”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“💉”；种子配方“打工人 + 美式”（worker 链）确认“续命”概念，无需附加徽章"
   },
   "资深打工人": {
     "icon": {
       "base": "🧓",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧓”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🧓”；种子配方“周报 + 秃头”（worker 链）确认“资深打工人”概念，无需附加徽章"
   },
   "猝死": {
     "icon": {
       "base": "💀",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💀”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“💀”；种子配方“007 + 007”（worker 链）确认“猝死”概念，无需附加徽章"
   },
   "骑驴找马": {
     "icon": {
       "base": "🐴",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🐴”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🐴”；种子配方“Boss直聘 + 打工人”（worker 链）确认“骑驴找马”概念，无需附加徽章"
   },
   "实名认证爆料": {
     "icon": {
       "base": "👀",
-      "badge": "💼",
+      "badge": "🪪",
       "palette": "office",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“👀”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“👀”，依据种子配方“老板 + 脉脉”（worker 链）以“实名身份认证”徽章区分“实名认证爆料”"
   },
   "紧急发版": {
     "icon": {
       "base": "🚀",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🚀”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🚀”；种子配方“P0故障 + 周末”（worker 链）确认“紧急发版”概念，无需附加徽章"
   },
   "事故复盘": {
     "icon": {
       "base": "📝",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📝”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“📝”；种子配方“上线 + 回滚”（worker 链）确认“事故复盘”概念，无需附加徽章"
   },
   "续命奶茶": {
     "icon": {
       "base": "🧋",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧋”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🧋”；种子配方“奶茶 + 打工人”（worker 链）确认“续命奶茶”概念，无需附加徽章"
   },
   "沙丁鱼罐头": {
     "icon": {
       "base": "🥫",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🥫”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🥫”；种子配方“早高峰 + 通勤”（social 链）确认“沙丁鱼罐头”概念，无需附加徽章"
   },
   "黑化酱板鸭": {
     "icon": {
       "base": "😈",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😈”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“😈”；种子配方“复仇 + 酱板鸭”（meme_2026w16 链）确认“黑化酱板鸭”概念，无需附加徽章"
   },
   "AI短剧": {
+    "entity_type": "ai_content_term",
+    "canonical_name": "AI 生成短剧",
+    "aliases": [
+      "AI短剧内容",
+      "人工智能短剧"
+    ],
+    "contexts": [
+      "meme_2026w16",
+      "ai"
+    ],
+    "forbidden_senses": [
+      "AI=人名拼音"
+    ],
     "icon": {
       "base": "🎬",
-      "badge": "🤣",
+      "badge": "🤖",
       "palette": "people",
-      "source": "generated"
+      "source": "entity"
     },
-    "rationale": "沿用种子语义“🎬”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "人工智能生成的短剧内容；场记板配机器人徽章"
   },
   "实锤画饼": {
     "icon": {
       "base": "🔨",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔨”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“🔨”；种子配方“我要验牌 + 老板”（meme_2026w16 链）确认“实锤画饼”概念，无需附加徽章"
   },
   "智商税": {
     "icon": {
       "base": "🧾",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧾”，以“meme_2026w16类别”徽章区分meme_2026w16概念"
+    "rationale": "沿用种子语义“🧾”；种子配方“打工人 + 过期酸奶”（meme_2026w16 链）确认“智商税”概念，无需附加徽章"
   },
   "起床": {
     "icon": {
       "base": "⏰",
-      "badge": "🤣",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“⏰”，以“meme_classic类别”徽章区分meme_classic概念"
+    "rationale": "沿用种子语义“⏰”；种子配方“房贷 + 躺平”（meme_classic 链）确认“起床”概念，无需附加徽章"
   },
   "部门团宠": {
     "icon": {
@@ -5714,7 +5533,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🌟”，以“受到部门成员喜爱”徽章区分meme_classic概念"
+    "rationale": "沿用种子语义“🌟”，依据种子配方“工位 + 显眼包”（meme_classic 链）以“受到部门成员喜爱”徽章区分“部门团宠”"
   },
   "emo": {
     "entity_type": "english_term",
@@ -5741,92 +5560,152 @@ export const ELEMENT_ICONS = {
   "听不懂": {
     "icon": {
       "base": "🤷",
-      "badge": "💬",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🤷”，以“bizspeak类别”徽章区分bizspeak概念"
+    "rationale": "沿用种子语义“🤷”；种子配方“打工人 + 老板黑话”（bizspeak 链）确认“听不懂”概念，无需附加徽章"
   },
   "跨部门扯皮": {
     "icon": {
       "base": "🙃",
-      "badge": "💬",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🙃”，以“bizspeak类别”徽章区分bizspeak概念"
+    "rationale": "沿用种子语义“🙃”；种子配方“协同 + 拉通”（bizspeak 链）确认“跨部门扯皮”概念，无需附加徽章"
   },
   "用户增长": {
     "icon": {
       "base": "📈",
-      "badge": "💬",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📈”，以“bizspeak类别”徽章区分bizspeak概念"
+    "rationale": "沿用种子语义“📈”；种子配方“下沉 + 心智”（bizspeak 链）确认“用户增长”概念，无需附加徽章"
   },
   "紧急拉会": {
     "icon": {
       "base": "📞",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📞”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“📞”；种子配方“全员告警 + 周末”（easter_egg 链）确认“紧急拉会”概念，无需附加徽章"
   },
   "被AI替代": {
+    "entity_type": "ai_work_term",
+    "canonical_name": "岗位被人工智能替代",
+    "aliases": [
+      "AI替代岗位",
+      "被人工智能替代"
+    ],
+    "contexts": [
+      "tencent",
+      "worker"
+    ],
+    "forbidden_senses": [
+      "AI=人名拼音"
+    ],
     "icon": {
       "base": "🤖",
-      "badge": "🐧",
+      "badge": "👤",
       "palette": "product",
-      "source": "generated"
+      "source": "entity"
     },
-    "rationale": "沿用种子语义“🤖”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "人工智能替代人的岗位语境；机器人配人物徽章"
   },
   "GPT周报": {
+    "entity_type": "ai_work_term",
+    "canonical_name": "GPT 生成周报",
+    "aliases": [
+      "AI周报",
+      "GPT写周报"
+    ],
+    "contexts": [
+      "tencent",
+      "worker"
+    ],
+    "forbidden_senses": [
+      "GPT=普通字母缩写"
+    ],
     "icon": {
       "base": "📝",
-      "badge": "🐧",
+      "badge": "🤖",
       "palette": "product",
-      "source": "generated"
+      "source": "entity"
     },
-    "rationale": "沿用种子语义“📝”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "由生成式 AI 编写的工作周报；备忘录配机器人徽章"
   },
   "AI老板": {
+    "entity_type": "ai_role_term",
+    "canonical_name": "人工智能老板",
+    "aliases": [
+      "AI管理者",
+      "人工智能老板"
+    ],
+    "contexts": [
+      "tencent",
+      "worker"
+    ],
+    "forbidden_senses": [
+      "AI=人名拼音"
+    ],
     "icon": {
       "base": "🤖",
-      "badge": "🐧",
+      "badge": "👔",
       "palette": "product",
-      "source": "generated"
+      "source": "entity"
     },
-    "rationale": "沿用种子语义“🤖”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "人工智能承担管理者角色；机器人配领带徽章"
   },
   "AI写OKR": {
+    "entity_type": "ai_work_term",
+    "canonical_name": "人工智能编写 OKR",
+    "aliases": [
+      "AI生成OKR",
+      "人工智能写目标"
+    ],
+    "contexts": [
+      "tencent",
+      "worker"
+    ],
+    "forbidden_senses": [
+      "AI=人名拼音"
+    ],
     "icon": {
       "base": "🎯",
-      "badge": "🐧",
+      "badge": "🤖",
       "palette": "product",
-      "source": "generated"
+      "source": "entity"
     },
-    "rationale": "沿用种子语义“🎯”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "人工智能辅助编写目标与关键成果；靶心配机器人徽章"
   },
   "打工": {
     "icon": {
       "base": "💼",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💼”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“💼”；种子配方“周报 + 打工人”（worker 链）确认“打工”概念，无需附加徽章"
   },
   "N加1": {
+    "entity_type": "compensation_abbreviation",
+    "canonical_name": "N+1 离职补偿",
+    "aliases": [
+      "N+1补偿",
+      "离职N加1"
+    ],
+    "contexts": [
+      "worker",
+      "compensation"
+    ],
+    "forbidden_senses": [
+      "N+1=普通算式"
+    ],
     "icon": {
       "base": "💰",
-      "badge": "💼",
+      "badge": "📄",
       "palette": "office",
-      "source": "generated"
+      "source": "entity"
     },
-    "rationale": "沿用种子语义“💰”，以“worker类别”徽章区分worker概念"
+    "rationale": "按工龄 N 加一个月计算的离职补偿；钱币配合同文书徽章"
   },
   "T5": {
     "entity_type": "role_level",
@@ -5995,25 +5874,23 @@ export const ELEMENT_ICONS = {
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🏞️”，以“静态淡水水体”徽章区分geo概念"
+    "rationale": "沿用种子语义“🏞️”，依据种子配方“水塘 + 水塘”（geo 链）以“静态淡水水体”徽章区分“湖泊”"
   },
   "水塘": {
     "icon": {
       "base": "💧",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💧”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“💧”；种子配方“水 + 水”（geo 链）确认“水塘”概念，无需附加徽章"
   },
   "丘陵": {
     "icon": {
       "base": "🏞️",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏞️”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🏞️”；种子配方“土堆 + 土堆”（geo 链）确认“丘陵”概念，无需附加徽章"
   },
   "土堆": {
     "icon": {
@@ -6021,7 +5898,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“⛰️”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“⛰️”；种子配方“土 + 土”（geo 链）确认“土堆”概念，无需附加徽章"
   },
   "树": {
     "icon": {
@@ -6029,70 +5906,63 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🌳”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🌳”；种子配方“植物 + 植物”（physical 链）确认“树”概念，无需附加徽章"
   },
   "花园": {
     "icon": {
       "base": "🌺",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌺”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🌺”；种子配方“植物 + 绿植”（life 链）确认“花园”概念，无需附加徽章"
   },
   "朋友": {
     "icon": {
       "base": "🧑‍🤝‍🧑",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧑‍🤝‍🧑”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“🧑‍🤝‍🧑”；种子配方“人 + 人”（social 链）确认“朋友”概念，无需附加徽章"
   },
   "情侣": {
     "icon": {
       "base": "💑",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💑”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“💑”；种子配方“朋友 + 朋友”（social 链）确认“情侣”概念，无需附加徽章"
   },
   "邻里": {
     "icon": {
       "base": "🏘️",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏘️”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“🏘️”；种子配方“家庭 + 家庭”（social 链）确认“邻里”概念，无需附加徽章"
   },
   "街区": {
     "icon": {
       "base": "🛣️",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🛣️”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“🛣️”；种子配方“社区 + 社区”（social 链）确认“街区”概念，无需附加徽章"
   },
   "都市圈": {
     "icon": {
       "base": "🏙️",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏙️”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“🏙️”；种子配方“城市 + 城市”（social 链）确认“都市圈”概念，无需附加徽章"
   },
   "太阳系": {
     "icon": {
       "base": "☀️",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“☀️”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“☀️”；种子配方“地球 + 地球”（social 链）确认“太阳系”概念，无需附加徽章"
   },
   "银河系": {
     "icon": {
@@ -6101,25 +5971,23 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🌌”，以“由恒星组成的银河”徽章区分social概念"
+    "rationale": "沿用种子语义“🌌”，依据种子配方“太阳系 + 太阳系”（social 链）以“由恒星组成的银河”徽章区分“银河系”"
   },
   "卡位": {
     "icon": {
       "base": "🪑",
-      "badge": "🏢",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🪑”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“🪑”；种子配方“工位 + 工位”（building 链）确认“卡位”概念，无需附加徽章"
   },
   "小楼": {
     "icon": {
       "base": "🏢",
-      "badge": "🏢",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏢”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“🏢”；种子配方“楼层 + 楼层”（building 链）确认“小楼”概念，无需附加徽章"
   },
   "小雪": {
     "icon": {
@@ -6127,7 +5995,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🌨️”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🌨️”；种子配方“雪 + 雪”（physical 链）确认“小雪”概念，无需附加徽章"
   },
   "冰晶": {
     "icon": {
@@ -6136,7 +6004,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“❄️”，以“晶体形态的冰”徽章区分physical概念"
+    "rationale": "沿用种子语义“❄️”，依据种子配方“小雪 + 小雪”（physical 链）以“晶体形态的冰”徽章区分“冰晶”"
   },
   "微风": {
     "icon": {
@@ -6144,7 +6012,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🍃”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🍃”；种子配方“风 + 风”（physical 链）确认“微风”概念，无需附加徽章"
   },
   "大风": {
     "icon": {
@@ -6152,43 +6020,39 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🌪️”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🌪️”；种子配方“微风 + 风”（physical 链）确认“大风”概念，无需附加徽章"
   },
   "熬夜": {
     "icon": {
       "base": "🌛",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌛”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🌛”；种子配方“加班 + 加班”（life 链）确认“熬夜”概念，无需附加徽章"
   },
   "朦胧": {
     "icon": {
       "base": "😴",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😴”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“😴”；种子配方“头发 + 熬夜”（life 链）确认“朦胧”概念，无需附加徽章"
   },
   "早班车": {
     "icon": {
       "base": "🚌",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🚌”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🚌”；种子配方“地铁 + 地铁”（life 链）确认“早班车”概念，无需附加徽章"
   },
   "通勤高峰": {
     "icon": {
       "base": "🚇",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🚇”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🚇”；种子配方“地铁 + 早高峰”（life 链）确认“通勤高峰”概念，无需附加徽章"
   },
   "副总裁": {
     "entity_type": "role",
@@ -6224,65 +6088,60 @@ export const ELEMENT_ICONS = {
     "forbidden_senses": [],
     "icon": {
       "base": "👔",
-      "badge": "👔",
+      "badge": "🏢",
       "palette": "people",
       "source": "entity"
     },
-    "rationale": "高级管理人员统称；领带主图与高管徽章"
+    "rationale": "高级管理人员统称；领带主图配企业徽章"
   },
   "小聚": {
     "icon": {
       "base": "🎉",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🎉”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🎉”；种子配方“朋友 + 欢乐”（life 链）确认“小聚”概念，无需附加徽章"
   },
   "狂欢": {
     "icon": {
       "base": "🥳",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🥳”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🥳”；种子配方“派对 + 派对”（life 链）确认“狂欢”概念，无需附加徽章"
   },
   "园中园": {
     "icon": {
       "base": "🏞️",
-      "badge": "🏢",
+      "badge": "🌳",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🏞️”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“🏞️”，依据种子配方“产业园 + 产业园”（building 链）以“园区嵌套绿化空间”徽章区分“园中园”"
   },
   "产业园": {
     "icon": {
       "base": "🏭",
-      "badge": "🏢",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏭”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“🏭”；种子配方“大厦 + 大厦”（building 链）确认“产业园”概念，无需附加徽章"
   },
   "总部基地": {
     "icon": {
       "base": "🏛️",
-      "badge": "🏢",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏛️”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“🏛️”；种子配方“园区 + 园区”（building 链）确认“总部基地”概念，无需附加徽章"
   },
   "公有云": {
     "icon": {
       "base": "☁️",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“☁️”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“☁️”；种子配方“云 + 鹅厂”（product 链）确认“公有云”概念，无需附加徽章"
   },
   "小雨": {
     "icon": {
@@ -6290,7 +6149,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🌦️”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🌦️”；种子配方“水 + 风”（physical 链）确认“小雨”概念，无需附加徽章"
   },
   "暴雨": {
     "icon": {
@@ -6298,7 +6157,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“⛈️”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“⛈️”；种子配方“水 + 雨”（physical 链）确认“暴雨”概念，无需附加徽章"
   },
   "张志东": {
     "entity_type": "person",
@@ -6471,11 +6330,10 @@ export const ELEMENT_ICONS = {
   "程序员床位": {
     "icon": {
       "base": "🛏️",
-      "badge": "🏢",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🛏️”，以“building类别”徽章区分building概念"
+    "rationale": "沿用种子语义“🛏️”；种子配方“小床 + 工位”（tencent 链）确认“程序员床位”概念，无需附加徽章"
   },
   "T1": {
     "entity_type": "role_level",
@@ -6567,7 +6425,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🏗️”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🏗️”；种子配方“人 + 泥”（physical 链）确认“工地”概念，无需附加徽章"
   },
   "矿石": {
     "icon": {
@@ -6575,7 +6433,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🪨”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🪨”；种子配方“土堆 + 火”（physical 链）确认“矿石”概念，无需附加徽章"
   },
   "寒流": {
     "icon": {
@@ -6583,97 +6441,87 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🥶”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🥶”；种子配方“冰 + 风”（physical 链）确认“寒流”概念，无需附加徽章"
   },
   "日子": {
     "icon": {
       "base": "📅",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📅”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“📅”；种子配方“时间 + 时间”（life 链）确认“日子”概念，无需附加徽章"
   },
   "一周": {
     "icon": {
       "base": "🗓️",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🗓️”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🗓️”；种子配方“日子 + 日子”（life 链）确认“一周”概念，无需附加徽章"
   },
   "日常": {
     "icon": {
       "base": "📆",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📆”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“📆”；种子配方“日子 + 时间”（life 链）确认“日常”概念，无需附加徽章"
   },
   "皱纹": {
     "icon": {
       "base": "👵",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“👵”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“👵”；种子配方“人 + 时间”（life 链）确认“皱纹”概念，无需附加徽章"
   },
   "白发": {
     "icon": {
       "base": "👴",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“👴”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“👴”；种子配方“时间 + 皱纹”（life 链）确认“白发”概念，无需附加徽章"
   },
   "资历": {
     "icon": {
       "base": "📊",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📊”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“📊”；种子配方“打工人 + 时间”（worker 链）确认“资历”概念，无需附加徽章"
   },
   "茶叶": {
     "icon": {
       "base": "🍃",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🍃”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🍃”；种子配方“土 + 植物”（life 链）确认“茶叶”概念，无需附加徽章"
   },
   "茶": {
     "icon": {
       "base": "🫖",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🫖”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🫖”；种子配方“水 + 茶叶”（life 链）确认“茶”概念，无需附加徽章"
   },
   "小卖部": {
     "icon": {
       "base": "🏪",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏪”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🏪”；种子配方“人 + 食堂”（life 链）确认“小卖部”概念，无需附加徽章"
   },
   "公交": {
     "icon": {
       "base": "🚍",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🚍”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🚍”；种子配方“城市 + 轨道”（life 链）确认“公交”概念，无需附加徽章"
   },
   "轨道": {
     "icon": {
@@ -6681,7 +6529,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🚋”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🚋”；种子配方“土 + 金属”（physical 链）确认“轨道”概念，无需附加徽章"
   },
   "锅炉": {
     "icon": {
@@ -6689,25 +6537,23 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🫕”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🫕”；种子配方“灶台 + 金属”（physical 链）确认“锅炉”概念，无需附加徽章"
   },
   "灶台": {
     "icon": {
       "base": "🔥",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔥”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🔥”；种子配方“火 + 锅”（life 链）确认“灶台”概念，无需附加徽章"
   },
   "身份": {
     "icon": {
       "base": "🆔",
-      "badge": "👥",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🆔”，以“social类别”徽章区分social概念"
+    "rationale": "沿用种子语义“🆔”；种子配方“人 + 企鹅”（social 链）确认“身份”概念，无需附加徽章"
   },
   "电波": {
     "icon": {
@@ -6715,7 +6561,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“📡”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“📡”；种子配方“信号 + 风”（physical 链）确认“电波”概念，无需附加徽章"
   },
   "信号": {
     "icon": {
@@ -6723,7 +6569,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“📶”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“📶”；种子配方“AI + 风”（physical 链）确认“信号”概念，无需附加徽章"
   },
   "屏幕": {
     "icon": {
@@ -6731,268 +6577,252 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🖥️”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🖥️”；种子配方“AI + 金属”（physical 链）确认“屏幕”概念，无需附加徽章"
   },
   "企业通讯": {
     "icon": {
       "base": "💼",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💼”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“💼”；种子配方“人 + 企业微信”（product 链）确认“企业通讯”概念，无需附加徽章"
   },
   "远程": {
     "icon": {
       "base": "🖥️",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🖥️”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“🖥️”；种子配方“企业通讯 + 风”（abstract 链）确认“远程”概念，无需附加徽章"
   },
   "协作": {
     "icon": {
       "base": "🤝",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🤝”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“🤝”；种子配方“人 + 腾讯文档”（abstract 链）确认“协作”概念，无需附加徽章"
   },
   "心态崩": {
     "icon": {
       "base": "😵‍💫",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😵‍💫”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“😵‍💫”；种子配方“加班 + 情绪”（life 链）确认“心态崩”概念，无需附加徽章"
   },
   "情绪": {
     "icon": {
       "base": "😤",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“😤”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“😤”；种子配方“周一 + 打工人”（abstract 链）确认“情绪”概念，无需附加徽章"
   },
   "钟声": {
     "icon": {
       "base": "🔔",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔔”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🔔”；种子配方“周五 + 时间”（life 链）确认“钟声”概念，无需附加徽章"
   },
   "通知": {
     "icon": {
       "base": "🔔",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🔔”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“🔔”；种子配方“手机 + 风”（product 链）确认“通知”概念，无需附加徽章"
   },
   "急活": {
     "icon": {
       "base": "🚨",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🚨”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🚨”；种子配方“救火 + 时间”（worker 链）确认“急活”概念，无需附加徽章"
   },
   "救火": {
     "icon": {
       "base": "🧯",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧯”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🧯”；种子配方“打工人 + 火”（worker 链）确认“救火”概念，无需附加徽章"
   },
   "指标": {
     "icon": {
       "base": "📐",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📐”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“📐”；种子配方“任务 + 老板”（worker 链）确认“指标”概念，无需附加徽章"
   },
   "任务": {
     "icon": {
       "base": "📋",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📋”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“📋”；种子配方“周报 + 腾讯文档”（worker 链）确认“任务”概念，无需附加徽章"
   },
   "承诺": {
     "icon": {
       "base": "🤞",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🤞”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“🤞”；种子配方“口号 + 老板”（abstract 链）确认“承诺”概念，无需附加徽章"
   },
   "谎言": {
     "icon": {
       "base": "🥸",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🥸”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“🥸”；种子配方“OKR + 承诺”（abstract 链）确认“谎言”概念，无需附加徽章"
   },
   "口号": {
     "icon": {
       "base": "📢",
-      "badge": "💭",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“📢”，以“abstract类别”徽章区分abstract概念"
+    "rationale": "沿用种子语义“📢”；种子配方“KPI + 老板”（abstract 链）确认“口号”概念，无需附加徽章"
   },
   "海湾": {
     "icon": {
       "base": "🌅",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌅”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🌅”；种子配方“城市 + 海洋”（geo 链）确认“海湾”概念，无需附加徽章"
   },
   "经济特区": {
     "icon": {
       "base": "💹",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💹”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“💹”；种子配方“海湾 + 火”（geo 链）确认“经济特区”概念，无需附加徽章"
   },
   "首都": {
     "icon": {
       "base": "🏛️",
-      "badge": "📍",
+      "badge": "👑",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🏛️”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🏛️”，依据种子配方“人 + 古都”（geo 链）以“国家政治中心”徽章区分“首都”"
   },
   "古都": {
     "icon": {
       "base": "🏯",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏯”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🏯”；种子配方“城市 + 山”（geo 链）确认“古都”概念，无需附加徽章"
   },
   "港口": {
     "icon": {
       "base": "⚓",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“⚓”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“⚓”；种子配方“城市 + 河流”（geo 链）确认“港口”概念，无需附加徽章"
   },
   "南方": {
     "icon": {
       "base": "🌴",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌴”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🌴”；种子配方“城市 + 火”（geo 链）确认“南方”概念，无需附加徽章"
   },
   "粤语": {
     "icon": {
       "base": "🗣️",
-      "badge": "📍",
       "palette": "place",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🗣️”，以“geo类别”徽章区分geo概念"
+    "rationale": "沿用种子语义“🗣️”；种子配方“人 + 南方”（geo 链）确认“粤语”概念，无需附加徽章"
   },
   "即时聊天": {
     "icon": {
       "base": "💬",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“💬”；种子配方“AI + 聊天”（product 链）确认“即时聊天”概念，无需附加徽章"
   },
   "聊天软件": {
     "icon": {
       "base": "💻",
-      "badge": "📱",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💻”，以“product类别”徽章区分product概念"
+    "rationale": "沿用种子语义“💻”；种子配方“手机 + 聊天”（product 链）确认“聊天软件”概念，无需附加徽章"
   },
   "摸鱼大师": {
     "icon": {
       "base": "🎣",
-      "badge": "💼",
       "palette": "office",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🎣”，以“worker类别”徽章区分worker概念"
+    "rationale": "沿用种子语义“🎣”；种子配方“摸鱼 + 时间”（worker 链）确认“摸鱼大师”概念，无需附加徽章"
   },
   "职级证": {
+    "entity_type": "credential",
+    "canonical_name": "员工职级凭证",
+    "aliases": [
+      "职级证明",
+      "职级证书"
+    ],
+    "contexts": [
+      "level",
+      "career"
+    ],
+    "forbidden_senses": [],
     "icon": {
       "base": "📜",
-      "badge": "🪜",
+      "badge": "🪪",
       "palette": "office",
-      "source": "generated"
+      "source": "entity"
     },
-    "rationale": "沿用种子语义“📜”，以“level类别”徽章区分level概念"
+    "rationale": "记录员工职级的凭证；证书配身份卡徽章"
   },
   "办公神器": {
     "icon": {
       "base": "🛠️",
-      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🛠️”，以“tencent类别”徽章区分tencent概念"
+    "rationale": "沿用种子语义“🛠️”；种子配方“腾讯会议 + 腾讯文档”（tencent 链）确认“办公神器”概念，无需附加徽章"
   },
   "人情": {
     "icon": {
       "base": "🧧",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧧”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🧧”；种子配方“人 + 朋友”（life 链）确认“人情”概念，无需附加徽章"
   },
   "盆栽": {
     "icon": {
       "base": "🪴",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🪴”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🪴”；种子配方“植物 + 花盆”（life 链）确认“盆栽”概念，无需附加徽章"
   },
   "花盆": {
     "icon": {
       "base": "🏺",
-      "badge": "❤️",
       "palette": "people",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏺”，以“life类别”徽章区分life概念"
+    "rationale": "沿用种子语义“🏺”；种子配方“土 + 锅”（life 链）确认“花盆”概念，无需附加徽章"
   }
 };
 
@@ -7574,25 +7404,299 @@ export const ICON_RULES = {
       "categories": [
         "product"
       ]
+    },
+    {
+      "keywords": [
+        "北京"
+      ],
+      "badge": "🏙️",
+      "reason": "北京城市",
+      "categories": [
+        "geo"
+      ]
+    },
+    {
+      "keywords": [
+        "北京总部"
+      ],
+      "badge": "🏢",
+      "reason": "北京办公总部",
+      "categories": [
+        "building"
+      ]
+    },
+    {
+      "keywords": [
+        "老板"
+      ],
+      "badge": "👤",
+      "reason": "管理者个人角色",
+      "categories": [
+        "worker"
+      ]
+    },
+    {
+      "keywords": [
+        "甲方"
+      ],
+      "badge": "🤝",
+      "reason": "商业委托关系",
+      "categories": [
+        "worker"
+      ]
+    },
+    {
+      "keywords": [
+        "人类丰容"
+      ],
+      "badge": "🐒",
+      "reason": "借动物丰容讨论人类处境",
+      "categories": [
+        "meme_2026w16"
+      ]
+    },
+    {
+      "keywords": [
+        "绿植"
+      ],
+      "badge": "🌿",
+      "reason": "绿色叶片植物",
+      "categories": [
+        "life"
+      ]
+    },
+    {
+      "keywords": [
+        "滨海大厦"
+      ],
+      "badge": "🌊",
+      "reason": "滨海办公建筑",
+      "categories": [
+        "building"
+      ]
+    },
+    {
+      "keywords": [
+        "硅谷"
+      ],
+      "badge": "💻",
+      "reason": "科技产业地区",
+      "categories": [
+        "geo"
+      ]
+    },
+    {
+      "keywords": [
+        "不做人"
+      ],
+      "badge": "🙈",
+      "reason": "拒绝做人热梗",
+      "categories": [
+        "meme_2026w16"
+      ]
+    },
+    {
+      "keywords": [
+        "乐享"
+      ],
+      "badge": "🐧",
+      "reason": "腾讯内部内容平台",
+      "categories": [
+        "tencent"
+      ]
+    },
+    {
+      "keywords": [
+        "健身房"
+      ],
+      "badge": "🏢",
+      "reason": "室内健身场所",
+      "categories": [
+        "tencent"
+      ]
+    },
+    {
+      "keywords": [
+        "钢架"
+      ],
+      "badge": "🔩",
+      "reason": "金属连接构件",
+      "categories": [
+        "building"
+      ]
+    },
+    {
+      "keywords": [
+        "国家"
+      ],
+      "badge": "🗺️",
+      "reason": "国家疆域",
+      "categories": [
+        "social"
+      ]
+    },
+    {
+      "keywords": [
+        "首都"
+      ],
+      "badge": "👑",
+      "reason": "国家政治中心",
+      "categories": [
+        "geo"
+      ]
+    },
+    {
+      "keywords": [
+        "琶洲"
+      ],
+      "badge": "🏙️",
+      "reason": "广州琶洲城区",
+      "categories": [
+        "geo"
+      ]
+    },
+    {
+      "keywords": [
+        "园中园"
+      ],
+      "badge": "🌳",
+      "reason": "园区嵌套绿化空间",
+      "categories": [
+        "building"
+      ]
+    },
+    {
+      "keywords": [
+        "开放办公区"
+      ],
+      "badge": "👥",
+      "reason": "多人共享办公空间",
+      "categories": [
+        "social"
+      ]
+    },
+    {
+      "keywords": [
+        "腾讯大厦"
+      ],
+      "badge": "🐧",
+      "reason": "腾讯办公建筑",
+      "categories": [
+        "building"
+      ]
+    },
+    {
+      "keywords": [
+        "鹅厂"
+      ],
+      "badge": "🐧",
+      "reason": "腾讯公司昵称",
+      "categories": [
+        "tencent"
+      ]
+    },
+    {
+      "keywords": [
+        "漕河泾"
+      ],
+      "badge": "🏙️",
+      "reason": "上海产业城区",
+      "categories": [
+        "geo"
+      ]
+    },
+    {
+      "keywords": [
+        "小马哥"
+      ],
+      "badge": "👔",
+      "reason": "马化腾人物昵称",
+      "categories": [
+        "tencent"
+      ]
+    },
+    {
+      "keywords": [
+        "成都办公楼"
+      ],
+      "badge": "🏢",
+      "reason": "成都办公建筑",
+      "categories": [
+        "building"
+      ]
+    },
+    {
+      "keywords": [
+        "实名认证爆料"
+      ],
+      "badge": "🪪",
+      "reason": "实名身份认证",
+      "categories": [
+        "worker"
+      ]
+    },
+    {
+      "keywords": [
+        "三口之家"
+      ],
+      "badge": "3️⃣",
+      "reason": "三名家庭成员",
+      "categories": [
+        "social"
+      ]
+    },
+    {
+      "keywords": [
+        "对抗路姨甥"
+      ],
+      "badge": "⚔️",
+      "reason": "对抗关系热梗",
+      "categories": [
+        "meme_2026w16"
+      ]
+    },
+    {
+      "keywords": [
+        "带薪养生"
+      ],
+      "badge": "💼",
+      "reason": "工作时间内养生",
+      "categories": [
+        "tencent"
+      ]
+    },
+    {
+      "keywords": [
+        "删库跑路"
+      ],
+      "badge": "🏃",
+      "reason": "删库后逃离",
+      "categories": [
+        "worker"
+      ]
+    },
+    {
+      "keywords": [
+        "鹅式小憩"
+      ],
+      "badge": "🐧",
+      "reason": "腾讯员工小憩",
+      "categories": [
+        "tencent"
+      ]
+    },
+    {
+      "keywords": [
+        "太湖"
+      ],
+      "badge": "🏞️",
+      "reason": "大型湖泊地理语义",
+      "categories": [
+        "geo"
+      ]
     }
   ],
-  "category_badges": {
-    "tencent": "🐧",
-    "worker": "💼",
-    "meme_2026w16": "🤣",
-    "meme_classic": "🤣",
-    "bizspeak": "💬",
-    "life": "❤️",
-    "abstract": "💭",
-    "social": "👥",
-    "geo": "📍",
-    "product": "📱",
-    "studio": "🎮",
-    "building": "🏢",
-    "level": "🪜",
-    "boss": "👔",
-    "invest": "💰"
-  },
+  "category_badges": {},
   "allowed_sources": [
     "curated",
     "entity",
@@ -8014,5 +8118,44 @@ export const ENTITY_ALIASES = {
   "WeChat Night": "微信之夜",
   "Boss直聘": "Boss直聘",
   "BOSS Zhipin": "Boss直聘",
-  "直聘平台": "Boss直聘"
+  "直聘平台": "Boss直聘",
+  "述职PPT": "述职PPT",
+  "述职PPT文档": "述职PPT",
+  "述职演示": "述职PPT",
+  "P0故障": "P0故障",
+  "P0事故": "P0故障",
+  "最高优先级故障": "P0故障",
+  "TIT创意园": "TIT创意园",
+  "广州TIT创意园": "TIT创意园",
+  "微信TIT园区": "TIT创意园",
+  "T1塔楼": "T1塔楼",
+  "腾讯T1塔楼": "T1塔楼",
+  "T1办公塔楼": "T1塔楼",
+  "修bug": "修bug",
+  "修复bug": "修bug",
+  "bug修复": "修bug",
+  "LOFT工业风": "LOFT工业风",
+  "工业风LOFT": "LOFT工业风",
+  "LOFT办公风格": "LOFT工业风",
+  "AI短剧": "AI短剧",
+  "AI短剧内容": "AI短剧",
+  "人工智能短剧": "AI短剧",
+  "被AI替代": "被AI替代",
+  "AI替代岗位": "被AI替代",
+  "被人工智能替代": "被AI替代",
+  "GPT周报": "GPT周报",
+  "AI周报": "GPT周报",
+  "GPT写周报": "GPT周报",
+  "AI老板": "AI老板",
+  "AI管理者": "AI老板",
+  "人工智能老板": "AI老板",
+  "AI写OKR": "AI写OKR",
+  "AI生成OKR": "AI写OKR",
+  "人工智能写目标": "AI写OKR",
+  "N加1": "N加1",
+  "N+1补偿": "N加1",
+  "离职N加1": "N加1",
+  "职级证": "职级证",
+  "职级证明": "职级证",
+  "职级证书": "职级证"
 };

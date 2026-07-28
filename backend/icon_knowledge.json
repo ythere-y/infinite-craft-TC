@@ -336,8 +336,8 @@
     "aliases": ["腾讯音乐娱乐集团", "腾讯音乐"],
     "contexts": ["product", "music"],
     "forbidden_senses": [],
-    "icon": {"base": "🎶", "badge": "📱", "palette": "product", "source": "entity"},
-    "rationale": "腾讯音乐娱乐集团英文缩写；多音符配产品徽章"
+    "icon": {"base": "🎶", "badge": "🔤", "palette": "product", "source": "entity"},
+    "rationale": "腾讯音乐娱乐集团英文缩写；多音符配字母徽章标示缩写语境"
   },
   "CODING": {
     "entity_type": "product",
@@ -597,8 +597,8 @@
     "aliases": ["Tencent Qidian", "腾讯企点客服"],
     "contexts": ["product", "enterprise"],
     "forbidden_senses": [],
-    "icon": {"base": "🎯", "badge": "📱", "palette": "product", "source": "entity"},
-    "rationale": "腾讯企业客户连接产品；目标主图配产品徽章"
+    "icon": {"base": "🎯", "badge": "🏢", "palette": "product", "source": "entity"},
+    "rationale": "腾讯企业客户连接产品；目标主图配企业服务徽章"
   },
   "英雄联盟": {
     "entity_type": "product",
@@ -741,8 +741,8 @@
     "aliases": ["拳头游戏", "Riot Games中文名"],
     "contexts": ["studio", "invest"],
     "forbidden_senses": ["拳头=身体部位"],
-    "icon": {"base": "👊", "badge": "🎮", "palette": "studio", "source": "entity"},
-    "rationale": "Riot Games 的中文通称；拳头主图配游戏徽章"
+    "icon": {"base": "👊", "badge": "🐧", "palette": "studio", "source": "entity"},
+    "rationale": "Riot Games 的中文通称；拳头主图配企鹅徽章标示腾讯投资语境"
   },
   "Supercell": {
     "entity_type": "company",
@@ -1047,8 +1047,8 @@
     "aliases": ["Pony Ma", "马化腾英文名"],
     "contexts": ["boss", "tencent"],
     "forbidden_senses": ["pony=小马"],
-    "icon": {"base": "🐎", "badge": "👔", "palette": "people", "source": "entity"},
-    "rationale": "腾讯主要创始人马化腾的英文名；马意象配高管徽章"
+    "icon": {"base": "🐎", "badge": "🔤", "palette": "people", "source": "entity"},
+    "rationale": "腾讯主要创始人马化腾的英文名；马意象配字母徽章标示英文昵称"
   },
   "马化腾": {
     "entity_type": "person",
@@ -1083,8 +1083,8 @@
     "aliases": ["Mark Ren", "任宇昕英文名"],
     "contexts": ["boss", "studio"],
     "forbidden_senses": ["mark=标记"],
-    "icon": {"base": "👔", "badge": "🎮", "palette": "people", "source": "entity"},
-    "rationale": "腾讯高级管理者任宇昕的英文名；领带配游戏业务徽章"
+    "icon": {"base": "🎮", "badge": "👔", "palette": "people", "source": "entity"},
+    "rationale": "腾讯高级管理者任宇昕的英文名；游戏主图配高管徽章"
   },
   "张小龙": {
     "entity_type": "person",
@@ -1200,8 +1200,8 @@
     "aliases": ["founder", "企业创办人"],
     "contexts": ["boss", "management"],
     "forbidden_senses": [],
-    "icon": {"base": "👑", "badge": "👔", "palette": "people", "source": "entity"},
-    "rationale": "企业创办者角色；皇冠配高管徽章"
+    "icon": {"base": "👑", "badge": "🌱", "palette": "people", "source": "entity"},
+    "rationale": "企业创办者角色；皇冠配萌芽徽章表达创建"
   },
   "副总裁": {
     "entity_type": "role",
@@ -1218,8 +1218,8 @@
     "aliases": ["公司高管", "executive"],
     "contexts": ["boss", "management"],
     "forbidden_senses": [],
-    "icon": {"base": "👔", "badge": "👔", "palette": "people", "source": "entity"},
-    "rationale": "高级管理人员统称；领带主图与高管徽章"
+    "icon": {"base": "👔", "badge": "🏢", "palette": "people", "source": "entity"},
+    "rationale": "高级管理人员统称；领带主图配企业徽章"
   },
   "红包": {
     "entity_type": "product_feature",
@@ -1326,7 +1326,124 @@
     "aliases": ["BOSS Zhipin", "直聘平台"],
     "contexts": ["worker", "recruitment"],
     "forbidden_senses": ["Boss=普通老板角色"],
-    "icon": {"base": "💼", "badge": "💼", "palette": "office", "source": "entity"},
-    "rationale": "在线招聘平台品牌；公文包双重表达求职与招聘"
+    "icon": {"base": "💼", "badge": "👥", "palette": "office", "source": "entity"},
+    "rationale": "在线招聘平台品牌；公文包配人才徽章表达招聘"
+  },
+  "述职PPT": {
+    "entity_type": "office_abbreviation",
+    "canonical_name": "述职演示文稿",
+    "aliases": ["述职PPT文档", "述职演示"],
+    "contexts": ["worker", "presentation"],
+    "forbidden_senses": ["PPT=任意幻灯片"],
+    "icon": {"base": "📑", "badge": "🗣️", "palette": "office", "source": "entity"},
+    "rationale": "员工述职演示文稿；分页文档配汇报发言徽章"
+  },
+  "P0故障": {
+    "entity_type": "incident_abbreviation",
+    "canonical_name": "P0 级生产故障",
+    "aliases": ["P0事故", "最高优先级故障"],
+    "contexts": ["worker", "incident"],
+    "forbidden_senses": ["P0=普通编号"],
+    "icon": {"base": "🚨", "badge": "🧯", "palette": "office", "source": "entity"},
+    "rationale": "最高优先级生产事故；警报灯配应急灭火徽章"
+  },
+  "TIT创意园": {
+    "entity_type": "place",
+    "canonical_name": "TIT创意园",
+    "aliases": ["广州TIT创意园", "微信TIT园区"],
+    "contexts": ["building", "geo"],
+    "forbidden_senses": ["TIT=普通字母缩写"],
+    "icon": {"base": "🎨", "badge": "🏢", "palette": "place", "source": "entity"},
+    "rationale": "广州创意园与办公地点；调色板配建筑徽章"
+  },
+  "T1塔楼": {
+    "entity_type": "place",
+    "canonical_name": "T1塔楼",
+    "aliases": ["腾讯T1塔楼", "T1办公塔楼"],
+    "contexts": ["building", "office"],
+    "forbidden_senses": ["T1=职级"],
+    "icon": {"base": "🗼", "badge": "🏢", "palette": "place", "source": "entity"},
+    "rationale": "办公园区塔楼名称；高塔配建筑徽章"
+  },
+  "修bug": {
+    "entity_type": "english_term",
+    "canonical_name": "修复软件缺陷",
+    "aliases": ["修复bug", "bug修复"],
+    "contexts": ["worker", "development"],
+    "forbidden_senses": ["bug=昆虫"],
+    "icon": {"base": "🐛", "badge": "🧑‍💻", "palette": "office", "source": "entity"},
+    "rationale": "软件缺陷修复工作；虫子配开发者徽章"
+  },
+  "LOFT工业风": {
+    "entity_type": "design_term",
+    "canonical_name": "LOFT 工业风格",
+    "aliases": ["工业风LOFT", "LOFT办公风格"],
+    "contexts": ["building", "design"],
+    "forbidden_senses": ["loft=普通阁楼"],
+    "icon": {"base": "🏭", "badge": "🧱", "palette": "place", "source": "entity"},
+    "rationale": "工业建筑室内风格；厂房配砖墙徽章"
+  },
+  "AI短剧": {
+    "entity_type": "ai_content_term",
+    "canonical_name": "AI 生成短剧",
+    "aliases": ["AI短剧内容", "人工智能短剧"],
+    "contexts": ["meme_2026w16", "ai"],
+    "forbidden_senses": ["AI=人名拼音"],
+    "icon": {"base": "🎬", "badge": "🤖", "palette": "people", "source": "entity"},
+    "rationale": "人工智能生成的短剧内容；场记板配机器人徽章"
+  },
+  "被AI替代": {
+    "entity_type": "ai_work_term",
+    "canonical_name": "岗位被人工智能替代",
+    "aliases": ["AI替代岗位", "被人工智能替代"],
+    "contexts": ["tencent", "worker"],
+    "forbidden_senses": ["AI=人名拼音"],
+    "icon": {"base": "🤖", "badge": "👤", "palette": "product", "source": "entity"},
+    "rationale": "人工智能替代人的岗位语境；机器人配人物徽章"
+  },
+  "GPT周报": {
+    "entity_type": "ai_work_term",
+    "canonical_name": "GPT 生成周报",
+    "aliases": ["AI周报", "GPT写周报"],
+    "contexts": ["tencent", "worker"],
+    "forbidden_senses": ["GPT=普通字母缩写"],
+    "icon": {"base": "📝", "badge": "🤖", "palette": "product", "source": "entity"},
+    "rationale": "由生成式 AI 编写的工作周报；备忘录配机器人徽章"
+  },
+  "AI老板": {
+    "entity_type": "ai_role_term",
+    "canonical_name": "人工智能老板",
+    "aliases": ["AI管理者", "人工智能老板"],
+    "contexts": ["tencent", "worker"],
+    "forbidden_senses": ["AI=人名拼音"],
+    "icon": {"base": "🤖", "badge": "👔", "palette": "product", "source": "entity"},
+    "rationale": "人工智能承担管理者角色；机器人配领带徽章"
+  },
+  "AI写OKR": {
+    "entity_type": "ai_work_term",
+    "canonical_name": "人工智能编写 OKR",
+    "aliases": ["AI生成OKR", "人工智能写目标"],
+    "contexts": ["tencent", "worker"],
+    "forbidden_senses": ["AI=人名拼音"],
+    "icon": {"base": "🎯", "badge": "🤖", "palette": "product", "source": "entity"},
+    "rationale": "人工智能辅助编写目标与关键成果；靶心配机器人徽章"
+  },
+  "N加1": {
+    "entity_type": "compensation_abbreviation",
+    "canonical_name": "N+1 离职补偿",
+    "aliases": ["N+1补偿", "离职N加1"],
+    "contexts": ["worker", "compensation"],
+    "forbidden_senses": ["N+1=普通算式"],
+    "icon": {"base": "💰", "badge": "📄", "palette": "office", "source": "entity"},
+    "rationale": "按工龄 N 加一个月计算的离职补偿；钱币配合同文书徽章"
+  },
+  "职级证": {
+    "entity_type": "credential",
+    "canonical_name": "员工职级凭证",
+    "aliases": ["职级证明", "职级证书"],
+    "contexts": ["level", "career"],
+    "forbidden_senses": [],
+    "icon": {"base": "📜", "badge": "🪪", "palette": "office", "source": "entity"},
+    "rationale": "记录员工职级的凭证；证书配身份卡徽章"
   }
 }

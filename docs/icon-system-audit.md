@@ -9,8 +9,9 @@ knowledge layer, rules, and Emoji manifest.
 - **Base reuse group**: two or more rows sharing the same base Emoji, regardless
   of badge or palette.
 - **Full signature**: `base + badge + palette`.
-- **Duplicate entries**: for every reused full signature, all uses after its
-  first use. The duplicate rate is duplicate entries divided by mapped elements.
+- **Elements in repeated full signatures**: every mapped row belonging to a
+  full signature used by two or more rows. The duplicate rate is that complete
+  repeated-member count divided by mapped elements.
 - **Signature overuse**: a full signature used by more than two rows. It is
   accepted only when every affected row provides a non-empty
   `duplicate_exception` explaining why the shared visual meaning is correct.
@@ -20,23 +21,25 @@ knowledge layer, rules, and Emoji manifest.
 - Mapped elements: 591 / 591
 - Missing or invalid assets/recipes: 0
 - Base reuse groups: 144
-- Full-signature reuse groups: 59
-- Duplicate entries: 59
-- Full-signature duplicate rate: 9.98%
+- Full-signature reuse groups: 29
+- Elements in repeated full signatures: 58
+- Full-signature duplicate rate: 9.81%
 - Signatures used more than twice: 0
+- Unresolved entity/abbreviation candidates: 0
 - Gate violations: 0
 
 ## Top 20 base reuse groups
 
 - 💼 · : 10 — Boss直聘、TIM、企业微信、Martin、刘炽平、办公、总裁、HR、打工、企业通讯
-- 👔 · : 7 — 老板、M族、Mark、任宇昕、甲方、老板黑话、高管
 - 🏢 · : 6 — 鹅厂、开放办公区、大厦、腾讯大厦、企业、小楼
+- 👔 · : 6 — 老板、M族、任宇昕、甲方、老板黑话、高管
 - 💬 · : 6 — 微信、弹幕、聊天、爆料、水帖、即时聊天
 - 💻 · : 6 — PCG、CODING、电脑、张志东、Tony、聊天软件
 - ☁️ · : 5 — CSIG、云、微云、腾讯云、公有云
 - ⚔️ · : 5 — 王者荣耀、DNF、天美、勇士、多人编辑打架
 - 🌅 · : 5 — 滨海、朝阳、早会、晨会、海湾
 - 🎉 · : 5 — 周五、派对、入职、派对大战、小聚
+- 🎮 · : 5 — IEG、英雄联盟、Mark、游戏、工作室
 - 🏛️ · : 5 — 鹅厂大楼、国家、总部、总部基地、首都
 - 🏞️ · : 5 — 园区、河流、湖泊、丘陵、园中园
 - 🏭 · : 5 — 电子厂、漕河泾、纺织机械厂、LOFT工业风、产业园
@@ -47,30 +50,29 @@ knowledge layer, rules, and Emoji manifest.
 - 🌃 · : 4 — 广州、夜、微信之夜、灯火通明
 - 🌉 · : 4 — 上海、武汉、硅谷、上海总部
 - 🌌 · : 4 — 宇宙、QQ空间、北极光、银河系
-- 🎨 · : 4 — 乐享、TIT创意园、CDC、设计
 
 ## Top 20 full-signature reuse groups
 
-- 🎬 + 📱 · product: 2 — 微视、短视频
-- 🎮 + 📱 · product: 2 — 英雄联盟、游戏
-- 🎯 + 📱 · product: 2 — 腾讯企点、Valorant
-- 🎵 + 📱 · product: 2 — QQ音乐、音乐
-- 🎶 + 📱 · product: 2 — TME、腾讯音乐娱乐
-- 🏋️ + 🐧 · product: 2 — 健身房、午间撸铁
-- 🏗️ + 🏢 · place: 2 — 琶洲新总部、钢架
-- 🏛️ + 👥 · people: 2 — 国家、总部
-- 🏝️ + 📍 · place: 2 — 岛、琶洲
-- 🏢 + 🏢 · place: 2 — 腾讯大厦、小楼
-- 🏢 + 👥 · people: 2 — 开放办公区、大厦
-- 🏯 + 📍 · place: 2 — 北京、古都
-- 🐎 + 🐧 · product: 2 — 小马哥、赛马
-- 🐎 + 👔 · people: 2 — Pony、马化腾
-- 👀 + 💼 · office: 2 — 脉脉、实名认证爆料
-- 👊 + 🎮 · studio: 2 — 拳头、Riot
-- 👑 + 👔 · people: 2 — 董事长、创始人
-- 👔 + 🎮 · people: 2 — Mark、任宇昕
-- 👔 + 💼 · office: 2 — 老板、甲方
-- 👨‍👩‍👧 + 👥 · people: 2 — 家庭、三口之家
+- 💨 · nature: 2 — 灰尘、烟
+- 💬 · product: 2 — 水帖、即时聊天
+- 💻 + 👔 · people: 2 — 张志东、Tony
+- 💼 + 👥 · office: 2 — Boss直聘、HR
+- 📈 · office: 2 — 季报、用户增长
+- 📊 · office: 2 — 月报、资历
+- 📐 · office: 2 — 对齐、指标
+- 📚 · product: 2 — 小说、文档不同步
+- 📜 + 👔 · people: 2 — 陈一丹、Charles
+- 📝 · office: 2 — 周报、事故复盘
+- 📡 + 👔 · people: 2 — 许晨晔、Daniel
+- 📢 · office: 2 — 广告、全员告警
+- 🔔 · product: 2 — 订阅、通知
+- 🔬 · place: 2 — 科兴、科兴科学园
+- 🤪 · people: 2 — 颠颠上班、发癫
+- 🥒 · people: 2 — 老贝榨、榨菜
+- 🥷 + 📱 · product: 2 — 火影忍者手游、火影
+- 🧊 · product: 2 — 南极圈、南极
+- 🧦 · people: 2 — 鹿晗穿红、红袜子
+- 🧧 · people: 2 — 新年、人情
 
 ## Accepted exceptions
 

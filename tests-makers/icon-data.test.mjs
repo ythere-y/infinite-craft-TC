@@ -42,6 +42,11 @@ test("the committed icon map covers every preset with valid semantic recipes", a
         manifest[entry.icon.badge],
         `${name} badge must resolve in the manifest`,
       );
+      assert.notEqual(
+        entry.icon.base,
+        entry.icon.badge,
+        `${name} base and badge must differ`,
+      );
     }
   }
 });
@@ -66,6 +71,24 @@ test("locked entities retain their reviewed interpretations", async () => {
     source: "curated",
   });
   assert.equal(iconMap.COO.entity_type, "role");
+});
+
+test("generic presets do not receive blanket category or self badges", async () => {
+  const iconMap = await readJson(
+    "frontend/assets/icons/generated/element-icon-map.json",
+  );
+
+  assert.deepEqual(iconMap.地铁.icon, {
+    base: "🚇",
+    palette: "people",
+    source: "fallback",
+  });
+  assert.match(iconMap.地铁.rationale, /人.*轨道/u);
+  assert.deepEqual(iconMap.企鹅.icon, {
+    base: "🐧",
+    palette: "product",
+    source: "fallback",
+  });
 });
 
 test("rules cover every seed category and knowledge rows are well formed", async () => {
@@ -128,7 +151,7 @@ test("candidate generation honors entity, keyword, category, then fallback order
   const seedElements = {
     elements: {
       Entity: { emoji: "🎮", category: "studio" },
-      Keyword: { emoji: "💼", category: "worker" },
+      Keyword: { emoji: "💼", category: "abstract" },
       Category: { emoji: "🏢", category: "building" },
       Fallback: { emoji: "💧", category: "classic" },
     },
@@ -138,6 +161,7 @@ test("candidate generation honors entity, keyword, category, then fallback order
     category_palettes: {
       studio: "studio",
       worker: "office",
+      abstract: "place",
       building: "place",
       classic: "nature",
     },
@@ -177,7 +201,15 @@ test("candidate generation honors entity, keyword, category, then fallback order
 
   const iconMap = buildElementIconMap({
     seedElements,
-    seedCombinations: { combinations: {} },
+    seedCombinations: {
+      combinations: {
+        "Parent A + Parent B": {
+          result: "Keyword",
+          emoji: "💼",
+          chain: "worker",
+        },
+      },
+    },
     rules,
     knowledge,
     emojiManifest,
@@ -187,15 +219,15 @@ test("candidate generation honors entity, keyword, category, then fallback order
   assert.deepEqual(iconMap.Keyword.icon, {
     base: "💼",
     badge: "⚙️",
-    palette: "office",
+    palette: "place",
     source: "generated",
   });
   assert.match(iconMap.Keyword.rationale, /运营流程/u);
+  assert.match(iconMap.Keyword.rationale, /Parent A.*Parent B/u);
   assert.deepEqual(iconMap.Category.icon, {
     base: "🏢",
-    badge: "📍",
     palette: "place",
-    source: "generated",
+    source: "fallback",
   });
   assert.deepEqual(iconMap.Fallback.icon, {
     base: "💧",
@@ -204,7 +236,42 @@ test("candidate generation honors entity, keyword, category, then fallback order
   });
 });
 
-test("audit counts reused signatures and requires explicit exceptions above twice", async () => {
+test("candidate generation rejects redundant self badges", async () => {
+  const { buildElementIconMap } = await import(
+    "../scripts/generate-icon-data.mjs"
+  );
+
+  assert.throws(
+    () =>
+      buildElementIconMap({
+        seedElements: {
+          elements: {
+            SelfBadge: { emoji: "💼", category: "worker" },
+          },
+        },
+        seedCombinations: { combinations: {} },
+        rules: {
+          palettes: ["nature", "product", "office", "studio", "people", "place"],
+          category_palettes: { worker: "office" },
+          keyword_badges: [
+            {
+              keywords: ["SelfBadge"],
+              badge: "💼",
+              reason: "重复主图",
+              categories: ["worker"],
+            },
+          ],
+          category_badges: {},
+          allowed_sources: ["curated", "entity", "generated", "fallback"],
+        },
+        knowledge: {},
+        emojiManifest: { "💼": "/assets/icons/briefcase.png" },
+      }),
+    /base and badge must differ/i,
+  );
+});
+
+test("audit counts every member of a reused signature and requires explicit exceptions above twice", async () => {
   const { auditIconMap } = await import("../scripts/audit-icon-map.mjs");
   const seedElements = {
     elements: Object.fromEntries(
@@ -239,8 +306,8 @@ test("audit counts reused signatures and requires explicit exceptions above twic
     knowledge: {},
   });
 
-  assert.equal(failed.metrics.duplicateEntries, 2);
-  assert.equal(failed.metrics.duplicateRate, 0.5);
+  assert.equal(failed.metrics.duplicateEntries, 3);
+  assert.equal(failed.metrics.duplicateRate, 0.75);
   assert.deepEqual(failed.signaturesOverTwice[0].names, ["A", "B", "C"]);
   assert.ok(
     failed.violations.some((message) => /more than twice.*exception/i.test(message)),
@@ -257,5 +324,42 @@ test("audit counts reused signatures and requires explicit exceptions above twic
   });
   assert.ok(
     !excepted.violations.some((message) => /more than twice.*exception/i.test(message)),
+  );
+});
+
+test("audit gates unresolved abbreviations embedded in Chinese names", async () => {
+  const { auditIconMap } = await import("../scripts/audit-icon-map.mjs");
+  const seedElements = {
+    elements: {
+      P0故障: { emoji: "🚨", category: "worker" },
+      GPT周报: { emoji: "📝", category: "tencent" },
+    },
+  };
+  const iconMap = {
+    P0故障: {
+      icon: { base: "🚨", palette: "office", source: "fallback" },
+      rationale: "故障告警",
+    },
+    GPT周报: {
+      icon: { base: "📝", palette: "product", source: "fallback" },
+      rationale: "AI 周报",
+    },
+  };
+  const audit = auditIconMap({
+    seedElements,
+    iconMap,
+    emojiManifest: {
+      "🚨": "/assets/icons/alarm.png",
+      "📝": "/assets/icons/memo.png",
+    },
+    knowledge: {},
+  });
+
+  assert.deepEqual(
+    audit.entityCandidates.map((candidate) => candidate.name),
+    ["P0故障", "GPT周报"],
+  );
+  assert.ok(
+    audit.violations.some((message) => /2 unresolved entity.*abbreviation/i.test(message)),
   );
 });
