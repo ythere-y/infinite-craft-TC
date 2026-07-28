@@ -18,6 +18,8 @@ import time
 from pathlib import Path
 from typing import Optional, Dict, List
 
+from .icon_recipes import normalize_icon
+
 _DATA_DIR = Path(__file__).parent.parent / "data"
 _lock = threading.Lock()
 
@@ -162,8 +164,6 @@ def upsert_element(
     is_starter: bool = False,
     icon: Optional[dict] = None,
 ) -> None:
-    from .icon_recipes import normalize_icon
-
     normalized_icon = normalize_icon(icon)
     icon_json = (
         json.dumps(normalized_icon, ensure_ascii=False, separators=(",", ":"))
@@ -173,6 +173,16 @@ def upsert_element(
     with _lock:
         con = _conn()
         try:
+            existing = con.execute(
+                "SELECT icon_json FROM elements WHERE name = ?",
+                (name,),
+            ).fetchone()
+            replace_invalid = bool(
+                icon_json is not None
+                and existing is not None
+                and existing["icon_json"]
+                and normalize_icon(existing["icon_json"]) is None
+            )
             con.execute(
                 """
                 INSERT INTO elements(
@@ -183,6 +193,7 @@ def upsert_element(
                     icon_json = CASE
                         WHEN elements.icon_json IS NULL
                              OR TRIM(elements.icon_json) = ''
+                             OR ?
                         THEN excluded.icon_json
                         ELSE elements.icon_json
                     END
@@ -194,6 +205,7 @@ def upsert_element(
                     1 if is_starter else 0,
                     time.time(),
                     icon_json,
+                    1 if replace_invalid else 0,
                 ),
             )
             con.commit()
@@ -270,8 +282,6 @@ def all_elements() -> List[Dict]:
                 decoded = json.loads(raw_icon) if raw_icon else None
             except (json.JSONDecodeError, TypeError):
                 decoded = None
-            from .icon_recipes import normalize_icon
-
             item["icon"] = normalize_icon(decoded)
             out.append(item)
         return out

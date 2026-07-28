@@ -188,6 +188,51 @@ def test_invalid_historic_icon_json_decodes_as_missing(isolated_archive):
     assert archive.all_elements()[0]["icon"] is None
 
 
+def test_upsert_repairs_invalid_nonempty_icon_json_without_overwriting_valid_recipe(
+    isolated_archive,
+):
+    archive.init_archive()
+    con = archive._conn()
+    con.execute(
+        """
+        INSERT INTO elements(
+            name, emoji, category, is_starter, created_at, icon_json
+        ) VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        ("智能咖啡", "☕", "ai", 0, 1.0, "{not json"),
+    )
+    con.commit()
+    con.close()
+    assert archive.all_elements()[0]["icon"] is None
+
+    derived = {
+        "base": "☕",
+        "badge": "🧠",
+        "palette": "product",
+        "source": "generated",
+    }
+    archive.upsert_element("智能咖啡", "☕", "ai", icon=derived)
+    archive.upsert_element(
+        "智能咖啡",
+        "❌",
+        "other",
+        icon={
+            "base": "❌",
+            "palette": "place",
+            "source": "fallback",
+        },
+    )
+
+    assert archive.all_elements()[0]["icon"] == derived
+    con = archive._conn()
+    stored = con.execute(
+        "SELECT icon_json FROM elements WHERE name = ?",
+        ("智能咖啡",),
+    ).fetchone()["icon_json"]
+    con.close()
+    assert json.loads(stored) == derived
+
+
 def test_seed_store_derives_and_backfills_old_dynamic_row(
     isolated_archive,
     tmp_path,
@@ -234,6 +279,65 @@ def test_seed_store_derives_and_backfills_old_dynamic_row(
     }
     assert local_store.elements["智能咖啡"]["icon"] == expected
     assert archive.all_elements()[0]["icon"] == expected
+
+
+def test_seed_store_prefers_archived_icon_when_seed_name_collides(
+    isolated_archive,
+    tmp_path,
+    monkeypatch,
+):
+    archive.init_archive()
+    persisted = {
+        "base": "🪨",
+        "badge": "🧭",
+        "palette": "place",
+        "source": "generated",
+    }
+    archive.upsert_element(
+        "Riot",
+        "⚡",
+        "studio",
+        is_starter=True,
+        icon=persisted,
+    )
+    seed_elements_path = tmp_path / "seed_elements.json"
+    seed_combinations_path = tmp_path / "seed_combinations.json"
+    seed_elements_path.write_text(
+        json.dumps(
+            {
+                "starters": [
+                    {
+                        "id": "riot",
+                        "name": "Riot",
+                        "emoji": "⚡",
+                        "category": "studio",
+                    }
+                ],
+                "elements": {
+                    "Riot": {"emoji": "⚡", "category": "studio"}
+                },
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    seed_combinations_path.write_text(
+        '{"combinations": {}}',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(seed_loader, "SEED_ELEMENTS_PATH", seed_elements_path)
+    monkeypatch.setattr(
+        seed_loader,
+        "SEED_COMBINATIONS_PATH",
+        seed_combinations_path,
+    )
+
+    local_store = seed_loader.SeedStore()
+    local_store.load()
+
+    assert local_store.elements["Riot"]["icon"] == persisted
+    assert local_store.starters[0]["icon"] == persisted
+    assert archive.all_elements()[0]["icon"] == persisted
 
 
 def test_attach_icon_preserves_existing_fields():

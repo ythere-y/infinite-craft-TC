@@ -52,22 +52,30 @@ class SeedStore:
 
         # 从 SQLite 恢复历史 element（AI 之前生成过但不在 seed 里的）
         for row in archive.all_elements():
-            if row["name"] not in self.elements:
-                info = {
-                    "emoji": row["emoji"],
-                    "category": row["category"] or "unknown",
-                    "icon": row.get("icon"),
-                }
-                enriched = attach_icon(row["name"], info)
-                self.elements[row["name"]] = enriched
-                if row.get("icon") is None:
-                    archive.upsert_element(
-                        name=row["name"],
-                        emoji=row["emoji"],
-                        category=row["category"],
-                        is_starter=bool(row["is_starter"]),
-                        icon=enriched["icon"],
-                    )
+            name = row["name"]
+            persisted_icon = row.get("icon")
+            if name in self.elements:
+                if persisted_icon is not None:
+                    self.elements[name]["icon"] = persisted_icon
+                    for starter in self.starters:
+                        if starter["name"] == name:
+                            starter["icon"] = persisted_icon
+                continue
+            info = {
+                "emoji": row["emoji"],
+                "category": row["category"] or "unknown",
+                "icon": persisted_icon,
+            }
+            enriched = attach_icon(name, info)
+            self.elements[name] = enriched
+            if persisted_icon is None:
+                archive.upsert_element(
+                    name=name,
+                    emoji=row["emoji"],
+                    category=row["category"],
+                    is_starter=bool(row["is_starter"]),
+                    icon=enriched["icon"],
+                )
 
         # 合成规则
         with open(SEED_COMBINATIONS_PATH, encoding="utf-8") as f:
