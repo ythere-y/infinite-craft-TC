@@ -521,12 +521,92 @@ def test_hostile_element_payload_is_text_and_app_has_no_inner_html_sinks(tmp_pat
 
     app_source = APP_SOURCE.read_text(encoding="utf-8")
     assert ".innerHTML" not in app_source
-    assert app_source.count("window.COMBINE_FEEDBACK.renderElement") == 5
-    assert 'renderElement(document, ghost, { name, emoji, size: "canvas" })' in app_source
     assert re.search(
-        r"renderElement\(document, el, \{\s+name,\s+emoji,\s+isStarter,\s+size: \"canvas\",",
+        r"function renderGameElement\(target, info, options = \{\}\).*?"
+        r"icon:\s*info\.icon.*?"
+        r"window\.COMBINE_FEEDBACK\.renderElement\(document, target, payload\)",
         app_source,
+        flags=re.DOTALL,
     )
+
+
+def test_boss_mode_preserves_canvas_element_geometry_and_restores_icon(tmp_path):
+    actual = _run_browser(
+        tmp_path,
+        """
+        return window.ICON_SYSTEM.ready.then(async function () {
+          var workspace = document.getElementById("fixture");
+          workspace.id = "workspace";
+          workspace.className = "workspace";
+          function makeCanvasElement(name, left) {
+            var target = document.createElement("div");
+            target.className = "element on-canvas";
+            target.dataset.name = name;
+            target.style.cssText =
+              "display:inline-flex;align-items:center;gap:6px;padding:6px 12px;"
+              + "border:1px solid transparent;font:14px sans-serif;white-space:nowrap;"
+              + "position:absolute;left:" + left + "px";
+            var info = {
+              name: name,
+              emoji: "🔥",
+              category: "product",
+              icon: { base: "🧩", badge: "⭐", palette: "product", source: "entity" },
+              is_starter: false
+            };
+            target.__elementInfo = info;
+            window.ICON_SYSTEM.renderElement(document, target, { ...info, size: "canvas" });
+            workspace.appendChild(target);
+            return target;
+          }
+          var targets = [makeCanvasElement("预设", 0), makeCanvasElement("预设二", 120)];
+          var originalBases = targets.map(function (target) {
+            return target.querySelector(".element-icon-base").getAttribute("src");
+          });
+          function geometry() {
+            return targets.map(function (target) {
+              var rect = target.getBoundingClientRect();
+              return [rect.width, rect.height];
+            });
+          }
+          var before = geometry();
+          window.EFFECTS.initBossMode();
+
+          var code = [
+            "ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown",
+            "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"
+          ];
+          code.forEach(function (key) {
+            window.dispatchEvent(new KeyboardEvent("keydown", { key: key }));
+          });
+          await new Promise(function (resolve) { setTimeout(resolve, 650); });
+          var during = geometry();
+          var bossChanged = targets.every(function (target) {
+            return target.querySelector(".emoji").textContent !== "";
+          });
+
+          code.forEach(function (key) {
+            window.dispatchEvent(new KeyboardEvent("keydown", { key: key }));
+          });
+          var after = geometry();
+          var restored = targets.every(function (target, index) {
+            return target.querySelector(".element-icon-base").getAttribute("src")
+              === originalBases[index];
+          });
+          return {
+            before: before,
+            during: during,
+            after: after,
+            bossChanged: bossChanged,
+            restored: restored
+          };
+        });
+        """,
+        include_effects=True,
+    )
+    assert actual["during"] == actual["before"]
+    assert actual["after"] == actual["before"]
+    assert actual["bossChanged"] is True
+    assert actual["restored"] is True
 
 
 def test_first_toast_uses_exact_design_duration(tmp_path):
@@ -541,7 +621,7 @@ def test_first_toast_uses_exact_design_duration(tmp_path):
         window.clearTimeout = function () {};
         var target = document.getElementById("fixture");
         target.id = "first-toast";
-        window.EFFECTS.firstToast("结果", "🧪", {
+        window.EFFECTS.firstToast({ name: "结果", emoji: "🧪" }, {
           tier: "global_new",
           comment: "点评"
         });

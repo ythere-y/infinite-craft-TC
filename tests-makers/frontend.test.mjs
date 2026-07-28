@@ -97,3 +97,85 @@ test("combine feedback owns the only formula publication bubble", async () => {
   assert.doesNotMatch(feedback, /查看广场/);
   assert.doesNotMatch(feedback, /社区现在可以投票/);
 });
+
+test("main game uses compact sticker and action-icon contracts", async () => {
+  const [html, app, styles, effects] = await Promise.all([
+    readFile("frontend/index.html", "utf8"),
+    readFile("frontend/app.js", "utf8"),
+    readFile("frontend/style.css", "utf8"),
+    readFile("frontend/effects.js", "utf8"),
+  ]);
+
+  assert.ok(html.indexOf("icon-system.js") < html.indexOf("combine-feedback.js"));
+  assert.ok(html.indexOf("icon-system.js") < html.indexOf("app.js"));
+
+  const actionIds = {
+    "btn-recipebook": "recipes",
+    "btn-score": "score",
+    "btn-reset": "reset",
+    "first-wall": "wall",
+    "btn-help": "help",
+    "search": "search",
+    "nick-modal-reroll": "sparkle",
+    "nick-modal-confirm": "confirm",
+    "recipebook-search": "search",
+    "recipebook-export": "download",
+    "score-panel-close": "close",
+    "recipebook-close": "close",
+  };
+  for (const [id, icon] of Object.entries(actionIds)) {
+    assert.match(
+      html,
+      new RegExp(`<[^>]+id="${id}"[^>]+data-action-icon="${icon}"[^>]*>`),
+      `${id} should declare the ${icon} action icon`,
+    );
+  }
+
+  for (const match of html.matchAll(/<(button|a)\b([^>]*)>([\s\S]*?)<\/\1>/g)) {
+    const [, tag, attrs, contents] = match;
+    if (!/data-action-icon=/.test(attrs)) continue;
+    const visibleText = contents.replace(/<[^>]*>/g, "").trim();
+    assert.ok(
+      visibleText || /\baria-label=/.test(attrs),
+      `${tag} action must retain visible text or an aria-label`,
+    );
+    assert.doesNotMatch(
+      visibleText,
+      /^(?:📖|✨|🗑️|📺|❓|🔍|🎲|✅|⬇️|✕|×)/u,
+      `${tag} action should not begin with naked Emoji`,
+    );
+  }
+
+  const readyAt = app.indexOf("await window.ICON_SYSTEM.ready");
+  const loadAt = app.indexOf("await Promise.all([loadElements(), loadTiers()])");
+  const hydrateAt = app.indexOf("window.ICON_SYSTEM.hydrateActions(document)");
+  assert.ok(readyAt >= 0 && readyAt < loadAt && loadAt < hydrateAt);
+
+  assert.match(app, /function makeElementChip\(info,/);
+  assert.match(app, /function spawnAtWorkspaceCenter\(info\)/);
+  assert.match(app, /function onPointerDown\(e, el, info, source\)/);
+  assert.match(app, /function spawnOnCanvas\(info, x, y\)/);
+  assert.match(app, /function makeInteractiveRecipeChip\(info,/);
+  assert.match(app, /function rememberRecipe\(leftInfo, rightInfo, resultInfo\)/);
+  assert.match(app, /function recordScoreEvent\(info, gained, depth, tier\)/);
+  assert.match(app, /icon:\s*info\.icon/);
+  assert.match(app, /elementInfoFor\(ev\.result, ev\)/);
+  assert.match(app, /elementInfoFor\(r\.result, r\)/);
+  assert.match(
+    app,
+    /const previousResultInfo = state\.elements\[resp\.result\].*?icon:\s*resp\.icon \?\? previousResultInfo\.icon/s,
+  );
+  assert.match(app, /onCombineResult\?\.\(newRec\.el, resultInfo, tier,/);
+  assert.match(effects, /firstToast\(info,/);
+  assert.match(effects, /renderToast\(document, el, \{\s*\.\.\.info,/);
+  assert.match(effects, /new WeakMap\(\)/);
+  assert.match(effects, /ICON_SYSTEM\.renderElement\(document, el, payload\)/);
+  assert.doesNotMatch(effects, /element-icon-base[^]*?src/);
+
+  assert.match(styles, /\.element-list\s*\{[^}]*display:\s*grid;/s);
+  assert.match(styles, /grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/);
+  assert.match(styles, /--element-icon-sidebar:\s*27px/);
+  assert.match(styles, /--element-icon-canvas:\s*30px/);
+  assert.match(styles, /--action-icon-size:\s*16px/);
+  assert.match(styles, /--action-icon-well:\s*25px/);
+});

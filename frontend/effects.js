@@ -2,8 +2,8 @@
    effects.js —— 创新玩法特效
    暴露到 window.EFFECTS：
      - explode(resultName)          P0 故障爆炸
-     - firstToast(name, emoji, opt) 首发 / 新发现 toast
-     - initBossMode(reRenderFn)     Konami → 老板视角
+     - firstToast(info, opt)        首发 / 新发现 toast
+     - initBossMode()              Konami → 老板视角
    ============================================================ */
 
 (function () {
@@ -46,24 +46,24 @@
 
   // -------------------- 合成结果三档特效 --------------------
   // tier: "seen" | "global_known" | "global_new"
-  EFFECTS.onCombineResult = function (el, name, emoji, tier, meta = {}) {
+  EFFECTS.onCombineResult = function (el, info, tier, meta = {}) {
     if (!el) return;
     switch (tier) {
       case "global_new":
         fireworks(el);
         el.classList.add("glow-gold");
         setTimeout(() => el.classList.remove("glow-gold"), 4000);
-        EFFECTS.firstToast(name, emoji, { tier: "global_new", ...meta });
+        EFFECTS.firstToast(info, { tier: "global_new", ...meta });
         break;
       case "global_known":
         el.classList.add("glow-blue");
         setTimeout(() => el.classList.remove("glow-blue"), 3000);
-        EFFECTS.firstToast(name, emoji, { tier: "global_known", ...meta });
+        EFFECTS.firstToast(info, { tier: "global_known", ...meta });
         break;
       default:
         el.classList.add("pop-in");
         setTimeout(() => el.classList.remove("pop-in"), 500);
-        EFFECTS.firstToast(name, emoji, { tier: "seen", ...meta });
+        EFFECTS.firstToast(info, { tier: "seen", ...meta });
         break;
     }
   };
@@ -99,16 +99,15 @@
   // 段位跃迁庆祝：已删除（用户反馈特效有 bug，且频繁打断体验）
 
   // -------------------- 首发 toast --------------------
-  EFFECTS.firstToast = function (name, emoji, opt = {}) {
+  EFFECTS.firstToast = function (info, opt = {}) {
     const el = document.getElementById("first-toast");
     if (!el) return;
     const tier = opt.tier || (opt.small ? "global_known" : "global_new");
     const depthStr = opt.depth != null ? ` · 难度 ${opt.depth}` : "";
     const scoreStr = opt.gained != null ? ` · +${opt.gained}分` : "";
     window.COMBINE_FEEDBACK.renderToast(document, el, {
+      ...info,
       tier,
-      name,
-      emoji,
       comment: opt.comment,
     });
     const title = el.querySelector(".first-toast-title");
@@ -119,14 +118,8 @@
   };
 
   // -------------------- 里模式（ura mode · 疯狂的可视化覆盖）--------------------
-  // 设计：
-  //   - 每个 .element / .recipe-chip 内部注入一个 .ura-emoji 和 .ura-name 兄弟 span
-  //   - 平时这俩 span display:none（CSS 控制）
-  //   - body.ura-on 时 ura-* 出现、原生 emoji/name 隐藏
-  //   - hover 元素时翻转（CSS :hover），揭示真身
-  //   - MutationObserver 监听整个 document，新节点出现时自动注入
-  //   - 每个节点独立随机，同一元素跨次 ura 结果可以不同
-  //   - 触发仍是 Konami Code
+  // 只替换固定尺寸 `.emoji` sticker 的内部视觉，外层 chip 和名称都不动。
+  // 原始渲染 payload 存在 WeakMap 中，退出时交给 ICON_SYSTEM 重新渲染。
   const KONAMI = [
     "ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown",
     "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight",
@@ -154,32 +147,57 @@
   ];
   let uraOn = false;
   let observer = null;
+  const originalPayloads = new WeakMap();
+  const paintedElements = new Set();
 
   function randFrom(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
-  /** 给一个 .element 或 .recipe-chip 注入（或更新）ura-emoji / ura-name 两个兄弟 span。 */
+  /** 给一个 .element 或 .recipe-chip 替换固定尺寸 sticker 的内部视觉。 */
   function paintElement(el) {
-    // chip 必须至少有 .emoji 和 .name，否则跳过
     const emojiSpan = el.querySelector(":scope > .emoji");
-    const nameSpan = el.querySelector(":scope > .name");
-    if (!emojiSpan || !nameSpan) return;
+    if (!emojiSpan) return;
 
-    let uraEmoji = el.querySelector(":scope > .ura-emoji");
-    if (!uraEmoji) {
-      uraEmoji = document.createElement("span");
-      uraEmoji.className = "ura-emoji";
-      emojiSpan.after(uraEmoji);
+    if (!originalPayloads.has(el)) {
+      const sourcePayload = el.__elementInfo || {
+        name: el.dataset.name || el.querySelector(":scope > .name")?.textContent || "",
+        emoji: emojiSpan.textContent || "❔",
+        category: "unknown",
+        icon: undefined,
+      };
+      const renderedSize = emojiSpan.classList.contains("element-icon-detail")
+        ? "detail"
+        : emojiSpan.classList.contains("element-icon-canvas")
+          ? "canvas"
+          : "sidebar";
+      const payload = {
+        ...sourcePayload,
+        isStarter: sourcePayload.isStarter
+          ?? sourcePayload.is_starter
+          ?? el.classList.contains("is-starter"),
+        size: sourcePayload.size || renderedSize,
+      };
+      originalPayloads.set(el, { ...payload });
+      paintedElements.add(el);
     }
-    let uraName = el.querySelector(":scope > .ura-name");
-    if (!uraName) {
-      uraName = document.createElement("span");
-      uraName.className = "ura-name";
-      nameSpan.after(uraName);
-    }
-    uraEmoji.textContent = randFrom(URA_EMOJI);
-    uraName.textContent = randFrom(URA_POOL);
+
+    const visual = document.createElement("span");
+    visual.className = "element-icon-native ura-visual";
+    visual.textContent = randFrom(URA_EMOJI);
+    emojiSpan.replaceChildren(visual);
+  }
+
+  function restorePaintedElements() {
+    paintedElements.forEach((el) => {
+      const payload = originalPayloads.get(el);
+      if (payload && el.isConnected) {
+        window.ICON_SYSTEM.renderElement(document, el, payload);
+        el.__elementInfo = payload;
+      }
+      originalPayloads.delete(el);
+    });
+    paintedElements.clear();
   }
 
   function scanAndPaint(root = document) {
@@ -211,7 +229,11 @@
     observer = null;
   }
 
-  EFFECTS.initBossMode = function (_reRenderFn) {
+  EFFECTS.reapplyUra = function () {
+    if (uraOn) scanAndPaint(document);
+  };
+
+  EFFECTS.initBossMode = function () {
     let buf = [];
     window.addEventListener("keydown", (e) => {
       const tag = (e.target?.tagName || "").toLowerCase();
@@ -237,6 +259,7 @@
       // 让月亮先"从天而降"，画布才开始变暗
       playUraEnterTransition();
       setTimeout(() => {
+        if (!uraOn) return;
         if (banner) {
           banner.textContent = "🤪 里模式·彻底疯狂 · ↑↑↓↓←→←→BA 再按可关闭";
           banner.classList.add("show");
@@ -250,8 +273,8 @@
       if (banner) banner.classList.remove("show");
       document.body.classList.remove("ura-on");
       stopObserver();
+      restorePaintedElements();
       playUraExitTransition();
-      // 不删除已注入的 ura-* span，下次开启直接重用 + 重新 randomize
     }
   }
 

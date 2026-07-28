@@ -159,12 +159,45 @@ async function rerollNickname() {
 }
 
 // ---- 状态 ----
+function normalizeElementInfo(name, info = {}) {
+  return {
+    name: String(name || info.name || ""),
+    emoji: String(info.emoji || "❔"),
+    category: info.category || "unknown",
+    icon: info.icon,
+    is_starter: !!info.is_starter,
+  };
+}
+
+function elementInfoFor(name, fallback = {}) {
+  return normalizeElementInfo(name, {
+    ...fallback,
+    ...(state.elements[name] || {}),
+    icon: fallback.icon || state.elements[name]?.icon,
+    emoji: fallback.emoji || state.elements[name]?.emoji,
+  });
+}
+
+function renderGameElement(target, info, options = {}) {
+  const payload = {
+    name: info.name,
+    emoji: info.emoji,
+    category: info.category,
+    icon: info.icon,
+    isStarter: info.is_starter,
+    ...options,
+  };
+  target.__elementInfo = payload;
+  window.COMBINE_FEEDBACK.renderElement(document, target, payload);
+}
+
 const state = {
   elements: {},
   firsts: new Set(JSON.parse(localStorage.getItem("ic_firsts") || "[]")),
   discovered: new Set(JSON.parse(localStorage.getItem("ic_discovered") || "[]")),
-  recipes: JSON.parse(localStorage.getItem("ic_recipes") || "[]"),  // [{key,a,b,result,emoji,ts}]
-  scoreEvents: JSON.parse(localStorage.getItem("ic_scores") || "[]"),  // [{result,emoji,gained,depth,tier,ts}]
+  // Legacy records with only `emoji` remain valid; renderers normalize them.
+  recipes: JSON.parse(localStorage.getItem("ic_recipes") || "[]"),
+  scoreEvents: JSON.parse(localStorage.getItem("ic_scores") || "[]"),
   kpi: Number(localStorage.getItem("ic_kpi") || 0),
   onCanvas: [],
   nextId: 1,
@@ -172,7 +205,7 @@ const state = {
 
 // 拖拽上下文
 const drag = {
-  active: null,        // {ghost, name, emoji, sourceId|null, offsetX, offsetY}
+  active: null,        // {ghost, info, sourceId|null, offsetX, offsetY}
   hoverTarget: null,   // 当前悬停的 canvas 元素 record
 };
 
@@ -180,17 +213,19 @@ const drag = {
 // 初始化
 // ============================================================
 async function init() {
+  await window.ICON_SYSTEM.ready;
+  await Promise.all([loadElements(), loadTiers()]);
+  window.ICON_SYSTEM.hydrateActions(document);
   kpiValueEl.textContent = state.kpi;
   await ensureNickname();
   updateNickDisplay();
-  await Promise.all([loadElements(), loadTiers()]);
   bindSearch();
   bindButtons();
   bindGlobalPointerEvents();
   // 初始化右下角图鉴按钮计数
   const c = document.getElementById("recipebook-btn-count");
   if (c) c.textContent = state.recipes.length;
-  window.EFFECTS?.initBossMode?.(renderSidebar);
+  window.EFFECTS?.initBossMode?.();
 }
 
 async function loadElements() {
@@ -199,12 +234,16 @@ async function loadElements() {
       fetch("/api/starters").then(r => r.json()),
       fetch("/api/elements").then(r => r.json()),
     ]);
-    starters.starters.forEach(s => {
-      state.elements[s.name] = { emoji: s.emoji, category: s.category, is_starter: true };
-      state.discovered.add(s.name);
-    });
     Object.entries(all.elements).forEach(([name, info]) => {
-      if (!state.elements[name]) state.elements[name] = info;
+      state.elements[name] = normalizeElementInfo(name, info);
+    });
+    starters.starters.forEach(s => {
+      state.elements[s.name] = normalizeElementInfo(s.name, {
+        ...state.elements[s.name],
+        ...s,
+        is_starter: true,
+      });
+      state.discovered.add(s.name);
     });
     persistDiscovered();
     renderSidebar();
@@ -223,11 +262,10 @@ function renderSidebar(filter = "") {
   const names = [...state.discovered].sort((a, b) => a.localeCompare(b, "zh"));
   for (const name of names) {
     if (q && !name.toLowerCase().includes(q)) continue;
-    const info = state.elements[name];
+    const info = elementInfoFor(name);
     if (!info) continue;
-    list.appendChild(makeElementChip(name, info.emoji, {
+    list.appendChild(makeElementChip(info, {
       isFirst: state.firsts.has(name),
-      isStarter: !!info.is_starter,
       source: "sidebar",
     }));
   }
@@ -236,33 +274,29 @@ function renderSidebar(filter = "") {
   window.EFFECTS?.reapplyUra?.();
 }
 
-function makeElementChip(name, emoji, { isFirst = false, isStarter = false, source = "sidebar" } = {}) {
+function makeElementChip(info, { isFirst = false, source = "sidebar" } = {}) {
   const div = document.createElement("div");
   const classes = ["element"];
   if (isFirst) classes.push("first-discovery");
-  if (isStarter) classes.push("is-starter");
+  if (info.is_starter) classes.push("is-starter");
   div.className = classes.join(" ");
-  div.dataset.name = name;
+  div.dataset.name = info.name;
   div.dataset.source = source;
-  if (isStarter) div.title = "🌱 基础元素（开局自带）";
-  window.COMBINE_FEEDBACK.renderElement(document, div, {
-    name,
-    emoji,
-    isStarter,
-  });
-  div.addEventListener("pointerdown", (e) => onPointerDown(e, div, { name, emoji, source }));
+  if (info.is_starter) div.title = "🌱 基础元素（开局自带）";
+  renderGameElement(div, info, { isFirst });
+  div.addEventListener("pointerdown", (e) => onPointerDown(e, div, info, source));
   // 侧栏双击 → 画布中心生成该元素（允许原地叠放）
-  bindDoubleTap(div, () => spawnAtWorkspaceCenter(name, emoji));
+  bindDoubleTap(div, () => spawnAtWorkspaceCenter(info));
   return div;
 }
 
 // 在画布中心附近随机抖动位置生成一个元素（避免完全重叠）
-function spawnAtWorkspaceCenter(name, emoji) {
+function spawnAtWorkspaceCenter(info) {
   const rect = workspace.getBoundingClientRect();
   const jitter = () => (Math.random() - 0.5) * 40;
   const cx = rect.width / 2 + jitter();
   const cy = rect.height / 2 + jitter();
-  spawnOnCanvas(name, emoji, cx, cy);
+  spawnOnCanvas(info, cx, cy);
 }
 
 /**
@@ -340,7 +374,7 @@ function cancelActiveDrag() {
 // ============================================================
 // Pointer events 拖拽系统
 // ============================================================
-function onPointerDown(e, el, { name, emoji, source }) {
+function onPointerDown(e, el, info, source) {
   if (e.button !== 0) return;        // 只处理左键
   e.preventDefault();
 
@@ -354,7 +388,7 @@ function onPointerDown(e, el, { name, emoji, source }) {
   // 创建 ghost（跟手的元素副本）
   const ghost = document.createElement("div");
   ghost.className = "element ghost";
-  window.COMBINE_FEEDBACK.renderElement(document, ghost, { name, emoji, size: "canvas" });
+  renderGameElement(ghost, info, { size: "canvas", dragging: true });
   ghost.style.position = "fixed";
   ghost.style.left = (e.clientX - offsetX) + "px";
   ghost.style.top = (e.clientY - offsetY) + "px";
@@ -362,7 +396,7 @@ function onPointerDown(e, el, { name, emoji, source }) {
   ghost.style.zIndex = "999";
   document.body.appendChild(ghost);
 
-  drag.active = { ghost, name, emoji, source, sourceId, offsetX, offsetY };
+  drag.active = { ghost, info, sourceId, offsetX, offsetY };
 
   // 如果是 canvas 元素，立刻隐藏原位（视觉上只留 ghost）
   if (sourceId != null) {
@@ -399,7 +433,7 @@ function onPointerMove(e) {
 
 async function onPointerUp(e) {
   if (!drag.active) return;
-  const { ghost, name, emoji, source, sourceId } = drag.active;
+  const { ghost, info, sourceId } = drag.active;
   const clientX = e.clientX, clientY = e.clientY;
 
   // 收尾
@@ -407,7 +441,6 @@ async function onPointerUp(e) {
   drag.hoverTarget?.el.classList.remove("dropping");
   document.querySelectorAll(".element.dragging").forEach(el => el.classList.remove("dragging"));
 
-  const wasActive = drag.active;
   drag.active = null;
   const target = drag.hoverTarget;
   drag.hoverTarget = null;
@@ -428,14 +461,14 @@ async function onPointerUp(e) {
 
   if (target && target.id !== sourceId) {
     // 命中另一个元素 → 合成
-    const srcId = sourceId != null ? sourceId : spawnOnCanvas(name, emoji, localX, localY).id;
+    const srcId = sourceId != null ? sourceId : spawnOnCanvas(info, localX, localY).id;
     await combine(srcId, target.id, (target.x + localX) / 2, (target.y + localY) / 2);
   } else if (sourceId != null) {
     // canvas 内部移动
     moveCanvasEl(sourceId, localX, localY);
   } else {
     // sidebar → canvas 新生成
-    spawnOnCanvas(name, emoji, localX, localY);
+    spawnOnCanvas(info, localX, localY);
   }
 }
 
@@ -455,35 +488,29 @@ function findCanvasElementAtClient(cx, cy, excludeId) {
 // ============================================================
 // canvas 元素管理
 // ============================================================
-function spawnOnCanvas(name, emoji, x, y) {
+function spawnOnCanvas(info, x, y) {
+  info = normalizeElementInfo(info.name, info);
   const id = state.nextId++;
   const el = document.createElement("div");
-  const info = state.elements[name];
-  const isStarter = !!(info && info.is_starter);
-  el.className = "element on-canvas" + (isStarter ? " is-starter" : "");
+  el.className = "element on-canvas" + (info.is_starter ? " is-starter" : "");
   el.dataset.id = String(id);
-  el.dataset.name = name;
+  el.dataset.name = info.name;
   el.dataset.source = "canvas";
-  if (isStarter) el.title = "🌱 基础元素（开局自带）";
-  window.COMBINE_FEEDBACK.renderElement(document, el, {
-    name,
-    emoji,
-    isStarter,
-    size: "canvas",
-  });
+  if (info.is_starter) el.title = "🌱 基础元素（开局自带）";
+  renderGameElement(el, info, { size: "canvas" });
   el.style.left = (x - 30) + "px";
   el.style.top = (y - 16) + "px";
   workspace.appendChild(el);
 
-  const record = { id, name, emoji, x, y, el };
+  const record = { id, ...info, x, y, el };
   state.onCanvas.push(record);
 
-  el.addEventListener("pointerdown", (e) => onPointerDown(e, el, { name, emoji, source: "canvas" }));
+  el.addEventListener("pointerdown", (e) => onPointerDown(e, el, info, "canvas"));
   // 画布双击 → 在右下偏移位置复制一份（代替原先的删除）
   bindDoubleTap(el, () => {
     const rec = state.onCanvas.find(r => r.id === id);
     if (!rec) return;
-    spawnOnCanvas(name, emoji, rec.x + 28, rec.y + 28);
+    spawnOnCanvas(info, rec.x + 28, rec.y + 28);
   });
 
   return record;
@@ -547,20 +574,28 @@ async function combine(srcId, dstId, x, y) {
       return;
     }
 
-    // 清掉两个源元素，在中点放结果
-    removeCanvasEl(srcId);
-    removeCanvasEl(dstId);
-    const newRec = spawnOnCanvas(resp.result, resp.emoji, x, y);
-
     const knownBefore = state.discovered.has(resp.result);
     const isNewToPlayer = !knownBefore;
     const tier = window.COMBINE_FEEDBACK.classify(resp.is_first, knownBefore);
-    state.elements[resp.result] = { emoji: resp.emoji, category: resp.chain || "unknown" };
+    const previousResultInfo = state.elements[resp.result] || {};
+    const resultInfo = normalizeElementInfo(resp.result, {
+      ...previousResultInfo,
+      emoji: resp.emoji || previousResultInfo.emoji,
+      category: resp.chain || previousResultInfo.category || "unknown",
+      icon: resp.icon ?? previousResultInfo.icon,
+      is_starter: false,
+    });
+    state.elements[resp.result] = resultInfo;
     state.discovered.add(resp.result);
     if (resp.is_first) state.firsts.add(resp.result);
 
+    // 清掉两个源元素，在中点放结果
+    removeCanvasEl(srcId);
+    removeCanvasEl(dstId);
+    const newRec = spawnOnCanvas(resultInfo, x, y);
+
     // 记录玩家的配方图鉴（a + b → result）
-    rememberRecipe(src.name, dst.name, resp.result, resp.emoji);
+    rememberRecipe(src, dst, resultInfo);
 
     persistDiscovered();
     renderSidebar(searchInput.value);
@@ -570,10 +605,10 @@ async function combine(srcId, dstId, x, y) {
     const gained = isNewToPlayer ? fullScore : Math.max(1, Math.floor(fullScore / 10));
     if (fullScore > 0) {
       animateKpi(gained);
-      recordScoreEvent(resp.result, resp.emoji, gained, resp.depth, tier);
+      recordScoreEvent(resultInfo, gained, resp.depth, tier);
     }
     if (resp.explode) window.EFFECTS?.explode?.(resp.result);
-    window.EFFECTS?.onCombineResult?.(newRec.el, resp.result, resp.emoji, tier, {
+    window.EFFECTS?.onCombineResult?.(newRec.el, resultInfo, tier, {
       depth: resp.depth, gained, fullScore, isNewToPlayer, comment: resp.comment,
     });
     if (resp.formula_id) showPublishAction(resp.formula_id);
@@ -708,9 +743,17 @@ function persistDiscovered() {
   if (c) c.textContent = state.recipes.length;
 }
 
-function recordScoreEvent(result, emoji, gained, depth, tier) {
+function recordScoreEvent(info, gained, depth, tier) {
   state.scoreEvents.push({
-    result, emoji, gained, depth: depth || 0, tier, ts: Date.now(),
+    result: info.name,
+    emoji: info.emoji,
+    category: info.category,
+    icon: info.icon,
+    is_starter: info.is_starter,
+    gained,
+    depth: depth || 0,
+    tier,
+    ts: Date.now(),
   });
   // 最多保留 200 条最近记录
   if (state.scoreEvents.length > 200) {
@@ -727,16 +770,25 @@ function recipeKey(a, b) {
   return [a, b].sort().join(" + ");
 }
 
-function rememberRecipe(a, b, result, emoji) {
-  const key = recipeKey(a, b);
+function rememberRecipe(leftInfo, rightInfo, resultInfo) {
+  const key = recipeKey(leftInfo.name, rightInfo.name);
+  const recipe = {
+    key,
+    a: leftInfo.name,
+    b: rightInfo.name,
+    result: resultInfo.name,
+    emoji: resultInfo.emoji,
+    category: resultInfo.category,
+    icon: resultInfo.icon,
+    is_starter: resultInfo.is_starter,
+    ts: Date.now(),
+  };
   // 去重：同一组合只保留最后一次
   const exists = state.recipes.find(r => r.key === key);
   if (exists) {
-    exists.result = result;
-    exists.emoji = emoji;
-    exists.ts = Date.now();
+    Object.assign(exists, recipe);
   } else {
-    state.recipes.push({ key, a, b, result, emoji, ts: Date.now() });
+    state.recipes.push(recipe);
   }
   persistDiscovered();
   if (window.__renderRecipebook) window.__renderRecipebook();
@@ -817,10 +869,8 @@ function renderScorePanel() {
       const row = document.createElement("div");
       row.className = "score-row";
       const timeStr = formatTime(ev.ts);
-      window.COMBINE_FEEDBACK.renderElement(document, row, {
-        name: ev.result,
-        emoji: ev.emoji,
-      });
+      const info = elementInfoFor(ev.result, ev);
+      renderGameElement(row, info, { size: "canvas" });
       row.querySelector(".name").title = ev.result;
       appendTextElement(row, "span", "meta", `d=${ev.depth} · ${timeStr}`);
       appendTextElement(
@@ -1003,14 +1053,15 @@ function renderRecipebook(filter = "") {
     if (q && !blob.includes(q)) continue;
     const row = document.createElement("div");
     row.className = "recipe-row" + (q ? " highlight" : "");
-    const aEmoji = state.elements[r.a]?.emoji || "❔";
-    const bEmoji = state.elements[r.b]?.emoji || "❔";
+    const aInfo = elementInfoFor(r.a);
+    const bInfo = elementInfoFor(r.b);
+    const resultInfo = elementInfoFor(r.result, r);
     const score = r.full_score || estimateFullScore(r.result);
 
     // 让 chip 真正能拖和双击（和侧栏元素一样的行为）
-    const aChipEl = makeInteractiveRecipeChip(r.a, aEmoji);
-    const bChipEl = makeInteractiveRecipeChip(r.b, bEmoji);
-    const resEl = makeInteractiveRecipeChip(r.result, r.emoji, { isResult: true });
+    const aChipEl = makeInteractiveRecipeChip(aInfo);
+    const bChipEl = makeInteractiveRecipeChip(bInfo);
+    const resEl = makeInteractiveRecipeChip(resultInfo, { isResult: true });
 
     row.appendChild(aChipEl);
     const plus = document.createElement("span");
@@ -1060,19 +1111,19 @@ function estimateFullScore(resultName) {
 }
 
 // 让图鉴里的 chip 可拖、可双击（行为和侧栏元素一致）
-function makeInteractiveRecipeChip(name, emoji, { isResult = false } = {}) {
+function makeInteractiveRecipeChip(info, { isResult = false } = {}) {
   const chip = document.createElement("span");
   chip.className = "recipe-chip" + (isResult ? " recipe-result" : "");
-  chip.dataset.name = name;
-  window.COMBINE_FEEDBACK.renderElement(document, chip, { name, emoji });
+  chip.dataset.name = info.name;
+  renderGameElement(chip, info, { size: "canvas" });
 
   // 拖拽：复用主拖拽系统
   chip.addEventListener("pointerdown", (e) => {
     if (e.button !== 0) return;
-    onPointerDown(e, chip, { name, emoji, source: "sidebar" });
+    onPointerDown(e, chip, info, "sidebar");
   });
   // 双击：在画布中心生成
-  bindDoubleTap(chip, () => spawnAtWorkspaceCenter(name, emoji));
+  bindDoubleTap(chip, () => spawnAtWorkspaceCenter(info));
   return chip;
 }
 
