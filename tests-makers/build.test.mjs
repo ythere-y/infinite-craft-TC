@@ -10,9 +10,10 @@ import {
   readdir,
   rm,
   stat,
+  writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, isAbsolute, join, resolve, sep } from "node:path";
 import test from "node:test";
 import { promisify } from "node:util";
 
@@ -51,11 +52,33 @@ const COMMITTED_BUILD_INPUTS = [
   "scripts/icon-data-lib.mjs",
 ];
 
-async function copyCommittedBuildFixture(root) {
-  for (const source of COMMITTED_BUILD_INPUTS) {
-    const destination = join(root, source);
+async function copyCommittedBuildFixture(
+  root,
+  { sourceRoot = ".", inputs = COMMITTED_BUILD_INPUTS } = {},
+) {
+  const { stdout } = await execFileAsync(
+    "git",
+    ["-C", sourceRoot, "ls-files", "-z", "--", ...inputs],
+    { encoding: "utf8", maxBuffer: 8 * 1024 * 1024 },
+  );
+  const sourceBase = resolve(sourceRoot);
+  const destinationBase = resolve(root);
+  const trackedFiles = stdout.split("\0").filter(Boolean);
+
+  for (const relativePath of trackedFiles) {
+    if (isAbsolute(relativePath)) {
+      throw new Error(`Git returned an absolute tracked path: ${relativePath}`);
+    }
+    const source = resolve(sourceBase, relativePath);
+    const destination = resolve(destinationBase, relativePath);
+    if (
+      !source.startsWith(`${sourceBase}${sep}`) ||
+      !destination.startsWith(`${destinationBase}${sep}`)
+    ) {
+      throw new Error(`Tracked path escapes the fixture root: ${relativePath}`);
+    }
     await mkdir(dirname(destination), { recursive: true });
-    await cp(source, destination, { recursive: true });
+    await cp(source, destination);
   }
 }
 
@@ -88,6 +111,69 @@ async function collectTextFiles(root) {
   }
   return files;
 }
+
+test("build fixture copies only paths retained in the source Git index", async () => {
+  const sourceRoot = await mkdtemp(join(tmpdir(), "icon-build-source-"));
+  const fixtureRoot = await mkdtemp(join(tmpdir(), "icon-build-index-only-"));
+  try {
+    await mkdir(join(sourceRoot, "frontend"), { recursive: true });
+    await Promise.all([
+      writeFile(join(sourceRoot, "frontend/tracked.txt"), "tracked"),
+      writeFile(
+        join(sourceRoot, "frontend/required-index-deleted.txt"),
+        "residual",
+      ),
+      writeFile(
+        join(sourceRoot, "frontend/required-untracked.txt"),
+        "untracked",
+      ),
+    ]);
+    await execFileAsync("git", ["init", "-q", sourceRoot]);
+    await execFileAsync(
+      "git",
+      [
+        "-C",
+        sourceRoot,
+        "add",
+        "frontend/tracked.txt",
+        "frontend/required-index-deleted.txt",
+      ],
+    );
+    await execFileAsync(
+      "git",
+      [
+        "-C",
+        sourceRoot,
+        "rm",
+        "--cached",
+        "frontend/required-index-deleted.txt",
+      ],
+    );
+
+    await copyCommittedBuildFixture(fixtureRoot, {
+      sourceRoot,
+      inputs: ["frontend"],
+    });
+
+    assert.equal(
+      await readFile(join(fixtureRoot, "frontend/tracked.txt"), "utf8"),
+      "tracked",
+    );
+    await assert.rejects(
+      access(join(fixtureRoot, "frontend/required-index-deleted.txt")),
+      { code: "ENOENT" },
+    );
+    await assert.rejects(
+      access(join(fixtureRoot, "frontend/required-untracked.txt")),
+      { code: "ENOENT" },
+    );
+  } finally {
+    await Promise.all([
+      rm(sourceRoot, { force: true, recursive: true }),
+      rm(fixtureRoot, { force: true, recursive: true }),
+    ]);
+  }
+});
 
 test("normal build rejects drift between browser and Makers icon recipes", async () => {
   const root = await mkdtemp(join(tmpdir(), "icon-build-drift-"));

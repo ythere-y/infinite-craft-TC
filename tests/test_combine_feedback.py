@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import html
+from html.parser import HTMLParser
 import io
 import json
 from pathlib import Path
@@ -47,6 +48,37 @@ def _browser_path() -> Path:
     )
 
 
+class _StylesheetLinkParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.hrefs: list[str] = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag.lower() != "link":
+            return
+        attributes = dict(attrs)
+        rel = set((attributes.get("rel") or "").lower().split())
+        href = attributes.get("href")
+        if "stylesheet" in rel and href:
+            self.hrefs.append(href)
+
+
+def _production_stylesheet_paths() -> list[Path]:
+    parser = _StylesheetLinkParser()
+    parser.feed(INDEX_SOURCE.read_text(encoding="utf-8"))
+    paths = []
+    for href in parser.hrefs:
+        if href.startswith(("http://", "https://", "//")):
+            raise AssertionError(f"Production stylesheet must be local: {href}")
+        clean_path = href.split("?", 1)[0].split("#", 1)[0]
+        paths.append(INDEX_SOURCE.parent / clean_path.lstrip("/"))
+    return paths
+
+
+def test_browser_harness_styles_follow_production_index_order():
+    assert _production_stylesheet_paths() == [ICON_CSS_SOURCE, STYLE_SOURCE]
+
+
 def _run_browser(
     tmp_path: Path,
     test_script: str,
@@ -57,20 +89,21 @@ def _run_browser(
     scripts = [ICON_SOURCE.read_text(encoding="utf-8"), SOURCE.read_text(encoding="utf-8")]
     if include_effects:
         scripts.append(EFFECTS_SOURCE.read_text(encoding="utf-8"))
+    stylesheet_paths = (
+        _production_stylesheet_paths()
+        if include_app_styles
+        else [ICON_CSS_SOURCE]
+    )
+    stylesheet_source = "".join(
+        path.read_text(encoding="utf-8") for path in stylesheet_paths
+    )
     page = tmp_path / "frontend-runtime-test.html"
     profile = tmp_path / "chrome-profile"
     page.write_text(
         "\n".join(
             [
                 "<!doctype html><meta charset=\"utf-8\">",
-                "<style>"
-                + (
-                    STYLE_SOURCE.read_text(encoding="utf-8")
-                    if include_app_styles
-                    else ""
-                )
-                + ICON_CSS_SOURCE.read_text(encoding="utf-8")
-                + "</style>",
+                f"<style>{stylesheet_source}</style>",
                 '<div id="fixture"></div><pre id="__result"></pre>',
                 "<script>",
                 "window.fetch = function (url) {",
