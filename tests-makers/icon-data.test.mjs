@@ -101,7 +101,13 @@ test("rules cover every seed category and knowledge rows are well formed", async
     Object.values(seed.elements).map((entry) => entry.category),
   );
 
-  assert.deepEqual(new Set(Object.keys(rules.category_palettes)), categories);
+  for (const category of categories) {
+    assert.ok(
+      rules.category_palettes[category],
+      `category_palettes must cover seed category ${category}`,
+    );
+  }
+  assert.equal(rules.category_palettes.ai, "product");
   assert.deepEqual(new Set(rules.palettes), PALETTES);
   assert.deepEqual(
     new Set(rules.allowed_sources),

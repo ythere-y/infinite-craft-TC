@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import asyncio
 from pathlib import Path
 
 import pytest
@@ -250,3 +251,217 @@ def test_attach_icon_preserves_existing_fields():
         },
     }
     assert original == {"emoji": "☕", "category": "ai", "extra": True}
+
+
+class FakeMetricsRedis:
+    def setex(self, *args, **kwargs):
+        return True
+
+    def incr(self, *args, **kwargs):
+        return 1
+
+    def zadd(self, *args, **kwargs):
+        return 1
+
+    def zremrangebyscore(self, *args, **kwargs):
+        return 0
+
+    def setnx(self, *args, **kwargs):
+        return True
+
+
+def prepare_dynamic_combine(monkeypatch, existing_elements=None):
+    from backend import main
+
+    hit = {
+        "result": "智能咖啡",
+        "emoji": "☕",
+        "source": "llm",
+        "chain": "ai",
+        "comment": "咖啡完成智能升级",
+    }
+    monkeypatch.setattr(main.db, "get_client", lambda: FakeMetricsRedis())
+    monkeypatch.setattr(main.db, "get_cached", lambda key: dict(hit))
+    monkeypatch.setattr(main.db, "record_first", lambda *args: False)
+    monkeypatch.setattr(main.db, "get_first", lambda result: None)
+    monkeypatch.setattr(main.db, "kpi_add", lambda *args: None)
+    monkeypatch.setattr(main.kpi, "score_for", lambda *args: (0, ""))
+    monkeypatch.setattr(main.kpi, "should_explode", lambda *args: False)
+    monkeypatch.setattr(main.depth_mod, "update_on_combine", lambda *args: 1)
+    monkeypatch.setattr(main.community, "is_retired_key", lambda key: False)
+    monkeypatch.setattr(main, "community_player", lambda request, response: "p_test")
+    monkeypatch.setattr(main.store, "elements", existing_elements or {})
+    return main
+
+
+def test_new_dynamic_combine_persists_and_returns_icon(monkeypatch):
+    main = prepare_dynamic_combine(monkeypatch)
+    writes = []
+    monkeypatch.setattr(
+        main.archive,
+        "upsert_element",
+        lambda *args, **kwargs: writes.append(kwargs),
+    )
+
+    response = asyncio.run(
+        main.api_combine(main.CombineReq(a="AI", b="咖啡", discoverer="测试鹅"))
+    )
+
+    assert response.icon == fixture_cases()[1]["expected"]
+    assert main.store.elements["智能咖啡"]["icon"] == response.icon
+    assert writes == [
+        {
+            "name": "智能咖啡",
+            "emoji": "☕",
+            "category": "ai",
+            "is_starter": False,
+            "icon": response.icon,
+        }
+    ]
+
+
+def test_cached_combine_uses_persisted_element_icon(monkeypatch):
+    persisted = {
+        "base": "🫘",
+        "badge": "⚙️",
+        "palette": "office",
+        "source": "generated",
+    }
+    main = prepare_dynamic_combine(
+        monkeypatch,
+        {
+            "智能咖啡": {
+                "emoji": "☕",
+                "category": "ai",
+                "icon": persisted,
+            }
+        },
+    )
+    monkeypatch.setattr(
+        main.archive,
+        "upsert_element",
+        lambda *args, **kwargs: pytest.fail("existing element must not be rewritten"),
+    )
+
+    response = asyncio.run(
+        main.api_combine(main.CombineReq(a="AI", b="咖啡", discoverer="测试鹅"))
+    )
+
+    assert response.icon == persisted
+
+
+def test_wall_and_formula_projections_attach_current_icons(monkeypatch):
+    from backend import main
+
+    expected = fixture_cases()[1]["expected"]
+    monkeypatch.setattr(
+        main.store,
+        "elements",
+        {
+            "AI": {"emoji": "🤖", "category": "abstract", "icon": preset_icon("AI")},
+            "咖啡": {
+                "emoji": "☕",
+                "category": "worker",
+                "icon": preset_icon("咖啡"),
+            },
+            "智能咖啡": {"emoji": "☕", "category": "ai", "icon": expected},
+        },
+    )
+
+    wall = main._attach_icons_to_firsts(
+        [{"result": "智能咖啡", "emoji": "☕", "discoverer": "测试鹅"}]
+    )
+    formula = main._attach_formula_icons(
+        {"result": "智能咖啡", "a": "AI", "b": "咖啡"}
+    )
+
+    assert wall[0]["icon"] == expected
+    assert formula["result_icon"] == expected
+    assert formula["a_icon"] == preset_icon("AI")
+    assert formula["b_icon"] == preset_icon("咖啡")
+
+
+def test_category_bounty_and_recipe_items_project_icons(monkeypatch):
+    from backend import bounty, main
+
+    riot = fixture_cases()[0]["expected"]
+    monkeypatch.setattr(
+        main.store,
+        "starters",
+        [],
+    )
+    monkeypatch.setattr(
+        main.store,
+        "elements",
+        {"Riot": {"emoji": "⚡", "category": "studio", "icon": riot}},
+    )
+    monkeypatch.setattr(main.db, "get_first", lambda name: None)
+    monkeypatch.setattr(
+        main.db,
+        "get_client",
+        lambda: type("Redis", (), {"zrank": lambda self, key, name: None})(),
+    )
+    group = bounty.build_group(
+        {
+            "category": "studio",
+            "label": "工作室",
+            "emoji": "🎮",
+            "tab": "games",
+            "whitelist": ["Riot"],
+        },
+        main.db,
+        main.store,
+    )
+    category = main._build_category_raw("studio")
+    monkeypatch.setattr(
+        main.archive,
+        "recipes_for",
+        lambda result, limit: [
+            {
+                "a": "Riot",
+                "b": "Riot",
+                "source": "seed",
+                "chain": "studio",
+                "hit_count": 1,
+            }
+        ],
+    )
+    recipes = asyncio.run(main.api_element_recipes("Riot"))
+
+    assert group["items"][0]["icon"] == riot
+    assert category["items"][0]["icon"] == riot
+    assert recipes["result_icon"] == riot
+    assert recipes["recipes"][0]["a_icon"] == riot
+    assert recipes["recipes"][0]["b_icon"] == riot
+
+
+def test_community_formula_list_projects_icons(monkeypatch):
+    from backend import community_api
+
+    expected = fixture_cases()[1]["expected"]
+    monkeypatch.setattr(
+        community_api.store,
+        "elements",
+        {
+            "AI": {"emoji": "🤖", "category": "abstract", "icon": preset_icon("AI")},
+            "咖啡": {
+                "emoji": "☕",
+                "category": "worker",
+                "icon": preset_icon("咖啡"),
+            },
+            "智能咖啡": {"emoji": "☕", "category": "ai", "icon": expected},
+        },
+    )
+    monkeypatch.setattr(
+        community_api.community,
+        "list_public",
+        lambda limit, offset: [
+            {"id": "f1", "result": "智能咖啡", "a": "AI", "b": "咖啡"}
+        ],
+    )
+
+    item = community_api.formulas()["items"][0]
+
+    assert item["result_icon"] == expected
+    assert item["a_icon"] == preset_icon("AI")
+    assert item["b_icon"] == preset_icon("咖啡")

@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Dict, Tuple, List
 
 from . import db, archive
+from .icon_recipes import attach_icon
 
 _HERE = Path(__file__).parent
 SEED_ELEMENTS_PATH = _HERE / "seed_elements.json"
@@ -24,8 +25,14 @@ class SeedStore:
     def load(self) -> Tuple[int, int]:
         with open(SEED_ELEMENTS_PATH, encoding="utf-8") as f:
             data = json.load(f)
-        self.starters = data.get("starters", [])
-        self.elements = dict(data.get("elements", {}))
+        self.starters = [
+            attach_icon(starter["name"], starter)
+            for starter in data.get("starters", [])
+        ]
+        self.elements = {
+            name: attach_icon(name, info)
+            for name, info in data.get("elements", {}).items()
+        }
 
         # 把 starter 和基础 element 灌进 SQLite
         starter_names = {s["name"] for s in self.starters}
@@ -33,21 +40,34 @@ class SeedStore:
             archive.upsert_element(
                 name=s["name"], emoji=s["emoji"],
                 category=s.get("category"), is_starter=True,
+                icon=s.get("icon"),
             )
         for name, info in self.elements.items():
             archive.upsert_element(
                 name=name, emoji=info.get("emoji", "❓"),
                 category=info.get("category"),
                 is_starter=(name in starter_names),
+                icon=info.get("icon"),
             )
 
         # 从 SQLite 恢复历史 element（AI 之前生成过但不在 seed 里的）
         for row in archive.all_elements():
             if row["name"] not in self.elements:
-                self.elements[row["name"]] = {
+                info = {
                     "emoji": row["emoji"],
                     "category": row["category"] or "unknown",
+                    "icon": row.get("icon"),
                 }
+                enriched = attach_icon(row["name"], info)
+                self.elements[row["name"]] = enriched
+                if row.get("icon") is None:
+                    archive.upsert_element(
+                        name=row["name"],
+                        emoji=row["emoji"],
+                        category=row["category"],
+                        is_starter=bool(row["is_starter"]),
+                        icon=enriched["icon"],
+                    )
 
         # 合成规则
         with open(SEED_COMBINATIONS_PATH, encoding="utf-8") as f:
@@ -77,13 +97,18 @@ class SeedStore:
             )
             warmed += 1
             if info["result"] not in self.elements:
-                self.elements[info["result"]] = {
+                result_info = attach_icon(info["result"], {
                     "emoji": info.get("emoji", "❓"),
                     "category": info.get("chain", "seed"),
-                }
+                    "parents": tuple(parts),
+                    "chain": info.get("chain"),
+                    "comment": info.get("comment", ""),
+                })
+                self.elements[info["result"]] = result_info
                 archive.upsert_element(
                     name=info["result"], emoji=info.get("emoji", "❓"),
                     category=info.get("chain"), is_starter=False,
+                    icon=result_info["icon"],
                 )
         if bad > 0:
             print(f"[seed_loader] skipped {bad} malformed combinations")

@@ -318,6 +318,7 @@ def build_group(group_def: Dict, db_mod, store) -> dict:
         item = {
             "name": name,
             "emoji": emoji,
+            "icon": info.get("icon"),
             "category": cat,
             "is_starter": is_starter,
             "discovered": discovered,

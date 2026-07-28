@@ -9,6 +9,8 @@ from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 
 from . import community, db
+from .icon_recipes import resolve_icon_recipe
+from .seed_loader import store
 
 router = APIRouter(prefix="/api/community", tags=["community"])
 PLAYER_COOKIE = "craft_player"
@@ -27,6 +29,25 @@ class ModerateReq(BaseModel):
     action: str
     reason_code: str
     note: str = ""
+
+
+def _element_icon(name: str) -> dict:
+    info = store.elements.get(name) or {}
+    return resolve_icon_recipe(
+        name=name,
+        emoji=info.get("emoji") or "❓",
+        category=info.get("category"),
+        persisted=info.get("icon"),
+    )
+
+
+def _formula_icons(row: dict) -> dict:
+    return {
+        **row,
+        "result_icon": _element_icon(row.get("result", "")),
+        "a_icon": _element_icon(row.get("a", "")),
+        "b_icon": _element_icon(row.get("b", "")),
+    }
 
 
 def _secure() -> bool:
@@ -81,7 +102,12 @@ def rate_limit(player_id: str, operation: str, limit: int = 30) -> None:
 
 @router.get("/formulas")
 def formulas(limit: int = 50, offset: int = 0):
-    return {"items": community.list_public(limit, offset)}
+    return {
+        "items": [
+            _formula_icons(row)
+            for row in community.list_public(limit, offset)
+        ]
+    }
 
 
 @router.get("/formulas/{formula_id}")
@@ -89,7 +115,7 @@ def formula_detail(formula_id: str, request: Request, response: Response):
     row = community.public_formula(formula_id, player(request, response))
     if not row:
         raise HTTPException(404, "公开公式不存在")
-    return row
+    return _formula_icons(row)
 
 
 @router.post("/formulas/{formula_id}/publish")
@@ -102,7 +128,11 @@ def publish_formula(formula_id: str, request: Request, response: Response):
         raise HTTPException(403, str(exc))
     except LookupError as exc:
         raise HTTPException(404, str(exc))
-    return {"formula": community.public_formula(row["id"], player_id)}
+    return {
+        "formula": _formula_icons(
+            community.public_formula(row["id"], player_id)
+        )
+    }
 
 
 @router.put("/formulas/{formula_id}/vote")
@@ -137,7 +167,9 @@ def admin_logout(response: Response):
 @router.get("/admin/queue")
 def admin_queue(request: Request):
     require_admin(request)
-    return {"items": community.moderation_queue()}
+    return {
+        "items": [_formula_icons(row) for row in community.moderation_queue()]
+    }
 
 
 @router.post("/admin/formulas/{formula_id}/moderate")
@@ -152,6 +184,6 @@ def admin_moderate(formula_id: str, body: ModerateReq, request: Request):
                 db.get_client().delete(f"combo:{row['combo_key']}")
             except Exception:
                 pass
-        return {"formula": row}
+        return {"formula": _formula_icons(row)}
     except (ValueError, LookupError) as exc:
         raise HTTPException(400, str(exc))
