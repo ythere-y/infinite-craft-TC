@@ -16,23 +16,11 @@
   }
 
   function clearChildren(target) {
-    while (target.firstChild) target.removeChild(target.firstChild);
+    target.replaceChildren();
   }
 
   function renderElement(doc, target, payload) {
-    clearChildren(target);
-    if (payload.isStarter) {
-      var badge = appendTextNode(
-        doc, target, "span", "starter-badge", "🌱"
-      );
-      badge.setAttribute("aria-hidden", "true");
-    }
-    appendTextNode(
-      doc, target, "span", "emoji", String(payload.emoji || "❓")
-    );
-    appendTextNode(
-      doc, target, "span", "name", String(payload.name || "")
-    );
+    return root.ICON_SYSTEM.renderElement(doc, target, payload);
   }
 
   function renderToast(doc, target, payload) {
@@ -46,8 +34,17 @@
     appendTextNode(
       doc, target, "div", "first-toast-title", labels[payload.tier]
     );
-    appendTextNode(doc, target, "div", "first-toast-result",
-      String(payload.emoji || "❓") + " " + String(payload.name || ""));
+    var result = appendTextNode(doc, target, "div", "first-toast-result", "");
+    var iconTarget = doc.createElement("span");
+    iconTarget.className = "first-toast-icon";
+    result.appendChild(iconTarget);
+    root.ICON_SYSTEM.renderElement(doc, iconTarget, {
+      name: String(payload.name || ""),
+      emoji: String(payload.emoji || "❓"),
+      icon: payload.icon,
+      category: payload.category,
+      size: "detail"
+    });
     appendTextNode(doc, target, "div", "first-toast-comment",
       "“" + String(payload.comment || DEFAULT_COMMENT) + "”");
   }

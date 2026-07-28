@@ -1,0 +1,53 @@
+:root {
+  --element-icon-sidebar: 27px;
+  --element-icon-canvas: 30px;
+  --element-icon-detail: 40px;
+  --action-icon-size: 16px;
+  --action-icon-well: 25px;
+}
+
+.emoji.element-icon {
+  position: relative;
+  display: inline-grid;
+  width: var(--element-icon-sidebar);
+  height: var(--element-icon-sidebar);
+  flex: 0 0 var(--element-icon-sidebar);
+  place-items: center;
+  vertical-align: middle;
+}
+
+.element-icon-canvas { width: var(--element-icon-canvas) !important; height: var(--element-icon-canvas) !important; flex-basis: var(--element-icon-canvas) !important; }
+.element-icon-detail { width: var(--element-icon-detail) !important; height: var(--element-icon-detail) !important; flex-basis: var(--element-icon-detail) !important; }
+.element-icon-base, .element-icon-native {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: rotate(var(--element-icon-tilt, 0deg));
+  border: 2px solid #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(20, 35, 45, .18);
+}
+.element-icon-native { display: grid; place-items: center; font-style: normal; line-height: 1; }
+.element-icon-badge { position: absolute; right: -3px; bottom: -3px; width: 42%; height: 42%; border-radius: 50%; border: 1px solid #fff; background: #fff; }
+.palette-nature .element-icon-base, .palette-nature .element-icon-native { background: #dff3df; }
+.palette-product .element-icon-base, .palette-product .element-icon-native { background: #e0efff; }
+.palette-office .element-icon-base, .palette-office .element-icon-native { background: #f5e6cd; }
+.palette-studio .element-icon-base, .palette-studio .element-icon-native { background: #f6dded; }
+.palette-people .element-icon-base, .palette-people .element-icon-native { background: #f7e4b6; }
+.palette-place .element-icon-base, .palette-place .element-icon-native { background: #e8e4f9; }
+.state-starter .element-icon-base, .state-starter .element-icon-native { outline: 1px solid #81b96a; }
+.state-global-new .element-icon::after, .state-personal-new .element-icon::after { content: "✦"; position: absolute; top: -5px; left: -5px; font-size: 11px; color: #d28a00; }
+.state-personal-new .element-icon::after { content: "＋"; color: #2676b8; }
+.state-dragging .element-icon, .element.dragging .element-icon { opacity: .55; }
+.state-combine-target .element-icon { filter: saturate(1.25); }
+.element { min-width: max-content; }
+
+.action-icon { display: inline-flex; align-items: center; justify-content: center; gap: 4px; width: var(--action-icon-well); min-width: var(--action-icon-well); height: var(--action-icon-well); }
+.action-icon img { width: var(--action-icon-size); height: var(--action-icon-size); }
+.action-icon.tone-positive { color: #197a47; }
+.action-icon.tone-negative { color: #a13b3b; }
+.action-icon.tone-neutral { color: #55606d; }
+.action-icon.size-compact { transform: scale(.88); }
+.action-icon.size-large { transform: scale(1.15); }
+.first-toast-result { display: flex; align-items: center; gap: 8px; }
+.first-toast-result .name { font: inherit; }

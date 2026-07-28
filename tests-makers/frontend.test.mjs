@@ -66,6 +66,10 @@ test("frontend supports protected admin stats and batched recipe verification", 
   assert.match(app, /const VERIFY_BATCH_SIZE = 500/);
   assert.match(app, /formatValid\.slice\(index, index \+ VERIFY_BATCH_SIZE\)/);
   assert.match(html, /combine-feedback\.js/);
+  assert.match(html, /icon-system\.css/);
+  assert.match(html, /icon-system\.js/);
+  assert.ok(html.indexOf("icon-system.css") < html.indexOf("style.css"));
+  assert.ok(html.indexOf("icon-system.js") < html.indexOf("combine-feedback.js"));
   assert.match(app, /comment:\s*resp\.comment/);
 });
 

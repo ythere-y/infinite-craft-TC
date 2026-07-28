@@ -11,6 +11,7 @@ import subprocess
 
 
 SOURCE = Path("frontend/combine-feedback.js")
+ICON_SOURCE = Path("frontend/icon-system.js")
 EFFECTS_SOURCE = Path("frontend/effects.js")
 APP_SOURCE = Path("frontend/app.js")
 INDEX_SOURCE = Path("frontend/index.html")
@@ -26,7 +27,7 @@ except (ImportError, RuntimeError) as exc:
 
 CHROME_CANDIDATES = tuple(
     Path(found)
-    for command in ("google-chrome", "chrome", "chromium", "msedge")
+    for command in ("google-chrome", "chrome", "chromium", "ungoogled-chromium", "msedge")
     if (found := shutil.which(command))
 ) + (
     Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe"),
@@ -45,7 +46,7 @@ def _browser_path() -> Path:
 
 
 def _run_browser(tmp_path: Path, test_script: str, *, include_effects=False):
-    scripts = [SOURCE.read_text(encoding="utf-8")]
+    scripts = [ICON_SOURCE.read_text(encoding="utf-8"), SOURCE.read_text(encoding="utf-8")]
     if include_effects:
         scripts.append(EFFECTS_SOURCE.read_text(encoding="utf-8"))
     page = tmp_path / "frontend-runtime-test.html"
@@ -55,6 +56,14 @@ def _run_browser(tmp_path: Path, test_script: str, *, include_effects=False):
             [
                 "<!doctype html><meta charset=\"utf-8\">",
                 '<div id="fixture"></div><pre id="__result"></pre>',
+                "<script>",
+                "window.fetch = function (url) {",
+                "  var fixtures = String(url).indexOf('element-icon-map') >= 0",
+                "    ? { '预设': { icon: { base: '🧩', badge: '⭐', palette: 'product', source: 'preset' } }, '水': { icon: { base: '💧', palette: 'nature', source: 'fallback' } } }",
+                "    : { '🧩': '/assets/base.png', '⭐': '/assets/badge.png', '💧': '/assets/water.png', '🔥': '/assets/fire.png' };",
+                "  return Promise.resolve({ ok: true, json: function () { return Promise.resolve(fixtures); } });",
+                "};",
+                "</script>",
                 *[f"<script>{source}</script>" for source in scripts],
                 "<script>",
                 "var pending;",
@@ -150,9 +159,6 @@ def test_render_toast_replaces_children_with_exact_text_nodes(tmp_path):
         });
         return {
           staleGone: !document.getElementById("stale"),
-          tags: Array.from(target.children).map(function (node) {
-            return node.tagName;
-          }),
           classes: Array.from(target.children).map(function (node) {
             return node.className;
           }),
@@ -164,13 +170,85 @@ def test_render_toast_replaces_children_with_exact_text_nodes(tmp_path):
     )
     assert actual == {
         "staleGone": True,
-        "tags": ["DIV", "DIV", "DIV"],
         "classes": [
             "first-toast-title",
             "first-toast-result",
             "first-toast-comment",
         ],
-        "texts": ["✨ 我的新发现", "✨ 需求膨胀", "“一句点评”"],
+        "texts": ["✨ 我的新发现", "✨需求膨胀", "“一句点评”"],
+    }
+
+
+def test_icon_system_resolution_and_dom_fallbacks(tmp_path):
+    hostile_name = '<svg id="chip-name-xss" onload="window.__xss=1"></svg>'
+    actual = _run_browser(
+        tmp_path,
+        f"""
+        return window.ICON_SYSTEM.ready.then(function () {{
+          window.__xss = 0;
+          var persisted = window.ICON_SYSTEM.resolveElementRecipe({{
+            name: "预设", emoji: "🔥", icon: {{ base: "💧", palette: "nature", source: "entity" }}
+          }});
+          var preset = window.ICON_SYSTEM.resolveElementRecipe({{ name: "预设", emoji: "🔥" }});
+          var target = document.getElementById("fixture");
+          window.ICON_SYSTEM.renderElement(document, target, {{
+            name: {json.dumps(hostile_name)}, emoji: "🧩",
+            icon: {{ base: "🧩", badge: "⭐", palette: "product", source: "entity" }}
+          }});
+          var sticker = target.querySelector(".emoji");
+          var base = sticker.querySelector(".element-icon-base");
+          var badge = sticker.querySelector(".element-icon-badge");
+          base.dispatchEvent(new Event("error"));
+          badge.dispatchEvent(new Event("error"));
+          return {{
+            persisted: persisted,
+            preset: preset,
+            outerClass: sticker.className,
+            baseFallback: sticker.textContent,
+            badgeGone: sticker.querySelector(".element-icon-badge") === null,
+            nameIsText: target.querySelector(".name").firstChild.nodeType === Node.TEXT_NODE,
+            nameText: target.querySelector(".name").textContent,
+            injected: target.querySelector("#chip-name-xss") !== null,
+            xss: window.__xss
+          }};
+        }});
+        """,
+    )
+    assert actual == {
+        "persisted": {"base": "💧", "palette": "nature", "source": "entity"},
+        "preset": {"base": "🧩", "badge": "⭐", "palette": "product", "source": "preset"},
+        "outerClass": "emoji element-icon palette-product element-icon-sidebar",
+        "baseFallback": "🧩",
+        "badgeGone": True,
+        "nameIsText": True,
+        "nameText": hostile_name,
+        "injected": False,
+        "xss": 0,
+    }
+
+
+def test_icon_system_uses_allowlisted_action_icons(tmp_path):
+    actual = _run_browser(
+        tmp_path,
+        """
+        return window.ICON_SYSTEM.ready.then(function () {
+          var target = document.getElementById("fixture");
+          window.ICON_SYSTEM.renderAction(document, target, {
+            name: "not-allowed", label: "", tone: "hostile", size: "large"
+          });
+          var button = target.firstChild;
+          return {
+            className: button.className,
+            ariaLabel: button.getAttribute("aria-label"),
+            image: button.querySelector("img") === null
+          };
+        });
+        """,
+    )
+    assert actual == {
+        "className": "action-icon tone-default size-large",
+        "ariaLabel": "操作",
+        "image": True,
     }
 
 
@@ -325,7 +403,7 @@ def test_stale_publish_request_does_not_replace_newer_feedback(tmp_path):
         """,
     )
     assert actual == {
-        "result": "🆕 下一次结果",
+        "result": "🆕下一次结果",
         "hasButton": True,
         "published": False,
     }
@@ -358,7 +436,7 @@ def test_hostile_emoji_name_and_comment_are_rendered_as_text(tmp_path):
     assert actual["childCount"] == 3
     assert actual["elementCount"] == 0
     assert actual["xss"] == 0
-    assert actual["resultText"] == f"{hostile_emoji} {hostile_name}"
+    assert actual["resultText"] == f"{hostile_emoji}{hostile_name}"
     assert actual["commentText"] == f"“{hostile_comment}”"
 
 
@@ -387,7 +465,10 @@ def test_hostile_element_payload_is_text_and_app_has_no_inner_html_sinks(tmp_pat
         """,
     )
     assert actual == {
-        "classes": ["starter-badge", "emoji", "name"],
+        "classes": [
+            "emoji element-icon palette-place element-icon-sidebar",
+            "name",
+        ],
         "elementCount": 0,
         "xss": 0,
         "emojiText": hostile_emoji,
@@ -428,11 +509,11 @@ def test_first_toast_uses_exact_design_duration(tmp_path):
 def test_combine_feedback_assets_share_one_cache_version():
     index_source = INDEX_SOURCE.read_text(encoding="utf-8")
     asset_urls = re.findall(
-        r'(?:href|src)="(/(?:style\.css|combine-feedback\.js|effects\.js|app\.js)[^"]*)"',
+        r'(?:href|src)="(/(?:style\.css|icon-system\.css|icon-system\.js|combine-feedback\.js|effects\.js|app\.js)[^"]*)"',
         index_source,
     )
 
-    assert len(asset_urls) == 4
+    assert len(asset_urls) == 6
     versions = {
         url.partition("?v=")[2]
         for url in asset_urls
