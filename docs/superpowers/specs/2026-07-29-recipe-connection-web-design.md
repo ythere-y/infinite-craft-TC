@@ -87,6 +87,38 @@ FastAPI 使用 SQLite `combinations.hit_count` 作为计数来源；更新必须
 - 所有位置更新由单个 `requestAnimationFrame` 调度器合并。
 - 工作区尺寸变化时更新 SVG viewBox 和全部路径几何。
 
+## 可替换模块边界
+
+连线效果独立放在：
+
+- `frontend/recipe-links.js`：关系展开、SVG 节点管理、曲线计算、帧调度和公开控制器 API。
+- `frontend/recipe-links.css`：连线层级、描边、发光与 reduced-motion 样式。
+
+模块不得直接读取游戏的 `state`、`localStorage`、合成接口或配方图鉴 DOM，也不得修改元素卡片。游戏主逻辑只把普通数据快照传给控制器：
+
+```js
+const recipeLinks = window.RECIPE_LINKS.create(workspace);
+
+recipeLinks.sync({
+  recipes,
+  elements,
+});
+recipeLinks.scheduleGeometryUpdate(elements);
+recipeLinks.clear();
+recipeLinks.destroy();
+```
+
+公开契约保持渲染技术无关：
+
+- `recipes` 只包含规范化配方 key、输入名、`hit_count` 与 `depth`。
+- `elements` 只包含实例 ID、元素名和画布中心坐标，不传递 DOM 引用。
+- `sync()` 负责关系集合变化；调用方不接触 SVG path。
+- `scheduleGeometryUpdate()` 负责位置变化；调用方不计算曲线。
+- `clear()` 移除当前关系但保留控制器。
+- `destroy()` 完整释放 SVG、监听器和待执行动画帧。
+
+`app.js` 只在画布增删、移动、配方更新和初始化位置调用这些方法。将来替换为 Canvas、WebGL 或其他开源实现时，只需让新模块实现相同控制器契约，并替换独立的 JS/CSS 资源；合成请求、本地配方、拖放和游戏状态逻辑不需要改动。
+
 ## 视觉强度
 
 线条颜色沿用合成反馈的装备稀有度色，由该配方最近保存的 `depth` 决定。全球次数只控制宽度、透明度、发光半径和高光流速。
@@ -114,19 +146,19 @@ FastAPI 使用 SQLite `combinations.hit_count` 作为计数来源；更新必须
 
 ## 更新时机
 
-独立的连线控制器提供以下职责：
+`recipe-links.js` 中的独立连线控制器提供以下职责：
 
-- `reconcile()`：根据当前配方和画布实例创建、复用或删除路径。
+- `sync()`：根据当前配方和画布实例创建、复用、更新或删除路径。
 - `scheduleGeometryUpdate()`：在下一帧批量更新所有路径坐标。
-- `refreshRecipeStyle(key)`：相同配方再次合成后更新其次数和稀有度表现。
 - `clear()`：清空画布时移除全部路径。
+- `destroy()`：卸载连线模块时释放 SVG、监听器和待执行动画帧。
 
 调用时机：
 
-- `spawnOnCanvas()` 后执行 `reconcile()`。
-- `removeCanvasEl()` 后执行 `reconcile()`。
+- `spawnOnCanvas()` 后执行 `sync()`。
+- `removeCanvasEl()` 后执行 `sync()`。
 - `moveCanvasEl()` 后执行 `scheduleGeometryUpdate()`。
-- `rememberRecipe()` 后执行 `reconcile()` 并刷新该配方样式。
+- `rememberRecipe()` 后执行 `sync()`，由模块刷新该配方样式。
 - 初始化、窗口尺寸变化和响应式布局变化后更新几何。
 
 ## 兼容与失败处理
@@ -134,6 +166,7 @@ FastAPI 使用 SQLite `combinations.hit_count` 作为计数来源；更新必须
 - 无效、缺失或非数字 `hit_count` 统一按 `1`。
 - 无效 `depth` 使用中性颜色。
 - SVG 或动画 API 不可用时，游戏核心合成与拖放仍可工作。
+- 连线模块缺失或初始化失败时，`app.js` 使用空操作控制器继续运行。
 - 合成请求失败时不改变本地配方快照或连线。
 - 本功能不修改玩家已发现元素、KPI、首发或配方点评的数据语义。
 
@@ -150,6 +183,7 @@ FastAPI 使用 SQLite `combinations.hit_count` 作为计数来源；更新必须
 - 新增、删除、清空和拖动后路径数量与坐标正确。
 - `1–2`、`3–7`、`8–19`、`20–39`、`40+` 的强度递增，`40` 次后封顶。
 - reduced-motion 下没有流动动画。
+- 独立模块测试不依赖游戏全局 `state`，替换为空操作实现后合成和拖放测试仍通过。
 
 浏览器验收覆盖桌面和移动视口，检查：
 
