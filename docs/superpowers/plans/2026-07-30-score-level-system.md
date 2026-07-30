@@ -64,14 +64,14 @@ from backend import kpi
 def test_score_level_uses_linear_star_costs_and_base_four_icons():
     assert kpi.level_threshold(0) == 0
     assert kpi.level_threshold(1) == 300
-    assert kpi.level_threshold(4) == 1_280
+    assert kpi.level_threshold(4) == 1_320
     assert kpi.level_threshold(16) == 7_200
     assert kpi.level_threshold(64) == 59_520
     assert kpi.level_threshold(128) == 200_960
 
     assert kpi.rank_for(0)["icons"] == ""
     assert kpi.rank_for(300)["icons"] == "🌟"
-    assert kpi.rank_for(1_280)["icons"] == "🌙"
+    assert kpi.rank_for(1_320)["icons"] == "🌙"
     assert kpi.rank_for(7_200)["icons"] == "🌞"
     assert kpi.rank_for(59_520)["icons"] == "👑"
     assert kpi.rank_for(61_100)["icons"] == "👑🌟"
@@ -113,12 +113,12 @@ import {
 test("score level uses increasing star costs and unlimited base-four icons", () => {
   assert.equal(levelThreshold(0), 0);
   assert.equal(levelThreshold(1), 300);
-  assert.equal(levelThreshold(4), 1_280);
+  assert.equal(levelThreshold(4), 1_320);
   assert.equal(levelThreshold(16), 7_200);
   assert.equal(levelThreshold(64), 59_520);
   assert.equal(levelThreshold(128), 200_960);
   assert.equal(rankFor(300).icons, "🌟");
-  assert.equal(rankFor(1_280).icons, "🌙");
+  assert.equal(rankFor(1_320).icons, "🌙");
   assert.equal(rankFor(7_200).icons, "🌞");
   assert.equal(rankFor(59_520).icons, "👑");
   assert.equal(rankFor(200_960).icons, "👑👑");
@@ -484,7 +484,7 @@ async function loadScoreLevel() {
 test("browser score levels match domain boundaries", async () => {
   const levels = await loadScoreLevel();
   assert.equal(levels.rankFor(300).icons, "🌟");
-  assert.equal(levels.rankFor(1_280).icons, "🌙");
+  assert.equal(levels.rankFor(1_320).icons, "🌙");
   assert.equal(levels.rankFor(7_200).icons, "🌞");
   assert.equal(levels.rankFor(59_520).icons, "👑");
   assert.equal(levels.rankFor(200_960).icons, "👑👑");

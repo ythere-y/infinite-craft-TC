@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-  TIERS,
+  levelThreshold,
   rankFor,
   scoreFor,
   shouldExplode,
@@ -18,13 +18,32 @@ import {
 import { jsonResponse } from "../edge-functions/_lib/http.js";
 import { ELEMENTS, STARTERS } from "../edge-functions/_generated/seed-data.js";
 
-test("KPI domain matches existing tier boundaries and effects", () => {
-  assert.equal(TIERS[0].floor, 0);
-  assert.equal(rankFor(0).grade, "3-");
-  assert.equal(rankFor(500).grade, "3.25");
-  assert.equal(rankFor(8_000).grade, "瑞雪");
-  assert.equal(rankFor(11_200).grade, "瑞雪🌛");
-  assert.equal(rankFor(212_800).grade, "暴雪领主");
+test("score level uses increasing star costs and unlimited base-four icons", () => {
+  assert.equal(levelThreshold(0), 0);
+  assert.equal(levelThreshold(1), 300);
+  assert.equal(levelThreshold(4), 1_320);
+  assert.equal(levelThreshold(16), 7_200);
+  assert.equal(levelThreshold(64), 59_520);
+  assert.equal(levelThreshold(128), 200_960);
+  assert.equal(rankFor(300).icons, "🌟");
+  assert.equal(rankFor(300).emoji, "🌟");
+  assert.equal(rankFor(1_320).icons, "🌙");
+  assert.equal(rankFor(7_200).icons, "🌞");
+  assert.equal(rankFor(59_520).icons, "👑");
+  assert.equal(rankFor(200_960).icons, "👑👑");
+});
+
+test("score-level boundaries do not cap at crowns", () => {
+  for (const units of [1, 4, 16, 64, 65, 128, 1024]) {
+    const floor = levelThreshold(units);
+    assert.equal(rankFor(floor - 1).level_units, units - 1);
+    assert.equal(rankFor(floor).level_units, units);
+    assert.equal(rankFor(floor).progress, 0);
+    assert.equal(rankFor(floor).topped, false);
+  }
+});
+
+test("KPI effects keep their established scores and explosion rules", () => {
   assert.deepEqual(scoreFor("tencent", true), {
     delta: 80,
     reason: "tencent +30 / 首发 +50",
