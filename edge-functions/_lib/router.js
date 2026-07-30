@@ -14,7 +14,13 @@ import {
   optionsResponse,
   readJson,
 } from "./http.js";
-import { TIERS, rankFor } from "./kpi.js";
+import {
+  BASE_STAR_COST,
+  LEVEL_ICONS,
+  MERGE_BASE,
+  rankFor,
+  STAR_COST_STEP,
+} from "./kpi.js";
 import { cleanText, normalizePair } from "./keys.js";
 import { KvStore } from "./kv-store.js";
 import { llmConfiguration } from "./llm.js";
@@ -280,7 +286,15 @@ export function createRouter({
 
     if (path === "/api/tiers") {
       requireMethod(request, "GET");
-      return jsonResponse({ tiers: TIERS });
+      return jsonResponse({
+        tiers: [],
+        level_rules: {
+          base_star_cost: BASE_STAR_COST,
+          star_cost_step: STAR_COST_STEP,
+          merge_base: MERGE_BASE,
+          icons: LEVEL_ICONS,
+        },
+      });
     }
     if (path === "/api/starters") {
       requireMethod(request, "GET");
@@ -454,7 +468,7 @@ export function createRouter({
         formula: withFormulaIcons(formula, await combinedElements()),
       });
     }
-    if (path === "/api/session/kpi") {
+    if (path === "/api/session/score" || path === "/api/session/kpi") {
       requireMethod(request, "POST");
       const body = await readJson(request);
       const sessionId = cleanText(body?.session_id);

@@ -7,8 +7,9 @@ FastAPI 主入口。
   GET  /api/elements      → 当前全部元素
   POST /api/combine       → 合成（seed/cache miss 时接 LLM）
   GET  /api/wall/stream   → SSE 首发推送（M4）
-  POST /api/session/kpi   → 上报 KPI（M4）
-  GET  /api/session/{sid}/rank → 绩效评级（M4）
+  POST /api/session/score → 上报分数
+  POST /api/session/kpi   → 上报 KPI（兼容旧版）
+  GET  /api/session/{sid}/rank → 分数等级
 """
 
 from __future__ import annotations
@@ -118,7 +119,7 @@ class CombineResp(BaseModel):
     formula_id: Optional[str] = None
 
 
-class KPIReq(BaseModel):
+class ScoreReq(BaseModel):
     session_id: str
     delta: int
     reason: str
@@ -133,18 +134,15 @@ class VoteReq(BaseModel):
 # ============================================================
 @app.get("/api/tiers")
 async def api_tiers():
-    """前端用于检测段位跃迁、渲染进度条。和 kpi.TIERS 保持一致。"""
+    return {"tiers": [], "level_rules": _level_rules()}
+
+
+def _level_rules() -> dict:
     return {
-        "tiers": [
-            {
-                "floor": t[0],
-                "grade": t[1],
-                "label": t[2],
-                "emoji": t[3],
-                "comment": t[4],
-            }
-            for t in kpi.TIERS
-        ]
+        "base_star_cost": kpi.BASE_STAR_COST,
+        "star_cost_step": kpi.STAR_COST_STEP,
+        "merge_base": kpi.MERGE_BASE,
+        "icons": [icon for icon, _weight in kpi.LEVEL_WEIGHTS],
     }
 
 
@@ -649,11 +647,20 @@ async def _combine_via_llm(a: str, b: str, request_id: str) -> Optional[dict]:
     }
 
 
-# ---- KPI ----
-@app.post("/api/session/kpi")
-async def api_kpi(req: KPIReq):
+# ---- 分数 ----
+def _add_score(req: ScoreReq) -> dict:
     db.kpi_add(req.session_id, req.delta, req.reason)
     return {"ok": True, "total": db.kpi_total(req.session_id)}
+
+
+@app.post("/api/session/score")
+async def api_score(req: ScoreReq):
+    return _add_score(req)
+
+
+@app.post("/api/session/kpi")
+async def api_kpi_legacy(req: ScoreReq):
+    return _add_score(req)
 
 
 # ============================================================
@@ -721,13 +728,14 @@ async def api_recipes_verify(req: VerifyReq):
 
 @app.get("/api/session/{sid}/rank")
 async def api_rank(sid: str):
+    """返回 session 的分数等级。"""
     total = db.kpi_total(sid)
     return {"session_id": sid, "total": total, **kpi.rank_for(total)}
 
 
 @app.get("/api/rank")
 async def api_rank_for_total(total: int = 0):
-    """给定累计分数，返回对应段位。前端用它来按 state.kpi 正确显示段位。
+    """给定累计分数，返回对应分数等级。前端用它来按 state.kpi 正确显示等级。
     和 /api/session/{sid}/rank 的区别：不依赖 Redis 里的 session total，
     让前端完全掌握积分来源（depth-based），避免和后端 chain 评分不一致。"""
     total = max(0, int(total))

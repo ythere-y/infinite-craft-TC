@@ -68,11 +68,22 @@ test("static, health and rank routes keep their public contracts", async () => {
   });
 
   const tiers = await json(router, "/api/tiers");
-  assert.equal(tiers.body.tiers[0].grade, "3-");
+  assert.deepEqual(tiers.body, {
+    tiers: [],
+    level_rules: {
+      base_star_cost: 300,
+      star_cost_step: 20,
+      merge_base: 4,
+      icons: ["👑", "🌞", "🌙", "🌟"],
+    },
+  });
 
-  const rank = await json(router, "/api/rank?total=8000");
-  assert.equal(rank.body.grade, "瑞雪");
-  assert.equal(rank.body.total, 8000);
+  const rank = await json(router, "/api/rank?total=59520");
+  assert.equal(rank.body.total, 59_520);
+  assert.equal(rank.body.icons, "👑");
+  assert.equal(rank.body.topped, false);
+  assert.ok(!("to_next" in rank.body));
+  assert.ok(!("next_floor" in rank.body));
 
   const defaultPage = await json(router, "/api/wall/page");
   assert.equal(defaultPage.body.limit, 100);
@@ -306,6 +317,12 @@ test("recipes, verification, KPI and analytics routes remain available", async (
     body: { session_id: "s", delta: 30, reason: "测试" },
   });
   assert.equal(kpi.body.total, 30);
+
+  const score = await json(router, "/api/session/score", {
+    method: "POST",
+    body: { session_id: "score-session", delta: 300, reason: "测试" },
+  });
+  assert.equal(score.body.total, 300);
 
   const sessionRank = await json(router, "/api/session/s/rank");
   assert.equal(sessionRank.body.total, 30);
