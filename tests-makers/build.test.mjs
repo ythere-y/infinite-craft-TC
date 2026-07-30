@@ -27,6 +27,7 @@ const REQUIRED_FILES = [
   "dist/icon-system.css",
   "dist/icon-system.js",
   "dist/style.css",
+  "dist/score-level.js",
   "dist/assets/icons/generated/emoji-icon-manifest.json",
   "dist/assets/icons/generated/element-icon-map.json",
   "dist/assets/icons/actions/trash.svg",
@@ -283,6 +284,12 @@ test("normal build needs no words checkout and ships only local icon assets", as
     const builtHtml = await readFile(join(root, "dist/index.html"), "utf8");
     const sourceHtml = await readFile(join(root, "frontend/index.html"), "utf8");
     assert.equal(builtHtml, sourceHtml);
+    assert.match(builtHtml, /score-level\.js/);
+    assert.ok(
+      builtHtml.indexOf("score-level.js") < builtHtml.indexOf("effects.js"),
+      "the built helper must load before its effects consumer",
+    );
+    await access(join(root, "dist/score-level.js"));
 
     const manifest = JSON.parse(
       await readFile(

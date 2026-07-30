@@ -44,7 +44,7 @@ html, body {
   font-weight: 800;
   margin-left: 2px;
 }
-.topbar-actions { display: flex; gap: 8px; align-items: center; }
+.topbar-actions { display: flex; gap: 8px; align-items: center; min-width: 0; }
 .topbar-actions .btn-ghost,
 .nick-modal-actions .btn-ghost,
 .nick-modal-actions .btn-primary,
@@ -498,13 +498,26 @@ body.ura-on .element.on-canvas.is-starter {
   transform: translateY(-4px);
 }
 
-/* 顶栏按钮内嵌的分数值 */
+/* 顶栏内嵌的等级图标 */
 #btn-score {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
+  min-width: 0;
+  max-width: min(34vw, 360px);
+  overflow: hidden;
 }
-/* 分数数字用腾讯蓝 */
-#btn-score #kpi-value { color: #1E88E5; padding: 0 2px; }
+.score-level-viewport {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  -webkit-mask-image: linear-gradient(90deg, #000 0, #000 88%, transparent 100%);
+  mask-image: linear-gradient(90deg, #000 0, #000 88%, transparent 100%);
+}
+.score-level-icons {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
 #score-panel-total { color: #42A5F5; }
 
 /* 分数 delta 浮动也改蓝色 */
@@ -629,6 +642,40 @@ body.ura-on .element.on-canvas.is-starter {
 }
 .score-panel-empty.hide { display: none; }
 
+.score-panel-level-detail {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px;
+}
+.score-panel-full-icons {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #1E88E5;
+  font-size: 20px;
+}
+.tier-progress {
+  height: 8px;
+  overflow: hidden;
+  background: #E3F2FD;
+  border-radius: 999px;
+}
+.tier-progress-fill {
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #42A5F5, #FFD54F);
+  border-radius: inherit;
+  transition: width .2s ease-out;
+}
+.score-panel-rules {
+  color: #777;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 /* 右栏：段位路径 */
 .score-panel-tiers {
   flex: 1;
@@ -665,6 +712,8 @@ body.ura-on .element.on-canvas.is-starter {
 .tier-current-label { font-size: 12px; color: #555; }
 .tier-current-next {
   grid-column: 1 / span 2;
+  #btn-score { max-width: min(44vw, 210px); }
+  #btn-score .action-slot { display: none; }
   font-size: 12px;
   color: #555;
   margin-top: 4px;

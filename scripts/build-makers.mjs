@@ -18,6 +18,7 @@ const REQUIRED_ENTRIES = [
   "icon-system.css",
   "icon-system.js",
   "style.css",
+  "score-level.js",
   "assets/icons/generated/emoji-icon-manifest.json",
   "assets/icons/generated/element-icon-map.json",
   "assets/icons/actions/trash.svg",

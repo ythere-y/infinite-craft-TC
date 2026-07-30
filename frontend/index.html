@@ -6,7 +6,7 @@
   <title>🐧+🐧=? · 鹅厂无限合成 ♾️</title>
   <link rel="icon" type="image/png" href="/assets/icons/generated/emoji/1f427.png">
   <link rel="stylesheet" href="/icon-system.css?v=20260728c" />
-  <link rel="stylesheet" href="/style.css?v=20260728c" />
+  <link rel="stylesheet" href="/style.css?v=20260730a" />
 </head>
 <body>
   <header class="topbar">
@@ -16,7 +16,16 @@
     <div class="topbar-actions">
       <span id="nick-display" class="nick-chip" title="点击重抽一个昵称">🐧 加载中…</span>
       <button id="btn-recipebook" class="btn-ghost" title="打开配方图鉴" aria-label="配方库" data-action-icon="recipes"><span class="action-slot" data-icon-action="recipes" aria-hidden="true"></span><span class="action-label">配方库</span> <span id="recipebook-btn-count">0</span></button>
-      <button id="btn-score" class="btn-ghost" title="打开 KPI 复盘面板" aria-label="KPI 复盘" data-action-icon="score"><span class="action-slot" data-icon-action="score" aria-hidden="true"></span><span class="action-label">KPI</span> <span id="kpi-value">0</span></button>
+      <button id="btn-score" class="btn-ghost score-level-button"
+              title="打开分数记录" aria-label="等级，尚未获得星星"
+              data-action-icon="score">
+        <span class="action-slot" data-icon-action="score" aria-hidden="true"></span>
+        <span class="action-label">等级</span>
+        <span class="score-level-viewport">
+          <span id="score-level-icons" class="score-level-icons"
+                aria-hidden="true">尚未获得星星</span>
+        </span>
+      </button>
       <button id="btn-reset" class="btn-ghost" aria-label="清空画布" data-action-icon="reset"><span class="action-slot" data-icon-action="reset" aria-hidden="true"></span><span class="action-label">清空画布</span></button>
       <a id="first-wall" class="btn-ghost" href="/wall" aria-label="首发榜" data-action-icon="wall"><span class="action-slot" data-icon-action="wall" aria-hidden="true"></span><span class="action-label">首发榜</span></a>
       <button id="btn-help" class="btn-help" title="显示/隐藏操作引导" aria-label="帮助" data-action-icon="help" data-icon-action="help"></button>
@@ -63,33 +72,41 @@
     </aside>
   </main>
 
-  <!-- KPI delta 浮动提示（固定在顶栏分数按钮下方） -->
+  <!-- 分数 delta 浮动提示（固定在顶栏分数按钮下方） -->
   <span id="kpi-delta" class="kpi-delta"></span>
 
-  <!-- KPI 复盘面板：左=加分历史，右=段位路径 -->
+  <!-- 分数记录面板：左=加分历史，右=等级进度 -->
   <div id="score-panel" class="score-panel">
     <div class="score-panel-header">
       <div class="mac-traffic-lights">
-        <button id="score-panel-close" class="mac-light mac-light-close" title="关闭" aria-label="关闭 KPI 复盘" data-action-icon="close" data-icon-action="close"></button>
+        <button id="score-panel-close" class="mac-light mac-light-close" title="关闭" aria-label="关闭分数记录" data-action-icon="close" data-icon-action="close"></button>
       </div>
       <div class="score-panel-title">
-        📈 KPI 复盘 · 累计 <span id="score-panel-total">0</span>
-        <span id="score-panel-rank" class="score-panel-rank"></span>
+        📈 分数记录 · 累计 <span id="score-panel-total">0</span> 分
+        <span id="score-panel-level" class="score-panel-rank"></span>
       </div>
     </div>
     <div class="score-panel-body">
-      <!-- 左：加分历史 -->
+      <!-- 左：分数记录 -->
       <div class="score-pane pane-history">
-        <div class="pane-title">🧾 加分历史</div>
+        <div class="pane-title">🧾 分数记录</div>
         <div id="score-panel-list" class="score-panel-list"></div>
         <div id="score-panel-empty" class="score-panel-empty">
           还没得分，去拖几个元素合成吧～
         </div>
       </div>
-      <!-- 右：段位路径 -->
+      <!-- 右：等级进度 -->
       <div class="score-pane pane-tiers">
-        <div class="pane-title">🏆 段位路径</div>
-        <div id="score-panel-tiers" class="score-panel-tiers"></div>
+        <div class="pane-title">🏆 等级进度</div>
+        <div id="score-panel-level-detail" class="score-panel-level-detail">
+          <div id="score-panel-full-icons" class="score-panel-full-icons"></div>
+          <div class="tier-progress" aria-label="当前星级进度">
+            <div id="score-panel-progress-fill" class="tier-progress-fill"></div>
+          </div>
+          <div id="score-panel-rules" class="score-panel-rules">
+            4🌟 = 1🌙 · 4🌙 = 1🌞 · 4🌞 = 1👑
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -140,6 +157,7 @@
         <div class="search-control recipe-search-control">
           <span class="action-slot" data-icon-action="search" aria-hidden="true"></span>
           <input id="recipebook-search" type="text" placeholder="搜索（元素名或结果）" aria-label="搜索配方" data-action-icon="search" />
+  <script src="/score-level.js?v=20260730a"></script>
         </div>
         <button id="recipebook-export" class="btn-ghost" data-action-icon="download"><span class="action-slot" data-icon-action="download" aria-hidden="true"></span><span class="action-label">导出</span></button>
         <!-- 导入功能暂时关闭（防止现场被脏数据污染）

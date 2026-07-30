@@ -7,6 +7,13 @@ import {
   mergeFirstItems,
 } from "../frontend/wall/polling.js";
 
+test("score-level helper loads before consumers", async () => {
+  const html = await readFile("frontend/index.html", "utf8");
+
+  assert.ok(html.indexOf("score-level.js") < html.indexOf("effects.js"));
+  assert.ok(html.indexOf("score-level.js") < html.indexOf("app.js"));
+});
+
 test("wall uses visibility-aware incremental polling instead of SSE", async () => {
   const [source, html] = await Promise.all([
     readFile("frontend/wall/wall.js", "utf8"),
