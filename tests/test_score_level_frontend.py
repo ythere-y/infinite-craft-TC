@@ -117,6 +117,31 @@ def test_score_level_renders_moon_boundary_and_safe_level_text(tmp_path):
     assert actual == {"home": "🌙", "total": "1320", "panel": "🌙", "progress": "0%", "gained": "+37"}
 
 
+def test_score_panel_renders_current_score_and_level_language(tmp_path):
+    actual = _run_score_app(tmp_path, """
+      var button = document.querySelector('#btn-score');
+      button.click();
+      var panel = document.querySelector('#score-panel');
+      return {
+        buttonText: button.innerText,
+        panelText: panel.innerText,
+        visibleText: document.body.innerText,
+        panelVisible: panel.classList.contains('show') &&
+          getComputedStyle(panel).display !== 'none' &&
+          panel.getClientRects().length > 0
+      };
+    """)
+
+    assert actual["panelVisible"] is True
+    assert "等级" in actual["buttonText"]
+    for expected in ("分数记录", "等级进度", "4🌟 = 1🌙"):
+        assert expected in actual["panelText"]
+        assert expected in actual["visibleText"]
+    for forbidden in ("KPI", "绩效", "瑞雪", "段位路径"):
+        assert forbidden not in actual["visibleText"]
+    assert not re.search(r"还差\s*\d+\s*分", actual["visibleText"])
+
+
 def test_score_level_hostile_icons_remain_text(tmp_path):
     hostile = '<img id="level-xss" src=x onerror="window.__xss=1">'
     actual = _run_score_app(tmp_path, """

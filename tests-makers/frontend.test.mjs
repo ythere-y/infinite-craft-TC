@@ -15,17 +15,6 @@ test("score-level helper loads before consumers", async () => {
   assert.ok(html.indexOf("score-level.js") < html.indexOf("app.js"));
 });
 
-test("home score panel presents score and level language", async () => {
-  const html = await readFile("frontend/index.html", "utf8");
-  const visibleHtml = html.replace(/<!--[\s\S]*?-->/g, "");
-
-  assert.doesNotMatch(visibleHtml, />[^<]*KPI[^<]*</);
-  assert.doesNotMatch(visibleHtml, /绩效|瑞雪|段位路径|还差\s*\d+\s*分/);
-  assert.match(visibleHtml, /分数记录/);
-  assert.match(visibleHtml, /等级进度/);
-  assert.match(visibleHtml, /4🌟\s*=\s*1🌙/);
-});
-
 test("wall uses visibility-aware incremental polling instead of SSE", async () => {
   const [source, html] = await Promise.all([
     readFile("frontend/wall/wall.js", "utf8"),
