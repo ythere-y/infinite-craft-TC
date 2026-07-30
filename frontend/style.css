@@ -2012,6 +2012,11 @@ body.ura-on .workspace::after {
     opacity: 1;
     transform: translateY(-50%);
   }
+  #btn-score.score-receive {
+    border-color: #32B8C6;
+    background-color: rgba(50,184,198,.1);
+    box-shadow: 0 0 0 4px rgba(50,184,198,.16);
+  }
   .score-flight,
   .score-level-effect-layer {
     display: none !important;
