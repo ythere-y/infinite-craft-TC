@@ -4,9 +4,6 @@
   var BASE_STAR_COST = 300;
   var STAR_COST_STEP = 20;
   var MAX_LEVEL_UNITS = 65_535;
-  var MAX_LEVEL_SCORE = MAX_LEVEL_UNITS * BASE_STAR_COST
-    + (STAR_COST_STEP * MAX_LEVEL_UNITS * (MAX_LEVEL_UNITS - 1)) / 2
-    + BASE_STAR_COST + STAR_COST_STEP * MAX_LEVEL_UNITS - 1;
 
   function normalizeScore(value) {
     var score = Number(value);
@@ -19,6 +16,8 @@
     return units * BASE_STAR_COST
       + (STAR_COST_STEP * units * (units - 1)) / 2;
   }
+
+  var MAX_LEVEL_SCORE = levelThreshold(MAX_LEVEL_UNITS - 1);
 
   function levelUnits(score) {
     var low = 0;
@@ -34,8 +33,9 @@
 
   function rankFor(value) {
     var displayScore = Math.min(normalizeScore(value), MAX_LEVEL_SCORE);
-    var units = levelUnits(displayScore);
-    var remaining = units;
+    var earnedUnits = levelUnits(displayScore);
+    var displayUnits = Math.min(MAX_LEVEL_UNITS, earnedUnits + 1);
+    var remaining = displayUnits;
     var crowns = Math.floor(remaining / 64);
     remaining %= 64;
     var suns = Math.floor(remaining / 16);
@@ -44,8 +44,8 @@
     var stars = remaining % 4;
     var icons = "👑".repeat(crowns)
       + "🌞".repeat(suns) + "🌙".repeat(moons) + "🌟".repeat(stars);
-    var floor = levelThreshold(units);
-    var ceiling = levelThreshold(units + 1);
+    var floor = levelThreshold(earnedUnits);
+    var ceiling = levelThreshold(earnedUnits + 1);
     var labels = [
       crowns ? crowns + "个皇冠" : "",
       suns ? suns + "个太阳" : "",
@@ -53,14 +53,16 @@
       stars ? stars + "颗星星" : "",
     ].filter(Boolean);
     return {
-      level_units: units,
+      level_units: displayUnits,
       crowns: crowns,
       suns: suns,
       moons: moons,
       stars: stars,
       icons: icons,
       aria_label: labels.join("、") || "尚未获得星星",
-      progress: (displayScore - floor) / Math.max(1, ceiling - floor),
+      progress: displayUnits === MAX_LEVEL_UNITS
+        ? 1
+        : (displayScore - floor) / Math.max(1, ceiling - floor),
     };
   }
 

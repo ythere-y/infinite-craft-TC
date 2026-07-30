@@ -17,11 +17,6 @@ export const STAR_COST_STEP = 20;
 export const MERGE_BASE = 4;
 export const LEVEL_ICONS = Object.freeze(["👑", "🌞", "🌙", "🌟"]);
 export const MAX_LEVEL_UNITS = 65_535;
-export const MAX_LEVEL_SCORE = (
-  MAX_LEVEL_UNITS * BASE_STAR_COST
-  + (STAR_COST_STEP * MAX_LEVEL_UNITS * (MAX_LEVEL_UNITS - 1)) / 2
-  + BASE_STAR_COST + STAR_COST_STEP * MAX_LEVEL_UNITS - 1
-);
 
 export function scoreFor(chain, isFirst) {
   const base = CHAIN_SCORE[chain || ""] ?? 5;
@@ -48,6 +43,8 @@ export function levelThreshold(rawUnits) {
     + (STAR_COST_STEP * units * (units - 1)) / 2;
 }
 
+export const MAX_LEVEL_SCORE = levelThreshold(MAX_LEVEL_UNITS - 1);
+
 function levelUnits(score) {
   let low = 0;
   let high = 1;
@@ -62,8 +59,9 @@ function levelUnits(score) {
 
 export function rankFor(rawTotal) {
   const displayScore = Math.min(normalizeScore(rawTotal), MAX_LEVEL_SCORE);
-  const units = levelUnits(displayScore);
-  let remaining = units;
+  const earnedUnits = levelUnits(displayScore);
+  const displayUnits = Math.min(MAX_LEVEL_UNITS, earnedUnits + 1);
+  let remaining = displayUnits;
   const crowns = Math.floor(remaining / 64);
   remaining %= 64;
   const suns = Math.floor(remaining / 16);
@@ -72,8 +70,8 @@ export function rankFor(rawTotal) {
   const stars = remaining % 4;
   const icons = "👑".repeat(crowns)
     + "🌞".repeat(suns) + "🌙".repeat(moons) + "🌟".repeat(stars);
-  const floor = levelThreshold(units);
-  const ceiling = levelThreshold(units + 1);
+  const floor = levelThreshold(earnedUnits);
+  const ceiling = levelThreshold(earnedUnits + 1);
   const labels = [
     crowns ? `${crowns}个皇冠` : "",
     suns ? `${suns}个太阳` : "",
@@ -81,14 +79,16 @@ export function rankFor(rawTotal) {
     stars ? `${stars}颗星星` : "",
   ].filter(Boolean);
   return {
-    level_units: units,
+    level_units: displayUnits,
     crowns,
     suns,
     moons,
     stars,
     icons,
     aria_label: labels.join("、") || "尚未获得星星",
-    progress: (displayScore - floor) / Math.max(1, ceiling - floor),
+    progress: displayUnits === MAX_LEVEL_UNITS
+      ? 1
+      : (displayScore - floor) / Math.max(1, ceiling - floor),
     grade: icons || "尚未获得星星",
     emoji: Array.from(icons)[0] || "🌟",
     topped: false,

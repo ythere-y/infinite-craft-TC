@@ -1,6 +1,6 @@
 from backend import kpi
 
-def test_score_level_uses_linear_star_costs_and_base_four_icons():
+def test_score_level_includes_a_score_free_starting_star():
     assert kpi.level_threshold(0) == 0
     assert kpi.level_threshold(1) == 300
     assert kpi.level_threshold(4) == 1_320
@@ -8,23 +8,31 @@ def test_score_level_uses_linear_star_costs_and_base_four_icons():
     assert kpi.level_threshold(64) == 59_520
     assert kpi.level_threshold(128) == 200_960
 
-    assert kpi.rank_for(0)["icons"] == ""
-    assert kpi.rank_for(300)["icons"] == "🌟"
-    assert kpi.rank_for(1_320)["icons"] == "🌙"
-    assert kpi.rank_for(7_200)["icons"] == "🌞"
-    assert kpi.rank_for(59_520)["icons"] == "👑"
-    assert kpi.rank_for(61_100)["icons"] == "👑🌟"
-    assert kpi.rank_for(200_960)["icons"] == "👑👑"
+    for score, level_units, icons in (
+        (0, 1, "🌟"),
+        (299, 1, "🌟"),
+        (300, 2, "🌟🌟"),
+        (620, 3, "🌟🌟🌟"),
+        (960, 4, "🌙"),
+        (1_320, 5, "🌙🌟"),
+        (57_960, 64, "👑"),
+    ):
+        rank = kpi.rank_for(score)
+        assert rank["level_units"] == level_units
+        assert rank["icons"] == icons
 
 
-def test_score_level_boundaries_are_exact_and_unlimited():
-    for units in (1, 2, 3, 4, 15, 16, 63, 64, 65, 127, 128, 1024):
-        floor = kpi.level_threshold(units)
-        assert kpi.rank_for(floor - 1)["level_units"] == units - 1
-        rank = kpi.rank_for(floor)
-        assert rank["level_units"] == units
+def test_earned_score_boundaries_add_exactly_one_display_unit():
+    for earned_units in (1, 2, 3, 4, 15, 16, 63, 64, 65, 127, 128, 1024, 65_534):
+        threshold = kpi.level_threshold(earned_units)
+        assert kpi.rank_for(threshold - 1)["level_units"] == earned_units
+        rank = kpi.rank_for(threshold)
+        assert rank["level_units"] == min(65_535, earned_units + 1)
         assert rank["topped"] is False
-        assert rank["progress"] == 0
+        assert rank["progress"] == (1 if earned_units == 65_534 else 0)
+    max_rank = kpi.rank_for(kpi.MAX_LEVEL_SCORE)
+    assert max_rank["level_units"] == 65_535
+    assert max_rank["progress"] == 1
 
 
 def test_each_new_star_costs_more_than_the_previous_star():

@@ -103,7 +103,7 @@ def _run_score_app(tmp_path: Path, script: str, setup: str = ""):
     return payload["value"]
 
 
-def test_score_level_renders_moon_boundary_and_safe_level_text(tmp_path):
+def test_score_level_renders_starting_star_after_moon_boundary(tmp_path):
     actual = _run_score_app(tmp_path, """
       document.querySelector('#btn-score').click();
       return {home:document.querySelector('#score-level-icons').textContent,
@@ -115,7 +115,20 @@ def test_score_level_renders_moon_boundary_and_safe_level_text(tmp_path):
       localStorage.setItem('ic_kpi','1320');
       localStorage.setItem('ic_scores',JSON.stringify([{result:'月亮合成',emoji:'🌙',gained:37,depth:4,tier:'global_new',ts:Date.now()}]));
     """)
-    assert actual == {"home": "🌙", "total": "1320", "panel": "🌙", "progress": "0%", "gained": "+37"}
+    assert actual == {"home": "🌙🌟", "total": "1320", "panel": "🌙🌟", "progress": "0%", "gained": "+37"}
+
+
+def test_fresh_player_sees_starting_star_without_score_or_history(tmp_path):
+    actual = _run_score_app(tmp_path, """
+      document.querySelector('#btn-score').click();
+      return {
+        home:document.querySelector('#score-level-icons').textContent,
+        total:document.querySelector('#score-panel-total').textContent,
+        panel:document.querySelector('#score-panel-full-icons').textContent,
+        history:document.querySelector('#score-panel-list').children.length
+      };
+    """)
+    assert actual == {"home": "🌟", "total": "0", "panel": "🌟", "history": 0}
 
 
 def test_score_panel_renders_current_score_and_level_language(tmp_path):
@@ -169,7 +182,29 @@ def test_rapid_score_mutations_cannot_finalize_to_a_stale_level(tmp_path):
       window.__scoreJobs=[];
       window.EFFECTS.animateScoreGain=function(job){window.__scoreJobs.push(job)};
     """)
-    assert actual == {"immediate": "🌙", "afterFirstFinal": "🌙", "stored": "1320"}
+    assert actual == {"immediate": "🌙🌟", "afterFirstFinal": "🌙🌟", "stored": "1320"}
+
+
+def test_score_mutation_from_zero_adds_the_second_display_star(tmp_path):
+    actual = _run_score_app(tmp_path, """
+      animateScore(300, document.querySelector('#workspace'));
+      var job=window.__scoreJobs[0];
+      return {
+        beforeUnits:job.before.level_units,
+        afterUnits:job.after.level_units,
+        steps:job.steps,
+        stored:localStorage.getItem('ic_kpi')
+      };
+    """, """
+      window.__scoreJobs=[];
+      window.EFFECTS.animateScoreGain=function(job){window.__scoreJobs.push(job)};
+    """)
+    assert actual == {
+        "beforeUnits": 1,
+        "afterUnits": 2,
+        "steps": [{"type": "gain", "icon": "🌟"}],
+        "stored": "300",
+    }
 
 
 def test_score_mutation_persists_history_without_optional_effect(tmp_path):
@@ -185,7 +220,7 @@ def test_score_mutation_persists_history_without_optional_effect(tmp_path):
       };
     """)
     assert actual == {
-        "home": "🌙",
+        "home": "🌙🌟",
         "stored": "1320",
         "history": [{"result": "无特效", "gained": 1320}],
     }
@@ -203,12 +238,12 @@ def test_score_mutation_continues_after_the_display_level_cap(tmp_path):
         delta:window.__scoreJobs[0].delta
       };
     """, """
-      localStorage.setItem('ic_kpi','42968678399');
+      localStorage.setItem('ic_kpi','42966056420');
       window.__scoreJobs=[];
       window.EFFECTS.animateScoreGain=function(job){window.__scoreJobs.push(job)};
     """)
     assert actual == {
-        "stored": "42968678449",
+        "stored": "42966056470",
         "levelUnits": 65535,
         "steps": [],
         "historyGained": 50,
@@ -228,7 +263,7 @@ def test_score_mutation_survives_effect_failure(tmp_path):
     """, """
       window.EFFECTS.animateScoreGain=function(){throw new Error('effect failed')};
     """)
-    assert actual == {"threw": False, "home": "🌙", "stored": "1320"}
+    assert actual == {"threw": False, "home": "🌙🌟", "stored": "1320"}
 
 
 def test_cached_and_added_scores_use_finite_nonnegative_safe_integers(tmp_path):

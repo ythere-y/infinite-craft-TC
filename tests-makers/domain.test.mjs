@@ -20,29 +20,41 @@ import {
 import { jsonResponse } from "../edge-functions/_lib/http.js";
 import { ELEMENTS, STARTERS } from "../edge-functions/_generated/seed-data.js";
 
-test("score level uses increasing star costs and unlimited base-four icons", () => {
+test("score level includes a score-free starting star", () => {
   assert.equal(levelThreshold(0), 0);
   assert.equal(levelThreshold(1), 300);
   assert.equal(levelThreshold(4), 1_320);
   assert.equal(levelThreshold(16), 7_200);
   assert.equal(levelThreshold(64), 59_520);
   assert.equal(levelThreshold(128), 200_960);
-  assert.equal(rankFor(300).icons, "🌟");
+  for (const [score, levelUnits, icons] of [
+    [0, 1, "🌟"],
+    [299, 1, "🌟"],
+    [300, 2, "🌟🌟"],
+    [620, 3, "🌟🌟🌟"],
+    [960, 4, "🌙"],
+    [1_320, 5, "🌙🌟"],
+    [57_960, 64, "👑"],
+  ]) {
+    const rank = rankFor(score);
+    assert.equal(rank.level_units, levelUnits);
+    assert.equal(rank.icons, icons);
+  }
   assert.equal(rankFor(300).emoji, "🌟");
-  assert.equal(rankFor(1_320).icons, "🌙");
-  assert.equal(rankFor(7_200).icons, "🌞");
-  assert.equal(rankFor(59_520).icons, "👑");
-  assert.equal(rankFor(200_960).icons, "👑👑");
 });
 
-test("score-level boundaries do not cap at crowns", () => {
-  for (const units of [1, 4, 16, 64, 65, 128, 1024]) {
-    const floor = levelThreshold(units);
-    assert.equal(rankFor(floor - 1).level_units, units - 1);
-    assert.equal(rankFor(floor).level_units, units);
-    assert.equal(rankFor(floor).progress, 0);
-    assert.equal(rankFor(floor).topped, false);
+test("earned score boundaries add exactly one display unit", () => {
+  for (const earnedUnits of [1, 2, 3, 4, 15, 16, 63, 64, 65, 127, 128, 1024, 65_534]) {
+    const threshold = levelThreshold(earnedUnits);
+    assert.equal(rankFor(threshold - 1).level_units, earnedUnits);
+    const rank = rankFor(threshold);
+    assert.equal(rank.level_units, Math.min(65_535, earnedUnits + 1));
+    assert.equal(rank.progress, earnedUnits === 65_534 ? 1 : 0);
+    assert.equal(rank.topped, false);
   }
+  const maxRank = rankFor(MAX_LEVEL_SCORE);
+  assert.equal(maxRank.level_units, 65_535);
+  assert.equal(maxRank.progress, 1);
 });
 
 test("rank inputs use the finite nonnegative JavaScript safe integer contract", () => {

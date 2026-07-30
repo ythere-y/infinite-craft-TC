@@ -10,13 +10,24 @@ async function loadScoreLevel() {
   return window.SCORE_LEVEL;
 }
 
-test("browser score levels match domain boundaries", async () => {
+test("browser score levels include a score-free starting star", async () => {
   const levels = await loadScoreLevel();
-  assert.equal(levels.rankFor(300).icons, "🌟");
-  assert.equal(levels.rankFor(1_320).icons, "🌙");
-  assert.equal(levels.rankFor(7_200).icons, "🌞");
-  assert.equal(levels.rankFor(59_520).icons, "👑");
-  assert.equal(levels.rankFor(200_960).icons, "👑👑");
+  for (const [score, levelUnits, icons] of [
+    [0, 1, "🌟"],
+    [299, 1, "🌟"],
+    [300, 2, "🌟🌟"],
+    [620, 3, "🌟🌟🌟"],
+    [960, 4, "🌙"],
+    [1_320, 5, "🌙🌟"],
+    [57_960, 64, "👑"],
+  ]) {
+    const rank = levels.rankFor(score);
+    assert.equal(rank.level_units, levelUnits);
+    assert.equal(rank.icons, icons);
+  }
+  const maxRank = levels.rankFor(levels.MAX_LEVEL_SCORE);
+  assert.equal(maxRank.level_units, 65_535);
+  assert.equal(maxRank.progress, 1);
 });
 
 test("browser score normalization is finite, nonnegative, and safe", async () => {

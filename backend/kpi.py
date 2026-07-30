@@ -37,13 +37,6 @@ STAR_COST_STEP = 20
 MERGE_BASE = 4
 LEVEL_WEIGHTS = (("👑", 64), ("🌞", 16), ("🌙", 4), ("🌟", 1))
 MAX_LEVEL_UNITS = 65_535
-MAX_LEVEL_SCORE = (
-    MAX_LEVEL_UNITS * BASE_STAR_COST
-    + STAR_COST_STEP * MAX_LEVEL_UNITS * (MAX_LEVEL_UNITS - 1) // 2
-    + BASE_STAR_COST
-    + STAR_COST_STEP * MAX_LEVEL_UNITS
-    - 1
-)
 MAX_RAW_SCORE = 9_007_199_254_740_991
 
 
@@ -64,6 +57,9 @@ def normalize_score(value) -> int:
 def level_threshold(units: int) -> int:
     value = _safe_integer(units, MAX_LEVEL_UNITS + 1)
     return value * BASE_STAR_COST + STAR_COST_STEP * value * (value - 1) // 2
+
+
+MAX_LEVEL_SCORE = level_threshold(MAX_LEVEL_UNITS - 1)
 
 
 def _level_units(total: int) -> int:
@@ -94,11 +90,16 @@ def _breakdown(units: int) -> tuple[int, int, int, int, str]:
 
 def rank_for(total: int) -> dict:
     display_score = min(normalize_score(total), MAX_LEVEL_SCORE)
-    units = _level_units(display_score)
-    crowns, suns, moons, stars, icons = _breakdown(units)
-    floor = level_threshold(units)
-    ceiling = level_threshold(units + 1)
-    progress = (display_score - floor) / max(1, ceiling - floor)
+    earned_units = _level_units(display_score)
+    display_units = min(MAX_LEVEL_UNITS, earned_units + 1)
+    crowns, suns, moons, stars, icons = _breakdown(display_units)
+    floor = level_threshold(earned_units)
+    ceiling = level_threshold(earned_units + 1)
+    progress = (
+        1
+        if display_units == MAX_LEVEL_UNITS
+        else (display_score - floor) / max(1, ceiling - floor)
+    )
     labels = [
         f"{crowns}个皇冠" if crowns else "",
         f"{suns}个太阳" if suns else "",
@@ -107,7 +108,7 @@ def rank_for(total: int) -> dict:
     ]
     aria_label = "、".join(label for label in labels if label) or "尚未获得星星"
     return {
-        "level_units": units,
+        "level_units": display_units,
         "crowns": crowns,
         "suns": suns,
         "moons": moons,

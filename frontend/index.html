@@ -7,6 +7,7 @@
   <link rel="icon" type="image/png" href="/assets/icons/generated/emoji/1f427.png">
   <link rel="stylesheet" href="/icon-system.css?v=20260730b" />
   <link rel="stylesheet" href="/style.css?v=20260730b" />
+  <link rel="stylesheet" href="/recipe-links.css?v=20260730b" />
 </head>
 <body>
   <header class="topbar">
@@ -17,13 +18,13 @@
       <span id="nick-display" class="nick-chip" title="点击重抽一个昵称">🐧 加载中…</span>
       <button id="btn-recipebook" class="btn-ghost" title="打开配方图鉴" aria-label="配方库" data-action-icon="recipes"><span class="action-slot" data-icon-action="recipes" aria-hidden="true"></span><span class="action-label">配方库</span> <span id="recipebook-btn-count">0</span></button>
       <button id="btn-score" class="btn-ghost score-level-button"
-              title="打开分数记录" aria-label="等级，尚未获得星星"
+              title="等级，1颗星星；点击打开分数记录" aria-label="等级，1颗星星"
               data-action-icon="score">
         <span class="action-slot" data-icon-action="score" aria-hidden="true"></span>
         <span class="action-label">等级</span>
         <span class="score-level-viewport">
           <span id="score-level-icons" class="score-level-icons"
-                aria-hidden="true">尚未获得星星</span>
+                aria-hidden="true">🌟</span>
         </span>
       </button>
       <button id="btn-reset" class="btn-ghost" aria-label="清空画布" data-action-icon="reset"><span class="action-slot" data-icon-action="reset" aria-hidden="true"></span><span class="action-label">清空画布</span></button>
@@ -172,9 +173,10 @@
   </div>
 
   <script src="/icon-system.js?v=20260730b"></script>
-  <script src="/score-level.js?v=20260730b"></script>
   <script src="/combine-feedback.js?v=20260730b"></script>
+  <script src="/score-level.js?v=20260730b"></script>
   <script src="/effects.js?v=20260730b"></script>
+  <script src="/recipe-links.js?v=20260730b"></script>
   <script src="/app.js?v=20260730b"></script>
 </body>
 </html>
