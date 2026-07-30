@@ -712,8 +712,6 @@ body.ura-on .element.on-canvas.is-starter {
 .tier-current-label { font-size: 12px; color: #555; }
 .tier-current-next {
   grid-column: 1 / span 2;
-  #btn-score { max-width: min(44vw, 210px); }
-  #btn-score .action-slot { display: none; }
   font-size: 12px;
   color: #555;
   margin-top: 4px;
@@ -760,6 +758,8 @@ body.ura-on .element.on-canvas.is-starter {
   .score-panel { width: calc(100vw - 24px); right: 12px; }
   .score-panel-body { flex-direction: column; }
   .score-pane.pane-history { border-right: none; border-bottom: 1px solid #F0F0F0; }
+  #btn-score { max-width: min(44vw, 210px); }
+  #btn-score .action-slot { display: none; }
 }
 
 /* ---------- 首发 toast ---------- */
