@@ -7,8 +7,8 @@ const workspace = $("#workspace");
 const list = $("#element-list");
 const searchInput = $("#search");
 const countEl = $("#count");
-const kpiValueEl = $("#kpi-value");
-const kpiDeltaEl = $("#kpi-delta");
+const scoreLevelIconsEl = $("#score-level-icons");
+const scoreDeltaEl = $("#kpi-delta");
 
 function appendTextElement(parent, tagName, className, text) {
   const node = document.createElement(tagName);
@@ -198,10 +198,55 @@ const state = {
   // Legacy records with only `emoji` remain valid; renderers normalize them.
   recipes: JSON.parse(localStorage.getItem("ic_recipes") || "[]"),
   scoreEvents: JSON.parse(localStorage.getItem("ic_scores") || "[]"),
-  kpi: Number(localStorage.getItem("ic_kpi") || 0),
+  score: Number(localStorage.getItem("ic_kpi") || 0),
   onCanvas: [],
   nextId: 1,
 };
+
+const NOOP_RECIPE_LINKS = Object.freeze({
+  sync() {},
+  scheduleGeometryUpdate() {},
+  clear() {},
+  destroy() {},
+});
+
+function createRecipeLinks() {
+  try {
+    return window.RECIPE_LINKS?.create?.(workspace) || NOOP_RECIPE_LINKS;
+  } catch (error) {
+    console.warn("recipe links unavailable", error);
+    return NOOP_RECIPE_LINKS;
+  }
+}
+
+const recipeLinks = createRecipeLinks();
+
+function recipeLinkSnapshots() {
+  const recipes = state.recipes.map((recipe) => ({
+    key: recipe.key,
+    a: recipe.a,
+    b: recipe.b,
+    hit_count: Math.max(1, Number(recipe.hit_count) || 1),
+    depth: Number(recipe.depth) || 0,
+  }));
+  const elements = state.onCanvas.map(({ id, name, x, y }) => ({
+    id,
+    name,
+    x,
+    y,
+  }));
+  return { recipes, elements };
+}
+
+function syncRecipeLinks() {
+  const { recipes, elements } = recipeLinkSnapshots();
+  recipeLinks.sync({ recipes, elements });
+}
+
+function moveRecipeLinks() {
+  const { elements } = recipeLinkSnapshots();
+  recipeLinks.scheduleGeometryUpdate(elements);
+}
 
 // 拖拽上下文
 const drag = {
@@ -209,14 +254,20 @@ const drag = {
   hoverTarget: null,   // 当前悬停的 canvas 元素 record
 };
 
+function setDragTarget(record, active) {
+  if (!record?.el) return;
+  record.el.classList.toggle("dropping", !!active);
+  window.EFFECTS?.setCombineTarget?.(record.el, active);
+}
+
 // ============================================================
 // 初始化
 // ============================================================
 async function init() {
   await window.ICON_SYSTEM.ready;
-  await Promise.all([loadElements(), loadTiers()]);
+  await loadElements();
   window.ICON_SYSTEM.hydrateActions(document);
-  kpiValueEl.textContent = state.kpi;
+  renderHomeLevel();
   await ensureNickname();
   updateNickDisplay();
   bindSearch();
@@ -264,14 +315,36 @@ function renderSidebar(filter = "") {
     if (q && !name.toLowerCase().includes(q)) continue;
     const info = elementInfoFor(name);
     if (!info) continue;
-    list.appendChild(makeElementChip(info, {
+    const chip = makeElementChip(info, {
       isFirst: state.firsts.has(name),
       source: "sidebar",
-    }));
+    });
+    list.appendChild(chip);
+    window.ICON_SYSTEM?.fitSidebarChip?.(chip);
   }
   countEl.textContent = state.discovered.size;
   // 如果里模式开着，重新应用覆盖
   window.EFFECTS?.reapplyUra?.();
+  scheduleSidebarFit();
+}
+
+function fitAllSidebarChips() {
+  list.querySelectorAll(":scope > .element").forEach((chip) => {
+    window.ICON_SYSTEM?.fitSidebarChip?.(chip);
+  });
+}
+
+let sidebarFitFrame = 0;
+function scheduleSidebarFit() {
+  if (sidebarFitFrame) return;
+  sidebarFitFrame = requestAnimationFrame(() => {
+    sidebarFitFrame = 0;
+    fitAllSidebarChips();
+  });
+}
+
+if (typeof ResizeObserver === "function") {
+  new ResizeObserver(scheduleSidebarFit).observe(list);
 }
 
 function makeElementChip(info, { isFirst = false, source = "sidebar" } = {}) {
@@ -365,7 +438,7 @@ function cancelActiveDrag() {
   if (!drag.active) return;
   const { ghost } = drag.active;
   ghost?.remove();
-  drag.hoverTarget?.el.classList.remove("dropping");
+  setDragTarget(drag.hoverTarget, false);
   document.querySelectorAll(".element.dragging").forEach(el => el.classList.remove("dragging"));
   drag.active = null;
   drag.hoverTarget = null;
@@ -425,8 +498,8 @@ function onPointerMove(e) {
   // 高亮 drop target（只在工作区内）
   const target = findCanvasElementAtClient(e.clientX, e.clientY, sourceId);
   if (target !== drag.hoverTarget) {
-    drag.hoverTarget?.el.classList.remove("dropping");
-    target?.el.classList.add("dropping");
+    setDragTarget(drag.hoverTarget, false);
+    setDragTarget(target, true);
     drag.hoverTarget = target;
   }
 }
@@ -438,7 +511,7 @@ async function onPointerUp(e) {
 
   // 收尾
   ghost.remove();
-  drag.hoverTarget?.el.classList.remove("dropping");
+  setDragTarget(drag.hoverTarget, false);
   document.querySelectorAll(".element.dragging").forEach(el => el.classList.remove("dragging"));
 
   drag.active = null;
@@ -513,6 +586,7 @@ function spawnOnCanvas(info, x, y) {
     spawnOnCanvas(info, rec.x + 28, rec.y + 28);
   });
 
+  syncRecipeLinks();
   return record;
 }
 
@@ -522,6 +596,7 @@ function moveCanvasEl(id, x, y) {
   rec.x = x; rec.y = y;
   rec.el.style.left = (x - 30) + "px";
   rec.el.style.top = (y - 16) + "px";
+  moveRecipeLinks();
 }
 
 function removeCanvasEl(id) {
@@ -529,6 +604,7 @@ function removeCanvasEl(id) {
   if (idx < 0) return;
   state.onCanvas[idx].el.remove();
   state.onCanvas.splice(idx, 1);
+  syncRecipeLinks();
 }
 
 // ============================================================
@@ -538,6 +614,10 @@ async function combine(srcId, dstId, x, y) {
   const src = state.onCanvas.find(r => r.id === srcId);
   const dst = state.onCanvas.find(r => r.id === dstId);
   if (!src || !dst) return;
+
+  const combineEffect = window.EFFECTS?.beginCombine?.(
+    workspace, src.el, dst.el, x, y
+  );
 
   // loader
   const loader = document.createElement("div");
@@ -570,6 +650,7 @@ async function combine(srcId, dstId, x, y) {
     loader.remove();
 
     if (resp.source === "fallback") {
+      combineEffect?.cancel?.();
       shake(src.el); shake(dst.el);
       return;
     }
@@ -589,13 +670,21 @@ async function combine(srcId, dstId, x, y) {
     state.discovered.add(resp.result);
     if (resp.is_first) state.firsts.add(resp.result);
 
+    combineEffect?.finish?.({
+      depth: resp.depth,
+      discovered: isNewToPlayer,
+    });
+
     // 清掉两个源元素，在中点放结果
     removeCanvasEl(srcId);
     removeCanvasEl(dstId);
     const newRec = spawnOnCanvas(resultInfo, x, y);
 
     // 记录玩家的配方图鉴（a + b → result）
-    rememberRecipe(src, dst, resultInfo);
+    rememberRecipe(src, dst, resultInfo, {
+      hitCount: resp.hit_count,
+      depth: resp.depth,
+    });
 
     persistDiscovered();
     renderSidebar(searchInput.value);
@@ -604,7 +693,7 @@ async function combine(srcId, dstId, x, y) {
     const fullScore = resp.full_score || 0;
     const gained = isNewToPlayer ? fullScore : Math.max(1, Math.floor(fullScore / 10));
     if (fullScore > 0) {
-      animateKpi(gained);
+      animateScore(gained, newRec.el);
       recordScoreEvent(resultInfo, gained, resp.depth, tier);
     }
     if (resp.explode) window.EFFECTS?.explode?.(resp.result);
@@ -615,6 +704,7 @@ async function combine(srcId, dstId, x, y) {
   } catch (err) {
     clearTimeout(timer);
     loader.remove();
+    combineEffect?.cancel?.();
     console.error("combine failed", err);
     shake(src.el); shake(dst.el);
     // 给用户一个可见提示（非阻塞）
@@ -661,73 +751,48 @@ function shake(el) {
 }
 
 // ============================================================
-// KPI 累计动画
+// Score level rendering and mutation
 // ============================================================
-
-// 段位表（启动时从 /api/tiers 拉，和后端 kpi.TIERS 对齐）
-// 瑞雪以上是"里程碑档位"；真实的阶梯是瑞雪内按 🌟 累加（后端动态拼）
-let TIERS = [
-  { floor: 0, grade: "3-", label: "待改进", emoji: "🔴" },
-  { floor: 500, grade: "3.25", label: "勉强合格", emoji: "🟡" },
-  { floor: 1500, grade: "3.5", label: "达标", emoji: "🟢" },
-  { floor: 3500, grade: "3.75", label: "优秀", emoji: "🔵" },
-  { floor: 8000, grade: "瑞雪", label: "瑞雪兆丰年", emoji: "❄️" },
-  { floor: 11200, grade: "瑞雪🌛", label: "月华如水", emoji: "🌛" },
-  { floor: 20800, grade: "瑞雪🌞", label: "日耀乾坤", emoji: "🌞" },
-  { floor: 59200, grade: "瑞雪👑", label: "加冕鹅王", emoji: "👑" },
-  { floor: 212800, grade: "暴雪领主", label: "极地主宰鹅", emoji: "🌨️" },
-];
-
-async function loadTiers() {
-  try {
-    const r = await fetch("/api/tiers").then(x => x.json());
-    if (Array.isArray(r.tiers) && r.tiers.length > 0) TIERS = r.tiers;
-  } catch (_) { /* 用内置兜底 */ }
+function currentLevel() {
+  return window.SCORE_LEVEL.rankFor(state.score);
 }
 
-function tierAt(score) {
-  let cur = TIERS[0];
-  for (const t of TIERS) if (score >= t.floor) cur = t;
-  return cur;
+function renderHomeLevel(rank = currentLevel()) {
+  scoreLevelIconsEl.textContent = rank.icons || "尚未获得星星";
+  const label = `等级，${rank.aria_label}`;
+  $("#btn-score").setAttribute("aria-label", label);
+  $("#btn-score").title = `${label}；点击打开分数记录`;
 }
 
-/**
- * 把 stars 数按 base-4 拆成 (👑, 🌞, 🌛, 🌟) 四段
- * 1👑 = 64🌟，1🌞 = 16🌟，1🌛 = 4🌟，1🌟 = 1🌟
- * 必须和 backend kpi._stars_to_symbols 的权重保持一致，
- * 这样 UI 显示的 "k👑 + k🌞 + k🌛 + k🌟" 就能和 grade 字符串 (如 "瑞雪👑🌛🌟") 完全对齐。
- */
-function starsBreakdown(stars) {
-  const weights = [["👑", 64], ["🌞", 16], ["🌛", 4], ["🌟", 1]];
-  const out = [];
-  let remain = Math.max(0, stars | 0);
-  for (const [sym, w] of weights) {
-    const k = Math.floor(remain / w);
-    remain -= k * w;
-    out.push([sym, k]);
-  }
-  return out;
-}
-
-function animateKpi(delta) {
-  const target = state.kpi + delta;
-  const start = state.kpi;
-
-  const dur = 500, t0 = performance.now();
-  function step(t) {
-    const p = Math.min(1, (t - t0) / dur);
-    const val = Math.round(start + (target - start) * (1 - Math.pow(1 - p, 3)));
-    kpiValueEl.textContent = val;
-    if (p < 1) requestAnimationFrame(step);
-    else state.kpi = target;
-  }
-  requestAnimationFrame(step);
+function animateScore(delta, sourceEl) {
+  const start = state.score;
+  const target = start + delta;
+  const before = window.SCORE_LEVEL.rankFor(start);
+  const after = window.SCORE_LEVEL.rankFor(target);
+  state.score = target;
   localStorage.setItem("ic_kpi", String(target));
+  renderHomeLevel(after);
 
-  kpiDeltaEl.textContent = `+${delta}`;
-  kpiDeltaEl.classList.add("show");
-  clearTimeout(animateKpi._t);
-  animateKpi._t = setTimeout(() => kpiDeltaEl.classList.remove("show"), 900);
+  window.EFFECTS?.animateScoreGain?.({
+    source: sourceEl,
+    target: $("#btn-score"),
+    delta,
+    before,
+    after,
+    steps: window.SCORE_LEVEL.transitionSteps(
+      before.level_units,
+      after.level_units
+    ),
+    renderFinal: () => renderHomeLevel(after),
+  });
+
+  scoreDeltaEl.textContent = `+${delta} 分`;
+  scoreDeltaEl.classList.add("show");
+  clearTimeout(animateScore._timer);
+  animateScore._timer = setTimeout(
+    () => scoreDeltaEl.classList.remove("show"),
+    1_800
+  );
 }
 
 // ============================================================
@@ -770,7 +835,7 @@ function recipeKey(a, b) {
   return [a, b].sort().join(" + ");
 }
 
-function rememberRecipe(leftInfo, rightInfo, resultInfo) {
+function rememberRecipe(leftInfo, rightInfo, resultInfo, meta = {}) {
   const key = recipeKey(leftInfo.name, rightInfo.name);
   const recipe = {
     key,
@@ -781,6 +846,10 @@ function rememberRecipe(leftInfo, rightInfo, resultInfo) {
     category: resultInfo.category,
     icon: resultInfo.icon,
     is_starter: resultInfo.is_starter,
+    hit_count: Math.max(1, Number(meta.hitCount) || 1),
+    depth: Number.isFinite(Number(meta.depth))
+      ? Math.max(0, Math.trunc(Number(meta.depth)))
+      : 0,
     ts: Date.now(),
   };
   // 去重：同一组合只保留最后一次
@@ -791,6 +860,7 @@ function rememberRecipe(leftInfo, rightInfo, resultInfo) {
     state.recipes.push(recipe);
   }
   persistDiscovered();
+  syncRecipeLinks();
   if (window.__renderRecipebook) window.__renderRecipebook();
 }
 
@@ -801,6 +871,7 @@ function bindSearch() {
 function bindButtons() {
   $("#btn-reset").addEventListener("click", () => {
     state.onCanvas.slice().forEach(r => removeCanvasEl(r.id));
+    recipeLinks.clear();
   });
   $("#nick-display")?.addEventListener("click", async () => {
     await rerollNickname();
@@ -851,10 +922,15 @@ function toggleScorePanel(e) {
 function renderScorePanel() {
   const list = $("#score-panel-list");
   const empty = $("#score-panel-empty");
-  const total = $("#score-panel-total");
   if (!list) return;
 
-  total.textContent = state.kpi;
+  const rank = currentLevel();
+  $("#score-panel-total").textContent = state.score;
+  $("#score-panel-level").textContent = rank.icons || "尚未获得星星";
+  $("#score-panel-full-icons").textContent = rank.icons || "尚未获得星星";
+  $("#score-panel-full-icons").setAttribute("aria-label", rank.aria_label);
+  const progressFill = $("#score-panel-progress-fill");
+  progressFill.style.width = `${Math.max(0, Math.min(100, rank.progress * 100))}%`;
 
   // 左：加分历史
   if (state.scoreEvents.length === 0) {
@@ -880,128 +956,6 @@ function renderScorePanel() {
     }
   }
 
-  // 右：段位路径（异步拉后端，失败时纯前端回退）
-  renderTiersPane();
-}
-
-async function renderTiersPane() {
-  const box = $("#score-panel-tiers");
-  const badge = $("#score-panel-rank");
-  if (!box) return;
-  let rank = null;
-  // 用本地 state.kpi 作为权威分数（避免后端 chain 评分和前端 depth 评分不一致）
-  try {
-    rank = await fetch(`/api/rank?total=${state.kpi}`).then(r => r.json());
-  } catch (_) { /* 下面走前端兜底 */ }
-  if (!rank) {
-    // 兜底：只用 TIERS + 当前 state.kpi 画静态表
-    const cur = tierAt(state.kpi);
-    rank = {
-      total: state.kpi,
-      grade: cur.grade, label: cur.label, emoji: cur.emoji,
-      floor: cur.floor,
-      next_floor: cur.floor, next_grade: cur.grade, next_label: cur.label, next_emoji: cur.emoji,
-      to_next: 0, topped: false,
-      // 兜底不暴露 stars 字段，避免在"还没进入瑞雪"时显示 0/256 误导
-      all_tiers: TIERS,
-    };
-  }
-  // 保证 rank.total 和本地 state.kpi 一致，highlight 用它做判断
-  rank.total = state.kpi;
-
-  if (badge) {
-    badge.textContent = `· ${rank.emoji} ${rank.grade}`;
-    badge.title = rank.label;
-  }
-
-  box.replaceChildren();
-
-  // 当前状态卡片（置顶）
-  const header = document.createElement("div");
-  header.className = "tier-current-card";
-  const progressDenom = Math.max(1, rank.next_floor - rank.floor);
-  const progressPct = Math.max(4, Math.min(100, ((rank.total - rank.floor) / progressDenom) * 100));
-
-  // 下一档提示：未封顶时显示 "距 X 还差 Y 分"
-  //   - 未到瑞雪：X 是基础档位（3.25 / 3.5 / …）
-  //   - 瑞雪及以上：X 是下一次"🌟 视觉变化"后的形态，和 grade 字符串直接对齐
-  //   （后端 next_grade 已经生成好，例如当前是 瑞雪🌛🌟 → next_grade = 瑞雪🌛🌟🌟）
-  // 🌟 breakdown：只在已经进入瑞雪阶（stars > 0 或 rank.grade 包含瑞雪）时显示
-  //   显示时把 stars 拆成 👑/🌞/🌛/🌟 的组合，和 grade 字符串 1:1 对齐
-  //   例：stars=69 → 1👑 + 0🌞 + 1🌛 + 1🌟，grade 恰好是 瑞雪👑🌛🌟
-  let starsSummary = null;
-  const inSnow = (rank.stars != null && rank.stars > 0)
-    || (rank.grade && rank.grade.startsWith("瑞雪"));
-  if (inSnow && rank.max_stars) {
-    const breakdown = starsBreakdown(rank.stars || 0);
-    const pieces = breakdown
-      .filter(([, n]) => n > 0)
-      .map(([sym, n]) => `${n}${sym}`)
-      .join(" + ");
-    starsSummary = pieces || "0🌟";
-  }
-
-  appendTextElement(header, "div", "tier-current-emoji", rank.emoji);
-  const main = appendTextElement(
-    header, "div", "tier-current-main", ""
-  );
-  appendTextElement(main, "div", "tier-current-grade", rank.grade);
-  appendTextElement(main, "div", "tier-current-label", rank.label || "");
-  const next = appendTextElement(
-    header, "div", "tier-current-next", ""
-  );
-  if (rank.topped) {
-    next.append("👑 已达 ");
-    appendTextElement(
-      next, "b", "", `${rank.emoji} ${rank.grade}`
-    );
-    next.append("，继续堆分进入 ");
-    appendTextElement(next, "b", "", rank.next_grade);
-  } else {
-    next.append("距 ");
-    appendTextElement(
-      next, "b", "", `${rank.next_emoji} ${rank.next_grade}`
-    );
-    next.append(" 还差 ");
-    appendTextElement(next, "b", "", rank.to_next);
-    next.append(" 分");
-  }
-  const progress = appendTextElement(
-    next, "div", "tier-progress", ""
-  );
-  const fill = appendTextElement(
-    progress, "div", "tier-progress-fill", ""
-  );
-  fill.style.width = `${progressPct}%`;
-  if (starsSummary != null) {
-    const stars = appendTextElement(next, "div", "tier-stars", "");
-    stars.append("已累积瑞雪 ");
-    appendTextElement(stars, "b", "", starsSummary);
-    stars.append(
-      `（= ${rank.stars} / ${rank.max_stars} 🌟，` +
-      `每 ${rank.star_step} 分 1🌟）`
-    );
-  }
-  box.appendChild(header);
-
-  // 全部段位列表
-  const listBox = document.createElement("div");
-  listBox.className = "tier-list";
-  const tiers = rank.all_tiers || TIERS;
-  for (const t of tiers) {
-    const reached = rank.total >= t.floor;
-    // "当前档"的判断：该档 floor 是 <=total 里最大的
-    const isCurrent = reached &&
-      !tiers.some(x => x.floor > t.floor && rank.total >= x.floor);
-    const row = document.createElement("div");
-    row.className = "tier-row " + (isCurrent ? "current" : reached ? "reached" : "locked");
-    appendTextElement(row, "span", "tier-emoji", t.emoji);
-    appendTextElement(row, "span", "tier-grade", t.grade);
-    appendTextElement(row, "span", "tier-label", t.label);
-    appendTextElement(row, "span", "tier-floor", `≥ ${t.floor}`);
-    listBox.appendChild(row);
-  }
-  box.appendChild(listBox);
 }
 
 function formatTime(ts) {
@@ -1275,6 +1229,7 @@ async function importRecipes(ev) {
   }
 
   persistDiscovered();
+  syncRecipeLinks();
   renderSidebar(searchInput.value);
   renderRecipebook($("#recipebook-search").value);
 
@@ -1295,5 +1250,9 @@ async function settle() {
     panel.classList.add("show");
   }
 }
+
+window.addEventListener("pagehide", (event) => {
+  if (!event.persisted) recipeLinks.destroy();
+});
 
 init();

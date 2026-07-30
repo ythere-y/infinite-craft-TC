@@ -6,6 +6,7 @@ import {
   collectUnseenPrefix,
   mergeFirstItems,
 } from "../frontend/wall/polling.js";
+import { recipeCommentFor } from "../frontend/wall/recipe-comments.js";
 
 test("score-level helper loads before consumers", async () => {
   const html = await readFile("frontend/index.html", "utf8");
@@ -13,6 +14,41 @@ test("score-level helper loads before consumers", async () => {
   assert.ok(html.indexOf("icon-system.js") < html.indexOf("score-level.js"));
   assert.ok(html.indexOf("score-level.js") < html.indexOf("effects.js"));
   assert.ok(html.indexOf("score-level.js") < html.indexOf("app.js"));
+});
+
+test("recipe comments prefer API rows and safely fall back to an open formula", () => {
+  const formula = {
+    id: "formula-1",
+    a: "秃头循环",
+    b: "张志东",
+    comment: "社区公式里的旧点评。",
+  };
+
+  assert.equal(
+    recipeCommentFor(
+      {
+        a: "张志东",
+        b: "秃头循环",
+        comment: "  大佬面前，秃头循环只能绕道走。  ",
+      },
+      formula,
+    ),
+    "大佬面前，秃头循环只能绕道走。",
+  );
+  assert.equal(
+    recipeCommentFor(
+      { a: "张志东", b: "秃头循环" },
+      formula,
+    ),
+    "社区公式里的旧点评。",
+  );
+  assert.equal(
+    recipeCommentFor(
+      { a: "代码", b: "创始人", comment: "" },
+      formula,
+    ),
+    null,
+  );
 });
 
 test("wall uses visibility-aware incremental polling instead of SSE", async () => {
@@ -156,6 +192,36 @@ test("frontend supports protected admin stats and batched recipe verification", 
   assert.match(app, /comment:\s*resp\.comment/);
 });
 
+test("main game feeds plain snapshots to the replaceable recipe-link module", async () => {
+  const [html, app, links, build] = await Promise.all([
+    readFile("frontend/index.html", "utf8"),
+    readFile("frontend/app.js", "utf8"),
+    readFile("frontend/recipe-links.js", "utf8"),
+    readFile("scripts/build-makers.mjs", "utf8"),
+  ]);
+
+  assert.match(html, /recipe-links\.css\?v=([^"]+)/);
+  assert.ok(html.indexOf("recipe-links.js") < html.indexOf("app.js"));
+  assert.match(app, /const NOOP_RECIPE_LINKS = Object\.freeze/);
+  assert.match(app, /window\.RECIPE_LINKS\?\.create\?\.\(workspace\)/);
+  assert.match(app, /function recipeLinkSnapshots\(\)/);
+  assert.match(app, /recipeLinks\.sync\(\{\s*recipes,\s*elements\s*\}\)/s);
+  assert.match(app, /recipeLinks\.scheduleGeometryUpdate\(elements\)/);
+  assert.match(
+    app,
+    /pagehide[\s\S]*if \(!event\.persisted\) recipeLinks\.destroy\(\)/,
+  );
+  assert.match(
+    app,
+    /rememberRecipe\(src,\s*dst,\s*resultInfo,\s*\{\s*hitCount:\s*resp\.hit_count,\s*depth:\s*resp\.depth,\s*\}\)/s,
+  );
+  assert.match(app, /hit_count:\s*Math\.max\(1,/);
+  assert.match(app, /depth:\s*Number\.isFinite\(Number\(meta\.depth\)\)/);
+  assert.doesNotMatch(links, /localStorage|fetch\(|state\.|recipebook/);
+  assert.match(build, /"recipe-links\.css"/);
+  assert.match(build, /"recipe-links\.js"/);
+});
+
 test("combine feedback owns the only formula publication bubble", async () => {
   const [app, effects, styles, feedback] = await Promise.all([
     readFile("frontend/app.js", "utf8"),
@@ -230,16 +296,21 @@ test("main game uses compact sticker and action-icon contracts", async () => {
   }
 
   const readyAt = app.indexOf("await window.ICON_SYSTEM.ready");
-  const loadAt = app.indexOf("await Promise.all([loadElements(), loadTiers()])");
+  const loadAt = app.indexOf("await loadElements()");
   const hydrateAt = app.indexOf("window.ICON_SYSTEM.hydrateActions(document)");
   assert.ok(readyAt >= 0 && readyAt < loadAt && loadAt < hydrateAt);
 
   assert.match(app, /function makeElementChip\(info,/);
   assert.match(app, /function spawnAtWorkspaceCenter\(info\)/);
   assert.match(app, /function onPointerDown\(e, el, info, source\)/);
+  assert.match(app, /function setDragTarget\(record, active\)/);
+  assert.match(app, /EFFECTS\?\.setCombineTarget\?\.\(record\.el, active\)/);
   assert.match(app, /function spawnOnCanvas\(info, x, y\)/);
   assert.match(app, /function makeInteractiveRecipeChip\(info,/);
-  assert.match(app, /function rememberRecipe\(leftInfo, rightInfo, resultInfo\)/);
+  assert.match(
+    app,
+    /function rememberRecipe\(leftInfo, rightInfo, resultInfo, meta = \{\}\)/,
+  );
   assert.match(app, /function recordScoreEvent\(info, gained, depth, tier\)/);
   assert.match(app, /icon:\s*info\.icon/);
   assert.match(app, /elementInfoFor\(ev\.result, ev\)/);
@@ -249,7 +320,16 @@ test("main game uses compact sticker and action-icon contracts", async () => {
     /const previousResultInfo = state\.elements\[resp\.result\].*?icon:\s*resp\.icon \?\? previousResultInfo\.icon/s,
   );
   assert.match(app, /onCombineResult\?\.\(newRec\.el, resultInfo, tier,/);
+  assert.match(app, /EFFECTS\?\.beginCombine\?\.\(\s*workspace, src\.el, dst\.el, x, y/s);
+  assert.match(
+    app,
+    /combineEffect\?\.finish\?\.\(\{\s*depth:\s*resp\.depth,\s*discovered:\s*isNewToPlayer,?\s*\}\)/s,
+  );
+  assert.doesNotMatch(app, /combineEffect\?\.finish\?\.\(tier\)/);
   assert.match(effects, /firstToast\(info,/);
+  assert.match(effects, /EFFECTS\.beginCombine = function/);
+  assert.match(effects, /EFFECTS\.flyScore = function/);
+  assert.match(effects, /prefers-reduced-motion:\s*reduce/);
   assert.match(effects, /renderToast\(document, el, \{\s*\.\.\.info,/);
   assert.match(effects, /new WeakMap\(\)/);
   assert.match(effects, /ICON_SYSTEM\.renderElement\(document, el, payload\)/);
