@@ -677,11 +677,11 @@ function renderHomeLevel(rank = currentLevel()) {
 function animateScore(delta, sourceEl) {
   const start = state.score;
   const safeDelta = window.SCORE_LEVEL.normalizeScore(delta);
-  const target = window.SCORE_LEVEL.normalizeScore(start + safeDelta);
+  const rawTarget = window.SCORE_LEVEL.normalizeScore(start + safeDelta);
   const before = window.SCORE_LEVEL.rankFor(start);
-  const after = window.SCORE_LEVEL.rankFor(target);
-  state.score = target;
-  localStorage.setItem("ic_kpi", String(target));
+  const after = window.SCORE_LEVEL.rankFor(rawTarget);
+  state.score = rawTarget;
+  localStorage.setItem("ic_kpi", String(rawTarget));
   renderHomeLevel(after);
 
   try {

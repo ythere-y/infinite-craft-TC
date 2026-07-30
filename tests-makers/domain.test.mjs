@@ -3,7 +3,8 @@ import test from "node:test";
 
 import {
   levelThreshold,
-  MAX_SCORE,
+  MAX_LEVEL_SCORE,
+  normalizeScore,
   rankFor,
   scoreFor,
   shouldExplode,
@@ -50,7 +51,15 @@ test("rank inputs use the finite nonnegative JavaScript safe integer contract", 
   assert.deepEqual(rankFor(Number.NaN), zero);
   assert.deepEqual(rankFor(Number.POSITIVE_INFINITY), zero);
   assert.deepEqual(rankFor(-1), zero);
-  assert.deepEqual(rankFor(10 ** 100), rankFor(MAX_SCORE));
+  assert.deepEqual(rankFor(10 ** 100), rankFor(MAX_LEVEL_SCORE));
+});
+
+test("Edge ranks cap independently from raw score normalization", () => {
+  assert.equal(
+    normalizeScore(MAX_LEVEL_SCORE + 500),
+    MAX_LEVEL_SCORE + 500,
+  );
+  assert.equal(rankFor(MAX_LEVEL_SCORE + 500).level_units, 65_535);
 });
 
 test("KPI effects keep their established scores and explosion rules", () => {

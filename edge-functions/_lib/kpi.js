@@ -17,7 +17,7 @@ export const STAR_COST_STEP = 20;
 export const MERGE_BASE = 4;
 export const LEVEL_ICONS = Object.freeze(["👑", "🌞", "🌙", "🌟"]);
 export const MAX_LEVEL_UNITS = 65_535;
-export const MAX_SCORE = (
+export const MAX_LEVEL_SCORE = (
   MAX_LEVEL_UNITS * BASE_STAR_COST
   + (STAR_COST_STEP * MAX_LEVEL_UNITS * (MAX_LEVEL_UNITS - 1)) / 2
   + BASE_STAR_COST + STAR_COST_STEP * MAX_LEVEL_UNITS - 1
@@ -36,6 +36,10 @@ function safeInteger(rawValue, maximum = Number.MAX_SAFE_INTEGER) {
   if (!Number.isFinite(numeric)) return 0;
   const value = Math.trunc(numeric);
   return Math.min(maximum, Math.max(0, value));
+}
+
+export function normalizeScore(rawValue) {
+  return safeInteger(rawValue);
 }
 
 export function levelThreshold(rawUnits) {
@@ -57,8 +61,8 @@ function levelUnits(score) {
 }
 
 export function rankFor(rawTotal) {
-  const score = safeInteger(rawTotal, MAX_SCORE);
-  const units = levelUnits(score);
+  const displayScore = Math.min(normalizeScore(rawTotal), MAX_LEVEL_SCORE);
+  const units = levelUnits(displayScore);
   let remaining = units;
   const crowns = Math.floor(remaining / 64);
   remaining %= 64;
@@ -84,7 +88,7 @@ export function rankFor(rawTotal) {
     stars,
     icons,
     aria_label: labels.join("、") || "尚未获得星星",
-    progress: (score - floor) / Math.max(1, ceiling - floor),
+    progress: (displayScore - floor) / Math.max(1, ceiling - floor),
     grade: icons || "尚未获得星星",
     emoji: Array.from(icons)[0] || "🌟",
     topped: false,

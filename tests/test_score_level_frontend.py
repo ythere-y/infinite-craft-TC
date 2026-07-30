@@ -191,6 +191,31 @@ def test_score_mutation_persists_history_without_optional_effect(tmp_path):
     }
 
 
+def test_score_mutation_continues_after_the_display_level_cap(tmp_path):
+    actual = _run_score_app(tmp_path, """
+      animateScore(50, document.querySelector('#workspace'));
+      recordScoreEvent({name:'封顶后合成',emoji:'🧩'},50,1,'repeat');
+      return {
+        stored:localStorage.getItem('ic_kpi'),
+        levelUnits:state.score && window.SCORE_LEVEL.rankFor(state.score).level_units,
+        steps:window.__scoreJobs[0].steps,
+        historyGained:JSON.parse(localStorage.getItem('ic_scores'))[0].gained,
+        delta:window.__scoreJobs[0].delta
+      };
+    """, """
+      localStorage.setItem('ic_kpi','42968678399');
+      window.__scoreJobs=[];
+      window.EFFECTS.animateScoreGain=function(job){window.__scoreJobs.push(job)};
+    """)
+    assert actual == {
+        "stored": "42968678449",
+        "levelUnits": 65535,
+        "steps": [],
+        "historyGained": 50,
+        "delta": 50,
+    }
+
+
 def test_score_mutation_survives_effect_failure(tmp_path):
     actual = _run_score_app(tmp_path, """
       var threw=false;
@@ -211,7 +236,7 @@ def test_cached_and_added_scores_use_finite_nonnegative_safe_integers(tmp_path):
         ("NaN", 0, "20"),
         ("Infinity", 0, "20"),
         ("-25", 0, "20"),
-        ("9007199254740991000", 42_968_678_399, "42968678399"),
+        ("9007199254740991000", 9_007_199_254_740_991, "9007199254740991"),
     )
     for cached, expected_initial, expected_stored in cases:
         actual = _run_score_app(tmp_path, """

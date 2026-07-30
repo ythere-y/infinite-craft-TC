@@ -44,8 +44,13 @@ def test_invalid_scores_normalize_to_zero():
 
 
 def test_huge_scores_are_bounded_to_javascript_safe_integer_contract():
-    expected = kpi.rank_for(kpi.MAX_SCORE)
-    assert kpi.rank_for(kpi.MAX_SCORE + 1) == expected
+    expected = kpi.rank_for(kpi.MAX_LEVEL_SCORE)
+    assert kpi.rank_for(kpi.MAX_LEVEL_SCORE + 1) == expected
     assert kpi.rank_for(10**1000) == expected
     assert expected["level_units"] == kpi.MAX_LEVEL_UNITS
     assert len(expected["icons"]) < 1_100
+
+
+def test_raw_score_normalization_keeps_values_above_the_display_cap():
+    assert kpi.normalize_score(kpi.MAX_LEVEL_SCORE + 500) == kpi.MAX_LEVEL_SCORE + 500
+    assert kpi.rank_for(kpi.MAX_LEVEL_SCORE + 500)["level_units"] == 65_535

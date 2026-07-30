@@ -27,8 +27,21 @@ test("browser score normalization is finite, nonnegative, and safe", async () =>
   assert.equal(levels.normalizeScore(-1), 0);
   assert.equal(
     levels.normalizeScore(Number.MAX_SAFE_INTEGER + 100),
-    levels.MAX_SCORE,
+    Number.MAX_SAFE_INTEGER,
   );
+});
+
+test("browser retains raw score above the display-level cap", async () => {
+  const levels = await loadScoreLevel();
+  assert.equal(
+    levels.normalizeScore(levels.MAX_LEVEL_SCORE + 500),
+    levels.MAX_LEVEL_SCORE + 500,
+  );
+  assert.equal(
+    levels.rankFor(levels.MAX_LEVEL_SCORE + 500).level_units,
+    65_535,
+  );
+  assert.deepEqual(Array.from(levels.transitionSteps(65_535, 65_535)), []);
 });
 
 test("transition steps describe each base-four carry", async () => {

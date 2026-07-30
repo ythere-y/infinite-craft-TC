@@ -4,14 +4,14 @@
   var BASE_STAR_COST = 300;
   var STAR_COST_STEP = 20;
   var MAX_LEVEL_UNITS = 65_535;
-  var MAX_SCORE = MAX_LEVEL_UNITS * BASE_STAR_COST
+  var MAX_LEVEL_SCORE = MAX_LEVEL_UNITS * BASE_STAR_COST
     + (STAR_COST_STEP * MAX_LEVEL_UNITS * (MAX_LEVEL_UNITS - 1)) / 2
     + BASE_STAR_COST + STAR_COST_STEP * MAX_LEVEL_UNITS - 1;
 
   function normalizeScore(value) {
     var score = Number(value);
     if (!Number.isFinite(score)) return 0;
-    return Math.max(0, Math.min(MAX_SCORE, Math.trunc(score)));
+    return Math.max(0, Math.min(Number.MAX_SAFE_INTEGER, Math.trunc(score)));
   }
 
   function levelThreshold(value) {
@@ -33,8 +33,8 @@
   }
 
   function rankFor(value) {
-    var score = normalizeScore(value);
-    var units = levelUnits(score);
+    var displayScore = Math.min(normalizeScore(value), MAX_LEVEL_SCORE);
+    var units = levelUnits(displayScore);
     var remaining = units;
     var crowns = Math.floor(remaining / 64);
     remaining %= 64;
@@ -60,7 +60,7 @@
       stars: stars,
       icons: icons,
       aria_label: labels.join("、") || "尚未获得星星",
-      progress: (score - floor) / Math.max(1, ceiling - floor),
+      progress: (displayScore - floor) / Math.max(1, ceiling - floor),
     };
   }
 
@@ -78,7 +78,7 @@
   root.SCORE_LEVEL = Object.freeze({
     BASE_STAR_COST: BASE_STAR_COST,
     STAR_COST_STEP: STAR_COST_STEP,
-    MAX_SCORE: MAX_SCORE,
+    MAX_LEVEL_SCORE: MAX_LEVEL_SCORE,
     normalizeScore: normalizeScore,
     levelThreshold: levelThreshold,
     rankFor: rankFor,
