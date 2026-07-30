@@ -14,6 +14,7 @@ const MAX_FIRSTS = 10_000;
 const MAX_RECENT_FIRSTS = 500;
 const MAX_INDEX_RECORDS_PER_SHARD = 2_000;
 const MAX_RECIPES_PER_RESULT = 100;
+// Legacy kpi_* compatibility records retain their existing key and constant names.
 const MAX_KPI_LOG = 100;
 const KPI_SHARD_COUNT = 32;
 const RECORD_READ_BATCH = 20;
@@ -820,6 +821,7 @@ export class KvStore {
   }
 
   async addKpi(sessionId, delta, reason) {
+    // Keep the literal legacy kpi_* shard key so existing score records remain readable.
     const cleanSessionId = cleanText(sessionId) || "default";
     const sessionHash = await sha256Hex(cleanSessionId);
     const amount = finiteInteger(delta);
@@ -851,6 +853,7 @@ export class KvStore {
   }
 
   async kpiTotal(sessionId) {
+    // Read the same legacy kpi_* records used by prior score sessions.
     const cleanSessionId = cleanText(sessionId) || "default";
     const prefix = `kpi_${await sha256Hex(cleanSessionId)}_`;
     const keys = await this.listAllKeys(prefix);

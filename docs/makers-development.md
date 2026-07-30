@@ -133,7 +133,8 @@ npm run makers:build
 ```
 
 Edge Function 将 `test` 当作整个数据库使用，并在运行时自动创建组合、元素、
-首发、昵称、KPI、排行榜和索引所需的 key。
+首发、昵称、分数、排行榜和索引所需的 key。现有分数记录仍使用字面量
+`kpi_*` KV key，以兼容已持久化的数据。
 
 控制台中已有的 `test_dev → infinite_craft_dev` 可以保留备用，但当前源代码
 不会读取它。本地开发也不会连接它。

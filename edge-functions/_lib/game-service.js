@@ -223,6 +223,7 @@ export function createGameService({
     let isFirst = false;
     let recordedDiscoverer = null;
     let depth = 0;
+    // Retain the legacy kpi field names for response compatibility.
     let kpi = { delta: 0, reason: "" };
 
     if (source !== "fallback") {
@@ -243,6 +244,7 @@ export function createGameService({
           ...(icon ? { icon } : {}),
         });
       }
+      // The store method keeps legacy kpi_* score records for compatibility.
       kpi = scoreFor(chain, isFirst);
       await store.addKpi(sessionId, kpi.delta, kpi.reason);
     }
@@ -278,6 +280,7 @@ export function createGameService({
       is_first: isFirst,
       discoverer: recordedDiscoverer,
       explode: shouldExplode(chain, hit.result),
+      // Legacy compatibility response fields; clients use depth/full_score.
       kpi_delta: kpi.delta,
       kpi_reason: kpi.reason,
       depth,

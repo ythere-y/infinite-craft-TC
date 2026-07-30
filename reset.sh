@@ -62,7 +62,7 @@ cmd_clean() {
 
   if [[ "$env" == "prod" ]]; then
     echo "⚠️  你正在清空 PROD 数据！"
-    confirm "确定继续？所有 prod 合成缓存、首发榜、KPI、昵称占位都会消失。" || exit 0
+    confirm "确定继续？所有 prod 合成缓存、首发榜、分数记录、昵称占位都会消失。" || exit 0
   fi
 
   require_running

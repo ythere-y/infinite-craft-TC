@@ -480,7 +480,7 @@ body.ura-on .element.on-canvas.is-starter {
 }
 .shake { animation: shake .35s; }
 
-/* ---------- KPI delta 浮动提示（顶栏分数按钮下方） ---------- */
+/* ---------- 分数 delta 浮动提示（顶栏分数按钮下方） ---------- */
 .kpi-delta {
   position: fixed;
   top: 56px;
@@ -524,7 +524,7 @@ body.ura-on .element.on-canvas.is-starter {
 /* 分数 delta 浮动也改蓝色 */
 .kpi-delta { color: #1E88E5 !important; }
 
-/* ---------- KPI 复盘面板（右上角下方，双栏：加分历史 + 段位路径）---------- */
+/* ---------- 分数记录面板（右上角下方，双栏：加分历史 + 等级进度）---------- */
 /* 浅色主题，和 sidebar / recipebook 保持同一视觉语言 */
 .score-panel {
   position: fixed;
@@ -815,7 +815,7 @@ body.ura-on .element.on-canvas.is-starter {
 }
 body.quaking { animation: quake .5s 2; }
 
-/* ---------- 绩效结算 modal ---------- */
+/* ---------- 旧分数弹窗样式（兼容保留） ---------- */
 .modal {
   position: fixed;
   inset: 0;
@@ -845,7 +845,7 @@ body.quaking { animation: quake .5s 2; }
 .modal-total { font-size: 14px; color: #666; margin-top: 14px; }
 .modal-comment { font-size: 15px; color: #444; margin-top: 10px; font-style: italic; }
 
-/* 结算段位进度 */
+/* 旧分数弹窗的等级进度 */
 .settle-tiers {
   margin: 16px auto 0;
   max-width: 360px;
@@ -900,7 +900,7 @@ body.quaking { animation: quake .5s 2; }
   transition: width .5s ease-out;
 }
 
-/* 结算段位进度 */
+/* 旧分数弹窗的等级进度 */
 .settle-tiers {
   margin: 16px auto 0;
   max-width: 360px;
@@ -1194,7 +1194,7 @@ body.quaking { animation: quake .5s 2; }
   }
 }
 
-/* ---------- 段位跃迁全屏庆祝 ---------- */
+/* ---------- 等级跃迁全屏庆祝 ---------- */
 .tier-celebrate {
   position: fixed;
   inset: 0;
@@ -1619,7 +1619,7 @@ body.ura-on .workspace .element.on-canvas {
   box-shadow: 0 2px 8px rgba(167,139,250,0.2);
 }
 
-/* KPI 面板在夜间时也翻转 */
+/* 分数记录面板在夜间时也翻转 */
 body.ura-on .score-panel {
   background: #14142E;
   color: #E8E6FF;

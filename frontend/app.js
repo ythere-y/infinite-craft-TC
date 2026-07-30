@@ -28,7 +28,7 @@ const SESSION_ID = (() => {
   return sid;
 })();
 
-// 昵称：本地存 { id, name }。id 是短随机串，仅用于会话/KPI 标识；展示只显示 name
+// 昵称：本地存 { id, name }。id 是短随机串，仅用于会话/分数标识；展示只显示 name
 let NICKNAME = localStorage.getItem("ic_nick") || "";
 let NICK_ID = localStorage.getItem("ic_nick_id") || "";
 
@@ -795,7 +795,7 @@ function bindButtons() {
   $("#recipebook-export")?.addEventListener("click", exportRecipes);
   $("#recipebook-import-file")?.addEventListener("change", importRecipes);
 
-  // KPI 复盘面板（加分历史 + 段位路径 双栏）
+  // 分数记录面板（加分历史 + 等级进度双栏）
   $("#btn-score")?.addEventListener("click", toggleScorePanel);
   $("#score-panel-close")?.addEventListener("click", () => $("#score-panel").classList.remove("show"));
   // 点击面板外关闭
@@ -809,7 +809,7 @@ function bindButtons() {
 }
 
 // ============================================================
-// KPI 复盘面板（左: 加分历史 / 右: 段位路径）
+// 分数记录面板（左：加分历史 / 右：等级进度）
 // ============================================================
 function toggleScorePanel(e) {
   e?.stopPropagation();
@@ -1146,7 +1146,7 @@ async function importRecipes(ev) {
 }
 
 async function settle() {
-  // 老 settle() 已并入 KPI 复盘面板；保留入口兼容旧绑定
+  // 老 settle() 已并入分数记录面板；保留入口兼容旧绑定。
   const panel = $("#score-panel");
   if (panel && !panel.classList.contains("show")) {
     renderScorePanel();

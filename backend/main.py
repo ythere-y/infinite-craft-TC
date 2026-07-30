@@ -8,7 +8,7 @@ FastAPI 主入口。
   POST /api/combine       → 合成（seed/cache miss 时接 LLM）
   GET  /api/wall/stream   → SSE 首发推送（M4）
   POST /api/session/score → 上报分数
-  POST /api/session/kpi   → 上报 KPI（兼容旧版）
+  POST /api/session/kpi   → 上报分数（legacy compatibility route）
   GET  /api/session/{sid}/rank → 分数等级
 """
 
@@ -109,7 +109,7 @@ class CombineResp(BaseModel):
     is_first: bool = False
     discoverer: Optional[str] = None
     explode: bool = False
-    # 旧 KPI（保留兼容，但推荐用 depth/full_score）
+    # Legacy compatibility fields; new clients use depth/full_score for scores.
     kpi_delta: int = 0
     kpi_reason: str = ""
     # 新加分系统：depth 合成难度 + full_score（玩家未知时应得分）
@@ -535,7 +535,7 @@ async def api_combine(
             icon=icon,
         )
 
-    # 6. KPI（保留旧 chain 打分）
+    # 6. Legacy compatibility score fields still use the old chain scorer.
     delta, reason = kpi.score_for(chain, is_first)
     if source != "fallback":
         db.kpi_add(req.session_id or "default", delta, reason)
@@ -649,6 +649,7 @@ async def _combine_via_llm(a: str, b: str, request_id: str) -> Optional[dict]:
 
 # ---- 分数 ----
 def _add_score(req: ScoreReq) -> dict:
+    # db.kpi_add retains the legacy KV identifier for persisted score records.
     db.kpi_add(req.session_id, req.delta, req.reason)
     return {"ok": True, "total": db.kpi_total(req.session_id)}
 
@@ -660,6 +661,7 @@ async def api_score(req: ScoreReq):
 
 @app.post("/api/session/kpi")
 async def api_kpi_legacy(req: ScoreReq):
+    """Legacy compatibility route for clients that still post score updates here."""
     return _add_score(req)
 
 
@@ -735,7 +737,7 @@ async def api_rank(sid: str):
 
 @app.get("/api/rank")
 async def api_rank_for_total(total: int = 0):
-    """给定累计分数，返回对应分数等级。前端用它来按 state.kpi 正确显示等级。
+    """给定累计分数，返回对应分数等级。前端用它来按 state.score 正确显示等级。
     和 /api/session/{sid}/rank 的区别：不依赖 Redis 里的 session total，
     让前端完全掌握积分来源（depth-based），避免和后端 chain 评分不一致。"""
     total = max(0, int(total))

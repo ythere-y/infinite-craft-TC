@@ -1,6 +1,7 @@
 """
 分数规则。
-规则 chain 对应分值，首发加分，用于现场"打工人共鸣指数"。
+规则 chain 对应分值，首发加分；模块名保留为 legacy compatibility，避免改动
+既有持久化 `kpi_*` 标识。
 """
 
 CHAIN_SCORE = {
@@ -20,7 +21,7 @@ FIRST_DISCOVERY_BONUS = 50
 
 
 def score_for(chain: str | None, is_first: bool) -> tuple[int, str]:
-    """给一次合成分数，返回便于写分数事件表的 (delta, reason)。"""
+    """给一次合成分数，返回 legacy-compatible (delta, reason) 事件字段。"""
     base = CHAIN_SCORE.get(chain or "", 5)
     bonus = FIRST_DISCOVERY_BONUS if is_first else 0
     parts = [f"{chain or 'default'} +{base}"]
