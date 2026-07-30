@@ -80,7 +80,8 @@ test("static, health and rank routes keep their public contracts", async () => {
 
   const rank = await json(router, "/api/rank?total=59520");
   assert.equal(rank.body.total, 59_520);
-  assert.equal(rank.body.icons, "👑");
+  assert.equal(rank.body.icons, "👑🌟");
+  assert.equal(rank.body.level_units, 65);
   assert.equal(rank.body.topped, false);
   assert.ok(!("to_next" in rank.body));
   assert.ok(!("next_floor" in rank.body));
