@@ -11,11 +11,12 @@ from test_combine_feedback import (
     EFFECTS_SOURCE,
     ICON_SOURCE,
     INDEX_SOURCE,
-    SCORE_LEVEL_SOURCE,
     SOURCE,
     _browser_path,
     _production_stylesheet_paths,
 )
+
+SCORE_LEVEL_SOURCE = Path("frontend/score-level.js")
 
 
 def _run_score_effects(
@@ -151,6 +152,81 @@ def test_score_level_hostile_icons_remain_text(tmp_path):
       window.__xss=0;window.SCORE_LEVEL=Object.assign({{}},window.SCORE_LEVEL,{{rankFor:function(){{return {{level_units:1,icons:{json.dumps(hostile)},aria_label:'测试等级',progress:.5}}}}}});
     """)
     assert actual == {"injected": False, "home": hostile, "panel": hostile, "xss": 0}
+
+
+def test_rapid_score_mutations_cannot_finalize_to_a_stale_level(tmp_path):
+    actual = _run_score_app(tmp_path, """
+      animateScore(300, document.querySelector('#workspace'));
+      animateScore(1020, document.querySelector('#workspace'));
+      var immediate=document.querySelector('#score-level-icons').textContent;
+      window.__scoreJobs[0].renderFinal();
+      return {
+        immediate:immediate,
+        afterFirstFinal:document.querySelector('#score-level-icons').textContent,
+        stored:localStorage.getItem('ic_kpi')
+      };
+    """, """
+      window.__scoreJobs=[];
+      window.EFFECTS.animateScoreGain=function(job){window.__scoreJobs.push(job)};
+    """)
+    assert actual == {"immediate": "🌙", "afterFirstFinal": "🌙", "stored": "1320"}
+
+
+def test_score_mutation_persists_history_without_optional_effect(tmp_path):
+    actual = _run_score_app(tmp_path, """
+      animateScore(1320, document.querySelector('#workspace'));
+      recordScoreEvent({name:'无特效',emoji:'🧩'},1320,4,'global_new');
+      return {
+        home:document.querySelector('#score-level-icons').textContent,
+        stored:localStorage.getItem('ic_kpi'),
+        history:JSON.parse(localStorage.getItem('ic_scores')).map(function(row){
+          return {result:row.result,gained:row.gained}
+        })
+      };
+    """)
+    assert actual == {
+        "home": "🌙",
+        "stored": "1320",
+        "history": [{"result": "无特效", "gained": 1320}],
+    }
+
+
+def test_score_mutation_survives_effect_failure(tmp_path):
+    actual = _run_score_app(tmp_path, """
+      var threw=false;
+      try{animateScore(1320,document.querySelector('#workspace'))}catch(error){threw=true}
+      return {
+        threw:threw,
+        home:document.querySelector('#score-level-icons').textContent,
+        stored:localStorage.getItem('ic_kpi')
+      };
+    """, """
+      window.EFFECTS.animateScoreGain=function(){throw new Error('effect failed')};
+    """)
+    assert actual == {"threw": False, "home": "🌙", "stored": "1320"}
+
+
+def test_cached_and_added_scores_use_finite_nonnegative_safe_integers(tmp_path):
+    cases = (
+        ("NaN", 0, "20"),
+        ("Infinity", 0, "20"),
+        ("-25", 0, "20"),
+        ("9007199254740991000", 42_968_678_399, "42968678399"),
+    )
+    for cached, expected_initial, expected_stored in cases:
+        actual = _run_score_app(tmp_path, """
+          var initial=state.score;
+          animateScore(20,document.querySelector('#workspace'));
+          animateScore(-10,document.querySelector('#workspace'));
+          return {
+            initial:initial,
+            stored:localStorage.getItem('ic_kpi')
+          };
+        """, f"""
+          localStorage.setItem('ic_kpi',{json.dumps(cached)});
+          window.EFFECTS.animateScoreGain=function(){{}};
+        """)
+        assert actual == {"initial": expected_initial, "stored": expected_stored}
 
 
 def test_score_animation_serializes_jobs_inside_target_and_cleans_up(tmp_path):

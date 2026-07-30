@@ -198,7 +198,7 @@ const state = {
   // Legacy records with only `emoji` remain valid; renderers normalize them.
   recipes: JSON.parse(localStorage.getItem("ic_recipes") || "[]"),
   scoreEvents: JSON.parse(localStorage.getItem("ic_scores") || "[]"),
-  score: Number(localStorage.getItem("ic_kpi") || 0),
+  score: window.SCORE_LEVEL.normalizeScore(localStorage.getItem("ic_kpi")),
   onCanvas: [],
   nextId: 1,
 };
@@ -676,27 +676,33 @@ function renderHomeLevel(rank = currentLevel()) {
 
 function animateScore(delta, sourceEl) {
   const start = state.score;
-  const target = start + delta;
+  const safeDelta = window.SCORE_LEVEL.normalizeScore(delta);
+  const target = window.SCORE_LEVEL.normalizeScore(start + safeDelta);
   const before = window.SCORE_LEVEL.rankFor(start);
   const after = window.SCORE_LEVEL.rankFor(target);
   state.score = target;
   localStorage.setItem("ic_kpi", String(target));
   renderHomeLevel(after);
 
-  window.EFFECTS?.animateScoreGain?.({
-    source: sourceEl,
-    target: $("#btn-score"),
-    delta,
-    before,
-    after,
-    steps: window.SCORE_LEVEL.transitionSteps(
-      before.level_units,
-      after.level_units
-    ),
-    renderFinal: () => renderHomeLevel(after),
-  });
+  try {
+    window.EFFECTS?.animateScoreGain?.({
+      source: sourceEl,
+      target: $("#btn-score"),
+      delta: safeDelta,
+      before,
+      after,
+      steps: window.SCORE_LEVEL.transitionSteps(
+        before.level_units,
+        after.level_units
+      ),
+      renderFinal: () => renderHomeLevel(),
+    });
+  } catch (error) {
+    console.warn("score animation unavailable", error);
+    renderHomeLevel();
+  }
 
-  scoreDeltaEl.textContent = `+${delta} 分`;
+  scoreDeltaEl.textContent = `+${safeDelta} 分`;
   scoreDeltaEl.classList.add("show");
   clearTimeout(animateScore._timer);
   animateScore._timer = setTimeout(

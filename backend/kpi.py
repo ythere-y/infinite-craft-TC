@@ -4,6 +4,8 @@
 既有持久化 `kpi_*` 标识。
 """
 
+import math
+
 CHAIN_SCORE = {
     "tencent":       30,
     "meme_2026w16":  25,
@@ -34,15 +36,33 @@ BASE_STAR_COST = 300
 STAR_COST_STEP = 20
 MERGE_BASE = 4
 LEVEL_WEIGHTS = (("👑", 64), ("🌞", 16), ("🌙", 4), ("🌟", 1))
+MAX_LEVEL_UNITS = 65_535
+MAX_SCORE = (
+    MAX_LEVEL_UNITS * BASE_STAR_COST
+    + STAR_COST_STEP * MAX_LEVEL_UNITS * (MAX_LEVEL_UNITS - 1) // 2
+    + BASE_STAR_COST
+    + STAR_COST_STEP * MAX_LEVEL_UNITS
+    - 1
+)
+
+
+def _safe_integer(value, maximum: int) -> int:
+    try:
+        if isinstance(value, float) and not math.isfinite(value):
+            return 0
+        normalized = int(value)
+    except (TypeError, ValueError, OverflowError):
+        return 0
+    return min(maximum, max(0, normalized))
 
 
 def level_threshold(units: int) -> int:
-    value = max(0, int(units))
+    value = _safe_integer(units, MAX_LEVEL_UNITS + 1)
     return value * BASE_STAR_COST + STAR_COST_STEP * value * (value - 1) // 2
 
 
 def _level_units(total: int) -> int:
-    score = max(0, int(total))
+    score = _safe_integer(total, MAX_SCORE)
     low, high = 0, 1
     while level_threshold(high) <= score:
         high *= 2
@@ -68,7 +88,7 @@ def _breakdown(units: int) -> tuple[int, int, int, int, str]:
 
 
 def rank_for(total: int) -> dict:
-    score = max(0, int(total))
+    score = _safe_integer(total, MAX_SCORE)
     units = _level_units(score)
     crowns, suns, moons, stars, icons = _breakdown(units)
     floor = level_threshold(units)

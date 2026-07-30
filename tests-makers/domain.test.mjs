@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   levelThreshold,
+  MAX_SCORE,
   rankFor,
   scoreFor,
   shouldExplode,
@@ -41,6 +42,15 @@ test("score-level boundaries do not cap at crowns", () => {
     assert.equal(rankFor(floor).progress, 0);
     assert.equal(rankFor(floor).topped, false);
   }
+});
+
+test("rank inputs use the finite nonnegative JavaScript safe integer contract", () => {
+  const zero = rankFor(0);
+  assert.deepEqual(rankFor("not-a-number"), zero);
+  assert.deepEqual(rankFor(Number.NaN), zero);
+  assert.deepEqual(rankFor(Number.POSITIVE_INFINITY), zero);
+  assert.deepEqual(rankFor(-1), zero);
+  assert.deepEqual(rankFor(10 ** 100), rankFor(MAX_SCORE));
 });
 
 test("KPI effects keep their established scores and explosion rules", () => {

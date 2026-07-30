@@ -1,6 +1,5 @@
 from backend import kpi
 
-
 def test_score_level_uses_linear_star_costs_and_base_four_icons():
     assert kpi.level_threshold(0) == 0
     assert kpi.level_threshold(1) == 300
@@ -38,3 +37,15 @@ def test_each_new_star_costs_more_than_the_previous_star():
 
 def test_invalid_scores_normalize_to_zero():
     assert kpi.rank_for(-1) == kpi.rank_for(0)
+    assert kpi.rank_for(None) == kpi.rank_for(0)
+    assert kpi.rank_for("not-a-number") == kpi.rank_for(0)
+    assert kpi.rank_for(float("nan")) == kpi.rank_for(0)
+    assert kpi.rank_for(float("inf")) == kpi.rank_for(0)
+
+
+def test_huge_scores_are_bounded_to_javascript_safe_integer_contract():
+    expected = kpi.rank_for(kpi.MAX_SCORE)
+    assert kpi.rank_for(kpi.MAX_SCORE + 1) == expected
+    assert kpi.rank_for(10**1000) == expected
+    assert expected["level_units"] == kpi.MAX_LEVEL_UNITS
+    assert len(expected["icons"]) < 1_100

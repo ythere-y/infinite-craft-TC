@@ -16,6 +16,12 @@ export const BASE_STAR_COST = 300;
 export const STAR_COST_STEP = 20;
 export const MERGE_BASE = 4;
 export const LEVEL_ICONS = Object.freeze(["👑", "🌞", "🌙", "🌟"]);
+export const MAX_LEVEL_UNITS = 65_535;
+export const MAX_SCORE = (
+  MAX_LEVEL_UNITS * BASE_STAR_COST
+  + (STAR_COST_STEP * MAX_LEVEL_UNITS * (MAX_LEVEL_UNITS - 1)) / 2
+  + BASE_STAR_COST + STAR_COST_STEP * MAX_LEVEL_UNITS - 1
+);
 
 export function scoreFor(chain, isFirst) {
   const base = CHAIN_SCORE[chain || ""] ?? 5;
@@ -25,9 +31,11 @@ export function scoreFor(chain, isFirst) {
   return { delta: base + bonus, reason: reasons.join(" / ") };
 }
 
-function safeInteger(rawValue) {
-  const value = Math.trunc(Number(rawValue) || 0);
-  return Math.min(Number.MAX_SAFE_INTEGER, Math.max(0, value));
+function safeInteger(rawValue, maximum = Number.MAX_SAFE_INTEGER) {
+  const numeric = Number(rawValue);
+  if (!Number.isFinite(numeric)) return 0;
+  const value = Math.trunc(numeric);
+  return Math.min(maximum, Math.max(0, value));
 }
 
 export function levelThreshold(rawUnits) {
@@ -49,7 +57,7 @@ function levelUnits(score) {
 }
 
 export function rankFor(rawTotal) {
-  const score = safeInteger(rawTotal);
+  const score = safeInteger(rawTotal, MAX_SCORE);
   const units = levelUnits(score);
   let remaining = units;
   const crowns = Math.floor(remaining / 64);

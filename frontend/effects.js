@@ -3,7 +3,7 @@
    暴露到 window.EFFECTS：
      - explode(resultName)          P0 故障爆炸
      - firstToast(info, opt)        首发 / 新发现 toast
-     - animateScoreGain(job)        分数飞行与段位融合队列
+     - animateScoreGain(job)        分数飞行与等级融合队列
      - initBossMode()              Konami → 老板视角
    ============================================================ */
 
@@ -109,7 +109,7 @@
     setTimeout(() => container.remove(), 1400);
   }
 
-  // -------------------- 分数飞行与段位融合 --------------------
+  // -------------------- 分数飞行与等级融合 --------------------
   const SCORE_FLIGHT_MS = 1100;
   const SCORE_RESIDUE_MS = 1400;
   const SCORE_RECEIVE_MS = 450;
@@ -296,7 +296,7 @@
     return enqueueScoreAnimation(job);
   };
 
-  // 段位跃迁庆祝：已删除（用户反馈特效有 bug，且频繁打断体验）
+  // 等级跃迁庆祝：已删除（用户反馈特效有 bug，且频繁打断体验）
 
   // -------------------- 首发 toast --------------------
   EFFECTS.firstToast = function (info, opt = {}) {
