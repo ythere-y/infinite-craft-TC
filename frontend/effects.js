@@ -3,11 +3,24 @@
    暴露到 window.EFFECTS：
      - explode(resultName)          P0 故障爆炸
      - firstToast(info, opt)        首发 / 新发现 toast
+     - animateScoreGain(job)        分数飞行与段位融合队列
      - initBossMode()              Konami → 老板视角
    ============================================================ */
 
 (function () {
   const EFFECTS = {};
+
+  function prefersReducedMotion() {
+    return !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  function centerOf(target) {
+    const rect = target.getBoundingClientRect();
+    return {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+    };
+  }
 
   // -------------------- P0 爆炸 --------------------
   let audioCtx = null;
@@ -95,6 +108,193 @@
     }
     setTimeout(() => container.remove(), 1400);
   }
+
+  // -------------------- 分数飞行与段位融合 --------------------
+  const SCORE_FLIGHT_MS = 1100;
+  const SCORE_RESIDUE_MS = 1400;
+  const SCORE_RECEIVE_MS = 450;
+  const SCORE_JOB_CAP_MS = 4500;
+  const scoreAnimationQueue = [];
+  let scoreAnimationRunning = false;
+
+  function wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, Math.max(0, ms)));
+  }
+
+  function scoreText(delta) {
+    return "+" + String(delta) + " 分";
+  }
+
+  function showScoreResidue(target, delta) {
+    if (!target?.isConnected) return null;
+    const residue = document.createElement("span");
+    residue.className = "score-gain-residue";
+    residue.textContent = scoreText(delta);
+    residue.setAttribute("aria-hidden", "true");
+    target.appendChild(residue);
+    setTimeout(() => residue.remove(), SCORE_RESIDUE_MS);
+    return residue;
+  }
+
+  async function flyScore(source, target, delta) {
+    if (!source || !target) return null;
+    if (prefersReducedMotion()) {
+      return showScoreResidue(target, delta);
+    }
+    if (!source.isConnected || !target.isConnected) return null;
+
+    const from = centerOf(source);
+    const to = centerOf(target);
+    const flight = document.createElement("div");
+    flight.className = "score-flight";
+    flight.textContent = scoreText(delta);
+    flight.setAttribute("aria-hidden", "true");
+    flight.style.left = from.x + "px";
+    flight.style.top = from.y + "px";
+    flight.style.setProperty("--score-x", (to.x - from.x) + "px");
+    flight.style.setProperty("--score-y", (to.y - from.y) + "px");
+    flight.style.setProperty("--score-mid-x", ((to.x - from.x) * 0.48) + "px");
+    flight.style.setProperty("--score-mid-y", ((to.y - from.y) * 0.48 - 44) + "px");
+    document.body.appendChild(flight);
+
+    try {
+      await wait(SCORE_FLIGHT_MS);
+      return showScoreResidue(target, delta);
+    } finally {
+      flight.remove();
+    }
+  }
+
+  async function playScoreReceive(target) {
+    if (!target?.isConnected) return;
+    target.classList.add("score-receive");
+    try {
+      await wait(SCORE_RECEIVE_MS);
+    } finally {
+      target.classList.remove("score-receive");
+    }
+  }
+
+  async function playGainStage(layer, step, duration) {
+    const star = document.createElement("span");
+    star.className = "level-gain-star";
+    star.textContent = String(step.icon ?? "🌟");
+    star.setAttribute("aria-hidden", "true");
+    layer.appendChild(star);
+    try {
+      await wait(duration);
+    } finally {
+      star.remove();
+    }
+  }
+
+  async function playMergeStage(layer, step, duration) {
+    const stageNodes = [];
+    for (let i = 0; i < 4; i++) {
+      const source = document.createElement("span");
+      source.className = "level-fusion-source";
+      source.textContent = String(step.from ?? "");
+      source.setAttribute("aria-hidden", "true");
+      layer.appendChild(source);
+      stageNodes.push(source);
+    }
+    const result = document.createElement("span");
+    result.className = "level-fusion-result";
+    result.textContent = String(step.to ?? "");
+    result.setAttribute("aria-hidden", "true");
+    layer.appendChild(result);
+    stageNodes.push(result);
+
+    try {
+      const fuseDuration = Math.round(duration * 0.54);
+      await wait(fuseDuration);
+      if (layer.isConnected) result.classList.add("is-visible");
+      await wait(duration - fuseDuration);
+    } finally {
+      stageNodes.forEach((node) => node.remove());
+    }
+  }
+
+  async function runScoreAnimation(job) {
+    const startedAt = performance.now();
+    const target = job.target;
+    await flyScore(job.source, target, job.delta);
+
+    if (prefersReducedMotion()) {
+      await playScoreReceive(target);
+      return;
+    }
+
+    const steps = Array.isArray(job.steps) ? job.steps : [];
+    if (!steps.length) {
+      await playScoreReceive(target);
+      return;
+    }
+    if (!target?.isConnected) return;
+
+    const layer = document.createElement("span");
+    layer.className = "score-level-effect-layer";
+    layer.setAttribute("aria-hidden", "true");
+    target.appendChild(layer);
+
+    try {
+      for (let index = 0; index < steps.length; index++) {
+        if (!layer.isConnected) break;
+        const remaining = SCORE_JOB_CAP_MS - (performance.now() - startedAt);
+        if (remaining <= 0) break;
+
+        const step = steps[index] || {};
+        const shortened = steps.length > 4 && index >= 2;
+        const duration = Math.min(
+          remaining,
+          shortened ? 420 : step.type === "gain" ? 720 : 760
+        );
+        if (step.type === "gain") {
+          await playGainStage(layer, step, duration);
+        } else if (step.type === "merge") {
+          await playMergeStage(layer, step, duration);
+        }
+      }
+    } finally {
+      layer.remove();
+      target.classList.remove("score-receive");
+    }
+  }
+
+  async function drainScoreAnimations() {
+    scoreAnimationRunning = true;
+    while (scoreAnimationQueue.length) {
+      const entry = scoreAnimationQueue.shift();
+      try {
+        await runScoreAnimation(entry.job);
+      } catch (_) {
+        // 单个目标消失或动画失败不能阻塞后续分数结算。
+      } finally {
+        try {
+          entry.job.renderFinal?.();
+        } catch (_) {
+          // 最终渲染回调失败也必须释放队列。
+        }
+        entry.resolve();
+      }
+    }
+    scoreAnimationRunning = false;
+  }
+
+  function enqueueScoreAnimation(job) {
+    return new Promise((resolve) => {
+      scoreAnimationQueue.push({ job, resolve });
+      if (!scoreAnimationRunning) void drainScoreAnimations();
+    });
+  }
+
+  EFFECTS.flyScore = function (source, target, delta) {
+    return flyScore(source, target, delta);
+  };
+
+  EFFECTS.animateScoreGain = function (job = {}) {
+    return enqueueScoreAnimation(job);
+  };
 
   // 段位跃迁庆祝：已删除（用户反馈特效有 bug，且频繁打断体验）
 

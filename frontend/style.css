@@ -500,6 +500,7 @@ body.ura-on .element.on-canvas.is-starter {
 
 /* 顶栏内嵌的等级图标 */
 #btn-score {
+  position: relative;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   min-width: 0;
@@ -1022,6 +1023,174 @@ body.quaking { animation: quake .5s 2; }
   100% {
     transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.3);
     opacity: 0;
+  }
+}
+
+.score-flight {
+  position: fixed;
+  z-index: 83;
+  color: #176B87;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 0 #FFF, 0 0 8px rgba(50,184,198,.32);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: score-flight 1.1s cubic-bezier(.18,.74,.26,1) forwards;
+}
+@keyframes score-flight {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.72); }
+  14% { opacity: 1; transform: translate(-50%, -65%) scale(1.12); }
+  52% {
+    opacity: 1;
+    transform:
+      translate(
+        calc(-50% + var(--score-mid-x)),
+        calc(-50% + var(--score-mid-y))
+      )
+      scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translate(
+        calc(-50% + var(--score-x)),
+        calc(-50% + var(--score-y))
+      )
+      scale(.66);
+  }
+}
+
+.score-gain-residue {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  z-index: 3;
+  color: #176B87;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow: 0 1px 0 #FFF, 0 0 7px rgba(50,184,198,.3);
+  animation: score-gain-residue 1.4s linear both;
+}
+@keyframes score-gain-residue {
+  0%, 64.285% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-72%) scale(.94);
+  }
+}
+
+.score-level-effect-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: block;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.level-gain-star {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  line-height: 1;
+  animation: level-star-born .72s ease-out both;
+}
+@keyframes level-star-born {
+  from {
+    opacity: 0;
+    transform: translate(14px,-50%) scale(.25) rotate(-45deg);
+  }
+  55% {
+    opacity: 1;
+    transform: translate(0,-50%) scale(1.25) rotate(8deg);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0,-50%) scale(1) rotate(0);
+  }
+}
+
+.level-fusion-source,
+.level-fusion-result {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  line-height: 1;
+}
+.level-fusion-source {
+  animation: level-fuse .62s cubic-bezier(.3,.7,.2,1) both;
+}
+.level-fusion-source:nth-child(1) {
+  --fusion-x: -28px;
+  --fusion-y: -15px;
+}
+.level-fusion-source:nth-child(2) {
+  --fusion-x: 28px;
+  --fusion-y: -15px;
+}
+.level-fusion-source:nth-child(3) {
+  --fusion-x: -28px;
+  --fusion-y: 15px;
+}
+.level-fusion-source:nth-child(4) {
+  --fusion-x: 28px;
+  --fusion-y: 15px;
+}
+@keyframes level-fuse {
+  from {
+    opacity: 1;
+    transform:
+      translate(
+        calc(-50% + var(--fusion-x)),
+        calc(-50% + var(--fusion-y))
+      )
+      scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%,-50%) scale(.2) rotate(160deg);
+  }
+}
+.level-fusion-result {
+  opacity: 0;
+  transform: translate(-50%,-50%);
+  filter: drop-shadow(0 0 5px rgba(255,193,7,.65));
+}
+.level-fusion-result.is-visible {
+  animation: level-fusion-result .58s ease-out both;
+}
+@keyframes level-fusion-result {
+  from {
+    opacity: 0;
+    transform: translate(-50%,-50%) scale(.2) rotate(-30deg);
+  }
+  58% {
+    opacity: 1;
+    transform: translate(-50%,-50%) scale(1.35) rotate(8deg);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%,-50%) scale(1);
+  }
+}
+
+#btn-score.score-receive {
+  animation: score-receive 450ms cubic-bezier(.16,.8,.24,1);
+}
+@keyframes score-receive {
+  0%, 100% { transform: scale(1); }
+  42% {
+    transform: scale(1.1);
+    border-color: #32B8C6;
+    box-shadow: 0 0 0 4px rgba(50,184,198,.16);
   }
 }
 
@@ -1831,6 +2000,21 @@ body.ura-on .workspace::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  #btn-score.score-receive,
+  .score-gain-residue,
+  .level-gain-star,
+  .level-fusion-source,
+  .level-fusion-result.is-visible {
+    animation: none !important;
+  }
+  .score-gain-residue {
+    opacity: 1;
+    transform: translateY(-50%);
+  }
+  .score-flight,
+  .score-level-effect-layer {
+    display: none !important;
   }
 }
 
