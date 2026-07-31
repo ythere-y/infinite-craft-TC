@@ -240,3 +240,64 @@ window.__leaderboardPayload = {
         "items": ["👑 × 21"],
         "count": "1344 个首发",
     }
+
+
+def test_wall_leaderboard_desktop_podium_layout(tmp_path):
+    actual = _run_wall(
+        tmp_path,
+        setup=LEADERBOARD_SETUP,
+        viewport=(1280, 900),
+        probe="""
+          var side = document.querySelector(".wall-side");
+          var first = document.querySelector('.lb-podium-card[data-rank="1"]');
+          var second = document.querySelector('.lb-podium-card[data-rank="2"]');
+          var third = document.querySelector('.lb-podium-card[data-rank="3"]');
+          var honor = first.querySelector(".lb-honor");
+          var sideRect = side.getBoundingClientRect();
+          var firstRect = first.getBoundingClientRect();
+          var secondRect = second.getBoundingClientRect();
+          var thirdRect = third.getBoundingClientRect();
+          return {
+            visualOrder: secondRect.left < firstRect.left && firstRect.left < thirdRect.left,
+            firstRaised: firstRect.top < secondRect.top && firstRect.top < thirdRect.top,
+            fiveColumns: getComputedStyle(honor).gridTemplateColumns.trim().split(/\\s+/).length,
+            sideOverflow: side.scrollWidth > side.clientWidth,
+            cardsInsideSide:
+              secondRect.left >= sideRect.left &&
+              thirdRect.right <= sideRect.right + 1
+          };
+        """,
+    )
+    assert actual == {
+        "visualOrder": True,
+        "firstRaised": True,
+        "fiveColumns": 5,
+        "sideOverflow": False,
+        "cardsInsideSide": True,
+    }
+
+
+def test_wall_leaderboard_narrow_layout_has_no_horizontal_overflow(tmp_path):
+    actual = _run_wall(
+        tmp_path,
+        setup=LEADERBOARD_SETUP,
+        viewport=(390, 844),
+        probe="""
+          var side = document.querySelector(".wall-side");
+          return {
+            pageOverflow: document.documentElement.scrollWidth > innerWidth,
+            sideOverflow: side.scrollWidth > side.clientWidth,
+            visibleCards: Array.from(document.querySelectorAll(".lb-podium-card"))
+              .every(function (card) {
+                var rect = card.getBoundingClientRect();
+                return rect.width > 0 &&
+                  rect.right <= side.getBoundingClientRect().right + 1;
+              })
+          };
+        """,
+    )
+    assert actual == {
+        "pageOverflow": False,
+        "sideOverflow": False,
+        "visibleCards": True,
+    }

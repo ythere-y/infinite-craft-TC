@@ -736,16 +736,135 @@ html, body {
 .lb-list::-webkit-scrollbar { width: 8px; }
 .lb-list::-webkit-scrollbar-thumb { background: #DDD; border-radius: 4px; }
 
-.lb-row {
+.lb-me-summary {
+  line-height: 1.5;
+}
+
+.lb-firsts {
+  color: #1E88E5;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.lb-honor {
   display: grid;
-  grid-template-columns: 34px 1fr auto;
+  grid-template-columns: repeat(5, 18px);
+  gap: 4px;
+  width: max-content;
+  max-width: 100%;
+  margin-top: 7px;
+}
+
+.lb-honor-item {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 5px;
+  background: #F5F7FA;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.lb-honor.aggregated {
+  grid-template-columns: repeat(2, max-content);
+}
+
+.lb-honor-item.aggregated {
+  width: auto;
+  min-width: 0;
+  padding: 0 6px;
+  color: #555;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.lb-honor-empty {
+  grid-column: 1 / -1;
+  width: max-content;
+  color: #999;
+  font-size: 11px;
+}
+
+.lb-podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+  padding: 18px 10px 12px;
+  border-bottom: 1px solid #ECECEC;
+}
+
+.lb-podium-card {
+  width: calc((100% - 12px) / 3);
+  min-width: 0;
+  padding: 10px 5px;
+  display: grid;
+  justify-items: center;
+  border: 1px solid #E4E7EC;
+  border-radius: 10px;
+  background: #FFF;
+}
+
+.lb-podium-card.rank-1 {
+  order: 2;
+  transform: translateY(-8px);
+  border-color: #E6C64F;
+  background: linear-gradient(180deg, #FFF6C7, #FFF);
+}
+
+.lb-podium-card.rank-2 { order: 1; }
+.lb-podium-card.rank-3 { order: 3; }
+
+.lb-podium-card .lb-rank {
+  font-size: 18px;
+}
+
+.lb-podium-card .lb-name {
+  width: 100%;
+  margin: 5px 0 3px;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lb-podium-card .lb-firsts {
+  font-size: 10px;
+}
+
+.lb-podium-card .lb-honor {
+  grid-template-columns: repeat(5, 14px);
+  gap: 2px;
+  justify-content: center;
+}
+
+.lb-podium-card .lb-honor.aggregated {
+  grid-template-columns: max-content;
+}
+
+.lb-podium-card .lb-honor-item {
+  width: 14px;
+  height: 14px;
+  font-size: 12px;
+}
+
+.lb-ranking-rest .lb-row {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
   align-items: center;
-  padding: 8px 20px;
-  font-size: 13px;
-  gap: 10px;
+  gap: 8px;
+  padding: 9px 18px;
   border-bottom: 1px dashed #F0F0F0;
 }
-.lb-row.me {
+
+.lb-ranking-rest .lb-row > .lb-honor {
+  grid-column: 2 / -1;
+  margin-top: 0;
+}
+
+.lb-ranking-rest .lb-row.me {
   background: linear-gradient(90deg, #FFF7CC, transparent);
   border-left: 3px solid #FFD54F;
   padding-left: 17px;
@@ -755,27 +874,13 @@ html, body {
   color: #AAA;
   text-align: center;
 }
-.lb-row.top1 .lb-rank { color: #D4A017; font-size: 18px; }
-.lb-row.top2 .lb-rank { color: #8C8C8C; font-size: 18px; }
-.lb-row.top3 .lb-rank { color: #CD7F32; font-size: 18px; }
 .lb-name {
   color: #333;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.lb-row.me .lb-name { color: #B8860B; font-weight: 600; }
-.lb-score {
-  color: #1E88E5;
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-}
-.lb-score-suffix {
-  color: #AAA;
-  font-weight: 400;
-  font-size: 11px;
-  margin-left: 2px;
-}
+.lb-ranking-rest .lb-row.me .lb-name { color: #B8860B; font-weight: 600; }
 
 .lb-empty {
   color: #AAA;
@@ -791,6 +896,30 @@ html, body {
     border-left: none;
     border-top: 1px solid #ECECEC;
     max-height: 40vh;
+  }
+
+  .lb-podium {
+    gap: 4px;
+    padding-inline: 8px;
+  }
+
+  .lb-podium-card {
+    width: calc((100% - 8px) / 3);
+    padding-inline: 3px;
+  }
+
+  .lb-podium-card .lb-name {
+    font-size: 11px;
+  }
+
+  .lb-podium-card .lb-honor {
+    grid-template-columns: repeat(5, 13px);
+  }
+
+  .lb-podium-card .lb-honor-item {
+    width: 13px;
+    height: 13px;
+    font-size: 11px;
   }
 }
 
