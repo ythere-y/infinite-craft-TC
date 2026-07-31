@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <title>📺 首发墙 · 鹅厂无限合成 ♾️</title>
   <link rel="icon" type="image/png" href="/assets/icons/generated/emoji/1f427.png">
-  <link rel="stylesheet" href="/icon-system.css" />
-  <link rel="stylesheet" href="/wall/wall.css?v=20260728e" />
+  <link rel="stylesheet" href="/icon-system.css?v=20260731b" />
+  <link rel="stylesheet" href="/wall/wall.css?v=20260731b" />
 </head>
 <body>
   <header class="wall-header">
@@ -20,14 +20,15 @@
     <div class="feed-scroll" id="feed-scroll">
       <!-- 🎯 悬赏清单（分父 tab + 每 tab 内多子分组） -->
       <section id="bounty" class="category-section">
-        <button type="button" class="section-header collapsible" id="bounty-toggle" aria-expanded="true">
+        <button type="button" class="section-header collapsible" id="bounty-toggle"
+                aria-expanded="false" aria-controls="bounty-body">
           <span class="chevron" data-icon-action="next" aria-hidden="true"></span>
           <span class="section-title">🎯 <b>悬赏清单</b></span>
           <span class="section-extra">
             已发现 <b id="bounty-found">0</b> / 共 <b id="bounty-total">0</b>
           </span>
         </button>
-        <div class="section-body" id="bounty-body">
+        <div class="section-body collapsed" id="bounty-body" style="max-height:0" inert>
           <!-- tab 切换栏（JS 填充） -->
           <nav class="bounty-tabs" id="bounty-tabs"></nav>
           <!-- 当前 tab 下的分组列表（JS 渲染） -->
@@ -39,7 +40,8 @@
 
       <!-- 📜 震撼首发 -->
       <section id="sec-feed" class="feed-section">
-        <button type="button" class="section-header collapsible" id="feed-toggle" aria-expanded="true">
+        <button type="button" class="section-header collapsible" id="feed-toggle"
+                aria-expanded="true" aria-controls="feed-body">
           <span class="chevron" data-icon-action="next" aria-hidden="true"></span>
           <span class="section-title">📜 <b>震撼首发</b></span>
           <span class="section-extra feed-stats">
@@ -69,7 +71,7 @@
 
     <!-- 右：排行榜 -->
     <aside class="wall-side">
-      <div class="side-title">🏆 <b>打工人排行榜</b> · Top 20</div>
+      <div class="side-title">🏆 <b>排行榜</b> · Top 20</div>
 
       <!-- 顶部："我的卡片"，无论有无排名都展示 -->
       <div id="lb-me-card" class="lb-me-card">
@@ -102,7 +104,7 @@
     </div>
   </div>
 
-  <script src="/icon-system.js"></script>
-  <script type="module" src="/wall/wall.js?v=20260728e"></script>
+  <script src="/icon-system.js?v=20260731b"></script>
+  <script type="module" src="/wall/wall.js?v=20260731b"></script>
 </body>
 </html>

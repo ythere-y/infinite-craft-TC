@@ -136,6 +136,95 @@ def ensure_formula(
         con.close()
 
 
+def reconcile_seed_formulas(formulas: list[dict[str, Any]]) -> int:
+    """Supersede active formulas that conflict with authoritative seed data."""
+    now = time.time()
+    replaced = 0
+    con = archive._conn()
+    try:
+        con.execute("BEGIN IMMEDIATE")
+        for formula in formulas:
+            combo_key = str(formula.get("combo_key") or "").strip()
+            result = str(formula.get("result") or "").strip()
+            if not combo_key or not result:
+                continue
+            try:
+                existing = con.execute(
+                    """
+                    SELECT * FROM formula_versions
+                    WHERE combo_key=? AND status='active'
+                    """,
+                    (combo_key,),
+                ).fetchone()
+            except sqlite3.OperationalError:
+                con.rollback()
+                return 0
+            if not existing:
+                continue
+
+            expected = (
+                result,
+                str(formula.get("emoji") or "❓"),
+                str(formula.get("comment") or ""),
+                "seed",
+            )
+            current = (
+                existing["result"],
+                existing["emoji"],
+                existing["comment"],
+                existing["source"],
+            )
+            if current == expected:
+                continue
+
+            con.execute(
+                """
+                UPDATE formula_versions
+                SET status='retired', visibility='hidden', updated_at=?
+                WHERE id=?
+                """,
+                (now, existing["id"]),
+            )
+            latest = con.execute(
+                """
+                SELECT COALESCE(MAX(version), 0)
+                FROM formula_versions WHERE combo_key=?
+                """,
+                (combo_key,),
+            ).fetchone()[0]
+            con.execute(
+                """
+                INSERT INTO formula_versions(
+                    id, combo_key, a, b, result, emoji, comment, source,
+                    version, visibility, status, global_discoverer,
+                    created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'seed', ?, 'hidden', 'active',
+                          NULL, ?, ?)
+                """,
+                (
+                    uuid.uuid4().hex,
+                    combo_key,
+                    str(formula.get("a") or ""),
+                    str(formula.get("b") or ""),
+                    expected[0],
+                    expected[1],
+                    expected[2],
+                    latest + 1,
+                    now,
+                    now,
+                ),
+            )
+            con.execute(
+                "DELETE FROM retired_combo_keys WHERE combo_key=?",
+                (combo_key,),
+            )
+            replaced += 1
+        con.commit()
+        return replaced
+    finally:
+        con.close()
+
+
 def record_reproduction(formula_id: str, player_id: str) -> None:
     con = archive._conn()
     try:

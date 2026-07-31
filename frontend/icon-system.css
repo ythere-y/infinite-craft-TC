@@ -82,4 +82,17 @@
 .action-icon.size-compact { transform: scale(.88); }
 .action-icon.size-large { transform: scale(1.15); }
 .first-toast-result { display: flex; align-items: center; gap: 8px; }
-.first-toast-result .name { font: inherit; }
+.first-toast-icon {
+  display: inline-flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+.first-toast-icon > .element-icon { flex: 0 0 var(--element-icon-detail); }
+.first-toast-result .name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font: inherit;
+  line-height: 1.25;
+}

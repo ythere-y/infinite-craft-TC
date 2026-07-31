@@ -14,6 +14,56 @@
     return !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   }
 
+  const IMPACT_RARITIES = Object.freeze([
+    Object.freeze({
+      maxDepth: 2,
+      name: "common",
+      color: "#9AA6B2",
+      scale: 5.5,
+      glowNew: "rgba(154,166,178,.72)",
+      glowRepeat: "rgba(154,166,178,.14)",
+    }),
+    Object.freeze({
+      maxDepth: 4,
+      name: "uncommon",
+      color: "#35C978",
+      scale: 6.5,
+      glowNew: "rgba(53,201,120,.72)",
+      glowRepeat: "rgba(53,201,120,.14)",
+    }),
+    Object.freeze({
+      maxDepth: 6,
+      name: "rare",
+      color: "#3B82F6",
+      scale: 7.6,
+      glowNew: "rgba(59,130,246,.76)",
+      glowRepeat: "rgba(59,130,246,.15)",
+    }),
+    Object.freeze({
+      maxDepth: 9,
+      name: "epic",
+      color: "#A855F7",
+      scale: 8.9,
+      glowNew: "rgba(168,85,247,.8)",
+      glowRepeat: "rgba(168,85,247,.16)",
+    }),
+    Object.freeze({
+      maxDepth: Infinity,
+      name: "legendary",
+      color: "#F2B84B",
+      scale: 10.5,
+      glowNew: "rgba(242,184,75,.86)",
+      glowRepeat: "rgba(242,184,75,.17)",
+    }),
+  ]);
+
+  function impactRarity(depth) {
+    const normalized = Number.isFinite(Number(depth))
+      ? Math.max(1, Math.trunc(Number(depth)))
+      : 1;
+    return IMPACT_RARITIES.find((rarity) => normalized <= rarity.maxDepth);
+  }
+
   function centerOf(target) {
     const rect = target.getBoundingClientRect();
     return {
@@ -57,57 +107,149 @@
     }, 1500);
   };
 
+  // -------------------- 拖拽锁定与合成生命周期 --------------------
+  EFFECTS.setCombineTarget = function (target, active) {
+    if (!target) return;
+    target.classList.toggle("combine-target", !!active);
+  };
+
+  function spawnImpact(host, x, y, meta = {}, fixed = false) {
+    if (prefersReducedMotion()) return null;
+    const rarity = impactRarity(meta.depth);
+    const discovered = meta.discovered === true;
+    const impact = document.createElement("div");
+    impact.className = "combine-impact" + (fixed ? " is-fixed" : "");
+    impact.dataset.rarity = rarity.name;
+    impact.dataset.discovery = discovered ? "new" : "repeat";
+    impact.setAttribute("aria-hidden", "true");
+    impact.style.left = x + "px";
+    impact.style.top = y + "px";
+    impact.style.setProperty("--impact-color", rarity.color);
+    impact.style.setProperty("--impact-scale", String(rarity.scale));
+    impact.style.setProperty(
+      "--impact-start-opacity", discovered ? "0.98" : "0.42"
+    );
+    impact.style.setProperty(
+      "--impact-brightness", discovered ? "1.18" : "0.72"
+    );
+    impact.style.setProperty(
+      "--impact-saturation", discovered ? "1.12" : "0.62"
+    );
+    impact.style.setProperty(
+      "--impact-glow", discovered ? rarity.glowNew : rarity.glowRepeat
+    );
+    host.appendChild(impact);
+    setTimeout(() => impact.remove(), 900);
+    return impact;
+  }
+
+  EFFECTS.beginCombine = function (workspace, source, target, x, y) {
+    EFFECTS.setCombineTarget(target, true);
+    source?.classList.add("combine-source");
+    target?.classList.add("combine-source");
+
+    let core = null;
+    if (workspace && !prefersReducedMotion()) {
+      core = document.createElement("div");
+      core.className = "combine-core";
+      core.setAttribute("aria-hidden", "true");
+      core.style.left = x + "px";
+      core.style.top = y + "px";
+      workspace.appendChild(core);
+    }
+
+    let settled = false;
+    function cleanup() {
+      if (settled) return false;
+      settled = true;
+      EFFECTS.setCombineTarget(target, false);
+      source?.classList.remove("combine-source");
+      target?.classList.remove("combine-source");
+      core?.remove();
+      return true;
+    }
+
+    return {
+      finish(meta = {}) {
+        if (!cleanup()) return;
+        spawnImpact(workspace || document.body, x, y, meta);
+      },
+      cancel() {
+        cleanup();
+      },
+    };
+  };
+
   // -------------------- 合成结果三档特效 --------------------
+  const PERSONAL_COLORS = ["#32B8C6", "#6EDCE7", "#176B87", "#A7F3D0"];
+  const GLOBAL_COLORS = ["#FFD54F", "#FF6B6B", "#34D399", "#4C8DFF", "#F472B6"];
+
+  function spawnCelebration(target, tier, count) {
+    if (prefersReducedMotion()) return;
+    const { x, y } = centerOf(target);
+    const colors = tier === "global_new" ? GLOBAL_COLORS : PERSONAL_COLORS;
+    const layer = document.createElement("div");
+    layer.className = "celebration-layer";
+    layer.setAttribute("aria-hidden", "true");
+    document.body.appendChild(layer);
+
+    for (let i = 0; i < count; i++) {
+      const particle = document.createElement("i");
+      const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.22;
+      const distance = tier === "global_new"
+        ? 78 + Math.random() * 74
+        : 52 + Math.random() * 40;
+      particle.className = "celebration-particle";
+      particle.dataset.tier = tier;
+      particle.dataset.shape = i % 5 === 0 ? "star" : i % 2 === 0 ? "round" : "sliver";
+      particle.style.left = x + "px";
+      particle.style.top = y + "px";
+      particle.style.setProperty("--particle-color", colors[i % colors.length]);
+      particle.style.setProperty("--particle-x", Math.cos(angle) * distance + "px");
+      particle.style.setProperty("--particle-y", Math.sin(angle) * distance + "px");
+      particle.style.setProperty("--particle-turn", (120 + Math.random() * 300) + "deg");
+      particle.style.setProperty("--particle-delay", (Math.random() * 90) + "ms");
+      layer.appendChild(particle);
+    }
+    setTimeout(() => layer.remove(), 1250);
+  }
+
+  function spawnDiscoveryStamp(target, tier) {
+    if (prefersReducedMotion()) return;
+    const rect = target.getBoundingClientRect();
+    const stamp = document.createElement("div");
+    stamp.className = "discovery-stamp";
+    stamp.dataset.tier = tier;
+    stamp.textContent = tier === "global_new" ? "全球首发" : "我的新发现";
+    stamp.style.left = (rect.left + rect.width / 2) + "px";
+    stamp.style.top = Math.max(12, rect.top - 9) + "px";
+    document.body.appendChild(stamp);
+    setTimeout(() => stamp.remove(), 1500);
+  }
+
   // tier: "seen" | "global_known" | "global_new"
   EFFECTS.onCombineResult = function (el, info, tier, meta = {}) {
     if (!el) return;
-    switch (tier) {
-      case "global_new":
-        fireworks(el);
-        el.classList.add("glow-gold");
-        setTimeout(() => el.classList.remove("glow-gold"), 4000);
-        EFFECTS.firstToast(info, { tier: "global_new", ...meta });
-        break;
-      case "global_known":
-        el.classList.add("glow-blue");
-        setTimeout(() => el.classList.remove("glow-blue"), 3000);
-        EFFECTS.firstToast(info, { tier: "global_known", ...meta });
-        break;
-      default:
-        el.classList.add("pop-in");
-        setTimeout(() => el.classList.remove("pop-in"), 500);
-        EFFECTS.firstToast(info, { tier: "seen", ...meta });
-        break;
+    if (tier === "global_new") {
+      el.classList.add("reveal-global");
+      if (!prefersReducedMotion()) {
+        spawnCelebration(el, tier, window.innerWidth <= 560 ? 18 : 28);
+        spawnDiscoveryStamp(el, tier);
+      }
+      setTimeout(() => el.classList.remove("reveal-global"), 1500);
+    } else if (tier === "global_known") {
+      el.classList.add("reveal-personal");
+      if (!prefersReducedMotion()) {
+        spawnCelebration(el, tier, window.innerWidth <= 560 ? 7 : 10);
+        spawnDiscoveryStamp(el, tier);
+      }
+      setTimeout(() => el.classList.remove("reveal-personal"), 1100);
+    } else {
+      el.classList.add("pop-in");
+      setTimeout(() => el.classList.remove("pop-in"), 500);
     }
+    EFFECTS.firstToast(info, { tier, ...meta });
   };
-
-  // 烟花：在目标元素位置放粒子
-  function fireworks(target) {
-    const rect = target.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    spawnFireworkBurst(cx, cy, 28, 80, 60);
-  }
-
-  function spawnFireworkBurst(cx, cy, count = 28, baseDist = 80, jitter = 60) {
-    const colors = ["#FFD54F", "#FF6B6B", "#4ECDC4", "#A78BFA", "#F472B6", "#34D399"];
-    const container = document.createElement("div");
-    container.className = "firework-container";
-    document.body.appendChild(container);
-    for (let i = 0; i < count; i++) {
-      const p = document.createElement("div");
-      p.className = "firework-particle";
-      const angle = (Math.PI * 2 * i) / count + Math.random() * 0.2;
-      const dist = baseDist + Math.random() * jitter;
-      p.style.setProperty("--dx", (Math.cos(angle) * dist) + "px");
-      p.style.setProperty("--dy", (Math.sin(angle) * dist) + "px");
-      p.style.background = colors[i % colors.length];
-      p.style.left = cx + "px";
-      p.style.top = cy + "px";
-      container.appendChild(p);
-    }
-    setTimeout(() => container.remove(), 1400);
-  }
 
   // -------------------- 分数飞行与等级融合 --------------------
   const SCORE_FLIGHT_MS = 1100;

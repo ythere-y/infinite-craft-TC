@@ -8,7 +8,9 @@
    - 右侧排行榜：顶部"我"的卡片 + Top 20；定时刷新 + 每次新首发后再拉
    ============================================================ */
 
-import { collectUnseenPrefix, mergeFirstItems } from "./polling.js";
+import { collectUnseenPrefix, mergeFirstItems } from "./polling.js?v=20260731b";
+import { firstHonorFor } from "./first-honor.js?v=20260731b";
+import { recipeCommentFor } from "./recipe-comments.js?v=20260731b";
 
 const PAGE_SIZE = 40;
 const POLL_PAGE_SIZE = 500;       // 覆盖 100 QPS 下一个轮询周期的突发量
@@ -431,6 +433,26 @@ function startWallPolling() {
 // ============================================================
 // 排行榜
 // ============================================================
+function buildHonorLevel(rawFirsts, className = "") {
+  const honor = firstHonorFor(rawFirsts);
+  const level = node("div", `lb-honor${className ? ` ${className}` : ""}`);
+  level.setAttribute("aria-label", honor.ariaLabel);
+  level.classList.toggle("aggregated", honor.aggregated);
+  for (const item of honor.displayItems) {
+    const icon = node(
+      "span",
+      `lb-honor-item tier-${item.tier}${honor.aggregated ? " aggregated" : ""}`,
+      item.text,
+    );
+    icon.setAttribute("aria-hidden", "true");
+    level.append(icon);
+  }
+  if (!honor.displayItems.length) {
+    level.append(node("span", "lb-honor-empty", "尚未获得首发星星"));
+  }
+  return level;
+}
+
 function renderMeCard(data) {
   const { total_players = 0, me = null } = data || {};
 
@@ -445,23 +467,50 @@ function renderMeCard(data) {
 
   if (me && me.rank) {
     lbMeCard.classList.remove("no-rank");
-    lbMeRow.replaceChildren(
+    const summary = node("div", "lb-me-summary");
+    summary.append(
       document.createTextNode("您的排名："),
       node("b", "", `第 ${me.rank} 名`),
-      document.createTextNode(" · 首发 "),
-      node("b", "", me.firsts),
-      document.createTextNode(" 个 · 共 "),
-      node("b", "", total_players),
-      document.createTextNode(" 位打工人"),
+      document.createTextNode(" · "),
+      node("span", "lb-firsts", `${firstHonorFor(me.firsts).firsts} 个首发`),
+      document.createTextNode(` · 共 ${total_players} 位打工人`),
     );
+    lbMeRow.replaceChildren(summary, buildHonorLevel(me.firsts, "lb-me-honor"));
   } else {
     lbMeCard.classList.add("no-rank");
-    lbMeRow.replaceChildren(
-      document.createTextNode("您还未上榜 · 共 "),
+    const summary = node("div", "lb-me-summary");
+    summary.append(
+      document.createTextNode("您还未上榜 · "),
+      node("span", "lb-firsts", `${firstHonorFor(0).firsts} 个首发`),
+      document.createTextNode(" · 共 "),
       node("b", "", total_players),
       document.createTextNode(" 位打工人 · 去合成一个没见过的元素吧！"),
     );
+    lbMeRow.replaceChildren(
+      summary,
+      buildHonorLevel(0, "lb-me-honor"),
+    );
   }
+}
+
+function buildRankingEntry(row) {
+  const rank = Number(row?.rank) || 0;
+  const discoverer = row?.discoverer || "匿名鹅";
+  const firsts = firstHonorFor(row?.firsts).firsts;
+  const entry = node("li", `lb-row rank-${rank}`);
+  entry.dataset.rank = String(rank);
+  if (MY_NICK && discoverer === MY_NICK) entry.classList.add("me");
+
+  const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : String(rank);
+  const rankNode = node("span", "lb-rank", medal);
+  rankNode.setAttribute("aria-label", `第 ${rank} 名`);
+  const name = node("span", "lb-name", discoverer);
+  name.title = discoverer;
+  const count = node("span", "lb-firsts", `${firsts} 个首发`);
+  const honor = buildHonorLevel(firsts);
+
+  entry.append(rankNode, name, count, honor);
+  return entry;
 }
 
 function renderTop(data) {
@@ -471,23 +520,13 @@ function renderTop(data) {
     lbListEl.append(node("div", "lb-empty", "还没有首发，快去合成吧～"));
     return;
   }
+
+  const ranking = node("ol", "lb-ranking-list");
+  ranking.setAttribute("aria-label", "首发排行榜前 20 名");
   for (const row of top) {
-    const rank = row.rank;
-    const div = document.createElement("div");
-    const classes = ["lb-row"];
-    if (rank === 1) classes.push("top1");
-    else if (rank === 2) classes.push("top2");
-    else if (rank === 3) classes.push("top3");
-    if (MY_NICK && row.discoverer === MY_NICK) classes.push("me");
-    div.className = classes.join(" ");
-    const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
-    const name = node("span", "lb-name", row.discoverer);
-    name.title = row.discoverer || "";
-    const score = node("span", "lb-score", row.firsts);
-    score.append(node("span", "lb-score-suffix", "个"));
-    div.append(node("span", "lb-rank", medal), name, score);
-    lbListEl.appendChild(div);
+    ranking.append(buildRankingEntry(row));
   }
+  lbListEl.append(ranking);
 }
 
 function renderLeaderboardError(msg) {
@@ -801,20 +840,31 @@ function scheduleCategoryRefresh(resultName) {
 // ============================================================
 const COLLAPSE_KEY_PREFIX = "ic_wall_collapse_";
 
-function bindCollapsible(toggleId, bodyId, storageKey) {
+function bindCollapsible(
+  toggleId,
+  bodyId,
+  storageKey,
+  defaultCollapsed = false,
+) {
   const btn = document.getElementById(toggleId);
   const body = document.getElementById(bodyId);
   if (!btn || !body) return;
+
+  if (!body.id) body.id = `${toggleId}-panel`;
+  btn.setAttribute("aria-controls", body.id);
 
   const saved = (() => {
     try { return localStorage.getItem(COLLAPSE_KEY_PREFIX + storageKey); }
     catch (_) { return null; }
   })();
-  const startCollapsed = saved === "1";
+  const startCollapsed =
+    saved === null ? Boolean(defaultCollapsed) : saved === "1";
 
   // 设置初始态：用固定 max-height 让动画有基线
   const applyState = (collapsed, animate = true) => {
     if (collapsed) {
+      if (body.contains(document.activeElement)) btn.focus();
+      body.inert = true;
       // 先固定 scrollHeight，再改 0，触发动画
       body.style.maxHeight = body.scrollHeight + "px";
       // force reflow
@@ -822,6 +872,7 @@ function bindCollapsible(toggleId, bodyId, storageKey) {
       body.classList.add("collapsed");
       btn.setAttribute("aria-expanded", "false");
     } else {
+      body.inert = false;
       body.classList.remove("collapsed");
       body.style.maxHeight = body.scrollHeight + "px";
       btn.setAttribute("aria-expanded", "true");
@@ -834,11 +885,15 @@ function bindCollapsible(toggleId, bodyId, storageKey) {
 
   // 初始无动画地应用
   if (startCollapsed) {
+    body.inert = true;
     body.classList.add("collapsed");
     btn.setAttribute("aria-expanded", "false");
     body.style.maxHeight = "0";
   } else {
+    body.inert = false;
+    body.classList.remove("collapsed");
     btn.setAttribute("aria-expanded", "true");
+    body.style.maxHeight = "";
   }
 
   btn.addEventListener("click", () => {
@@ -901,18 +956,6 @@ function closeRecipeModal() {
   _recipeOpenDisplayInfo = null;
 }
 
-function sameRecipePair(recipe, formula) {
-  if (!recipe || !formula) return false;
-  const recipeNames = [recipe.a || "", recipe.b || ""].sort().join("\n");
-  const formulaNames = [formula.a || "", formula.b || ""].sort().join("\n");
-  return recipeNames === formulaNames;
-}
-
-function recipeCommentFor(recipe) {
-  if (!_recipeOpenFormula?.id || !sameRecipePair(recipe, _recipeOpenFormula)) return null;
-  return _recipeOpenFormula.comment || "";
-}
-
 async function fetchRecipes(name) {
   try {
     const url = `/api/element/${encodeURIComponent(name)}/recipes`;
@@ -969,7 +1012,7 @@ function renderRecipes(data) {
   const list = node("div", "recipe-list");
   for (const r of recipes) {
     const src = r.source || "";
-    const comment = recipeCommentFor(r);
+    const comment = recipeCommentFor(r, _recipeOpenFormula);
     const entry = node("div", "recipe-entry");
     const row = node("div", "recipe-row");
     const source = node(
@@ -994,7 +1037,10 @@ function renderRecipes(data) {
       source,
     );
     entry.append(row);
-    if (comment !== null) entry.append(node("div", "recipe-comment", comment));
+    if (comment !== null) {
+      entry.classList.add("has-comment");
+      entry.append(node("div", "recipe-comment", comment));
+    }
     list.append(entry);
   }
   recipeBodyEl.replaceChildren(count, list);
@@ -1029,8 +1075,8 @@ async function init() {
   window.ICON_SYSTEM.hydrateActions(document);
   feedScroll.addEventListener("scroll", onScroll, { passive: true });
   // 折叠面板
-  bindCollapsible("bounty-toggle", "bounty-body", "bounty");
-  bindCollapsible("feed-toggle", "feed-body", "feed");
+  bindCollapsible("bounty-toggle", "bounty-body", "bounty", true);
+  bindCollapsible("feed-toggle", "feed-body", "feed", false);
   // 先把"我的卡片"渲染成骨架，避免观感空白
   renderMeCard({ total_players: 0, me: null });
   await loadNextPage();     // 首屏 40 条

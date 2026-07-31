@@ -206,6 +206,10 @@ export function createRouter({
         b_icon: elementIcon(elements, recipe.b),
         source: recipe.source || null,
         chain: recipe.chain || null,
+        comment:
+          typeof recipe.comment === "string"
+            ? recipe.comment.trim()
+            : "",
         hit_count: Number(recipe.hit_count) || 0,
       });
       if (recipes.length >= 100) break;

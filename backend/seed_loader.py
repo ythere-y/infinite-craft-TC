@@ -1,13 +1,13 @@
 """
-启动时预热 seed 元素 + seed 合成规则到 Redis 和 SQLite。
-幂等：put_cache/upsert_element 在已存在时不覆盖。
+启动时同步 seed 元素 + seed 合成规则到 Redis 和 SQLite。
+种子公式是同键记录的权威来源；动态公式仍保持首次写入定型。
 """
 
 import json
 from pathlib import Path
 from typing import Dict, Tuple, List
 
-from . import db, archive
+from . import db, archive, community
 from .icon_recipes import attach_icon
 
 _HERE = Path(__file__).parent
@@ -84,6 +84,7 @@ class SeedStore:
 
         warmed = 0
         bad = 0
+        authoritative_formulas = []
         for raw_key, info in combos.items():
             parts = [p.strip() for p in raw_key.split("+")]
             if len(parts) != 2:
@@ -93,17 +94,24 @@ class SeedStore:
                 bad += 1
                 continue
             key = db.normalize_key(parts[0], parts[1])
-            before = db.get_cached(key)
-            if before:
-                continue
-            db.put_cache(
+            db.put_cache_force(
                 key=key,
                 result=info["result"],
                 emoji=info.get("emoji", "❓"),
                 source="seed",
                 chain=info.get("chain"),
+                comment=info.get("comment", ""),
             )
             warmed += 1
+            authoritative_formulas.append({
+                "combo_key": key,
+                "a": parts[0],
+                "b": parts[1],
+                "result": info["result"],
+                "emoji": info.get("emoji", "❓"),
+                "comment": info.get("comment", ""),
+                "source": "seed",
+            })
             if info["result"] not in self.elements:
                 result_info = attach_icon(info["result"], {
                     "emoji": info.get("emoji", "❓"),
@@ -120,6 +128,12 @@ class SeedStore:
                 )
         if bad > 0:
             print(f"[seed_loader] skipped {bad} malformed combinations")
+        reconciled = community.reconcile_seed_formulas(authoritative_formulas)
+        if reconciled:
+            print(
+                f"[seed_loader] superseded {reconciled} conflicting "
+                "community formulas"
+            )
 
         return len(self.elements), warmed
 

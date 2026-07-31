@@ -225,6 +225,7 @@ export function createGameService({
     let depth = 0;
     // Retain the legacy kpi field names for response compatibility.
     let kpi = { delta: 0, reason: "" };
+    let hitCount = 0;
 
     if (source !== "fallback") {
       const first = await store.recordFirst(
@@ -247,6 +248,22 @@ export function createGameService({
       // The store method keeps legacy kpi_* score records for compatibility.
       kpi = scoreFor(chain, isFirst);
       await store.addKpi(sessionId, kpi.delta, kpi.reason);
+      try {
+        await store.putCombination(a, b, {
+          result: hit.result,
+          emoji: hit.emoji,
+          comment,
+          source,
+          chain,
+          ...(icon ? { icon } : {}),
+        }, {
+          rememberElement: false,
+        });
+        const counted = await store.incrementCombinationHit(a, b);
+        hitCount = Math.max(1, Number(counted?.hit_count) || 1);
+      } catch {
+        hitCount = 1;
+      }
     }
 
     let formula = null;
@@ -286,6 +303,7 @@ export function createGameService({
       depth,
       full_score: 10 * depth * depth,
       formula_id: formula?.id || null,
+      hit_count: source === "fallback" ? 0 : hitCount,
     };
   }
 

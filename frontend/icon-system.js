@@ -223,6 +223,38 @@
     return recipe;
   }
 
+  function renderedLineCount(nameNode) {
+    if (!nameNode || !nameNode.textContent) return 0;
+    var range = nameNode.ownerDocument.createRange();
+    range.selectNodeContents(nameNode);
+    var tops = [];
+    Array.from(range.getClientRects()).forEach(function (rect) {
+      if (!rect.width && !rect.height) return;
+      var top = Math.round(rect.top * 2) / 2;
+      if (!tops.some(function (seen) { return Math.abs(seen - top) < 0.5; })) {
+        tops.push(top);
+      }
+    });
+    return tops.length;
+  }
+
+  function fitSidebarChip(target) {
+    if (!target || !target.classList) return 0;
+    target.classList.remove("sidebar-span-2", "sidebar-span-3");
+    var nameNode = target.querySelector(".name");
+    var lines = renderedLineCount(nameNode);
+    if (lines > 2) {
+      target.classList.add("sidebar-span-2");
+      lines = renderedLineCount(nameNode);
+    }
+    if (lines > 2) {
+      target.classList.remove("sidebar-span-2");
+      target.classList.add("sidebar-span-3");
+      lines = renderedLineCount(nameNode);
+    }
+    return lines;
+  }
+
   function renderAction(doc, target, payload) {
     payload = object(payload) ? payload : {};
     var action = ACTIONS[payload.name];
@@ -260,6 +292,7 @@
     ready: ready,
     resolveElementRecipe: resolveElementRecipe,
     renderElement: renderElement,
+    fitSidebarChip: fitSidebarChip,
     renderAction: renderAction,
     hydrateActions: hydrateActions
   };

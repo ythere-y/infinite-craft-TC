@@ -123,23 +123,39 @@ def init_archive() -> None:
 def upsert_combination(
     key: str, result: str, emoji: str, source: str,
     chain: Optional[str], comment: str = "", increment_hit: bool = False,
-) -> None:
+    replace_existing: bool = False,
+) -> int:
     """
     插入或更新一条合成规则。
     首次写入：source/chain/created_at 定型
     重复命中：增加 hit_count（可选）
+    权威同步：替换公式字段，但保留 created_at / hit_count
     """
     with _lock:
         con = _conn()
         try:
-            con.execute(
+            if replace_existing:
+                conflict_update = """
+                    result = excluded.result,
+                    emoji = excluded.emoji,
+                    source = excluded.source,
+                    chain = excluded.chain,
+                    comment = excluded.comment,
+                    hit_count = combinations.hit_count
+                        + CASE WHEN ? THEN 1 ELSE 0 END
                 """
+            else:
+                conflict_update = """
+                    hit_count = combinations.hit_count
+                        + CASE WHEN ? THEN 1 ELSE 0 END
+                """
+            con.execute(
+                f"""
                 INSERT INTO combinations(
                     key, result, emoji, source, chain, comment, created_at, hit_count
                 )
                 VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-                ON CONFLICT(key) DO UPDATE SET
-                    hit_count = hit_count + CASE WHEN ? THEN 1 ELSE 0 END
+                ON CONFLICT(key) DO UPDATE SET {conflict_update}
                 """,
                 (
                     key,
@@ -153,6 +169,11 @@ def upsert_combination(
                 ),
             )
             con.commit()
+            row = con.execute(
+                "SELECT hit_count FROM combinations WHERE key = ?",
+                (key,),
+            ).fetchone()
+            return max(1, int(row["hit_count"])) if row else 1
         finally:
             con.close()
 
@@ -364,7 +385,7 @@ def recipes_for(result: str, limit: int = 50) -> List[Dict]:
     con = _conn()
     try:
         rows = con.execute(
-            """SELECT key, source, chain, hit_count
+            """SELECT key, source, chain, comment, hit_count
                FROM combinations WHERE result = ?
                ORDER BY source ASC, hit_count DESC LIMIT ?""",
             (result, limit),
@@ -381,6 +402,7 @@ def recipes_for(result: str, limit: int = 50) -> List[Dict]:
                 "b": b,
                 "source": r["source"],
                 "chain": r["chain"] or None,
+                "comment": r["comment"] or "",
                 "hit_count": r["hit_count"],
             })
         return out

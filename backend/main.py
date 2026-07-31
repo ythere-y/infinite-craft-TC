@@ -117,6 +117,7 @@ class CombineResp(BaseModel):
     depth: int = 0
     full_score: int = 0
     formula_id: Optional[str] = None
+    hit_count: int = 0
 
 
 class ScoreReq(BaseModel):
@@ -556,6 +557,18 @@ async def api_combine(
         formula_id = formula["id"]
         community.record_reproduction(formula_id, player_id)
 
+    hit_count = 0
+    if source != "fallback":
+        try:
+            hit_count = max(1, int(db.touch_hit(key, hit)))
+        except Exception as exc:
+            hit_count = 1
+            print(
+                f"[combine] event=hit_count_failed request_id={request_id} "
+                f"error_type={type(exc).__name__}",
+                flush=True,
+            )
+
     elapsed_ms = round((time.perf_counter() - started) * 1000)
     print(
         f"[combine] event=request_completed request_id={request_id} "
@@ -580,6 +593,7 @@ async def api_combine(
         depth=depth_val,
         full_score=full_score,
         formula_id=formula_id,
+        hit_count=hit_count,
     )
 
 
@@ -957,6 +971,7 @@ async def api_element_recipes(name: str):
                 "b_icon": _element_icon(b, b_info.get("emoji") or "❓"),
                 "source": r.get("source"),
                 "chain": r.get("chain"),
+                "comment": r.get("comment") or "",
                 "hit_count": r.get("hit_count"),
             }
         )

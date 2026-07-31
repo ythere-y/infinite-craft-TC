@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { KvStore } from "../edge-functions/_lib/kv-store.js";
 import { createRouter } from "../edge-functions/_lib/router.js";
 import { FakeKV } from "./fake-kv.mjs";
 
@@ -31,7 +32,12 @@ function makeRouter() {
       new Response(
         JSON.stringify({
           choices: [
-            { message: { content: '{"name":"边缘咖啡","emoji":"☕"}' } },
+            {
+              message: {
+                content:
+                  '{"name":"边缘咖啡","emoji":"☕","comment":"边缘一杯，灵感起飞。"}',
+              },
+            },
           ],
         }),
         { status: 200 },
@@ -274,6 +280,53 @@ test("nickname, combine, wall, bounty and admin routes share KV state", async ()
   assert.deepEqual(admin.body.recent_firsts[0].icon, combine.body.icon);
 });
 
+test("combine responses expose increasing global popularity", async () => {
+  const router = makeRouter();
+  const body = {
+    a: "水",
+    b: "火",
+    discoverer: "测试鹅",
+    session_id: "popularity-session",
+  };
+
+  const first = await json(router, "/api/combine", {
+    method: "POST",
+    body,
+  });
+  const repeated = await json(router, "/api/combine", {
+    method: "POST",
+    body: { ...body, a: "火", b: "水" },
+  });
+
+  assert.equal(first.body.result, "蒸汽");
+  assert.equal(first.body.hit_count, 1);
+  assert.equal(repeated.body.result, "蒸汽");
+  assert.equal(repeated.body.hit_count, 2);
+});
+
+test("fallback combines do not create popularity records", async () => {
+  const kv = new FakeKV();
+  const router = createRouter({
+    kv,
+    env: { APP_ENV: "test" },
+    now: () => 1_700_000_000_000,
+  });
+  const fallback = await json(router, "/api/combine", {
+    method: "POST",
+    body: {
+      a: "不存在甲",
+      b: "不存在乙",
+      discoverer: "测试鹅",
+      session_id: "fallback-session",
+    },
+  });
+
+  assert.equal(fallback.body.source, "fallback");
+  assert.equal(fallback.body.hit_count, 0);
+  const store = new KvStore(kv, { now: () => 1_700_000_000_000 });
+  assert.equal(await store.getCombination("不存在甲", "不存在乙"), null);
+});
+
 test("recipes, verification, KPI and analytics routes remain available", async () => {
   const router = makeRouter();
 
@@ -312,6 +365,7 @@ test("recipes, verification, KPI and analytics routes remain available", async (
     palette: "nature",
     source: "fallback",
   });
+  assert.equal(waterRecipe.comment, "");
 
   const kpi = await json(router, "/api/session/kpi", {
     method: "POST",
@@ -343,6 +397,30 @@ test("recipes, verification, KPI and analytics routes remain available", async (
   const category = await json(router, "/api/wall/category/tencent");
   assert.ok(category.body.items.length > 0);
   assert.ok(category.body.items.every((item) => item.icon));
+});
+
+test("dynamic recipe responses preserve their generated comment", async () => {
+  const router = makeRouter();
+  const generated = await json(router, "/api/combine", {
+    method: "POST",
+    body: {
+      a: "Riot",
+      b: "水",
+      discoverer: "测试鹅",
+      session_id: "recipe-comment-session",
+    },
+  });
+  assert.equal(generated.body.result, "边缘咖啡");
+
+  const generatedRecipes = await json(
+    router,
+    `/api/element/${encodeURIComponent("边缘咖啡")}/recipes`,
+  );
+  assert.equal(generatedRecipes.body.recipes.length, 1);
+  assert.equal(
+    generatedRecipes.body.recipes[0].comment,
+    "边缘一杯，灵感起飞。",
+  );
 });
 
 test("recipe verification rejects oversized imports and bounds KV concurrency", async () => {

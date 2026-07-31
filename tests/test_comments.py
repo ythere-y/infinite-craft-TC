@@ -181,6 +181,58 @@ def test_archive_warmup_restores_comment_to_redis(tmp_path, monkeypatch):
     assert fake.hashes["combo:甲 + 乙"]["comment"] == "归档重新上线。"
 
 
+def test_recipe_api_projects_each_archived_comment(tmp_path, monkeypatch):
+    from backend import main
+
+    monkeypatch.setattr(archive, "_DATA_DIR", tmp_path)
+    monkeypatch.setenv("APP_ENV", "test")
+    archive.init_archive()
+    archive.upsert_combination(
+        "代码 + 创始人",
+        "张志东",
+        "💻",
+        "seed",
+        "boss",
+        comment="",
+    )
+    archive.upsert_combination(
+        "张志东 + 秃头循环",
+        "张志东",
+        "💻",
+        "llm",
+        None,
+        comment="大佬面前，秃头循环只能绕道走。",
+    )
+    monkeypatch.setattr(
+        main.store,
+        "elements",
+        {
+            "张志东": {"emoji": "💻", "category": "boss"},
+            "秃头循环": {"emoji": "♻️", "category": "ai"},
+            "代码": {"emoji": "💻", "category": "worker"},
+            "创始人": {"emoji": "👔", "category": "boss"},
+        },
+    )
+
+    archived = archive.recipes_for("张志东")
+    assert {
+        (row["a"], row["b"]): row["comment"]
+        for row in archived
+    } == {
+        ("代码", "创始人"): "",
+        ("张志东", "秃头循环"): "大佬面前，秃头循环只能绕道走。",
+    }
+
+    payload = asyncio.run(main.api_element_recipes("张志东"))
+    assert {
+        (row["a"], row["b"]): row["comment"]
+        for row in payload["recipes"]
+    } == {
+        ("代码", "创始人"): "",
+        ("张志东", "秃头循环"): "大佬面前，秃头循环只能绕道走。",
+    }
+
+
 def test_hit_only_sqlite_update_preserves_original_comment(tmp_path, monkeypatch):
     monkeypatch.setattr(archive, "_DATA_DIR", tmp_path)
     monkeypatch.setenv("APP_ENV", "test")
@@ -194,7 +246,7 @@ def test_hit_only_sqlite_update_preserves_original_comment(tmp_path, monkeypatch
         comment="一次生成，长期复用。",
     )
 
-    archive.upsert_combination(
+    hit_count = archive.upsert_combination(
         key="甲 + 乙",
         result="",
         emoji="",
@@ -202,6 +254,7 @@ def test_hit_only_sqlite_update_preserves_original_comment(tmp_path, monkeypatch
         chain=None,
         increment_hit=True,
     )
+    assert hit_count == 2
 
     con = archive._conn()
     row = con.execute(
@@ -281,6 +334,7 @@ def prepare_cached_combine(monkeypatch, hit):
         lambda result: {"discoverer": "别的玩家"},
     )
     monkeypatch.setattr(main.db, "kpi_add", lambda *args: None)
+    monkeypatch.setattr(main.db, "touch_hit", lambda key, hit: 7)
     monkeypatch.setattr(main.kpi, "score_for", lambda *args: (0, ""))
     monkeypatch.setattr(main.kpi, "should_explode", lambda *args: False)
     monkeypatch.setattr(main.depth_mod, "update_on_combine", lambda *args: 1)
@@ -314,6 +368,50 @@ def test_cached_comment_is_returned_without_llm(monkeypatch):
     )
 
     assert response.comment == "第一次生成的点评。"
+
+
+def test_cached_combine_returns_global_hit_snapshot(monkeypatch):
+    main = prepare_cached_combine(
+        monkeypatch,
+        {
+            "result": "项目",
+            "emoji": "📦",
+            "source": "llm",
+            "chain": "",
+            "comment": "稳定交付。",
+        },
+    )
+
+    response = asyncio.run(
+        main.api_combine(main.CombineReq(a="甲", b="乙", discoverer="测试鹅"))
+    )
+
+    assert response.hit_count == 7
+
+
+def test_fallback_combine_does_not_record_global_hit(monkeypatch):
+    main = prepare_cached_combine(
+        monkeypatch,
+        {
+            "result": "未知产物",
+            "emoji": "❓",
+            "source": "fallback",
+            "chain": "",
+            "comment": "",
+        },
+    )
+
+    def forbidden_touch(*args, **kwargs):
+        raise AssertionError("fallback must not increment popularity")
+
+    monkeypatch.setattr(main.db, "touch_hit", forbidden_touch)
+    response = asyncio.run(
+        main.api_combine(
+            main.CombineReq(a="未知甲", b="未知乙", discoverer="测试鹅")
+        )
+    )
+
+    assert response.hit_count == 0
 
 
 def test_old_cache_without_comment_uses_default(monkeypatch):

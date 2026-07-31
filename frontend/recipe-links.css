@@ -1,0 +1,57 @@
+.recipe-links {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  overflow: visible;
+  pointer-events: none;
+  transition: opacity 240ms ease;
+}
+
+.recipe-link-base,
+.recipe-link-flow {
+  fill: none;
+  stroke: var(--recipe-link-color, #9AA6B2);
+  vector-effect: non-scaling-stroke;
+}
+
+.recipe-link-base {
+  stroke-width: calc(var(--recipe-link-width, .7) * 1px);
+  stroke-linecap: round;
+  opacity: var(--recipe-link-opacity, .1);
+}
+
+.recipe-link-flow {
+  stroke-width: calc((var(--recipe-link-width, .7) + .35) * 1px);
+  stroke-linecap: round;
+  stroke-dasharray: 3 17;
+  opacity: calc(var(--recipe-link-opacity, .1) * .74);
+  filter:
+    drop-shadow(
+      0 0 calc(var(--recipe-link-glow, 0) * 1px)
+      var(--recipe-link-color, #9AA6B2)
+    );
+  animation:
+    recipe-link-flow
+    calc(var(--recipe-link-duration, 10) * 1s)
+    linear
+    infinite;
+}
+
+body.ura-on .recipe-links {
+  opacity: .82;
+}
+
+@keyframes recipe-link-flow {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recipe-link-flow {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

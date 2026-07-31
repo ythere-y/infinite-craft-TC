@@ -181,6 +181,109 @@ def test_retirement_preserves_history_and_creates_v2(tmp_path, monkeypatch):
     assert not community.is_retired_key(first["combo_key"])
 
 
+def test_seed_reconciliation_supersedes_conflicting_active_formula(
+    tmp_path,
+    monkeypatch,
+):
+    setup_db(tmp_path, monkeypatch)
+    first = community.ensure_formula(
+        "水 + 水",
+        "水",
+        "水",
+        "海洋",
+        "🌊",
+        "旧公式。",
+        "seed",
+        "旧发现者",
+    )
+    community.record_reproduction(first["id"], "old-player")
+    community.publish(first["id"], "old-player")
+    community.vote(first["id"], "old-player", 1)
+
+    formulas = [
+        {
+            "combo_key": "水 + 水",
+            "a": "水",
+            "b": "水",
+            "result": "水塘",
+            "emoji": "💧",
+            "comment": "两滴水先汇成池塘。",
+            "source": "seed",
+        }
+    ]
+    assert community.reconcile_seed_formulas(formulas) == 1
+
+    con = archive._conn()
+    try:
+        versions = [
+            dict(row)
+            for row in con.execute(
+                """
+                SELECT id,result,emoji,comment,source,version,visibility,status
+                FROM formula_versions WHERE combo_key=? ORDER BY version
+                """,
+                ("水 + 水",),
+            ).fetchall()
+        ]
+        reproductions = con.execute(
+            "SELECT COUNT(*) FROM formula_reproductions WHERE formula_id=?",
+            (first["id"],),
+        ).fetchone()[0]
+        votes = con.execute(
+            "SELECT COUNT(*) FROM formula_votes WHERE formula_id=?",
+            (first["id"],),
+        ).fetchone()[0]
+    finally:
+        con.close()
+
+    assert versions[0] == {
+        "id": first["id"],
+        "result": "海洋",
+        "emoji": "🌊",
+        "comment": "旧公式。",
+        "source": "seed",
+        "version": 1,
+        "visibility": "hidden",
+        "status": "retired",
+    }
+    assert versions[1] == {
+        "id": versions[1]["id"],
+        "result": "水塘",
+        "emoji": "💧",
+        "comment": "两滴水先汇成池塘。",
+        "source": "seed",
+        "version": 2,
+        "visibility": "hidden",
+        "status": "active",
+    }
+    assert reproductions == 1
+    assert votes == 1
+    assert community.list_public() == []
+    assert not community.is_retired_key("水 + 水")
+
+    active = community.ensure_formula(
+        "水 + 水",
+        "水",
+        "水",
+        "水塘",
+        "💧",
+        "两滴水先汇成池塘。",
+        "seed",
+        None,
+    )
+    assert active["id"] == versions[1]["id"]
+    assert community.reconcile_seed_formulas(formulas) == 0
+
+    con = archive._conn()
+    try:
+        assert con.execute(
+            "SELECT COUNT(*) FROM formula_versions WHERE combo_key=?",
+            ("水 + 水",),
+        ).fetchone()[0] == 2
+    finally:
+        con.close()
+
+
 def test_only_threshold_qualified_formulas_enter_positive_examples(tmp_path, monkeypatch):
     setup_db(tmp_path, monkeypatch)
     row = formula()

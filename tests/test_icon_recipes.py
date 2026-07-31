@@ -389,6 +389,7 @@ def prepare_dynamic_combine(monkeypatch, existing_elements=None):
     monkeypatch.setattr(main.db, "record_first", lambda *args: False)
     monkeypatch.setattr(main.db, "get_first", lambda result: None)
     monkeypatch.setattr(main.db, "kpi_add", lambda *args: None)
+    monkeypatch.setattr(main.db, "touch_hit", lambda key, hit: 1)
     monkeypatch.setattr(main.kpi, "score_for", lambda *args: (0, ""))
     monkeypatch.setattr(main.kpi, "should_explode", lambda *args: False)
     monkeypatch.setattr(main.depth_mod, "update_on_combine", lambda *args: 1)
