@@ -802,7 +802,12 @@ function scheduleCategoryRefresh(resultName) {
 // ============================================================
 const COLLAPSE_KEY_PREFIX = "ic_wall_collapse_";
 
-function bindCollapsible(toggleId, bodyId, storageKey) {
+function bindCollapsible(
+  toggleId,
+  bodyId,
+  storageKey,
+  defaultCollapsed = false,
+) {
   const btn = document.getElementById(toggleId);
   const body = document.getElementById(bodyId);
   if (!btn || !body) return;
@@ -811,7 +816,8 @@ function bindCollapsible(toggleId, bodyId, storageKey) {
     try { return localStorage.getItem(COLLAPSE_KEY_PREFIX + storageKey); }
     catch (_) { return null; }
   })();
-  const startCollapsed = saved === "1";
+  const startCollapsed =
+    saved === null ? Boolean(defaultCollapsed) : saved === "1";
 
   // 设置初始态：用固定 max-height 让动画有基线
   const applyState = (collapsed, animate = true) => {
@@ -839,7 +845,9 @@ function bindCollapsible(toggleId, bodyId, storageKey) {
     btn.setAttribute("aria-expanded", "false");
     body.style.maxHeight = "0";
   } else {
+    body.classList.remove("collapsed");
     btn.setAttribute("aria-expanded", "true");
+    body.style.maxHeight = "";
   }
 
   btn.addEventListener("click", () => {
@@ -1021,8 +1029,8 @@ async function init() {
   window.ICON_SYSTEM.hydrateActions(document);
   feedScroll.addEventListener("scroll", onScroll, { passive: true });
   // 折叠面板
-  bindCollapsible("bounty-toggle", "bounty-body", "bounty");
-  bindCollapsible("feed-toggle", "feed-body", "feed");
+  bindCollapsible("bounty-toggle", "bounty-body", "bounty", true);
+  bindCollapsible("feed-toggle", "feed-body", "feed", false);
   // 先把"我的卡片"渲染成骨架，避免观感空白
   renderMeCard({ total_players: 0, me: null });
   await loadNextPage();     // 首屏 40 条

@@ -20,14 +20,14 @@
     <div class="feed-scroll" id="feed-scroll">
       <!-- 🎯 悬赏清单（分父 tab + 每 tab 内多子分组） -->
       <section id="bounty" class="category-section">
-        <button type="button" class="section-header collapsible" id="bounty-toggle" aria-expanded="true">
+        <button type="button" class="section-header collapsible" id="bounty-toggle" aria-expanded="false">
           <span class="chevron" data-icon-action="next" aria-hidden="true"></span>
           <span class="section-title">🎯 <b>悬赏清单</b></span>
           <span class="section-extra">
             已发现 <b id="bounty-found">0</b> / 共 <b id="bounty-total">0</b>
           </span>
         </button>
-        <div class="section-body" id="bounty-body">
+        <div class="section-body collapsed" id="bounty-body" style="max-height:0">
           <!-- tab 切换栏（JS 填充） -->
           <nav class="bounty-tabs" id="bounty-tabs"></nav>
           <!-- 当前 tab 下的分组列表（JS 渲染） -->
