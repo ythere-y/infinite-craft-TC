@@ -34,6 +34,7 @@ const REQUIRED_FILES = [
   "dist/community.html",
   "dist/community-admin.html",
   "dist/wall/index.html",
+  "dist/wall/first-honor.js",
   "dist/wall/polling.js",
   "dist/wall/wall.js",
   "dist/admin/index.html",

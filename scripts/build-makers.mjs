@@ -25,6 +25,7 @@ const REQUIRED_ENTRIES = [
   "community.html",
   "community-admin.html",
   "wall/index.html",
+  "wall/first-honor.js",
   "wall/wall.js",
   "admin/index.html",
 ];
