@@ -1815,6 +1815,9 @@ body.ura-on .recipebook-close-button {
   color: #D7D4F5;
   border-color: #3A3A5A;
 }
+body.ura-on .recipebook-close-button .action-icon img {
+  filter: brightness(0) invert(1) opacity(.86);
+}
 body.ura-on .recipebook-close-button:hover { background: #303052; }
 body.ura-on .recipebook-close-button:focus-visible {
   border-color: #A78BFA;

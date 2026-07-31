@@ -95,10 +95,24 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
         var focusVisible = close.matches(":focus-visible");
         var focusBoxShadow = getComputedStyle(close).boxShadow;
         var closeIcon = close.querySelector(".action-icon img");
+        var closeIconUrl = closeIcon && closeIcon.getAttribute("src");
+        var lightIconFilter = closeIcon && getComputedStyle(closeIcon).filter;
         document.body.classList.add("ura-on");
         var nightBackground = getComputedStyle(close).backgroundColor;
         var nightColor = getComputedStyle(close).color;
+        var nightIconFilter = closeIcon && getComputedStyle(closeIcon).filter;
+        var nightIconRect = closeIcon && closeIcon.getBoundingClientRect();
+        var nightIconVisible = !!nightIconRect && nightIconRect.width > 0 && nightIconRect.height > 0
+          && getComputedStyle(closeIcon).display !== "none"
+          && getComputedStyle(closeIcon).visibility !== "hidden"
+          && getComputedStyle(closeIcon).opacity !== "0";
         document.body.classList.remove("ura-on");
+        var canvasCountBefore = document.querySelectorAll("#workspace .element.on-canvas").length;
+        longRow.querySelector(".recipe-result").dispatchEvent(new MouseEvent("dblclick", {
+          bubbles: true, cancelable: true
+        }));
+        var denseChipDoubleActivated =
+          document.querySelectorAll("#workspace .element.on-canvas").length === canvasCountBefore + 1;
         var beforeClose = drawer.classList.contains("show");
         close.click();
         document.getElementById("recipebook-result").textContent = JSON.stringify({
@@ -111,11 +125,16 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
           closeTitle: close.title,
           closeAriaLabel: close.getAttribute("aria-label"),
           hydratedCloseIcon: !!closeIcon && closeIcon.getAttribute("src").indexOf("/actions/x.svg") >= 0,
+          closeIconUrl: closeIconUrl,
+          lightIconFilter: lightIconFilter,
+          nightIconFilter: nightIconFilter,
+          nightIconVisible: nightIconVisible,
           focusVisible: focusVisible,
           focusBoxShadow: focusBoxShadow,
           titleDoesNotOverlapClose: titleRight <= closeRect.left,
           nightBackground: nightBackground,
           nightColor: nightColor,
+          denseChipDoubleActivated: denseChipDoubleActivated,
           wasOpen: beforeClose,
           closed: !drawer.classList.contains("show"),
           shortClasses: Array.from(shortRow.classList),
@@ -126,7 +145,7 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
       } catch (error) {
         document.getElementById("recipebook-result").textContent = JSON.stringify({ error: String(error.stack || error) });
       }
-    }, 200);
+    }, 600);
     </script>
     """
     production = _production_page().replace("</body>", probe + "</body>")
@@ -188,11 +207,16 @@ def test_recipebook_close_control_and_formula_density_use_real_production_page(t
     assert desktop["closeTitle"] == "关闭"
     assert desktop["closeAriaLabel"] == "关闭配方图鉴"
     assert desktop["hydratedCloseIcon"] is True
+    assert desktop["closeIconUrl"].endswith("/assets/icons/actions/x.svg")
+    assert desktop["lightIconFilter"] == "none"
+    assert desktop["nightIconFilter"] != "none"
+    assert desktop["nightIconVisible"] is True
     assert desktop["focusVisible"] is True
     assert desktop["focusBoxShadow"] != "none"
     assert desktop["titleDoesNotOverlapClose"] is True
     assert desktop["nightBackground"] != "rgb(255, 95, 87)"
     assert desktop["nightColor"] != desktop["nightBackground"]
+    assert desktop["denseChipDoubleActivated"] is True
     assert desktop["wasOpen"] is True
     assert desktop["closed"] is True
     assert "recipe-row-dense" not in desktop["shortClasses"]
