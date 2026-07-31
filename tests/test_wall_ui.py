@@ -133,6 +133,98 @@ def test_wall_uses_distinct_first_visit_section_defaults(tmp_path):
     }
 
 
+def test_wall_assets_share_current_cache_version():
+    index_source = (WALL / "index.html").read_text(encoding="utf-8")
+    runtime_source = (WALL / "wall.js").read_text(encoding="utf-8")
+    asset_urls = re.findall(
+        r'(?:href|src)="(/(?:icon-system\.(?:css|js)|wall/wall\.(?:css|js))[^"]*)"',
+        index_source,
+    )
+    dependency_urls = re.findall(r'from "(\./[^"]+)"', runtime_source)
+
+    assert asset_urls == [
+        "/icon-system.css?v=20260731a",
+        "/wall/wall.css?v=20260731a",
+        "/icon-system.js?v=20260731a",
+        "/wall/wall.js?v=20260731a",
+    ]
+    assert dependency_urls == [
+        "./polling.js?v=20260731a",
+        "./first-honor.js?v=20260731a",
+        "./recipe-comments.js?v=20260731a",
+    ]
+
+
+def test_wall_collapsible_sections_manage_keyboard_focus(tmp_path):
+    actual = _run_wall(tmp_path, setup="""
+      var focusTarget = document.createElement("button");
+      focusTarget.id = "bounty-focus-target";
+      focusTarget.textContent = "悬赏操作";
+      document.querySelector("#bounty-body").append(focusTarget);
+
+      var nestedPanel = document.createElement("div");
+      nestedPanel.id = "nested-collapsed-panel";
+      nestedPanel.inert = true;
+      document.querySelector("#bounty-body").append(nestedPanel);
+    """, probe="""
+      var toggle = document.querySelector("#bounty-toggle");
+      var body = document.querySelector("#bounty-body");
+      var focusTarget = document.querySelector("#bounty-focus-target");
+      var nestedPanel = document.querySelector("#nested-collapsed-panel");
+
+      focusTarget.focus();
+      var initial = {
+        inert: body.inert,
+        focusBlocked: document.activeElement !== focusTarget,
+        controls: toggle.getAttribute("aria-controls")
+      };
+
+      toggle.click();
+      focusTarget.focus();
+      var expanded = {
+        inert: body.inert,
+        targetFocused: document.activeElement === focusTarget,
+        nestedStillInert: nestedPanel.inert
+      };
+
+      toggle.focus();
+      toggle.click();
+      focusTarget.focus();
+      var recollapsed = {
+        inert: body.inert,
+        focusBlocked: document.activeElement !== focusTarget,
+        focusStayedOnToggle: document.activeElement === toggle,
+        nestedStillInert: nestedPanel.inert
+      };
+
+      return {
+        initial: initial,
+        expanded: expanded,
+        recollapsed: recollapsed,
+        feedControls: document.querySelector("#feed-toggle").getAttribute("aria-controls")
+      };
+    """)
+    assert actual == {
+        "initial": {
+            "inert": True,
+            "focusBlocked": True,
+            "controls": "bounty-body",
+        },
+        "expanded": {
+            "inert": False,
+            "targetFocused": True,
+            "nestedStillInert": True,
+        },
+        "recollapsed": {
+            "inert": True,
+            "focusBlocked": True,
+            "focusStayedOnToggle": True,
+            "nestedStillInert": True,
+        },
+        "feedControls": "feed-body",
+    }
+
+
 def test_wall_saved_section_preferences_override_defaults(tmp_path):
     actual = _run_wall(tmp_path, setup="""
       localStorage.setItem("ic_wall_collapse_bounty", "0");
@@ -208,12 +300,14 @@ def test_wall_renders_unranked_player_empty_honor(tmp_path):
     """, probe="""
       return {
         meText: document.querySelector("#lb-me-row").textContent,
+        firsts: document.querySelector("#lb-me-row .lb-firsts").textContent,
         honor: document.querySelector("#lb-me-row .lb-honor").getAttribute("aria-label"),
         empty: document.querySelector(".lb-empty").textContent
       };
     """)
     assert actual == {
-        "meText": "您还未上榜 · 共 0 位打工人 · 去合成一个没见过的元素吧！尚未获得首发星星",
+        "meText": "您还未上榜 · 0 个首发 · 共 0 位打工人 · 去合成一个没见过的元素吧！尚未获得首发星星",
+        "firsts": "0 个首发",
         "honor": "尚未获得首发星星",
         "empty": "还没有首发，快去合成吧～",
     }

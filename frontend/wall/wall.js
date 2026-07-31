@@ -8,9 +8,9 @@
    - 右侧排行榜：顶部"我"的卡片 + Top 20；定时刷新 + 每次新首发后再拉
    ============================================================ */
 
-import { collectUnseenPrefix, mergeFirstItems } from "./polling.js";
-import { firstHonorFor } from "./first-honor.js";
-import { recipeCommentFor } from "./recipe-comments.js";
+import { collectUnseenPrefix, mergeFirstItems } from "./polling.js?v=20260731a";
+import { firstHonorFor } from "./first-honor.js?v=20260731a";
+import { recipeCommentFor } from "./recipe-comments.js?v=20260731a";
 
 const PAGE_SIZE = 40;
 const POLL_PAGE_SIZE = 500;       // 覆盖 100 QPS 下一个轮询周期的突发量
@@ -478,10 +478,16 @@ function renderMeCard(data) {
     lbMeRow.replaceChildren(summary, buildHonorLevel(me.firsts, "lb-me-honor"));
   } else {
     lbMeCard.classList.add("no-rank");
-    lbMeRow.replaceChildren(
-      document.createTextNode("您还未上榜 · 共 "),
+    const summary = node("div", "lb-me-summary");
+    summary.append(
+      document.createTextNode("您还未上榜 · "),
+      node("span", "lb-firsts", `${firstHonorFor(0).firsts} 个首发`),
+      document.createTextNode(" · 共 "),
       node("b", "", total_players),
       document.createTextNode(" 位打工人 · 去合成一个没见过的元素吧！"),
+    );
+    lbMeRow.replaceChildren(
+      summary,
       buildHonorLevel(0, "lb-me-honor"),
     );
   }
@@ -859,6 +865,9 @@ function bindCollapsible(
   const body = document.getElementById(bodyId);
   if (!btn || !body) return;
 
+  if (!body.id) body.id = `${toggleId}-panel`;
+  btn.setAttribute("aria-controls", body.id);
+
   const saved = (() => {
     try { return localStorage.getItem(COLLAPSE_KEY_PREFIX + storageKey); }
     catch (_) { return null; }
@@ -869,6 +878,8 @@ function bindCollapsible(
   // 设置初始态：用固定 max-height 让动画有基线
   const applyState = (collapsed, animate = true) => {
     if (collapsed) {
+      if (body.contains(document.activeElement)) btn.focus();
+      body.inert = true;
       // 先固定 scrollHeight，再改 0，触发动画
       body.style.maxHeight = body.scrollHeight + "px";
       // force reflow
@@ -876,6 +887,7 @@ function bindCollapsible(
       body.classList.add("collapsed");
       btn.setAttribute("aria-expanded", "false");
     } else {
+      body.inert = false;
       body.classList.remove("collapsed");
       body.style.maxHeight = body.scrollHeight + "px";
       btn.setAttribute("aria-expanded", "true");
@@ -888,10 +900,12 @@ function bindCollapsible(
 
   // 初始无动画地应用
   if (startCollapsed) {
+    body.inert = true;
     body.classList.add("collapsed");
     btn.setAttribute("aria-expanded", "false");
     body.style.maxHeight = "0";
   } else {
+    body.inert = false;
     body.classList.remove("collapsed");
     btn.setAttribute("aria-expanded", "true");
     body.style.maxHeight = "";
