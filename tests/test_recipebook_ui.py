@@ -24,13 +24,21 @@ def _production_page() -> str:
     index = INDEX.read_text(encoding="utf-8")
     styles = "\n".join(
         (FRONTEND / name).read_text(encoding="utf-8")
-        for name in ("icon-system.css", "style.css", "recipe-links.css")
+        for name in ("icon-system.css", "style.css")
     )
     index = re.sub(r'<link rel="stylesheet"[^>]+>', "", index)
     index = index.replace("</head>", f"<style>{styles}</style></head>")
 
     def inline_script(match: re.Match[str]) -> str:
         filename = match.group(1).split("?", 1)[0]
+        if filename not in {
+            "icon-system.js",
+            "combine-feedback.js",
+            "score-level.js",
+            "effects.js",
+            "app.js",
+        }:
+            return ""
         return f"<script>{(FRONTEND / filename).read_text(encoding='utf-8')}</script>"
 
     index = index.replace(
@@ -79,6 +87,18 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
         var longRow = rows.find(function (row) { return row.textContent.indexOf("春夏秋冬东南西北天地") >= 0; });
         var closeRect = close.getBoundingClientRect();
         var headerRect = header.getBoundingClientRect();
+        var titleRange = document.createRange();
+        titleRange.selectNodeContents(drawer.querySelector(".recipebook-title"));
+        var titleRects = Array.from(titleRange.getClientRects());
+        var titleRight = titleRects[titleRects.length - 1].right;
+        close.focus();
+        var focusVisible = close.matches(":focus-visible");
+        var focusBoxShadow = getComputedStyle(close).boxShadow;
+        var closeIcon = close.querySelector(".action-icon img");
+        document.body.classList.add("ura-on");
+        var nightBackground = getComputedStyle(close).backgroundColor;
+        var nightColor = getComputedStyle(close).color;
+        document.body.classList.remove("ura-on");
         var beforeClose = drawer.classList.contains("show");
         close.click();
         document.getElementById("recipebook-result").textContent = JSON.stringify({
@@ -86,6 +106,16 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
           viewportWidth: window.innerWidth,
           closeRightGap: headerRect.right - closeRect.right,
           closeBackground: getComputedStyle(close).backgroundColor,
+          closeWidth: closeRect.width,
+          closeHeight: closeRect.height,
+          closeTitle: close.title,
+          closeAriaLabel: close.getAttribute("aria-label"),
+          hydratedCloseIcon: !!closeIcon && closeIcon.getAttribute("src").indexOf("/actions/x.svg") >= 0,
+          focusVisible: focusVisible,
+          focusBoxShadow: focusBoxShadow,
+          titleDoesNotOverlapClose: titleRight <= closeRect.left,
+          nightBackground: nightBackground,
+          nightColor: nightColor,
           wasOpen: beforeClose,
           closed: !drawer.classList.contains("show"),
           shortClasses: Array.from(shortRow.classList),
@@ -153,6 +183,16 @@ def test_recipebook_close_control_and_formula_density_use_real_production_page(t
     assert desktop["drawerWidth"] == 480
     assert 0 <= desktop["closeRightGap"] <= 16
     assert desktop["closeBackground"] != "rgb(255, 95, 87)"
+    assert desktop["closeWidth"] == 30
+    assert desktop["closeHeight"] == 30
+    assert desktop["closeTitle"] == "关闭"
+    assert desktop["closeAriaLabel"] == "关闭配方图鉴"
+    assert desktop["hydratedCloseIcon"] is True
+    assert desktop["focusVisible"] is True
+    assert desktop["focusBoxShadow"] != "none"
+    assert desktop["titleDoesNotOverlapClose"] is True
+    assert desktop["nightBackground"] != "rgb(255, 95, 87)"
+    assert desktop["nightColor"] != desktop["nightBackground"]
     assert desktop["wasOpen"] is True
     assert desktop["closed"] is True
     assert "recipe-row-dense" not in desktop["shortClasses"]
@@ -161,3 +201,6 @@ def test_recipebook_close_control_and_formula_density_use_real_production_page(t
     assert desktop["longFits"] is True
     assert desktop["rowWhiteSpace"] and set(desktop["rowWhiteSpace"]) == {"nowrap"}
     assert mobile["drawerWidth"] <= 360
+    assert {"recipe-row-dense", "recipe-row-ultra-dense"} & set(mobile["longClasses"])
+    assert mobile["longFits"] is True
+    assert mobile["rowWhiteSpace"] and set(mobile["rowWhiteSpace"]) == {"nowrap"}

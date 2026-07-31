@@ -900,6 +900,46 @@ function closeRecipebook() {
   document.body.classList.remove("recipebook-open");
 }
 
+function fitRecipeRow(row) {
+  row.classList.remove(
+    "recipe-row-dense", "recipe-row-ultra-dense", "recipe-row-fit"
+  );
+  [
+    "--recipe-row-fit-font-size",
+    "--recipe-row-fit-icon-size",
+    "--recipe-row-fit-gap",
+    "--recipe-row-fit-row-padding-y",
+    "--recipe-row-fit-row-padding-x",
+    "--recipe-row-fit-chip-padding-y",
+    "--recipe-row-fit-chip-padding-x",
+    "--recipe-row-fit-chip-radius",
+    "--recipe-row-fit-score-padding-x",
+  ].forEach((name) => row.style.removeProperty(name));
+  if (row.scrollWidth <= row.clientWidth) return;
+  row.classList.add("recipe-row-dense");
+  if (row.scrollWidth <= row.clientWidth) return;
+  row.classList.add("recipe-row-ultra-dense");
+  if (row.scrollWidth <= row.clientWidth) return;
+
+  row.classList.add("recipe-row-fit");
+  let scale = 1;
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const available = row.clientWidth;
+    const required = row.scrollWidth;
+    if (!available || required <= available) return;
+    scale *= (available / required) * 0.98;
+    row.style.setProperty("--recipe-row-fit-font-size", `${8 * scale}px`);
+    row.style.setProperty("--recipe-row-fit-icon-size", `${16 * scale}px`);
+    row.style.setProperty("--recipe-row-fit-gap", `${2 * scale}px`);
+    row.style.setProperty("--recipe-row-fit-row-padding-y", `${4 * scale}px`);
+    row.style.setProperty("--recipe-row-fit-row-padding-x", `${2 * scale}px`);
+    row.style.setProperty("--recipe-row-fit-chip-padding-y", `${scale}px`);
+    row.style.setProperty("--recipe-row-fit-chip-padding-x", `${3 * scale}px`);
+    row.style.setProperty("--recipe-row-fit-chip-radius", `${6 * scale}px`);
+    row.style.setProperty("--recipe-row-fit-score-padding-x", `${3 * scale}px`);
+  }
+}
+
 function renderRecipebook(filter = "") {
   const list = $("#recipebook-list");
   const empty = $("#recipebook-empty");
@@ -948,6 +988,7 @@ function renderRecipebook(filter = "") {
     }
 
     list.appendChild(row);
+    fitRecipeRow(row);
     shown++;
   }
 
@@ -996,14 +1037,6 @@ function exportRecipes() {
   const payload = {
     _format: "infinity-craft-recipes",
     _version: 1,
-function fitRecipeRow(row) {
-  row.classList.remove("recipe-row-dense", "recipe-row-ultra-dense");
-  if (row.scrollWidth <= row.clientWidth) return;
-  row.classList.add("recipe-row-dense");
-  if (row.scrollWidth <= row.clientWidth) return;
-  row.classList.add("recipe-row-ultra-dense");
-}
-
     nickname: NICKNAME,
     exported_at: new Date().toISOString(),
     recipes: state.recipes,
@@ -1052,7 +1085,6 @@ async function importRecipes(ev) {
     return;
   }
 
-    fitRecipeRow(row);
   // 字段完整性筛查
   const formatValid = [];
   const formatBad = [];
