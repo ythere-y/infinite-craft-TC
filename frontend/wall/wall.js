@@ -9,6 +9,7 @@
    ============================================================ */
 
 import { collectUnseenPrefix, mergeFirstItems } from "./polling.js";
+import { firstHonorFor } from "./first-honor.js";
 import { recipeCommentFor } from "./recipe-comments.js";
 
 const PAGE_SIZE = 40;
@@ -432,6 +433,26 @@ function startWallPolling() {
 // ============================================================
 // 排行榜
 // ============================================================
+function buildHonorLevel(rawFirsts, className = "") {
+  const honor = firstHonorFor(rawFirsts);
+  const level = node("div", `lb-honor${className ? ` ${className}` : ""}`);
+  level.setAttribute("aria-label", honor.ariaLabel);
+  level.classList.toggle("aggregated", honor.aggregated);
+  for (const item of honor.displayItems) {
+    const icon = node(
+      "span",
+      `lb-honor-item tier-${item.tier}${honor.aggregated ? " aggregated" : ""}`,
+      item.text,
+    );
+    icon.setAttribute("aria-hidden", "true");
+    level.append(icon);
+  }
+  if (!honor.displayItems.length) {
+    level.append(node("span", "lb-honor-empty", "尚未获得首发星星"));
+  }
+  return level;
+}
+
 function renderMeCard(data) {
   const { total_players = 0, me = null } = data || {};
 
@@ -446,23 +467,50 @@ function renderMeCard(data) {
 
   if (me && me.rank) {
     lbMeCard.classList.remove("no-rank");
-    lbMeRow.replaceChildren(
+    const summary = node("div", "lb-me-summary");
+    summary.append(
       document.createTextNode("您的排名："),
       node("b", "", `第 ${me.rank} 名`),
-      document.createTextNode(" · 首发 "),
-      node("b", "", me.firsts),
-      document.createTextNode(" 个 · 共 "),
-      node("b", "", total_players),
-      document.createTextNode(" 位打工人"),
+      document.createTextNode(" · "),
+      node("span", "lb-firsts", `${firstHonorFor(me.firsts).firsts} 个首发`),
+      document.createTextNode(` · 共 ${total_players} 位打工人`),
     );
+    lbMeRow.replaceChildren(summary, buildHonorLevel(me.firsts, "lb-me-honor"));
   } else {
     lbMeCard.classList.add("no-rank");
     lbMeRow.replaceChildren(
       document.createTextNode("您还未上榜 · 共 "),
       node("b", "", total_players),
       document.createTextNode(" 位打工人 · 去合成一个没见过的元素吧！"),
+      buildHonorLevel(0, "lb-me-honor"),
     );
   }
+}
+
+function buildRankingEntry(row, variant) {
+  const rank = Number(row?.rank) || 0;
+  const discoverer = row?.discoverer || "匿名鹅";
+  const firsts = firstHonorFor(row?.firsts).firsts;
+  const entry = node(
+    variant === "podium" ? "article" : "div",
+    variant === "podium"
+      ? `lb-podium-card rank-${rank}`
+      : "lb-row",
+  );
+  entry.dataset.rank = String(rank);
+  if (MY_NICK && discoverer === MY_NICK) entry.classList.add("me");
+  entry.setAttribute("role", "listitem");
+
+  const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : String(rank);
+  const rankNode = node("span", "lb-rank", medal);
+  rankNode.setAttribute("aria-label", `第 ${rank} 名`);
+  const name = node("span", "lb-name", discoverer);
+  name.title = discoverer;
+  const count = node("span", "lb-firsts", `${firsts} 个首发`);
+  const honor = buildHonorLevel(firsts);
+
+  entry.append(rankNode, name, count, honor);
+  return entry;
 }
 
 function renderTop(data) {
@@ -472,23 +520,22 @@ function renderTop(data) {
     lbListEl.append(node("div", "lb-empty", "还没有首发，快去合成吧～"));
     return;
   }
-  for (const row of top) {
-    const rank = row.rank;
-    const div = document.createElement("div");
-    const classes = ["lb-row"];
-    if (rank === 1) classes.push("top1");
-    else if (rank === 2) classes.push("top2");
-    else if (rank === 3) classes.push("top3");
-    if (MY_NICK && row.discoverer === MY_NICK) classes.push("me");
-    div.className = classes.join(" ");
-    const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
-    const name = node("span", "lb-name", row.discoverer);
-    name.title = row.discoverer || "";
-    const score = node("span", "lb-score", row.firsts);
-    score.append(node("span", "lb-score-suffix", "个"));
-    div.append(node("span", "lb-rank", medal), name, score);
-    lbListEl.appendChild(div);
+
+  const podium = node("section", "lb-podium");
+  podium.setAttribute("aria-label", "排行榜前三名");
+  podium.setAttribute("role", "list");
+  for (const row of top.slice(0, 3)) {
+    podium.append(buildRankingEntry(row, "podium"));
   }
+
+  const rest = node("div", "lb-ranking-rest");
+  rest.setAttribute("role", "list");
+  rest.setAttribute("aria-label", "排行榜第 4 至 20 名");
+  for (const row of top.slice(3)) {
+    rest.append(buildRankingEntry(row, "list"));
+  }
+  lbListEl.append(podium);
+  if (rest.childElementCount) lbListEl.append(rest);
 }
 
 function renderLeaderboardError(msg) {

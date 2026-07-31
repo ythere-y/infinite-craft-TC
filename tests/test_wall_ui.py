@@ -153,3 +153,90 @@ def test_wall_saved_section_preferences_override_defaults(tmp_path):
         "bountySaved": "1",
         "feedSaved": "0",
     }
+
+
+LEADERBOARD_SETUP = """
+localStorage.setItem("ic_nick", "当前鹅");
+window.__leaderboardPayload = {
+  total_players: 4,
+  me: { rank: 4, firsts: 4 },
+  top: [
+    { rank: 1, discoverer: "第一名长昵称鹅", firsts: 76 },
+    { rank: 2, discoverer: "第二名鹅", firsts: 64 },
+    { rank: 3, discoverer: "第三名鹅", firsts: 16 },
+    { rank: 4, discoverer: "当前鹅", firsts: 4 }
+  ]
+};
+"""
+
+
+def test_wall_renders_podium_rest_list_and_first_honor(tmp_path):
+    actual = _run_wall(tmp_path, setup=LEADERBOARD_SETUP, probe="""
+      var podium = Array.from(document.querySelectorAll(".lb-podium-card"));
+      var rest = Array.from(document.querySelectorAll(".lb-ranking-rest .lb-row"));
+      return {
+        podiumRanks: podium.map(function (row) { return row.dataset.rank; }),
+        podiumFirsts: podium.map(function (row) {
+          return row.querySelector(".lb-firsts").textContent.trim();
+        }),
+        firstHonor: podium[0].querySelector(".lb-honor").getAttribute("aria-label"),
+        firstHonorItems: Array.from(
+          podium[0].querySelectorAll(".lb-honor-item")
+        ).map(function (item) { return item.textContent; }),
+        restRanks: rest.map(function (row) { return row.dataset.rank; }),
+        currentFirsts: document.querySelector("#lb-me-row .lb-firsts").textContent.trim(),
+        currentHonor: document.querySelector("#lb-me-row .lb-honor").getAttribute("aria-label"),
+        currentHighlighted: rest[0].classList.contains("me")
+      };
+    """)
+    assert actual == {
+        "podiumRanks": ["1", "2", "3"],
+        "podiumFirsts": ["76 个首发", "64 个首发", "16 个首发"],
+        "firstHonor": "首发荣誉等级：1个皇冠、3个月亮",
+        "firstHonorItems": ["👑", "🌙", "🌙", "🌙"],
+        "restRanks": ["4"],
+        "currentFirsts": "4 个首发",
+        "currentHonor": "首发荣誉等级：1个月亮",
+        "currentHighlighted": True,
+    }
+
+
+def test_wall_renders_unranked_player_empty_honor(tmp_path):
+    actual = _run_wall(tmp_path, setup="""
+      localStorage.setItem("ic_nick", "还在合成的鹅");
+      window.__leaderboardPayload = { total_players: 0, me: null, top: [] };
+    """, probe="""
+      return {
+        meText: document.querySelector("#lb-me-row").textContent,
+        honor: document.querySelector("#lb-me-row .lb-honor").getAttribute("aria-label"),
+        empty: document.querySelector(".lb-empty").textContent
+      };
+    """)
+    assert actual == {
+        "meText": "您还未上榜 · 共 0 位打工人 · 去合成一个没见过的元素吧！尚未获得首发星星",
+        "honor": "尚未获得首发星星",
+        "empty": "还没有首发，快去合成吧～",
+    }
+
+
+def test_wall_aggregates_large_first_honor_levels(tmp_path):
+    actual = _run_wall(tmp_path, setup="""
+window.__leaderboardPayload = {
+  total_players: 1,
+  me: null,
+  top: [{ rank: 1, discoverer: "皇冠鹅", firsts: 1344 }]
+};
+""", probe="""
+  var honor = document.querySelector(".lb-podium-card .lb-honor");
+  return {
+    aggregated: honor.classList.contains("aggregated"),
+    items: Array.from(honor.querySelectorAll(".lb-honor-item"))
+      .map(function (item) { return item.textContent; }),
+    count: document.querySelector(".lb-podium-card .lb-firsts").textContent.trim()
+  };
+""")
+    assert actual == {
+        "aggregated": True,
+        "items": ["👑 × 21"],
+        "count": "1344 个首发",
+    }
