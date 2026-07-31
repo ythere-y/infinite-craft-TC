@@ -54,6 +54,12 @@ def _production_page() -> str:
             b: "超长元素子丑寅卯辰巳午未申酉",
             result: "超长结果春夏秋冬东南西北天地",
             emoji: "🧪", ts: 2
+          },
+          {
+            a: "配方压缩输入甲乙丙丁戊己庚辛壬癸甲乙丙丁戊己庚辛壬癸",
+            b: "配方压缩输入子丑寅卯辰巳午未申酉子丑寅卯辰巳午未申酉",
+            result: "配方测量终点春夏秋冬东南西北天地春夏秋冬东南西北天地",
+            emoji: "🧬", ts: 3
           }
         ]));
         window.alert = function () {};
@@ -78,13 +84,20 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
     <script>
     setTimeout(function () {
       try {
-        document.getElementById("btn-recipebook").click();
         var drawer = document.getElementById("recipebook");
-        var header = drawer.querySelector(".recipebook-header");
         var close = document.getElementById("recipebook-close");
+        drawer.style.transition = "none";
+        close.style.transition = "none";
+        document.getElementById("btn-recipebook").click();
+        var header = drawer.querySelector(".recipebook-header");
         var rows = Array.from(drawer.querySelectorAll(".recipe-row"));
         var shortRow = rows.find(function (row) { return row.textContent.indexOf("蒸汽") >= 0; });
-        var longRow = rows.find(function (row) { return row.textContent.indexOf("春夏秋冬东南西北天地") >= 0; });
+        var longRow = rows.find(function (row) { return row.textContent.indexOf("超长结果") >= 0; });
+        var fitRow = rows.find(function (row) { return row.textContent.indexOf("配方测量终点") >= 0; });
+        var longPlus = longRow.querySelector(".recipe-plus");
+        var fitPlus = fitRow.querySelector(".recipe-plus");
+        var fitName = fitRow.querySelector(".recipe-chip[data-name] .name");
+        var fitArrow = fitRow.querySelector(".recipe-arrow");
         var closeRect = close.getBoundingClientRect();
         var headerRect = header.getBoundingClientRect();
         var titleRange = document.createRange();
@@ -94,7 +107,26 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
         close.focus();
         var focusVisible = close.matches(":focus-visible");
         var focusBoxShadow = getComputedStyle(close).boxShadow;
+        var focusRingVisible = focusBoxShadow.indexOf("3px") >= 0
+          && focusBoxShadow.indexOf("0.25") >= 0;
         var closeIcon = close.querySelector(".action-icon img");
+        var closeIconWell = close.querySelector(".action-icon");
+        var closeIconWellRect = closeIconWell.getBoundingClientRect();
+        var closeIconRect = closeIcon.getBoundingClientRect();
+        var shortChip = shortRow.querySelector(".recipe-chip[data-name]");
+        var shortName = shortChip.querySelector(".name");
+        var shortPlus = shortRow.querySelector(".recipe-plus");
+        var shortArrow = shortRow.querySelector(".recipe-arrow");
+        var shortRowStyle = getComputedStyle(shortRow);
+        var shortChipStyle = getComputedStyle(shortChip);
+        var shortNameStyle = getComputedStyle(shortName);
+        var shortPlusStyle = getComputedStyle(shortPlus);
+        var shortArrowStyle = getComputedStyle(shortArrow);
+        var longPlusStyle = getComputedStyle(longPlus);
+        var fitPlusStyle = getComputedStyle(fitPlus);
+        var fitNameStyle = getComputedStyle(fitName);
+        var fitArrowStyle = getComputedStyle(fitArrow);
+        var shortChipIcon = shortChip.querySelector(".element-icon-canvas");
         var closeIconUrl = closeIcon && closeIcon.getAttribute("src");
         var lightIconFilter = closeIcon && getComputedStyle(closeIcon).filter;
         document.body.classList.add("ura-on");
@@ -102,6 +134,15 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
         var nightColor = getComputedStyle(close).color;
         var nightIconFilter = closeIcon && getComputedStyle(closeIcon).filter;
         var nightIconRect = closeIcon && closeIcon.getBoundingClientRect();
+        var nightRowColor = getComputedStyle(shortRow).color;
+        var nightPlusColor = getComputedStyle(shortPlus).color;
+        var nightArrowColor = getComputedStyle(shortArrow).color;
+        var nightFitPlusVisible = getComputedStyle(fitPlus).display !== "none"
+          && getComputedStyle(fitPlus).visibility !== "hidden"
+          && getComputedStyle(fitPlus).opacity !== "0";
+        var nightFitArrowVisible = getComputedStyle(fitArrow).display !== "none"
+          && getComputedStyle(fitArrow).visibility !== "hidden"
+          && getComputedStyle(fitArrow).opacity !== "0";
         var nightIconVisible = !!nightIconRect && nightIconRect.width > 0 && nightIconRect.height > 0
           && getComputedStyle(closeIcon).display !== "none"
           && getComputedStyle(closeIcon).visibility !== "hidden"
@@ -113,6 +154,28 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
         }));
         var denseChipDoubleActivated =
           document.querySelectorAll("#workspace .element.on-canvas").length === canvasCountBefore + 1;
+        var dragChip = longRow.querySelector(".recipe-chip[data-name]");
+        var dragChipRect = dragChip.getBoundingClientRect();
+        var workspaceRect = document.getElementById("workspace").getBoundingClientRect();
+        var canvasCountBeforeDrag = document.querySelectorAll("#workspace .element.on-canvas").length;
+        dragChip.dispatchEvent(new PointerEvent("pointerdown", {
+          bubbles: true, cancelable: true, pointerId: 41, pointerType: "mouse",
+          button: 0, buttons: 1,
+          clientX: dragChipRect.left + dragChipRect.width / 2,
+          clientY: dragChipRect.top + dragChipRect.height / 2
+        }));
+        window.dispatchEvent(new PointerEvent("pointermove", {
+          bubbles: true, cancelable: true, pointerId: 41, pointerType: "mouse",
+          button: 0, buttons: 1,
+          clientX: workspaceRect.left + 24, clientY: workspaceRect.top + 24
+        }));
+        window.dispatchEvent(new PointerEvent("pointerup", {
+          bubbles: true, cancelable: true, pointerId: 41, pointerType: "mouse",
+          button: 0, buttons: 0,
+          clientX: workspaceRect.left + 24, clientY: workspaceRect.top + 24
+        }));
+        var denseChipDragged =
+          document.querySelectorAll("#workspace .element.on-canvas").length === canvasCountBeforeDrag + 1;
         var beforeClose = drawer.classList.contains("show");
         close.click();
         document.getElementById("recipebook-result").textContent = JSON.stringify({
@@ -126,20 +189,58 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
           closeAriaLabel: close.getAttribute("aria-label"),
           hydratedCloseIcon: !!closeIcon && closeIcon.getAttribute("src").indexOf("/actions/x.svg") >= 0,
           closeIconUrl: closeIconUrl,
+          closeIconWellWidth: closeIconWellRect.width,
+          closeIconWellHeight: closeIconWellRect.height,
+          closeIconWidth: closeIconRect.width,
+          closeIconHeight: closeIconRect.height,
+          closeIconCenterDeltaX: Math.abs(
+            (closeIconRect.left + closeIconRect.width / 2) -
+            (closeIconWellRect.left + closeIconWellRect.width / 2)
+          ),
+          closeIconCenterDeltaY: Math.abs(
+            (closeIconRect.top + closeIconRect.height / 2) -
+            (closeIconWellRect.top + closeIconWellRect.height / 2)
+          ),
+          shortRowGap: parseFloat(shortRowStyle.gap),
+          shortChipPaddingLeft: parseFloat(shortChipStyle.paddingLeft),
+          shortChipIconWidth: shortChipIcon.getBoundingClientRect().width,
+          shortPlusPaddingLeft: parseFloat(shortPlusStyle.paddingLeft),
+          longPlusPaddingLeft: parseFloat(longPlusStyle.paddingLeft),
+          fitPlusPaddingLeft: parseFloat(fitPlusStyle.paddingLeft),
+          fitPlusFontSize: parseFloat(fitPlusStyle.fontSize),
+          fitArrowFontSize: parseFloat(fitArrowStyle.fontSize),
+          fitNameFontSize: parseFloat(fitNameStyle.fontSize),
+          shortPlusFontSize: parseFloat(shortPlusStyle.fontSize),
+          shortArrowFontSize: parseFloat(shortArrowStyle.fontSize),
+          shortNameFontSize: parseFloat(shortNameStyle.fontSize),
+          shortPlusFontWeight: parseInt(shortPlusStyle.fontWeight, 10),
+          shortArrowFontWeight: parseInt(shortArrowStyle.fontWeight, 10),
+          shortPlusColor: shortPlusStyle.color,
+          shortArrowColor: shortArrowStyle.color,
+          shortNameColor: shortNameStyle.color,
+          nightPlusColor: nightPlusColor,
+          nightArrowColor: nightArrowColor,
+          nightRowColor: nightRowColor,
+          nightFitPlusVisible: nightFitPlusVisible,
+          nightFitArrowVisible: nightFitArrowVisible,
           lightIconFilter: lightIconFilter,
           nightIconFilter: nightIconFilter,
           nightIconVisible: nightIconVisible,
           focusVisible: focusVisible,
           focusBoxShadow: focusBoxShadow,
+          focusRingVisible: focusRingVisible,
           titleDoesNotOverlapClose: titleRight <= closeRect.left,
           nightBackground: nightBackground,
           nightColor: nightColor,
           denseChipDoubleActivated: denseChipDoubleActivated,
+          denseChipDragged: denseChipDragged,
           wasOpen: beforeClose,
           closed: !drawer.classList.contains("show"),
           shortClasses: Array.from(shortRow.classList),
           longClasses: Array.from(longRow.classList),
+          fitClasses: Array.from(fitRow.classList),
           longFits: longRow.scrollWidth <= longRow.clientWidth,
+          fitFits: fitRow.scrollWidth <= fitRow.clientWidth,
           rowWhiteSpace: rows.map(function (row) { return getComputedStyle(row).whiteSpace; })
         });
       } catch (error) {
@@ -208,23 +309,50 @@ def test_recipebook_close_control_and_formula_density_use_real_production_page(t
     assert desktop["closeAriaLabel"] == "关闭配方图鉴"
     assert desktop["hydratedCloseIcon"] is True
     assert desktop["closeIconUrl"].endswith("/assets/icons/actions/x.svg")
+    assert desktop["closeIconWellWidth"] == 30
+    assert desktop["closeIconWellHeight"] == 30
+    assert desktop["closeIconWidth"] == 14
+    assert desktop["closeIconHeight"] == 14
+    assert desktop["closeIconCenterDeltaX"] <= 0.5
+    assert desktop["closeIconCenterDeltaY"] <= 0.5
+    assert desktop["shortRowGap"] <= 4
+    assert desktop["shortChipPaddingLeft"] <= 5
+    assert desktop["shortChipIconWidth"] <= 22
+    assert desktop["shortPlusPaddingLeft"] == 0
+    assert desktop["shortPlusFontSize"] > desktop["shortNameFontSize"]
+    assert desktop["shortArrowFontSize"] > desktop["shortNameFontSize"]
+    assert desktop["shortPlusFontWeight"] >= 600
+    assert desktop["shortArrowFontWeight"] >= 600
+    assert desktop["shortPlusColor"] != desktop["shortNameColor"]
+    assert desktop["shortArrowColor"] != desktop["shortNameColor"]
+    assert desktop["nightPlusColor"] != desktop["nightRowColor"]
+    assert desktop["nightArrowColor"] != desktop["nightRowColor"]
     assert desktop["lightIconFilter"] == "none"
     assert desktop["nightIconFilter"] != "none"
     assert desktop["nightIconVisible"] is True
     assert desktop["focusVisible"] is True
-    assert desktop["focusBoxShadow"] != "none"
+    assert desktop["focusRingVisible"] is True
     assert desktop["titleDoesNotOverlapClose"] is True
-    assert desktop["nightBackground"] != "rgb(255, 95, 87)"
-    assert desktop["nightColor"] != desktop["nightBackground"]
+    assert desktop["nightBackground"] == "rgb(36, 36, 60)"
+    assert desktop["nightColor"] == "rgb(215, 212, 245)"
     assert desktop["denseChipDoubleActivated"] is True
     assert desktop["wasOpen"] is True
     assert desktop["closed"] is True
     assert "recipe-row-dense" not in desktop["shortClasses"]
     assert "recipe-row-ultra-dense" not in desktop["shortClasses"]
-    assert {"recipe-row-dense", "recipe-row-ultra-dense"} & set(desktop["longClasses"])
     assert desktop["longFits"] is True
     assert desktop["rowWhiteSpace"] and set(desktop["rowWhiteSpace"]) == {"nowrap"}
     assert mobile["drawerWidth"] <= 360
     assert {"recipe-row-dense", "recipe-row-ultra-dense"} & set(mobile["longClasses"])
+    assert mobile["longPlusPaddingLeft"] == 0
     assert mobile["longFits"] is True
+    assert mobile["denseChipDoubleActivated"] is True
+    assert mobile["denseChipDragged"] is True
+    assert "recipe-row-fit" in mobile["fitClasses"]
+    assert mobile["fitFits"] is True
+    assert mobile["fitPlusPaddingLeft"] == 0
+    assert mobile["fitPlusFontSize"] > mobile["fitNameFontSize"]
+    assert mobile["fitArrowFontSize"] > mobile["fitNameFontSize"]
+    assert mobile["nightFitPlusVisible"] is True
+    assert mobile["nightFitArrowVisible"] is True
     assert mobile["rowWhiteSpace"] and set(mobile["rowWhiteSpace"]) == {"nowrap"}

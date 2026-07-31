@@ -203,11 +203,62 @@ const state = {
   nextId: 1,
 };
 
+const NOOP_RECIPE_LINKS = Object.freeze({
+  sync() {},
+  scheduleGeometryUpdate() {},
+  clear() {},
+  destroy() {},
+});
+
+function createRecipeLinks() {
+  try {
+    return window.RECIPE_LINKS?.create?.(workspace) || NOOP_RECIPE_LINKS;
+  } catch (error) {
+    console.warn("recipe links unavailable", error);
+    return NOOP_RECIPE_LINKS;
+  }
+}
+
+const recipeLinks = createRecipeLinks();
+
+function recipeLinkSnapshots() {
+  const recipes = state.recipes.map((recipe) => ({
+    key: recipe.key,
+    a: recipe.a,
+    b: recipe.b,
+    hit_count: Math.max(1, Number(recipe.hit_count) || 1),
+    depth: Number(recipe.depth) || 0,
+  }));
+  const elements = state.onCanvas.map(({ id, name, x, y }) => ({
+    id,
+    name,
+    x,
+    y,
+  }));
+  return { recipes, elements };
+}
+
+function syncRecipeLinks() {
+  const { recipes, elements } = recipeLinkSnapshots();
+  recipeLinks.sync({ recipes, elements });
+}
+
+function moveRecipeLinks() {
+  const { elements } = recipeLinkSnapshots();
+  recipeLinks.scheduleGeometryUpdate(elements);
+}
+
 // 拖拽上下文
 const drag = {
   active: null,        // {ghost, info, sourceId|null, offsetX, offsetY}
   hoverTarget: null,   // 当前悬停的 canvas 元素 record
 };
+
+function setDragTarget(record, active) {
+  if (!record?.el) return;
+  record.el.classList.toggle("dropping", !!active);
+  window.EFFECTS?.setCombineTarget?.(record.el, active);
+}
 
 // ============================================================
 // 初始化
@@ -264,14 +315,36 @@ function renderSidebar(filter = "") {
     if (q && !name.toLowerCase().includes(q)) continue;
     const info = elementInfoFor(name);
     if (!info) continue;
-    list.appendChild(makeElementChip(info, {
+    const chip = makeElementChip(info, {
       isFirst: state.firsts.has(name),
       source: "sidebar",
-    }));
+    });
+    list.appendChild(chip);
+    window.ICON_SYSTEM?.fitSidebarChip?.(chip);
   }
   countEl.textContent = state.discovered.size;
   // 如果里模式开着，重新应用覆盖
   window.EFFECTS?.reapplyUra?.();
+  scheduleSidebarFit();
+}
+
+function fitAllSidebarChips() {
+  list.querySelectorAll(":scope > .element").forEach((chip) => {
+    window.ICON_SYSTEM?.fitSidebarChip?.(chip);
+  });
+}
+
+let sidebarFitFrame = 0;
+function scheduleSidebarFit() {
+  if (sidebarFitFrame) return;
+  sidebarFitFrame = requestAnimationFrame(() => {
+    sidebarFitFrame = 0;
+    fitAllSidebarChips();
+  });
+}
+
+if (typeof ResizeObserver === "function") {
+  new ResizeObserver(scheduleSidebarFit).observe(list);
 }
 
 function makeElementChip(info, { isFirst = false, source = "sidebar" } = {}) {
@@ -365,7 +438,7 @@ function cancelActiveDrag() {
   if (!drag.active) return;
   const { ghost } = drag.active;
   ghost?.remove();
-  drag.hoverTarget?.el.classList.remove("dropping");
+  setDragTarget(drag.hoverTarget, false);
   document.querySelectorAll(".element.dragging").forEach(el => el.classList.remove("dragging"));
   drag.active = null;
   drag.hoverTarget = null;
@@ -425,8 +498,8 @@ function onPointerMove(e) {
   // 高亮 drop target（只在工作区内）
   const target = findCanvasElementAtClient(e.clientX, e.clientY, sourceId);
   if (target !== drag.hoverTarget) {
-    drag.hoverTarget?.el.classList.remove("dropping");
-    target?.el.classList.add("dropping");
+    setDragTarget(drag.hoverTarget, false);
+    setDragTarget(target, true);
     drag.hoverTarget = target;
   }
 }
@@ -438,7 +511,7 @@ async function onPointerUp(e) {
 
   // 收尾
   ghost.remove();
-  drag.hoverTarget?.el.classList.remove("dropping");
+  setDragTarget(drag.hoverTarget, false);
   document.querySelectorAll(".element.dragging").forEach(el => el.classList.remove("dragging"));
 
   drag.active = null;
@@ -513,6 +586,7 @@ function spawnOnCanvas(info, x, y) {
     spawnOnCanvas(info, rec.x + 28, rec.y + 28);
   });
 
+  syncRecipeLinks();
   return record;
 }
 
@@ -522,6 +596,7 @@ function moveCanvasEl(id, x, y) {
   rec.x = x; rec.y = y;
   rec.el.style.left = (x - 30) + "px";
   rec.el.style.top = (y - 16) + "px";
+  moveRecipeLinks();
 }
 
 function removeCanvasEl(id) {
@@ -529,6 +604,7 @@ function removeCanvasEl(id) {
   if (idx < 0) return;
   state.onCanvas[idx].el.remove();
   state.onCanvas.splice(idx, 1);
+  syncRecipeLinks();
 }
 
 // ============================================================
@@ -538,6 +614,10 @@ async function combine(srcId, dstId, x, y) {
   const src = state.onCanvas.find(r => r.id === srcId);
   const dst = state.onCanvas.find(r => r.id === dstId);
   if (!src || !dst) return;
+
+  const combineEffect = window.EFFECTS?.beginCombine?.(
+    workspace, src.el, dst.el, x, y
+  );
 
   // loader
   const loader = document.createElement("div");
@@ -570,6 +650,7 @@ async function combine(srcId, dstId, x, y) {
     loader.remove();
 
     if (resp.source === "fallback") {
+      combineEffect?.cancel?.();
       shake(src.el); shake(dst.el);
       return;
     }
@@ -589,13 +670,21 @@ async function combine(srcId, dstId, x, y) {
     state.discovered.add(resp.result);
     if (resp.is_first) state.firsts.add(resp.result);
 
+    combineEffect?.finish?.({
+      depth: resp.depth,
+      discovered: isNewToPlayer,
+    });
+
     // 清掉两个源元素，在中点放结果
     removeCanvasEl(srcId);
     removeCanvasEl(dstId);
     const newRec = spawnOnCanvas(resultInfo, x, y);
 
     // 记录玩家的配方图鉴（a + b → result）
-    rememberRecipe(src, dst, resultInfo);
+    rememberRecipe(src, dst, resultInfo, {
+      hitCount: resp.hit_count,
+      depth: resp.depth,
+    });
 
     persistDiscovered();
     renderSidebar(searchInput.value);
@@ -615,6 +704,7 @@ async function combine(srcId, dstId, x, y) {
   } catch (err) {
     clearTimeout(timer);
     loader.remove();
+    combineEffect?.cancel?.();
     console.error("combine failed", err);
     shake(src.el); shake(dst.el);
     // 给用户一个可见提示（非阻塞）
@@ -751,7 +841,7 @@ function recipeKey(a, b) {
   return [a, b].sort().join(" + ");
 }
 
-function rememberRecipe(leftInfo, rightInfo, resultInfo) {
+function rememberRecipe(leftInfo, rightInfo, resultInfo, meta = {}) {
   const key = recipeKey(leftInfo.name, rightInfo.name);
   const recipe = {
     key,
@@ -762,6 +852,10 @@ function rememberRecipe(leftInfo, rightInfo, resultInfo) {
     category: resultInfo.category,
     icon: resultInfo.icon,
     is_starter: resultInfo.is_starter,
+    hit_count: Math.max(1, Number(meta.hitCount) || 1),
+    depth: Number.isFinite(Number(meta.depth))
+      ? Math.max(0, Math.trunc(Number(meta.depth)))
+      : 0,
     ts: Date.now(),
   };
   // 去重：同一组合只保留最后一次
@@ -772,6 +866,7 @@ function rememberRecipe(leftInfo, rightInfo, resultInfo) {
     state.recipes.push(recipe);
   }
   persistDiscovered();
+  syncRecipeLinks();
   if (window.__renderRecipebook) window.__renderRecipebook();
 }
 
@@ -782,6 +877,7 @@ function bindSearch() {
 function bindButtons() {
   $("#btn-reset").addEventListener("click", () => {
     state.onCanvas.slice().forEach(r => removeCanvasEl(r.id));
+    recipeLinks.clear();
   });
   $("#nick-display")?.addEventListener("click", async () => {
     await rerollNickname();
@@ -914,6 +1010,7 @@ function fitRecipeRow(row) {
     "--recipe-row-fit-chip-padding-x",
     "--recipe-row-fit-chip-radius",
     "--recipe-row-fit-score-padding-x",
+    "--recipe-row-fit-operator-size",
   ].forEach((name) => row.style.removeProperty(name));
   if (row.scrollWidth <= row.clientWidth) return;
   row.classList.add("recipe-row-dense");
@@ -937,6 +1034,7 @@ function fitRecipeRow(row) {
     row.style.setProperty("--recipe-row-fit-chip-padding-x", `${3 * scale}px`);
     row.style.setProperty("--recipe-row-fit-chip-radius", `${6 * scale}px`);
     row.style.setProperty("--recipe-row-fit-score-padding-x", `${3 * scale}px`);
+    row.style.setProperty("--recipe-row-fit-operator-size", `${10 * scale}px`);
   }
 }
 
@@ -1180,6 +1278,7 @@ async function importRecipes(ev) {
   }
 
   persistDiscovered();
+  syncRecipeLinks();
   renderSidebar(searchInput.value);
   renderRecipebook($("#recipebook-search").value);
 
@@ -1200,5 +1299,9 @@ async function settle() {
     panel.classList.add("show");
   }
 }
+
+window.addEventListener("pagehide", (event) => {
+  if (!event.persisted) recipeLinks.destroy();
+});
 
 init();

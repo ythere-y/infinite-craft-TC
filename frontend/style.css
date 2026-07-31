@@ -384,14 +384,25 @@ html, body {
   width: 100%;
   min-width: 0;
   min-height: 41px;
-  padding: 6px 7px;
-  overflow: hidden;
+  padding: 4px 5px;
+  gap: 4px;
+  overflow: visible;
+  font-size: 12px;
+  line-height: 1.15;
+  white-space: normal;
 }
 .element-list > .element .name {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
+.element-list > .element .element-icon-sidebar {
+  width: 22px;
+  height: 22px;
+  flex-basis: 22px;
+}
+.element-list > .element.sidebar-span-2 { grid-column: span 2; }
+.element-list > .element.sidebar-span-3 { grid-column: 1 / -1; }
 
 /* 🌱 基础元素（starter）视觉标记
    - 整个 chip 淡绿描边 + 浅绿背景，和普通已发现元素区分
@@ -445,7 +456,120 @@ body.ura-on .element.on-canvas.is-starter {
 }
 
 .element.dropping {
-  box-shadow: 0 0 0 2px #FFC107, 0 4px 10px rgba(0,0,0,0.12);
+  border-color: #2F80ED;
+  box-shadow:
+    0 0 0 2px rgba(47,128,237,.24),
+    0 0 18px rgba(47,128,237,.28),
+    0 4px 10px rgba(0,0,0,.12);
+}
+.element.combine-target {
+  z-index: 3;
+  transform: translateY(-2px) scale(1.035);
+}
+.element.combine-target::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border: 1px solid rgba(47,128,237,.72);
+  border-radius: 20px;
+  pointer-events: none;
+  animation: combine-lock 720ms ease-out infinite;
+}
+@keyframes combine-lock {
+  0% { opacity: .9; transform: scale(.92); }
+  70%, 100% { opacity: 0; transform: scale(1.16); }
+}
+
+.element.combine-source {
+  border-color: #8ABAF4;
+  animation: combine-source-pulse 1.1s ease-in-out infinite;
+}
+@keyframes combine-source-pulse {
+  0%, 100% { filter: saturate(1); }
+  50% { filter: saturate(1.28) brightness(1.04); }
+}
+
+.combine-core {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  border: 2px solid rgba(47,128,237,.68);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 4;
+  animation: combine-core-spin 1.1s linear infinite;
+}
+.combine-core::before,
+.combine-core::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+}
+.combine-core::before {
+  inset: 5px;
+  border: 1px dashed rgba(255,193,7,.9);
+}
+.combine-core::after {
+  inset: 15px;
+  background: #FFF;
+  box-shadow:
+    0 0 10px 4px rgba(47,128,237,.6),
+    0 0 24px 8px rgba(255,193,7,.25);
+}
+@keyframes combine-core-spin {
+  to { transform: rotate(360deg); }
+}
+
+.combine-impact {
+  --impact-color: #9AA6B2;
+  --impact-scale: 5.5;
+  --impact-start-opacity: .42;
+  --impact-brightness: .72;
+  --impact-saturation: .62;
+  --impact-glow: rgba(154,166,178,.14);
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border: 2px solid var(--impact-color);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 79;
+  box-shadow: 0 0 14px 3px var(--impact-glow);
+  filter:
+    brightness(var(--impact-brightness))
+    saturate(var(--impact-saturation));
+  animation: combine-impact-ring 820ms cubic-bezier(.12,.7,.2,1) forwards;
+}
+.combine-impact.is-fixed { position: fixed; }
+.combine-impact::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border: 1px solid var(--impact-color);
+  border-radius: inherit;
+  animation: combine-impact-echo 820ms 80ms cubic-bezier(.12,.7,.2,1) forwards;
+}
+@keyframes combine-impact-ring {
+  0% {
+    opacity: var(--impact-start-opacity);
+    transform: scale(.25);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(var(--impact-scale));
+  }
+}
+@keyframes combine-impact-echo {
+  0% {
+    opacity: var(--impact-start-opacity);
+    transform: scale(.82);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.08);
+  }
 }
 
 /* 合成中的 loader */
@@ -965,65 +1089,138 @@ body.quaking { animation: quake .5s 2; }
 }
 .element.pop-in { animation: pop-in .45s cubic-bezier(.2,.8,.3,1.4); }
 
-/* 中等档：蓝色持续发光 */
-@keyframes glow-blue-pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(78,205,196,0.55),
-                0 3px 8px rgba(0,0,0,0.10);
-  }
-  50% {
-    box-shadow: 0 0 20px 6px rgba(78,205,196,0.85),
-                0 3px 8px rgba(0,0,0,0.10);
-  }
+/* 新发现：结果本体只播放一次，不持续闪烁。 */
+.element.reveal-personal {
+  border-color: #32B8C6 !important;
+  overflow: hidden;
+  animation: reveal-personal 900ms cubic-bezier(.16,.8,.24,1) both;
 }
-.element.glow-blue {
-  animation: glow-blue-pulse 1.1s ease-in-out infinite;
-  border-color: #4ECDC4 !important;
-}
-
-/* 高级档：金色持续发光（烟花已在独立层） */
-@keyframes glow-gold-pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(255,213,79,0.65),
-                0 3px 8px rgba(0,0,0,0.10);
+@keyframes reveal-personal {
+  0% { opacity: 0; transform: scale(.58) rotate(-3deg); }
+  45% {
+    opacity: 1;
+    transform: scale(1.16) rotate(1deg);
+    box-shadow: 0 0 0 5px rgba(50,184,198,.18), 0 0 24px rgba(50,184,198,.45);
   }
-  50% {
-    box-shadow: 0 0 28px 10px rgba(255,213,79,0.95),
-                0 0 48px 18px rgba(255,107,107,0.4),
-                0 3px 8px rgba(0,0,0,0.10);
-  }
-}
-.element.glow-gold {
-  animation: glow-gold-pulse 0.9s ease-in-out infinite;
-  border-color: #FFD54F !important;
+  100% { transform: scale(1); box-shadow: 0 3px 8px rgba(0,0,0,.1); }
 }
 
-/* 烟花粒子层 */
-.firework-container {
+.element.reveal-global {
+  border-color: #E7A917 !important;
+  overflow: hidden;
+  animation: reveal-global 1.2s cubic-bezier(.12,.78,.2,1) both;
+}
+@keyframes reveal-global {
+  0% { opacity: 0; transform: scale(.42) rotate(-5deg); }
+  38% {
+    opacity: 1;
+    transform: scale(1.22) rotate(2deg);
+    box-shadow:
+      0 0 0 6px rgba(255,213,79,.22),
+      0 0 30px rgba(255,193,7,.62),
+      0 0 54px rgba(255,107,107,.24);
+  }
+  68% { transform: scale(.96) rotate(-1deg); }
+  100% { transform: scale(1); box-shadow: 0 3px 8px rgba(0,0,0,.1); }
+}
+.element.reveal-personal::after,
+.element.reveal-global::after {
+  content: "";
+  position: absolute;
+  inset: -8px auto -8px -45%;
+  width: 32%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.82), transparent);
+  pointer-events: none;
+  transform: skewX(-16deg);
+  animation: discovery-sheen 720ms 160ms ease-out forwards;
+}
+.element.reveal-global::after {
+  background: linear-gradient(90deg, transparent, rgba(255,244,180,.92), transparent);
+}
+@keyframes discovery-sheen {
+  to { left: 120%; }
+}
+
+/* 局部庆祝粒子：原生 DOM/CSS，避免为单个效果引入大依赖。 */
+.celebration-layer {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 80;
+  overflow: hidden;
+  z-index: 81;
 }
-.firework-particle {
+.celebration-particle {
   position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  display: block;
+  width: 7px;
+  height: 7px;
+  background: var(--particle-color);
+  color: var(--particle-color);
   transform: translate(-50%, -50%);
-  animation: firework-fly 1.2s cubic-bezier(.2,.7,.3,1) forwards;
-  box-shadow: 0 0 6px currentColor;
+  animation:
+    celebration-particle 1.08s var(--particle-delay)
+    cubic-bezier(.12,.72,.2,1) forwards;
+  box-shadow: 0 0 7px currentColor;
 }
-@keyframes firework-fly {
+.celebration-particle[data-shape="round"] { border-radius: 50%; }
+.celebration-particle[data-shape="sliver"] {
+  width: 4px;
+  height: 10px;
+  border-radius: 2px;
+}
+.celebration-particle[data-shape="star"] {
+  width: 10px;
+  height: 10px;
+  clip-path: polygon(
+    50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 94%,
+    50% 72%, 21% 94%, 32% 57%, 2% 35%, 39% 35%
+  );
+}
+@keyframes celebration-particle {
   0% {
     transform: translate(-50%, -50%) scale(1);
     opacity: 1;
   }
-  80% { opacity: 1; }
+  64% { opacity: 1; }
   100% {
-    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.3);
+    transform:
+      translate(
+        calc(-50% + var(--particle-x)),
+        calc(-50% + var(--particle-y) + 20px)
+      )
+      rotate(var(--particle-turn))
+      scale(.28);
     opacity: 0;
   }
+}
+
+.discovery-stamp {
+  position: fixed;
+  z-index: 82;
+  padding: 4px 9px;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  background: rgba(255,255,255,.94);
+  color: #176B87;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, -100%) rotate(-8deg) scale(1.8);
+  animation: discovery-stamp 1.35s cubic-bezier(.14,.72,.18,1) forwards;
+}
+.discovery-stamp[data-tier="global_new"] {
+  color: #A66A00;
+  border-style: double;
+  background: #FFFBE8;
+}
+@keyframes discovery-stamp {
+  0% { opacity: 0; transform: translate(-50%, -100%) rotate(-8deg) scale(1.8); }
+  22% { opacity: 1; transform: translate(-50%, -100%) rotate(-5deg) scale(.92); }
+  38%, 76% { opacity: 1; transform: translate(-50%, -100%) rotate(-5deg) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -124%) rotate(-3deg) scale(.98); }
 }
 
 .score-flight {
@@ -1378,6 +1575,20 @@ body.quaking { animation: quake .5s 2; }
   cursor: pointer;
   transition: background .15s, border-color .15s, box-shadow .15s;
 }
+.recipebook-close-button > .action-icon {
+  /* Compensate for the button's 1px border on both sides. */
+  width: calc(100% + 2px);
+  min-width: 0;
+  height: calc(100% + 2px);
+  display: grid;
+  place-items: center;
+  transform: none;
+}
+.recipebook-close-button > .action-icon > img {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
 .recipebook-close-button:hover { background: #E9EDF2; }
 .recipebook-close-button:focus-visible {
   outline: none;
@@ -1415,12 +1626,13 @@ body.quaking { animation: quake .5s 2; }
 .recipebook-list::-webkit-scrollbar-thumb { background: #DDD; border-radius: 3px; }
 
 .recipe-row {
+  --element-icon-canvas: 22px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 8px;
+  gap: 4px;
+  padding: 7px 4px;
   border-radius: 10px;
-  font-size: 13px;
+  font-size: 12px;
   white-space: nowrap;
   transition: background .12s;
 }
@@ -1430,16 +1642,22 @@ body.quaking { animation: quake .5s 2; }
 .recipe-chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
+  gap: 3px;
+  padding: 2px 5px;
   background: #F4F4F4;
-  border-radius: 12px;
-  font-size: 12px;
+  border-radius: 10px;
+  font-size: 11px;
   white-space: nowrap;
 }
+.recipe-plus {
+  padding-inline: 0;
+}
+.recipe-plus,
 .recipe-arrow {
-  color: #BBB;
+  color: #687381;
   font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
 }
 .recipe-result {
   background: #FFF7CC;
@@ -1452,7 +1670,6 @@ body.quaking { animation: quake .5s 2; }
 
 .recipe-plus {
   background: transparent !important;
-  color: #BBB;
 }
 
 /* 分数 badge */
@@ -1469,8 +1686,8 @@ body.quaking { animation: quake .5s 2; }
 }
 
 .recipe-row-dense {
-  --element-icon-canvas: 24px;
-  gap: 5px;
+  --element-icon-canvas: 18px;
+  gap: 3px;
   padding: 7px 5px;
 }
 .recipe-row-dense .recipe-chip {
@@ -1479,9 +1696,9 @@ body.quaking { animation: quake .5s 2; }
   border-radius: 9px;
   font-size: 11px;
 }
-.recipe-row-dense .recipe-chip .name { font-size: 11px; }
+.recipe-row-dense .recipe-chip .name { font-size: 10px; }
 .recipe-row-dense .recipe-plus,
-.recipe-row-dense .recipe-arrow { font-size: 12px; }
+.recipe-row-dense .recipe-arrow { font-size: 13px; }
 .recipe-row-dense .recipe-score {
   padding: 1px 5px;
   border-radius: 8px;
@@ -1489,8 +1706,8 @@ body.quaking { animation: quake .5s 2; }
 }
 
 .recipe-row-ultra-dense {
-  --element-icon-canvas: 16px;
-  gap: 2px;
+  --element-icon-canvas: 14px;
+  gap: 1px;
   padding: 4px 2px;
 }
 .recipe-row-ultra-dense .recipe-chip {
@@ -1501,7 +1718,7 @@ body.quaking { animation: quake .5s 2; }
 }
 .recipe-row-ultra-dense .recipe-chip .name { font-size: 8px; }
 .recipe-row-ultra-dense .recipe-plus,
-.recipe-row-ultra-dense .recipe-arrow { font-size: 9px; }
+.recipe-row-ultra-dense .recipe-arrow { font-size: 10px; }
 .recipe-row-ultra-dense .recipe-score {
   padding: 0 3px;
   border-radius: 6px;
@@ -1519,15 +1736,23 @@ body.quaking { animation: quake .5s 2; }
   border-radius: var(--recipe-row-fit-chip-radius);
   font-size: var(--recipe-row-fit-font-size);
 }
-.recipe-row-fit .recipe-chip .name,
+.recipe-row-fit .recipe-chip .name {
+  font-size: var(--recipe-row-fit-font-size);
+}
 .recipe-row-fit .recipe-plus,
 .recipe-row-fit .recipe-arrow {
-  font-size: var(--recipe-row-fit-font-size);
+  font-size: var(--recipe-row-fit-operator-size);
+  font-weight: 700;
 }
 .recipe-row-fit .recipe-score {
   padding: 0 var(--recipe-row-fit-score-padding-x);
   border-radius: var(--recipe-row-fit-chip-radius);
   font-size: var(--recipe-row-fit-font-size);
+}
+.recipe-row-dense .recipe-plus,
+.recipe-row-ultra-dense .recipe-plus,
+.recipe-row-fit .recipe-plus {
+  padding-inline: 0;
 }
 
 /* 图鉴 chip 也给拖拽手势 */
@@ -1597,6 +1822,7 @@ body.ura-on .title-inf {
 }
 
 body.ura-on .nick-chip {
+  position: relative;
   background: linear-gradient(90deg, #1E1B3A, #2A1E4A);
   color: #CAA6FF;
   border-color: #333355;
@@ -1607,6 +1833,7 @@ body.ura-on .nick-chip:hover {
 
 body.ura-on .btn-help {
   background: #1A1A3A;
+  padding-right: 38px;
   border-color: #333355;
   color: #CAA6FF;
 }
@@ -1775,12 +2002,12 @@ body.ura-on .recipe-chip[data-name]:hover {
 /* "+" plus chip 在夜间 */
 body.ura-on .recipe-plus {
   background: transparent !important;
-  color: #6A6490;
+  color: #B8B1D8;
   border-color: transparent !important;
 }
 
 /* 箭头 → */
-body.ura-on .recipe-arrow { color: #6A6490; }
+body.ura-on .recipe-arrow { color: #B8B1D8; }
 
 /* 结果 chip（右边的黄色块） */
 body.ura-on .recipe-result {
@@ -2098,6 +2325,12 @@ body.ura-on .workspace::after {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+  .element.combine-target::before,
+  .element.combine-source,
+  .element.reveal-personal,
+  .element.reveal-global,
+  .element.reveal-personal::after,
+  .element.reveal-global::after,
   #btn-score.score-receive,
   .score-gain-residue,
   .level-gain-star,
@@ -2114,6 +2347,15 @@ body.ura-on .workspace::after {
     background-color: rgba(50,184,198,.1);
     box-shadow: 0 0 0 4px rgba(50,184,198,.16);
   }
+  .element.reveal-personal,
+  .element.reveal-global {
+    opacity: 1;
+    transform: none;
+  }
+  .combine-core,
+  .combine-impact,
+  .celebration-layer,
+  .discovery-stamp,
   .score-flight,
   .score-level-effect-layer {
     display: none !important;
