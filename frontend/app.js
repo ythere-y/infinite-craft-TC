@@ -996,6 +996,14 @@ function exportRecipes() {
   const payload = {
     _format: "infinity-craft-recipes",
     _version: 1,
+function fitRecipeRow(row) {
+  row.classList.remove("recipe-row-dense", "recipe-row-ultra-dense");
+  if (row.scrollWidth <= row.clientWidth) return;
+  row.classList.add("recipe-row-dense");
+  if (row.scrollWidth <= row.clientWidth) return;
+  row.classList.add("recipe-row-ultra-dense");
+}
+
     nickname: NICKNAME,
     exported_at: new Date().toISOString(),
     recipes: state.recipes,
@@ -1044,6 +1052,7 @@ async function importRecipes(ev) {
     return;
   }
 
+    fitRecipeRow(row);
   // 字段完整性筛查
   const formatValid = [];
   const formatBad = [];
