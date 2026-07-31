@@ -907,22 +907,26 @@ html, body {
 .recipe-entry {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 0;
+  overflow: hidden;
+  background: #FAFAFA;
+  border: 1px solid #ECECEC;
+  border-radius: 12px;
 }
+.recipe-entry:hover { background: #F4F4F4; }
 .recipe-row {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  background: #FAFAFA;
-  border: 1px solid #ECECEC;
-  border-radius: 12px;
+  background: transparent;
 }
-.recipe-row:hover { background: #F4F4F4; }
+.recipe-entry.has-comment .recipe-row { padding-bottom: 6px; }
 .recipe-comment {
   min-height: 18px;
-  padding: 0 4px 0 12px;
+  padding: 0 12px 10px;
   color: #999;
+  overflow-wrap: anywhere;
   font-size: 12px;
   line-height: 1.5;
 }

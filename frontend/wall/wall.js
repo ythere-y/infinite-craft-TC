@@ -9,6 +9,7 @@
    ============================================================ */
 
 import { collectUnseenPrefix, mergeFirstItems } from "./polling.js";
+import { recipeCommentFor } from "./recipe-comments.js";
 
 const PAGE_SIZE = 40;
 const POLL_PAGE_SIZE = 500;       // 覆盖 100 QPS 下一个轮询周期的突发量
@@ -901,18 +902,6 @@ function closeRecipeModal() {
   _recipeOpenDisplayInfo = null;
 }
 
-function sameRecipePair(recipe, formula) {
-  if (!recipe || !formula) return false;
-  const recipeNames = [recipe.a || "", recipe.b || ""].sort().join("\n");
-  const formulaNames = [formula.a || "", formula.b || ""].sort().join("\n");
-  return recipeNames === formulaNames;
-}
-
-function recipeCommentFor(recipe) {
-  if (!_recipeOpenFormula?.id || !sameRecipePair(recipe, _recipeOpenFormula)) return null;
-  return _recipeOpenFormula.comment || "";
-}
-
 async function fetchRecipes(name) {
   try {
     const url = `/api/element/${encodeURIComponent(name)}/recipes`;
@@ -969,7 +958,7 @@ function renderRecipes(data) {
   const list = node("div", "recipe-list");
   for (const r of recipes) {
     const src = r.source || "";
-    const comment = recipeCommentFor(r);
+    const comment = recipeCommentFor(r, _recipeOpenFormula);
     const entry = node("div", "recipe-entry");
     const row = node("div", "recipe-row");
     const source = node(
@@ -994,7 +983,10 @@ function renderRecipes(data) {
       source,
     );
     entry.append(row);
-    if (comment !== null) entry.append(node("div", "recipe-comment", comment));
+    if (comment !== null) {
+      entry.classList.add("has-comment");
+      entry.append(node("div", "recipe-comment", comment));
+    }
     list.append(entry);
   }
   recipeBodyEl.replaceChildren(count, list);

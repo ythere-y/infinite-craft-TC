@@ -239,7 +239,10 @@ test("main game uses compact sticker and action-icon contracts", async () => {
   assert.match(app, /function onPointerDown\(e, el, info, source\)/);
   assert.match(app, /function spawnOnCanvas\(info, x, y\)/);
   assert.match(app, /function makeInteractiveRecipeChip\(info,/);
-  assert.match(app, /function rememberRecipe\(leftInfo, rightInfo, resultInfo\)/);
+  assert.match(
+    app,
+    /function rememberRecipe\(leftInfo, rightInfo, resultInfo, meta = \{\}\)/,
+  );
   assert.match(app, /function recordScoreEvent\(info, gained, depth, tier\)/);
   assert.match(app, /icon:\s*info\.icon/);
   assert.match(app, /elementInfoFor\(ev\.result, ev\)/);
