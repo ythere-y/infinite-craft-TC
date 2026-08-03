@@ -2,6 +2,8 @@ import json
 from pathlib import Path
 import subprocess
 
+import pytest
+
 from backend.prompt_spec import build_prompt_messages
 
 
@@ -47,6 +49,23 @@ def test_python_and_makers_render_identical_messages():
     assert expected["style_id"] == "concrete-scene"
     assert "【本次偏好】偏具体场景" in expected["user"]
     assert "优先落到一个能直接想象的具体画面。" in expected["user"]
+
+
+@pytest.mark.parametrize(
+    ("style_value", "expected_style_id"),
+    [
+        (-0.01, "invented-word"),
+        (1, "past-present"),
+        (2, "past-present"),
+    ],
+)
+def test_cross_runtime_clamps_style_values(style_value, expected_style_id):
+    data = fixture()
+    data["style_value"] = style_value
+
+    expected = build_prompt_messages(**data)
+    assert expected["style_id"] == expected_style_id
+    assert render_makers(data) == expected
 
 
 def test_cross_runtime_limits_dynamic_sections_and_preserves_section_order():
