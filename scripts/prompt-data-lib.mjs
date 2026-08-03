@@ -6,6 +6,74 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CANONICAL_PATH = "shared/combine-prompt.json";
 const GENERATED_PATH = "edge-functions/_generated/prompt-data.js";
 
+function requireRecord(value, label) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${label} must be an object`);
+  }
+}
+
+function requireBoolean(value, label) {
+  if (typeof value !== "boolean") {
+    throw new Error(`${label} must be a boolean`);
+  }
+}
+
+function requireNonEmptyString(value, label) {
+  if (typeof value !== "string" || !value.trim()) {
+    throw new Error(`${label} must be a non-empty string`);
+  }
+}
+
+function validateId(value, field) {
+  if (typeof value !== "string") {
+    throw new Error(`${field} id must be a string`);
+  }
+  if (!value.trim()) {
+    throw new Error(`${field} id must not be blank`);
+  }
+  if (value !== value.trim()) {
+    throw new Error(`${field} id must not have surrounding whitespace`);
+  }
+  return value;
+}
+
+function validateSystemModule(item) {
+  requireRecord(item, "system_modules record");
+  const id = validateId(item.id, "system_modules");
+  requireBoolean(item.enabled, "system_modules enabled");
+  if (!Number.isInteger(item.order)) {
+    throw new Error("system_modules order must be an integer");
+  }
+  requireNonEmptyString(item.content, "system_modules content");
+  return id;
+}
+
+function validateExample(item) {
+  requireRecord(item, "examples record");
+  const id = validateId(item.id, "examples");
+  requireBoolean(item.enabled, "examples enabled");
+  requireRecord(item.input, "examples input");
+  requireNonEmptyString(item.input.a, "examples input.a");
+  requireNonEmptyString(item.input.b, "examples input.b");
+  requireRecord(item.output, "examples output");
+  requireNonEmptyString(item.output.name, "examples output.name");
+  requireNonEmptyString(item.output.emoji, "examples output.emoji");
+  requireNonEmptyString(item.output.comment, "examples output.comment");
+  return id;
+}
+
+function validateStyle(item) {
+  requireRecord(item, "styles record");
+  const id = validateId(item.id, "styles");
+  requireBoolean(item.enabled, "styles enabled");
+  requireNonEmptyString(item.label, "styles label");
+  requireNonEmptyString(item.guidance, "styles guidance");
+  if (typeof item.weight !== "number" || !Number.isFinite(item.weight)) {
+    throw new Error("styles weight must be a finite number");
+  }
+  return id;
+}
+
 export function validatePromptSpec(value) {
   if (value?.schema_version !== 1) {
     throw new Error("unsupported prompt schema version");
@@ -13,14 +81,16 @@ export function validatePromptSpec(value) {
   if (!Number.isFinite(value.temperature)) {
     throw new Error("temperature must be finite");
   }
+  const validators = {
+    system_modules: validateSystemModule,
+    examples: validateExample,
+    styles: validateStyle,
+  };
   for (const field of ["system_modules", "examples", "styles"]) {
     if (!Array.isArray(value[field])) {
       throw new Error(`${field} must be an array`);
     }
-    const ids = value[field].map((item) => String(item?.id || "").trim());
-    if (ids.some((id) => !id)) {
-      throw new Error(`${field} id must not be blank`);
-    }
+    const ids = value[field].map(validators[field]);
     if (new Set(ids).size !== ids.length) {
       throw new Error(`duplicate ${field} id`);
     }

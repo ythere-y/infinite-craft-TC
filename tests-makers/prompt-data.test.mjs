@@ -35,22 +35,67 @@ test("canonical prompt has stable modules examples styles and limits", async () 
   });
 });
 
-test("prompt validation rejects duplicate ids and invalid weights", () => {
+test("prompt validation rejects duplicate ids", async () => {
+  const spec = await loadPromptSpec("shared/combine-prompt.json");
+  spec.system_modules[1].id = spec.system_modules[0].id;
   assert.throws(
-    () => validatePromptSpec({
-      schema_version: 1,
-      temperature: 0.85,
-      system_modules: [
-        { id: "same", enabled: true, order: 1, content: "甲" },
-        { id: "same", enabled: true, order: 2, content: "乙" },
-      ],
-      examples: [],
-      styles: [
-        { id: "only", enabled: true, label: "唯一", guidance: "唯一", weight: 0.5 },
-      ],
-      limits: { avoid_words: 30, community_examples: 8, bounty_candidates: 12 },
-    }),
-    /duplicate system_modules id|style weights must sum to 1/,
+    () => validatePromptSpec(spec),
+    /duplicate system_modules id/,
+  );
+});
+
+test("prompt validation rejects string style weights", async () => {
+  const spec = await loadPromptSpec("shared/combine-prompt.json");
+  spec.styles[0].weight = "0.3";
+  assert.throws(
+    () => validatePromptSpec(spec),
+    /styles weight must be a finite number/,
+  );
+});
+
+test("prompt validation rejects malformed module records", async () => {
+  const paddedId = await loadPromptSpec("shared/combine-prompt.json");
+  paddedId.system_modules[0].id = " identity ";
+  assert.throws(
+    () => validatePromptSpec(paddedId),
+    /system_modules id must not have surrounding whitespace/,
+  );
+
+  const missingOrder = await loadPromptSpec("shared/combine-prompt.json");
+  delete missingOrder.system_modules[0].order;
+  assert.throws(
+    () => validatePromptSpec(missingOrder),
+    /system_modules order must be an integer/,
+  );
+
+  const missingContent = await loadPromptSpec("shared/combine-prompt.json");
+  delete missingContent.system_modules[0].content;
+  assert.throws(
+    () => validatePromptSpec(missingContent),
+    /system_modules content must be a non-empty string/,
+  );
+});
+
+test("prompt validation rejects malformed example and style records", async () => {
+  const numericExampleId = await loadPromptSpec("shared/combine-prompt.json");
+  numericExampleId.examples[0].id = 123;
+  assert.throws(
+    () => validatePromptSpec(numericExampleId),
+    /examples id must be a string/,
+  );
+
+  const missingInput = await loadPromptSpec("shared/combine-prompt.json");
+  delete missingInput.examples[0].input.a;
+  assert.throws(
+    () => validatePromptSpec(missingInput),
+    /examples input\.a must be a non-empty string/,
+  );
+
+  const nonBooleanEnabled = await loadPromptSpec("shared/combine-prompt.json");
+  nonBooleanEnabled.styles[0].enabled = "true";
+  assert.throws(
+    () => validatePromptSpec(nonBooleanEnabled),
+    /styles enabled must be a boolean/,
   );
 });
 
