@@ -189,9 +189,10 @@ test("committed generated prompt data is current", async () => {
   const root = await mkdtemp(join(tmpdir(), "prompt-current-"));
   const outputPath = join(root, "prompt-data.js");
   await generateMakersPromptData({ root: ".", outputPath });
+  const normalizeNewlines = (value) => value.replaceAll("\r\n", "\n");
   assert.equal(
-    await readFile(outputPath, "utf8"),
-    await readFile("edge-functions/_generated/prompt-data.js", "utf8"),
+    normalizeNewlines(await readFile(outputPath, "utf8")),
+    normalizeNewlines(await readFile("edge-functions/_generated/prompt-data.js", "utf8")),
   );
 });
 

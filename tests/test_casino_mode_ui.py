@@ -650,15 +650,15 @@ def test_game_starts_silently_in_inner_mode_and_preserves_reentry_animation(
     ]
 
 
-def test_midnight_toast_is_dark_and_guidance_omits_case_and_double_click(
+def test_midnight_toast_is_dark_and_desktop_guidance_retains_case_and_double_click(
     tmp_path,
 ):
     actual = _run_app_page(tmp_path)["ui"]
     midnight = actual["midnight_toast"]
     light = actual["light_toast"]
 
-    assert "案例展示" not in actual["hint_text"]
-    assert "双击" not in actual["hint_text"]
+    assert "案例展示" in actual["hint_text"]
+    assert "双击" in actual["hint_text"]
     assert actual["double_click_retained"] is True
     assert midnight["backgroundImage"] != light["backgroundImage"]
     assert midnight["color"] != light["color"]

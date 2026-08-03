@@ -20,13 +20,14 @@ test("score-level helper loads before consumers", async () => {
   assert.ok(html.indexOf("casino-mode.js") < html.indexOf("app.js"));
 });
 
-test("homepage guidance omits the case study and double-click copy", async () => {
+test("homepage guidance preserves the case study and desktop double-click copy", async () => {
   const html = await readFile("frontend/index.html", "utf8");
   const hint = html.match(/<div id="hint" class="hint">([\s\S]*?)<\/div>\s*<section id="casino-hud"/);
 
   assert.ok(hint, "homepage hint should remain present before the casino table");
-  assert.doesNotMatch(hint[1], /案例展示/);
-  assert.doesNotMatch(hint[1], /双击/);
+  assert.match(hint[1], /案例展示/);
+  assert.match(hint[1], /desktop-only-help[^>]*>[^<]*👆👆\s*<b>双击<\/b>/);
+  assert.match(hint[1], /mobile-only-help[^>]*>👆 把下方的元素/);
   assert.match(hint[1], /拖/);
   assert.match(hint[1], /↑↑↓↓←→←→BA/);
 });
@@ -388,4 +389,81 @@ test("main game uses compact sticker and action-icon contracts", async () => {
   assert.match(styles, /--element-icon-canvas:\s*30px/);
   assert.match(styles, /--action-icon-size:\s*16px/);
   assert.match(styles, /--action-icon-well:\s*25px/);
+});
+
+test("phone layout keeps the workspace and element collection in vertical flow", async () => {
+  const [html, css] = await Promise.all([
+    readFile("frontend/index.html", "utf8"),
+    readFile("frontend/style.css", "utf8"),
+  ]);
+
+  assert.match(html, /class="hint-line mobile-only-help">👆 把下方的元素/);
+  assert.match(html, /class="hint-line desktop-only-help">👆👆 <b>双击<\/b>/);
+  assert.match(html, /id="search"[^>]+aria-label="搜索已发现元素"/);
+  assert.match(html, /class="topbar-controls">[\s\S]*id="nick-display"[\s\S]*class="topbar-actions"/);
+  assert.match(html, /id="btn-help"[^>]*>[\s\S]*class="action-slot"[^>]*data-icon-action="help"[\s\S]*class="action-label">帮助<\/span>/);
+  assert.doesNotMatch(html, /id="btn-help"[^>]*data-icon-action=/);
+  assert.match(css, /\.mobile-only-help\s*\{\s*display:\s*none/);
+  assert.match(css, /@media\s*\(max-width:\s*780px\)/);
+  assert.match(css, /\.topbar\s*\{[^}]*grid-template-columns:/s);
+  assert.match(css, /\.topbar\s*\{[^}]*grid-template-columns:\s*auto\s+minmax\(0,\s*1fr\)/s);
+  assert.match(css, /\.topbar-controls\s*\{[^}]*display:\s*contents/s);
+  assert.match(css, /\.topbar-actions\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/s);
+  assert.match(css, /\.topbar-actions\s+\.btn-ghost\s*\{[^}]*width:\s*100%/s);
+  assert.match(css, /\.topbar-actions\s+\.btn-ghost\s*\{[^}]*min-width:\s*0/s);
+  assert.match(css, /\.topbar-actions\s+\.action-label\s*\{[^}]*position:\s*static[^}]*width:\s*auto/s);
+  assert.match(css, /#btn-score\s+\.action-slot\s*\{[^}]*display:\s*inline-flex/s);
+  assert.match(css, /\.boss-banner-inline\.show\s*\{[^}]*display:\s*none/s);
+  assert.match(css, /body\.ura-on\s+\.topbar-actions\s+\.action-icon\s+img\s*\{[^}]*filter:\s*brightness\(0\)\s+invert\(1\)/s);
+  assert.match(css, /\.layout\s*\{[^}]*flex-direction:\s*column/s);
+  assert.match(css, /\.workspace\s*\{[^}]*flex:\s*none[^}]*min-height:/s);
+  assert.match(css, /\.sidebar\s*\{[^}]*width:\s*100%[^}]*border-left:\s*0/s);
+  assert.match(css, /\.nick-chip\s*\{[^}]*max-width:\s*none[^}]*white-space:\s*normal/s);
+  assert.match(css, /\.desktop-only-help\s*\{[^}]*display:\s*none/s);
+  assert.match(css, /\.mobile-only-help\s*\{[^}]*display:\s*block/s);
+});
+
+test("phone CSS protects dynamic viewport, safe areas, scrolling, and touch gestures", async () => {
+  const css = await readFile("frontend/style.css", "utf8");
+
+  assert.match(css, /overflow-x:\s*hidden/);
+  assert.match(css, /env\(safe-area-inset-top\)/);
+  assert.match(css, /env\(safe-area-inset-bottom\)/);
+  assert.match(css, /\.element-list\s*\{[^}]*max-height:\s*min\([^;]*dvh[^}]*overflow-y:\s*scroll/s);
+  assert.match(css, /\.element\s*\{[^}]*touch-action:\s*none/s);
+  assert.match(css, /body\.drag-active\s*\{[^}]*overflow:\s*hidden/s);
+  assert.match(css, /\.score-panel\s*\{[^}]*max-height:\s*calc\(100dvh/s);
+  assert.match(css, /\.recipebook\s*\{[^}]*height:\s*calc\(100dvh/s);
+  assert.match(css, /\.nick-modal-card\s*\{[^}]*max-height:\s*calc\(100dvh/s);
+});
+
+test("phone element collection shows a scrollable three-by-three grid", async () => {
+  const css = await readFile("frontend/style.css", "utf8");
+
+  assert.match(css, /\.element-list\s*\{[^}]*display:\s*grid/s);
+  assert.match(css, /grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/);
+  assert.match(css, /grid-auto-rows:\s*minmax\(48px,\s*auto\)/);
+  assert.match(css, /\.element-list\s*\{[^}]*\n\s*height:\s*190px/s);
+  assert.match(css, /\.element-list\s*\{[^}]*min-height:\s*190px[^}]*overflow-y:\s*scroll/s);
+  assert.match(css, /scrollbar-gutter:\s*stable/);
+  assert.match(css, /\.element-list\s+\.element\s*\{[^}]*width:\s*100%[^}]*white-space:\s*normal/s);
+});
+
+test("phone guidance stays static and expands the workspace in normal page flow", async () => {
+  const css = await readFile("frontend/style.css", "utf8");
+
+  assert.match(css, /\.workspace\s*\{[^}]*height:\s*auto[^}]*min-height:\s*300px/s);
+  assert.match(css, /\.hint\s*\{[^}]*position:\s*relative[^}]*height:\s*auto/s);
+  assert.match(css, /\.hint\s*\{[^}]*overflow:\s*visible/s);
+  assert.doesNotMatch(css, /\.hint\s*\{[^}]*overflow-y:\s*auto/s);
+  assert.match(css, /\.sidebar\s*\{[^}]*min-height:\s*0/s);
+});
+
+test("element duplication is restricted to mouse pointer provenance", async () => {
+  const source = await readFile("frontend/app.js", "utf8");
+
+  assert.match(source, /function isMouseDuplicationEvent\(event\)/);
+  assert.match(source, /event\.pointerType === "mouse"/);
+  assert.match(source, /if \(!isMouseDuplicationEvent\(e\)\)/);
+  assert.match(source, /lastPointerType && lastPointerType !== "mouse"/);
 });

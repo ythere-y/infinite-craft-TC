@@ -111,6 +111,7 @@ package-lock.json
 .codex/
 .agents/
 .workbuddy/
+.superpowers/
 
 # ---- 其他临时 ----
 *.tmp
