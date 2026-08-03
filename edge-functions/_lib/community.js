@@ -186,6 +186,9 @@ export class CommunityStore {
       if (!page || !Array.isArray(page.keys)) {
         throw retryableConsistencyError("社区公式目录不完整，请重试");
       }
+      if (page.complete !== true && page.keys.length === 0) {
+        throw retryableConsistencyError("社区公式目录分页不完整，请重试");
+      }
       const knownCount = keys.size;
       for (const item of page.keys) {
         const key = item?.key || item?.name;
@@ -219,12 +222,13 @@ export class CommunityStore {
       throw retryableConsistencyError("社区公式版本标记不一致，请重试");
     }
     if (marker.schema_version === 2) {
-      if (!marker.formula || !marker.intent ||
-        !sameFormulaCreationIntent(marker.formula, marker.intent) ||
-        !sameFormulaCreationIntent(marker.formula, {
-          ...marker.formula,
+      if (!marker.intent ||
+        !sameFormulaCreationIntent(marker.intent, {
+          ...marker.intent,
           id, combo_key: pair, version,
-        })) {
+        }) ||
+        (marker.materializable === true && (!marker.formula ||
+          !sameFormulaCreationIntent(marker.formula, marker.intent)))) {
         throw retryableConsistencyError("社区公式版本标记意图不一致，请重试");
       }
     }
@@ -265,14 +269,14 @@ export class CommunityStore {
     }
     return readback;
   }
-  async rememberFormulaMarker(pair, formula) {
+  async rememberPendingFormulaMarker(pair, formula) {
     const version = this.validFormulaVersion(formula?.version);
     if (!version || !Number.isSafeInteger(version)) {
       throw retryableConsistencyError("社区公式版本超出安全范围，请重试");
     }
     const existing = await this.readFormulaMarker(pair, version);
     if (existing?.schema_version === 2) {
-      if (!sameFormulaCreationIntent(existing.formula, formula)) {
+      if (!sameFormulaCreationIntent(existing.intent, formula)) {
         throw retryableConsistencyError("社区公式版本标记意图已变化，请重试");
       }
       return existing;
@@ -284,6 +288,7 @@ export class CommunityStore {
       id: await this.formulaId(pair, version),
       intent: formulaCreationIntent(formula),
       formula: { ...formula },
+      materializable: true,
     };
     await this.put(await this.formulaMarkerKey(pair, version), marker);
     const readback = await this.readFormulaMarker(pair, version);
@@ -292,20 +297,50 @@ export class CommunityStore {
     }
     return readback;
   }
+  async rememberCommittedFormulaMarker(pair, formula) {
+    const version = this.validFormulaVersion(formula?.version);
+    if (!version || !Number.isSafeInteger(version)) {
+      throw retryableConsistencyError("社区公式版本超出安全范围，请重试");
+    }
+    // A committed marker must never be able to reconstruct observed history.
+    await this.rememberFormulaReady(pair, formula);
+    const existing = await this.readFormulaMarker(pair, version);
+    if (existing?.schema_version === 2) {
+      if (!sameFormulaCreationIntent(existing.intent, formula)) {
+        throw retryableConsistencyError("社区公式版本标记意图已变化，请重试");
+      }
+      return existing;
+    }
+    const marker = {
+      schema_version: 2,
+      pair,
+      version,
+      id: await this.formulaId(pair, version),
+      intent: formulaCreationIntent(formula),
+      materializable: false,
+    };
+    await this.put(await this.formulaMarkerKey(pair, version), marker);
+    const readback = await this.readFormulaMarker(pair, version);
+    if (!readback || readback.materializable === true) {
+      throw retryableConsistencyError("社区公式已提交标记暂不可读，请重试");
+    }
+    return readback;
+  }
   async materializeFormulaMarker(pair, marker) {
-    if (marker.schema_version !== 2 || !marker.formula) {
+    if (marker.schema_version !== 2) {
       throw retryableConsistencyError("社区公式版本标记缺少恢复意图，请重试");
     }
     const ready = await this.readFormulaReady(pair, marker.version);
     let formula = await this.readVersionedFormula(pair, marker.version);
     if (!formula) {
-      if (ready) {
+      if (ready || marker.materializable !== true || !marker.formula) {
         throw retryableConsistencyError("已就绪社区公式暂不可读，请重试");
       }
       await this.put(`community_formula_${marker.id}`, marker.formula);
       formula = await this.readVersionedFormula(pair, marker.version);
     }
-    if (!formula || !sameFormulaCreationIntent(marker.formula, formula)) {
+    const markerIntent = marker.materializable === true ? marker.formula : marker.intent;
+    if (!formula || !sameFormulaCreationIntent(markerIntent, formula)) {
       throw retryableConsistencyError("社区公式版本记录与标记意图不一致，请重试");
     }
     if (!ready) await this.rememberFormulaReady(pair, formula);
@@ -357,11 +392,38 @@ export class CommunityStore {
     }
     return true;
   }
-  async discoverFormulaVersions(pair, { revalidateLegacy = false } = {}) {
+  async inspectFormulaVersions(pair, { revalidateLegacy = false } = {}) {
     const complete = await this.formulaInventoryComplete(pair);
+    const formulas = new Map();
+    const legacyFormulas = [];
     if (!complete || revalidateLegacy) {
       for (const formula of await this.legacyFormulaInventory(pair)) {
-        await this.rememberFormulaMarker(pair, formula);
+        legacyFormulas.push(formula);
+        formulas.set(formula.id, formula);
+      }
+    }
+    for (const marker of await this.listFormulaMarkers(pair)) {
+      let formula = await this.readVersionedFormula(pair, marker.version);
+      if (!formula) {
+        if (marker.schema_version === 2 && marker.materializable === true && marker.formula) {
+          formula = marker.formula;
+        } else {
+          throw retryableConsistencyError("社区公式版本记录暂不可读，请重试");
+        }
+      }
+      if (marker.schema_version === 2 && !sameFormulaCreationIntent(marker.intent, formula)) {
+        throw retryableConsistencyError("社区公式版本记录与标记意图不一致，请重试");
+      }
+      formulas.set(formula.id, formula);
+    }
+    return { complete, formulas: [...formulas.values()], legacyFormulas };
+  }
+  async discoverFormulaVersions(pair, { revalidateLegacy = false, inspection = null } = {}) {
+    const scanned = inspection || await this.inspectFormulaVersions(pair, { revalidateLegacy });
+    const { complete } = scanned;
+    if (!complete || revalidateLegacy) {
+      for (const formula of scanned.legacyFormulas) {
+        await this.rememberCommittedFormulaMarker(pair, formula);
       }
     }
     const formulas = [];
@@ -435,7 +497,7 @@ export class CommunityStore {
       if (!pointedFormula) {
         throw retryableConsistencyError("社区公式指向的记录暂不可读，请重试");
       }
-      await this.rememberFormulaMarker(pair, pointedFormula);
+      await this.rememberCommittedFormulaMarker(pair, pointedFormula);
       if (pointedFormula.status === "active") {
         await this.rememberFormulaReady(pair, pointedFormula);
         await this.rememberReproduction(pointedFormula, playerId);
@@ -454,10 +516,7 @@ export class CommunityStore {
       .sort((left, right) => right.version - left.version)
       .at(0);
     if (existingActive) {
-      const expected = await this.createFormula({
-        a, b, result, emoji, comment, source, discoverer,
-      }, existingActive.version);
-      if (!sameFormulaCreationIntent(existingActive, expected)) {
+      if (!this.formulaMatches(existingActive, { a, b, result, emoji, comment, source })) {
         throw retryableConsistencyError("社区公式活动版本意图已变化，请重试");
       }
       if (pointer?.id !== existingActive.id || pointer?.version !== existingActive.version) {
@@ -479,7 +538,8 @@ export class CommunityStore {
     }, version);
     const marker = await this.readFormulaMarker(pair, version);
     if (marker) {
-      if (marker.schema_version !== 2 || !sameFormulaCreationIntent(marker.formula, formula)) {
+      if (marker.schema_version !== 2 || marker.materializable !== true ||
+        !this.formulaMatches(marker.formula, { a, b, result, emoji, comment, source })) {
         throw retryableConsistencyError("社区公式目标版本已变化，请重试");
       }
       const materialized = await this.materializeFormulaMarker(pair, marker);
@@ -493,7 +553,7 @@ export class CommunityStore {
     if (await this.readVersionedFormula(pair, version)) {
       throw retryableConsistencyError("社区公式目标版本已变化，请重试");
     }
-    await this.rememberFormulaMarker(pair, formula);
+    await this.rememberPendingFormulaMarker(pair, formula);
     const materialized = await this.materializeFormulaMarker(
       pair,
       await this.readFormulaMarker(pair, version),
@@ -516,11 +576,36 @@ export class CommunityStore {
       if (!pointedFormula) {
         throw retryableConsistencyError("社区公式指向的记录暂不可读，请重试");
       }
-      await this.rememberFormulaMarker(pair, pointedFormula);
     }
 
+    // Do not write migration state until we know a new version is safe. In
+    // particular, a MAX_SAFE_INTEGER history that cannot match the seed must
+    // fail without backfilling markers, ready records, or inventories.
+    const inspection = await this.inspectFormulaVersions(pair, { revalidateLegacy: !pointer });
+    const inspected = new Map(
+      inspection.formulas.map(
+        (formula) => [formula.id, formula],
+      ),
+    );
+    if (pointedFormula) inspected.set(pointedFormula.id, pointedFormula);
+    const inspectedFormulas = [...inspected.values()];
+    const inspectedMatch = inspectedFormulas.some((formula) => this.formulaMatches(formula, input));
+    if (!inspectedMatch) {
+      const highestInspectedVersion = inspectedFormulas.reduce(
+        (highest, candidate) => Math.max(highest, candidate.version),
+        0,
+      );
+      if (!Number.isSafeInteger(highestInspectedVersion + 1)) {
+        throw retryableConsistencyError("社区公式版本超出安全范围，请重试");
+      }
+    }
+
+    if (pointedFormula) await this.rememberCommittedFormulaMarker(pair, pointedFormula);
     const known = new Map(
-      (await this.discoverFormulaVersions(pair, { revalidateLegacy: !pointer })).map(
+      (await this.discoverFormulaVersions(pair, {
+        revalidateLegacy: !pointer,
+        inspection,
+      })).map(
         (formula) => [formula.id, formula],
       ),
     );
@@ -566,7 +651,8 @@ export class CommunityStore {
     if (needsCreate) {
       const marker = await this.readFormulaMarker(pair, formula.version);
       if (marker) {
-        if (marker.schema_version !== 2 || !sameFormulaCreationIntent(marker.formula, formula)) {
+        if (marker.schema_version !== 2 || marker.materializable !== true ||
+          !this.formulaMatches(marker.formula, input)) {
           throw retryableConsistencyError("社区公式目标版本已变化，请重试");
         }
         formula = await this.materializeFormulaMarker(pair, marker);
@@ -574,7 +660,7 @@ export class CommunityStore {
         if (await this.readVersionedFormula(pair, formula.version)) {
           throw retryableConsistencyError("社区公式目标版本已变化，请重试");
         }
-        await this.rememberFormulaMarker(pair, formula);
+        await this.rememberPendingFormulaMarker(pair, formula);
         formula = await this.materializeFormulaMarker(
           pair,
           await this.readFormulaMarker(pair, formula.version),

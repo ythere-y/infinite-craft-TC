@@ -1208,3 +1208,174 @@ test("Makers ready marker discovery preserves published, voted, and protected fi
   assert.equal(stored.up_votes, 1);
   assert.equal(stored.protected, true);
 });
+
+test("Makers committed backfill marker cannot reconstruct a temporarily missing live formula", async () => {
+  class TrackingKV extends FakeKV {
+    constructor() {
+      super();
+      this.hiddenKey = null;
+      this.puts = [];
+    }
+
+    async get(key, options) {
+      if (key === this.hiddenKey) return null;
+      return super.get(key, options);
+    }
+
+    async put(key, value) {
+      this.puts.push({ key, value });
+      return super.put(key, value);
+    }
+  }
+
+  const kv = new TrackingKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const pair = "水 + 水";
+  const formula = await community.createFormula({
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "llm", discoverer: "旧鹅",
+  }, 1);
+  formula.up_votes = 7;
+  formula.protected = true;
+  formula.ai_positive_enabled = false;
+  await community.put(`community_formula_${formula.id}`, formula);
+  await community.put(await community.formulaMarkerKey(pair, 1), {
+    schema_version: 2,
+    pair,
+    version: 1,
+    id: formula.id,
+    materializable: false,
+    intent: {
+      id: formula.id, a: formula.a, b: formula.b, combo_key: pair,
+      result: formula.result, emoji: formula.emoji, comment: formula.comment,
+      source: formula.source, version: 1, global_discoverer: formula.global_discoverer,
+    },
+  });
+  const marker = await community.readFormulaMarker(pair, 1);
+  kv.puts = [];
+  kv.hiddenKey = `community_formula_${formula.id}`;
+
+  await assert.rejects(
+    () => community.materializeFormulaMarker(pair, marker),
+    (error) => error?.status === 503,
+  );
+  assert.deepEqual(kv.puts, []);
+  kv.hiddenKey = null;
+  const stored = await community.get(`community_formula_${formula.id}`);
+  assert.deepEqual(
+    [stored.up_votes, stored.protected, stored.ai_positive_enabled],
+    [7, true, false],
+  );
+});
+
+test("Makers completes a crash between legacy ready and committed-marker backfill", async () => {
+  const kv = new FakeKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const formula = await community.createFormula({
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "llm", discoverer: "旧鹅",
+  }, 1);
+  await community.put(`community_formula_${formula.id}`, formula);
+  await community.rememberFormulaReady("水 + 水", formula);
+  await community.put(await activePointerKey("水", "水"), { id: formula.id, version: 1 });
+
+  const ensured = await community.ensureFormula({
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "llm", discoverer: "new-discoverer", playerId: "p2",
+  });
+  const marker = await community.readFormulaMarker("水 + 水", 1);
+
+  assert.equal(ensured.id, formula.id);
+  assert.equal(marker.materializable, false);
+});
+
+test("Makers missing-pointer ensureFormula reuses semantic matches despite pair order or discoverer", async () => {
+  const kv = new FakeKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const first = await community.ensureFormula({
+    a: "火", b: "水", result: "蒸汽", emoji: "♨️",
+    comment: "火和水化作蒸汽。", source: "llm", discoverer: "first", playerId: "p1",
+  });
+  const pointerKey = `community_active_${await sha256Hex(first.combo_key)}`;
+  await kv.delete(pointerKey);
+
+  const recovered = await community.ensureFormula({
+    a: "水", b: "火", result: "蒸汽", emoji: "♨️",
+    comment: "火和水化作蒸汽。", source: "llm", discoverer: "second", playerId: "p2",
+  });
+  assert.equal(recovered.id, first.id);
+
+  for (const differing of [
+    { result: "云", emoji: "♨️", comment: "火和水化作蒸汽。", source: "llm" },
+    { result: "蒸汽", emoji: "☁️", comment: "火和水化作蒸汽。", source: "llm" },
+    { result: "蒸汽", emoji: "♨️", comment: "不同评论。", source: "llm" },
+    { result: "蒸汽", emoji: "♨️", comment: "火和水化作蒸汽。", source: "seed" },
+  ]) {
+    await kv.delete(pointerKey);
+    await assert.rejects(
+      () => community.ensureFormula({
+        a: "水", b: "火", ...differing, discoverer: "third", playerId: "p3",
+      }),
+      (error) => error?.status === 503,
+    );
+    assert.equal((await community.get(`community_formula_${first.id}`)).result, "蒸汽");
+  }
+});
+
+test("Makers MAX_SAFE mismatched seed preflight performs no writes with or without a pointer", async () => {
+  class TrackingKV extends FakeKV {
+    constructor() {
+      super();
+      this.puts = [];
+    }
+
+    async put(key, value) {
+      this.puts.push({ key, value });
+      return super.put(key, value);
+    }
+  }
+
+  for (const withPointer of [true, false]) {
+    const kv = new TrackingKV();
+    const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+    const formula = await community.createFormula({
+      a: "水", b: "水", result: "旧水", emoji: "❌",
+      comment: "旧公式。", source: "llm", discoverer: "old",
+    }, Number.MAX_SAFE_INTEGER);
+    await community.put(`community_formula_${formula.id}`, formula);
+    if (withPointer) {
+      await community.put(await activePointerKey("水", "水"), {
+        id: formula.id, version: Number.MAX_SAFE_INTEGER,
+      });
+    }
+    kv.puts = [];
+    await assert.rejects(
+      () => community.reconcileAuthoritativeFormula({
+        a: "水", b: "水", result: "水塘", emoji: "💧",
+        comment: "两滴水先汇成池塘。", source: "seed", playerId: "seed",
+      }),
+      (error) => error?.status === 503,
+    );
+    assert.deepEqual(kv.puts, [], `withPointer=${withPointer}`);
+  }
+});
+
+test("Makers safely recovers an authoritative MAX_SAFE formula without advancing", async () => {
+  const kv = new FakeKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const formula = await community.createFormula({
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "seed", discoverer: null,
+  }, Number.MAX_SAFE_INTEGER);
+  await community.put(`community_formula_${formula.id}`, formula);
+  await community.put(await activePointerKey("水", "水"), {
+    id: formula.id, version: Number.MAX_SAFE_INTEGER,
+  });
+
+  const recovered = await community.reconcileAuthoritativeFormula({
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "seed", playerId: "seed",
+  });
+  assert.equal(recovered.id, formula.id);
+  assert.ok(await community.readFormulaReady("水 + 水", formula.version));
+});
