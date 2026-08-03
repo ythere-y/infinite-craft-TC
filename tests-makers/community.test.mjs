@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CommunityStore } from "../edge-functions/_lib/community.js";
+import {
+  CommunityStore,
+  normalizePublicPagination,
+} from "../edge-functions/_lib/community.js";
 import { FakeKV } from "./fake-kv.mjs";
 
 function service() {
@@ -200,17 +203,26 @@ test("Makers public list normalizes direct pagination inputs like the HTTP contr
   const community = new CommunityStore(kv);
 
   for (const { options, expected } of [
+    { options: {}, expected: ids },
+    { options: { limit: undefined }, expected: ids },
+    { options: { limit: null }, expected: ids },
+    { options: { limit: "" }, expected: ids },
+    { options: { limit: "nope" }, expected: ids },
+    { options: { limit: Number.NaN }, expected: ids },
+    { options: { limit: Number.POSITIVE_INFINITY }, expected: ids },
     { options: { limit: 0 }, expected: ["page_3"] },
-    { options: { limit: -4 }, expected: ["page_3"] },
+    { options: { limit: -1 }, expected: ["page_3"] },
     { options: { limit: 2.8 }, expected: ["page_3", "page_2"] },
     { options: { limit: 999 }, expected: ids },
-    { options: { limit: "not-a-number" }, expected: ids },
-    { options: { limit: Number.POSITIVE_INFINITY }, expected: ids },
+    { options: { offset: undefined }, expected: ids },
+    { options: { offset: null }, expected: ids },
+    { options: { offset: "" }, expected: ids },
+    { options: { offset: "nope" }, expected: ids },
+    { options: { offset: Number.NaN }, expected: ids },
+    { options: { offset: Number.POSITIVE_INFINITY }, expected: ids },
     { options: { offset: -2 }, expected: ids },
     { options: { offset: 1.8 }, expected: ["page_2", "page_1"] },
-    { options: { offset: "not-a-number" }, expected: ids },
-    { options: { offset: Number.POSITIVE_INFINITY }, expected: ids },
-    { options: { offset: 1_000_000 }, expected: [] },
+    { options: { offset: 10_000_001 }, expected: [] },
   ]) {
     assert.deepEqual(
       (await community.listPublic(options)).map((item) => item.id),
@@ -218,6 +230,10 @@ test("Makers public list normalizes direct pagination inputs like the HTTP contr
       JSON.stringify(options),
     );
   }
+  assert.deepEqual(
+    normalizePublicPagination({ limit: 999, offset: 10_000_001 }),
+    { limit: 100, offset: 10_000_000 },
+  );
 });
 
 test("Makers public formula detail includes the caller vote and hides non-public formulas", async () => {

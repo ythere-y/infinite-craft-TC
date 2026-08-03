@@ -336,6 +336,50 @@ test("community list, detail and logout expose the public HTTP contract", async 
   assert.equal(crossOriginLogout.response.status, 403);
 });
 
+test("community list HTTP accepts tolerant pagination inputs", async () => {
+  const router = makeRouter();
+  const formulas = [];
+  for (const [index, pair] of [["水", "火"], ["水", "土"], ["火", "火"]].entries()) {
+    const combined = await json(router, "/api/combine", {
+      method: "POST",
+      body: {
+        a: pair[0],
+        b: pair[1],
+        discoverer: "测试鹅",
+        session_id: `community-page-${index}`,
+      },
+    });
+    const cookie = combined.response.headers.get("set-cookie");
+    await json(router, `/api/community/formulas/${combined.body.formula_id}/publish`, {
+      method: "POST",
+      headers: cookie ? { cookie } : {},
+    });
+    formulas.push(combined.body.formula_id);
+  }
+
+  for (const [suffix, length] of [
+    ["", 3],
+    ["?limit=", 3],
+    ["?limit=nope", 3],
+    ["?limit=Infinity", 3],
+    ["?limit=2.8", 2],
+    ["?limit=-1", 1],
+    ["?limit=0", 1],
+    ["?limit=999", 3],
+    ["?offset=", 3],
+    ["?offset=nope", 3],
+    ["?offset=Infinity", 3],
+    ["?offset=1.8", 2],
+    ["?offset=-1", 3],
+    ["?offset=10000001", 0],
+  ]) {
+    const page = await json(router, `/api/community/formulas${suffix}`);
+    assert.equal(page.response.status, 200, `status ${suffix}`);
+    assert.equal(page.body.items.length, length, suffix);
+  }
+  assert.equal(formulas.length, 3);
+});
+
 test("community detail returns 404 after an administrator takedown", async () => {
   const router = makeRouter();
   const combined = await json(router, "/api/combine", {

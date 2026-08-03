@@ -34,6 +34,7 @@ import {
   clearAdminSessionCookie,
   CommunityStore,
   hasAdminSession,
+  normalizePublicPagination,
   playerIdentity,
 } from "./community.js";
 import {
@@ -411,10 +412,10 @@ export function createRouter({
     if (path === "/api/community/formulas") {
       requireMethod(request, "GET");
       const [items, elements] = await Promise.all([
-        community.listPublic({
-          limit: intParam(url.searchParams, "limit", 50, 1, 100),
-          offset: intParam(url.searchParams, "offset", 0, 0, 10_000_000),
-        }),
+        community.listPublic(normalizePublicPagination({
+          limit: url.searchParams.get("limit"),
+          offset: url.searchParams.get("offset"),
+        })),
         combinedElements(),
       ]);
       return jsonResponse({

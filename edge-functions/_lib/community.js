@@ -11,6 +11,22 @@ const PUBLIC_FORMULA_CATALOG_CAPACITY =
 const FEEDBACK_CATALOG_READ_BATCH_SIZE = 50;
 const encoder = new TextEncoder();
 
+function normalizePublicPageValue(value, fallback, minimum, maximum) {
+  if (value == null || (typeof value === "string" && value.trim() === "")) {
+    return fallback;
+  }
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(minimum, Math.min(maximum, Math.trunc(parsed)));
+}
+
+export function normalizePublicPagination({ limit, offset } = {}) {
+  return {
+    limit: normalizePublicPageValue(limit, 50, 1, MAX_PUBLIC_PAGE),
+    offset: normalizePublicPageValue(offset, 0, 0, 10_000_000),
+  };
+}
+
 async function hmac(secret, value) {
   const key = await crypto.subtle.importKey(
     "raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
@@ -191,19 +207,10 @@ export class CommunityStore {
     };
   }
   async listPublic({ limit = 50, offset = 0 } = {}) {
-    const parsedLimit = Number(limit);
-    const parsedOffset = Number(offset);
-    const boundedLimit = Math.max(
-      1,
-      Math.min(
-        MAX_PUBLIC_PAGE,
-        Number.isFinite(parsedLimit) ? Math.trunc(parsedLimit) : 50,
-      ),
-    );
-    const boundedOffset = Math.max(
-      0,
-      Number.isFinite(parsedOffset) ? Math.trunc(parsedOffset) : 0,
-    );
+    const { limit: boundedLimit, offset: boundedOffset } = normalizePublicPagination({
+      limit,
+      offset,
+    });
     const ids = (await this.get(INDEX_KEY, [])).slice(0, MAX_PUBLIC_INDEX);
     const values = await Promise.all(ids.map((id) => this.get(`community_formula_${id}`)));
     return values.map((item) => this.publicView(item)).filter(Boolean)

@@ -1,4 +1,8 @@
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
 from backend import archive, community
+from backend.community_api import router as community_router
 
 
 def setup_db(tmp_path, monkeypatch):
@@ -13,6 +17,75 @@ def formula():
         "会议 + 需求", "需求", "会议", "排期", "📅", "需求一开会就有了日期。",
         "llm", "全球首发者",
     )
+
+
+def public_pagination_rows():
+    con = archive._conn()
+    try:
+        con.executemany(
+            """
+            INSERT INTO formula_versions(
+                id,combo_key,a,b,result,emoji,comment,source,version,
+                visibility,status,published_at,up_votes,created_at,updated_at
+            ) VALUES (?, ?, '输入', '会议', ?, '🗓️', '分页边界。', 'llm', 1,
+                      'public', 'active', 1700000000, ?, 1700000000, 1700000000)
+            """,
+            [
+                ("page_3", "输入3 + 会议", "结果3", 3),
+                ("page_2", "输入2 + 会议", "结果2", 2),
+                ("page_1", "输入1 + 会议", "结果1", 1),
+            ],
+        )
+        con.commit()
+    finally:
+        con.close()
+
+
+def test_public_list_normalizes_pagination_inputs(tmp_path, monkeypatch):
+    setup_db(tmp_path, monkeypatch)
+    public_pagination_rows()
+
+    for limit, offset, expected in [
+        (None, None, ["page_3", "page_2", "page_1"]),
+        ("", "", ["page_3", "page_2", "page_1"]),
+        ("nope", "nope", ["page_3", "page_2", "page_1"]),
+        ("Infinity", "Infinity", ["page_3", "page_2", "page_1"]),
+        (0, 0, ["page_3"]),
+        (-1, -1, ["page_3"]),
+        (2.8, 0, ["page_3", "page_2"]),
+        (999, 0, ["page_3", "page_2", "page_1"]),
+        (50, 1.8, ["page_2", "page_1"]),
+        (50, 10_000_001, []),
+    ]:
+        assert [item["id"] for item in community.list_public(limit, offset)] == expected
+
+
+def test_public_list_http_accepts_tolerant_pagination_queries(tmp_path, monkeypatch):
+    setup_db(tmp_path, monkeypatch)
+    public_pagination_rows()
+    app = FastAPI()
+    app.include_router(community_router)
+    client = TestClient(app)
+
+    for query, expected in [
+        ("", 3),
+        ("?limit=", 3),
+        ("?limit=nope", 3),
+        ("?limit=Infinity", 3),
+        ("?limit=2.8", 2),
+        ("?limit=-1", 1),
+        ("?limit=0", 1),
+        ("?limit=999", 3),
+        ("?offset=", 3),
+        ("?offset=nope", 3),
+        ("?offset=Infinity", 3),
+        ("?offset=1.8", 2),
+        ("?offset=-1", 3),
+        ("?offset=10000001", 0),
+    ]:
+        response = client.get(f"/api/community/formulas{query}")
+        assert response.status_code == 200, query
+        assert len(response.json()["items"]) == expected, query
 
 
 def test_formula_is_hidden_and_only_reproducer_can_publish(tmp_path, monkeypatch):

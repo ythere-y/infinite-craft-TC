@@ -101,7 +101,7 @@ def rate_limit(player_id: str, operation: str, limit: int = 30) -> None:
 
 
 @router.get("/formulas")
-def formulas(limit: int = 50, offset: int = 0):
+def formulas(limit: str | None = None, offset: str | None = None):
     return {
         "items": [
             _formula_icons(row)

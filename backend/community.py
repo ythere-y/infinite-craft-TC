@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import math
 import os
 import secrets
 import sqlite3
@@ -18,6 +19,31 @@ UP_THRESHOLD = int(os.getenv("FORMULA_UP_THRESHOLD", "10"))
 UP_MIN_VOTES = int(os.getenv("FORMULA_UP_MIN_VOTES", "12"))
 DOWN_THRESHOLD = int(os.getenv("FORMULA_DOWN_THRESHOLD", "-5"))
 DOWN_MIN_VOTES = int(os.getenv("FORMULA_DOWN_MIN_VOTES", "8"))
+MAX_PUBLIC_PAGE = 100
+MAX_PUBLIC_OFFSET = 10_000_000
+
+
+def _normalize_public_page_value(
+    value: Any, fallback: int, minimum: int, maximum: int,
+) -> int:
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return fallback
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        return fallback
+    if not math.isfinite(parsed):
+        return fallback
+    return max(minimum, min(maximum, math.trunc(parsed)))
+
+
+def normalize_public_pagination(
+    limit: Any = None, offset: Any = None,
+) -> tuple[int, int]:
+    return (
+        _normalize_public_page_value(limit, 50, 1, MAX_PUBLIC_PAGE),
+        _normalize_public_page_value(offset, 0, 0, MAX_PUBLIC_OFFSET),
+    )
 
 
 def init() -> None:
@@ -297,7 +323,8 @@ def public_formula(formula_id: str, player_id: str | None = None) -> dict[str, A
         con.close()
 
 
-def list_public(limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
+def list_public(limit: Any = None, offset: Any = None) -> list[dict[str, Any]]:
+    limit, offset = normalize_public_pagination(limit, offset)
     con = archive._conn()
     try:
         rows = con.execute(
@@ -306,7 +333,7 @@ def list_public(limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
                       protected
                FROM formula_versions WHERE visibility='public' AND status!='takedown'
                ORDER BY net_score DESC, published_at DESC, id DESC LIMIT ? OFFSET ?""",
-            (min(max(limit, 1), 100), max(offset, 0)),
+            (limit, offset),
         ).fetchall()
         return [dict(row) for row in rows]
     finally:
