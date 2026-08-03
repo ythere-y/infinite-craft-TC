@@ -200,8 +200,9 @@ test("Makers feedback stops catalog reads after both requested sets are full", a
 
   assert.deepEqual(feedback.positives.map((item) => item.name), ["目录结果0"]);
   assert.deepEqual(feedback.negatives, ["目录结果1"]);
-  assert.ok(
-    kv.getCalls < ids.length + 1,
-    `expected early catalog stop, observed ${kv.getCalls} KV reads`,
+  assert.equal(
+    kv.getCalls,
+    51,
+    "one index read plus one 50-record feedback batch",
   );
 });
