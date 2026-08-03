@@ -324,8 +324,6 @@ function renderSidebar(filter = "") {
     window.ICON_SYSTEM?.fitSidebarChip?.(chip);
   }
   countEl.textContent = state.discovered.size;
-  // 如果里模式开着，重新应用覆盖
-  window.EFFECTS?.reapplyUra?.();
   scheduleSidebarFit();
 }
 

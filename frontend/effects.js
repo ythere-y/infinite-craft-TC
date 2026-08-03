@@ -459,123 +459,15 @@
     EFFECTS.firstToast._t = setTimeout(() => el.classList.remove("show"), 8000);
   };
 
-  // -------------------- 里模式（ura mode · 疯狂的可视化覆盖）--------------------
-  // 只替换固定尺寸 `.emoji` sticker 的内部视觉，外层 chip 和名称都不动。
-  // 原始渲染 payload 存在 WeakMap 中，退出时交给 ICON_SYSTEM 重新渲染。
+  // -------------------- 里模式（ura mode · sticker 暗色主题切换）--------------------
   const KONAMI = [
     "ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown",
     "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight",
     "b", "a",
   ];
-  // 疯狂中文词池
-  const URA_POOL = [
-    "闭环", "抓手", "颗粒度", "对齐", "赋能", "链路", "心智",
-    "穿透", "下沉", "拉通", "协同", "赛道", "生态", "复盘",
-    "抽象", "解构", "重构", "沉淀", "分润", "聚合", "放大",
-    "方法论", "最小闭环", "颠颠", "发疯", "发癫", "破防",
-    "松弛感", "紧绷感", "显眼包", "死者人格", "班味",
-    "吗喽", "摆烂", "躺平", "内卷", "emo",
-    "画饼", "讲故事", "拉齐预期", "赛马机制",
-    "中台化", "用户心智", "高维打低维", "降本增效",
-    "正反馈", "飞轮", "护城河", "第二曲线", "OKR拉通",
-    "颠覆式创新", "破圈", "种草", "拔草", "长尾",
-  ];
-  // 疯狂 emoji 池（偏抽象 / 发疯 / 无厘头）
-  const URA_EMOJI = [
-    "🤪", "💀", "🌀", "🔥", "🤡", "👻", "🧠", "💥",
-    "🫠", "🗿", "🥴", "🤯", "😵‍💫", "🫥", "🙃", "🥹",
-    "⚡", "🌪️", "🎭", "🪩", "🕳️", "🔮", "🎲", "🎰",
-    "💊", "🧨", "🦑", "🐙", "🫨", "🥶", "🥵", "👾",
-  ];
   let uraOn = false;
-  let observer = null;
   let bossModeInitialized = false;
   let konamiBuffer = [];
-  const originalPayloads = new WeakMap();
-  const paintedElements = new Set();
-
-  function randFrom(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
-
-  /** 给一个 .element 或 .recipe-chip 替换固定尺寸 sticker 的内部视觉。 */
-  function paintElement(el) {
-    const emojiSpan = el.querySelector(":scope > .emoji");
-    if (!emojiSpan) return;
-
-    if (!originalPayloads.has(el)) {
-      const sourcePayload = el.__elementInfo || {
-        name: el.dataset.name || el.querySelector(":scope > .name")?.textContent || "",
-        emoji: emojiSpan.textContent || "❔",
-        category: "unknown",
-        icon: undefined,
-      };
-      const renderedSize = emojiSpan.classList.contains("element-icon-detail")
-        ? "detail"
-        : emojiSpan.classList.contains("element-icon-canvas")
-          ? "canvas"
-          : "sidebar";
-      const payload = {
-        ...sourcePayload,
-        isStarter: sourcePayload.isStarter
-          ?? sourcePayload.is_starter
-          ?? el.classList.contains("is-starter"),
-        size: sourcePayload.size || renderedSize,
-      };
-      originalPayloads.set(el, { ...payload });
-      paintedElements.add(el);
-    }
-
-    const visual = document.createElement("span");
-    visual.className = "element-icon-native ura-visual";
-    visual.textContent = randFrom(URA_EMOJI);
-    emojiSpan.replaceChildren(visual);
-  }
-
-  function restorePaintedElements() {
-    paintedElements.forEach((el) => {
-      const payload = originalPayloads.get(el);
-      if (payload && el.isConnected) {
-        window.ICON_SYSTEM.renderElement(document, el, payload);
-        el.__elementInfo = payload;
-      }
-      originalPayloads.delete(el);
-    });
-    paintedElements.clear();
-  }
-
-  function scanAndPaint(root = document) {
-    // .element 覆盖 侧栏/画布/ghost/合成结果；.recipe-chip[data-name] 覆盖图鉴里非 "+" 的 chip
-    const nodes = root.querySelectorAll?.(".element, .recipe-chip[data-name]") || [];
-    nodes.forEach(paintElement);
-  }
-
-  function startObserver() {
-    if (observer) return;
-    observer = new MutationObserver((muts) => {
-      if (!uraOn) return;
-      for (const m of muts) {
-        m.addedNodes.forEach((node) => {
-          if (node.nodeType !== 1) return;
-          // 新节点本身可能是 .element，也可能是容器（比如合成结果套层）
-          if (node.matches?.(".element, .recipe-chip[data-name]")) {
-            paintElement(node);
-          }
-          scanAndPaint(node);
-        });
-      }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-  }
-
-  function stopObserver() {
-    observer?.disconnect();
-    observer = null;
-  }
-
-  EFFECTS.reapplyUra = function () {
-    if (uraOn) scanAndPaint(document);
-  };
 
   function announceUraMode(initial) {
     window.dispatchEvent(new CustomEvent("ura-mode-change", {
@@ -594,8 +486,6 @@
       banner.classList.add("show");
     }
     document.body.classList.add("ura-on");
-    scanAndPaint(document);
-    startObserver();
     announceUraMode(initial);
   }
 
@@ -616,8 +506,6 @@
     const banner = document.getElementById("boss-banner");
     if (banner) banner.classList.remove("show");
     document.body.classList.remove("ura-on");
-    stopObserver();
-    restorePaintedElements();
     announceUraMode(false);
     playUraExitTransition();
   }
@@ -774,12 +662,6 @@
       });
     } catch (_) { /* 忽略 */ }
   }
-
-  /** 供外部（app.js）在重渲染后调用，强制重新 paint 一轮（也顺便随机出新词）。 */
-  EFFECTS.reapplyUra = function () {
-    if (!uraOn) return;
-    scanAndPaint(document);
-  };
 
   function escapeHTML(s) {
     return String(s).replace(/[&<>"']/g, c => ({

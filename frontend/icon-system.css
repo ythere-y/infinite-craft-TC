@@ -35,6 +35,48 @@
 .palette-studio .element-icon-base, .palette-studio .element-icon-native { background: #f6dded; }
 .palette-people .element-icon-base, .palette-people .element-icon-native { background: #f7e4b6; }
 .palette-place .element-icon-base, .palette-place .element-icon-native { background: #e8e4f9; }
+body.ura-on .element-icon-base,
+body.ura-on .element-icon-native {
+  border-color: #4a446a;
+  box-shadow:
+    0 2px 7px rgba(0, 0, 0, .52),
+    0 0 0 1px rgba(202, 166, 255, .08);
+}
+body.ura-on .element-icon-badge {
+  border-color: #4a446a;
+  background: #18172b;
+}
+body.ura-on .palette-nature .element-icon-base,
+body.ura-on .palette-nature .element-icon-native { background: #17352d; }
+body.ura-on .palette-product .element-icon-base,
+body.ura-on .palette-product .element-icon-native { background: #182c46; }
+body.ura-on .palette-office .element-icon-base,
+body.ura-on .palette-office .element-icon-native { background: #3b2f22; }
+body.ura-on .palette-studio .element-icon-base,
+body.ura-on .palette-studio .element-icon-native { background: #3a2238; }
+body.ura-on .palette-people .element-icon-base,
+body.ura-on .palette-people .element-icon-native { background: #3b3020; }
+body.ura-on .palette-place .element-icon-base,
+body.ura-on .palette-place .element-icon-native { background: #292444; }
+body.ura-on .state-starter .element-icon::after {
+  border-color: #18172b;
+  background: #6fa75b;
+}
+body.ura-on .state-global-new .element-icon {
+  outline-color: #f2b84b;
+}
+body.ura-on .state-personal-new .element-icon {
+  outline-color: #b892e5;
+}
+body.ura-on .state-global-new .element-icon::after {
+  color: #f2b84b;
+}
+body.ura-on .state-personal-new .element-icon::after {
+  color: #77b7ff;
+}
+body.ura-on .state-combine-target .element-icon {
+  outline-color: #65a5ff;
+}
 .state-starter .element-icon::after {
   content: "原";
   position: absolute;

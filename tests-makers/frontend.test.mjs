@@ -279,10 +279,11 @@ test("combine feedback owns the only formula publication bubble", async () => {
 });
 
 test("main game uses compact sticker and action-icon contracts", async () => {
-  const [html, app, styles, effects] = await Promise.all([
+  const [html, app, styles, iconStyles, effects] = await Promise.all([
     readFile("frontend/index.html", "utf8"),
     readFile("frontend/app.js", "utf8"),
     readFile("frontend/style.css", "utf8"),
+    readFile("frontend/icon-system.css", "utf8"),
     readFile("frontend/effects.js", "utf8"),
   ]);
 
@@ -362,8 +363,20 @@ test("main game uses compact sticker and action-icon contracts", async () => {
   assert.match(effects, /EFFECTS\.flyScore = function/);
   assert.match(effects, /prefers-reduced-motion:\s*reduce/);
   assert.match(effects, /renderToast\(document, el, \{\s*\.\.\.info,/);
-  assert.match(effects, /new WeakMap\(\)/);
-  assert.match(effects, /ICON_SYSTEM\.renderElement\(document, el, payload\)/);
+  assert.doesNotMatch(
+    effects,
+    /URA_POOL|URA_EMOJI|MutationObserver|paintElement|scanAndPaint|reapplyUra|new WeakMap\(\)/,
+  );
+  assert.doesNotMatch(app, /reapplyUra/);
+  assert.doesNotMatch(styles, /\.ura-(?:emoji|name|visual)/);
+  for (const palette of [
+    "nature", "product", "office", "studio", "people", "place",
+  ]) {
+    assert.match(
+      iconStyles,
+      new RegExp(`body\\.ura-on \\.palette-${palette} \\.element-icon-base`),
+    );
+  }
   assert.doesNotMatch(effects, /element-icon-base[^]*?src/);
 
   assert.match(styles, /\.element-list\s*\{[^}]*display:\s*grid;/s);

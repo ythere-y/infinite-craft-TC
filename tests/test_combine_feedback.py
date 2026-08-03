@@ -987,7 +987,7 @@ def test_hostile_element_payload_is_text_and_app_has_no_inner_html_sinks(tmp_pat
     )
 
 
-def test_boss_mode_preserves_canvas_element_geometry_and_restores_icon(tmp_path):
+def test_inner_mode_preserves_icon_identity_and_uses_dark_palette(tmp_path):
     actual = _run_browser(
         tmp_path,
         """
@@ -995,39 +995,63 @@ def test_boss_mode_preserves_canvas_element_geometry_and_restores_icon(tmp_path)
           var workspace = document.getElementById("fixture");
           workspace.id = "workspace";
           workspace.className = "workspace";
+          var nativeImageAddEventListener = HTMLImageElement.prototype.addEventListener;
+          HTMLImageElement.prototype.addEventListener = function (type, listener, options) {
+            if (type === "error") return;
+            return nativeImageAddEventListener.call(this, type, listener, options);
+          };
+          var payload = {
+            name: "预设",
+            emoji: "🔥",
+            category: "product",
+            icon: {
+              base: "🧩",
+              badge: "⭐",
+              palette: "product",
+              source: "entity"
+            },
+            isFirst: true,
+            size: "canvas"
+          };
+
           function makeCanvasElement(name, left) {
             var target = document.createElement("div");
             target.className = "element on-canvas";
             target.dataset.name = name;
-            target.style.cssText =
-              "display:inline-flex;align-items:center;gap:6px;padding:6px 12px;"
-              + "border:1px solid transparent;font:14px sans-serif;white-space:nowrap;"
-              + "left:" + left + "px;top:" + (left / 2) + "px";
-            var info = {
-              name: name,
-              emoji: "🔥",
-              category: "product",
-              icon: { base: "🧩", badge: "⭐", palette: "product", source: "entity" },
-              is_starter: false
-            };
-            target.__elementInfo = info;
-            window.ICON_SYSTEM.renderElement(document, target, { ...info, size: "canvas" });
+            target.style.left = left + "px";
+            target.style.top = (left / 2) + "px";
+            window.ICON_SYSTEM.renderElement(
+              document,
+              target,
+              { ...payload, name: name }
+            );
             workspace.appendChild(target);
             return target;
           }
-          var targets = [makeCanvasElement("预设", 0), makeCanvasElement("预设二", 120)];
-          var originalBases = targets.map(function (target) {
-            return target.querySelector(".element-icon-base").getAttribute("src");
-          });
-          function geometry() {
-            return targets.map(function (target) {
-              var rect = target.getBoundingClientRect();
-              return [rect.x, rect.y, rect.width, rect.height];
-            });
-          }
-          var before = geometry();
-          window.EFFECTS.initBossMode({ defaultOn: false });
 
+          function snapshot(target) {
+            var sticker = target.querySelector(".element-icon");
+            var base = target.querySelector(".element-icon-base");
+            var badge = target.querySelector(".element-icon-badge");
+            var rect = target.getBoundingClientRect();
+            var baseStyle = base ? getComputedStyle(base) : null;
+            return {
+              name: target.querySelector(".name").textContent,
+              base: base ? base.getAttribute("src") : "",
+              badge: badge ? badge.getAttribute("src") : "",
+              stickerClass: sticker ? sticker.className : "",
+              stateClasses: Array.from(target.classList)
+                .filter(function (name) { return name.indexOf("state-") === 0; }),
+              geometry: [rect.x, rect.y, rect.width, rect.height],
+              background: baseStyle ? baseStyle.backgroundColor : "",
+              border: baseStyle ? baseStyle.borderColor : "",
+              shadow: baseStyle ? baseStyle.boxShadow : ""
+            };
+          }
+
+          var target = makeCanvasElement("预设", 0);
+          var before = snapshot(target);
+          window.EFFECTS.initBossMode({ defaultOn: false });
           var code = [
             "ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown",
             "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"
@@ -1036,35 +1060,39 @@ def test_boss_mode_preserves_canvas_element_geometry_and_restores_icon(tmp_path)
             window.dispatchEvent(new KeyboardEvent("keydown", { key: key }));
           });
           await new Promise(function (resolve) { setTimeout(resolve, 650); });
-          var during = geometry();
-          var bossChanged = targets.every(function (target) {
-            return target.querySelector(".emoji").textContent !== "";
-          });
+          var during = snapshot(target);
 
+          var addedDuringInnerMode = makeCanvasElement("新增元素", 120);
+          await Promise.resolve();
+          var added = snapshot(addedDuringInnerMode);
           code.forEach(function (key) {
             window.dispatchEvent(new KeyboardEvent("keydown", { key: key }));
           });
-          var after = geometry();
-          var restored = targets.every(function (target, index) {
-            return target.querySelector(".element-icon-base").getAttribute("src")
-              === originalBases[index];
-          });
+          var after = snapshot(target);
           return {
             before: before,
             during: during,
+            added: added,
             after: after,
-            bossChanged: bossChanged,
-            restored: restored
           };
         });
         """,
         include_effects=True,
         include_app_styles=True,
     )
-    assert actual["during"] == actual["before"]
-    assert actual["after"] == actual["before"]
-    assert actual["bossChanged"] is True
-    assert actual["restored"] is True
+    semantic_keys = ("name", "base", "badge", "stickerClass", "stateClasses")
+    for key in semantic_keys:
+        assert actual["during"][key] == actual["before"][key]
+        assert actual["after"][key] == actual["before"][key]
+    assert actual["during"]["geometry"] == actual["before"]["geometry"]
+    assert actual["after"]["geometry"] == actual["before"]["geometry"]
+    assert actual["during"]["background"] == "rgb(24, 44, 70)"
+    assert actual["during"]["border"] == "rgb(74, 68, 106)"
+    assert actual["during"]["shadow"] != actual["before"]["shadow"]
+    assert actual["added"]["name"] == "新增元素"
+    assert actual["added"]["base"] == "/assets/base.png"
+    assert actual["added"]["badge"] == "/assets/badge.png"
+    assert actual["added"]["background"] == "rgb(24, 44, 70)"
 
 
 def test_first_toast_uses_exact_design_duration(tmp_path):
