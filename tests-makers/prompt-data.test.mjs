@@ -73,6 +73,9 @@ test("canonical prompt has stable modules examples styles and limits", async () 
     community_examples: 8,
     bounty_candidates: 12,
   });
+  assert.deepEqual(spec.capacities, {
+    community_formula_catalog: 500,
+  });
 });
 
 test("Makers loader rejects the shared invalid prompt corpus", async () => {
@@ -96,6 +99,17 @@ test("prompt validation rejects duplicate ids", async () => {
     () => validatePromptSpec(spec),
     /duplicate system_modules id/,
   );
+});
+
+test("prompt validation accepts the community formula catalog capacity boundary", async () => {
+  const spec = await loadPromptSpec("shared/combine-prompt.json");
+  const capacity = spec.capacities.community_formula_catalog;
+  spec.limits.community_examples = capacity;
+
+  const validated = validatePromptSpec(spec);
+
+  assert.equal(capacity, 500);
+  assert.equal(validated.limits.community_examples, 500);
 });
 
 test("prompt validation rejects string style weights", async () => {

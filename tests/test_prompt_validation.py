@@ -63,6 +63,17 @@ def test_python_loader_rejects_shared_invalid_spec_corpus(
         prompt_spec.load_prompt_spec.cache_clear()
 
 
+def test_python_validation_accepts_community_catalog_capacity_boundary():
+    spec = json.loads(CANONICAL_PATH.read_text(encoding="utf-8"))
+    capacity = spec["capacities"]["community_formula_catalog"]
+    spec["limits"]["community_examples"] = capacity
+
+    validated = prompt_spec.validate_prompt_spec(spec)
+
+    assert capacity == 500
+    assert validated["limits"]["community_examples"] == 500
+
+
 def test_startup_validates_prompt_before_initializing_services(monkeypatch):
     events = []
 

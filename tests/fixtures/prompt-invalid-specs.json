@@ -44,6 +44,7 @@
   {"name":"limits must be an object","op":"set","path":["limits"],"value":[]},
   {"name":"avoid words limit must be positive","op":"set","path":["limits","avoid_words"],"value":0},
   {"name":"community examples limit must be integer","op":"set","path":["limits","community_examples"],"value":1.5},
+  {"name":"community examples limit must not exceed formula catalog capacity","op":"set","path":["limits","community_examples"],"value":501},
   {"name":"bounty candidates limit must be numeric","op":"set","path":["limits","bounty_candidates"],"value":"12"},
   {"name":"limits reject booleans","op":"set","path":["limits","avoid_words"],"value":true},
   {"name":"avoid words limit rejects unsafe integers","op":"set","path":["limits","avoid_words"],"value":9007199254740992},

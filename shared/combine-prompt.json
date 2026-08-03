@@ -77,6 +77,9 @@
     { "id": "idiom", "enabled": true, "label": "偏成语化", "guidance": "仅在确有反差时化用成语，避免常见成语堆砌。", "weight": 0.05 },
     { "id": "past-present", "enabled": true, "label": "偏古今对照", "guidance": "优先制造古语与现代职场或科技概念的对照。", "weight": 0.05 }
   ],
+  "capacities": {
+    "community_formula_catalog": 500
+  },
   "limits": {
     "avoid_words": 30,
     "community_examples": 8,

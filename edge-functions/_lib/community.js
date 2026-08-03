@@ -4,7 +4,9 @@ import { cleanText, entityKey, normalizePair, sha256Hex } from "./keys.js";
 const INDEX_KEY = "community_public_formulas";
 // The public formula catalogue is intentionally bounded for KV read cost.
 // Prompt limits select within this catalogue and do not impose another cap.
-const PUBLIC_FORMULA_CATALOG_CAPACITY = 500;
+const PUBLIC_FORMULA_CATALOG_CAPACITY =
+  PROMPT_SPEC.capacities.community_formula_catalog;
+const FEEDBACK_CATALOG_READ_BATCH_SIZE = 50;
 const encoder = new TextEncoder();
 
 async function hmac(secret, value) {
@@ -111,18 +113,40 @@ export class CommunityStore {
   ) {
     const up = Number(env.FORMULA_UP_THRESHOLD ?? 10);
     const minimum = Number(env.FORMULA_UP_MIN_VOTES ?? 12);
-    const ids = await this.get(INDEX_KEY, []);
-    const values = await Promise.all(
-      ids
-        .slice(0, PUBLIC_FORMULA_CATALOG_CAPACITY)
-        .map((id) => this.get(`community_formula_${id}`)),
-    );
-    const positives = values.filter((f) =>
-      f?.visibility === "public" && f.status === "active" &&
-      f.up_votes - f.down_votes >= up && f.up_votes + f.down_votes >= minimum
-    ).slice(0, positiveLimit).map(({ a, b, result: name, emoji, comment }) => ({ a, b, name, emoji, comment }));
-    const negatives = values.filter((f) => f?.status === "retired")
-      .slice(0, negativeLimit).map((f) => f.result);
+    const ids = (await this.get(INDEX_KEY, []))
+      .slice(0, PUBLIC_FORMULA_CATALOG_CAPACITY);
+    const positives = [];
+    const negatives = [];
+    for (
+      let offset = 0;
+      offset < ids.length &&
+        (positives.length < positiveLimit || negatives.length < negativeLimit);
+      offset += FEEDBACK_CATALOG_READ_BATCH_SIZE
+    ) {
+      const values = await Promise.all(
+        ids
+          .slice(offset, offset + FEEDBACK_CATALOG_READ_BATCH_SIZE)
+          .map((id) => this.get(`community_formula_${id}`)),
+      );
+      for (const formula of values) {
+        if (
+          positives.length < positiveLimit &&
+          formula?.visibility === "public" &&
+          formula.status === "active" &&
+          formula.up_votes - formula.down_votes >= up &&
+          formula.up_votes + formula.down_votes >= minimum
+        ) {
+          const { a, b, result: name, emoji, comment } = formula;
+          positives.push({ a, b, name, emoji, comment });
+        }
+        if (
+          negatives.length < negativeLimit &&
+          formula?.status === "retired"
+        ) {
+          negatives.push(formula.result);
+        }
+      }
+    }
     return { positives, negatives };
   }
   async publish(id, playerId) {

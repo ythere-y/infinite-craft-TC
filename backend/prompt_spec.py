@@ -126,10 +126,26 @@ def validate_prompt_spec(value: Any) -> Dict[str, Any]:
     if abs(sum(item["weight"] for item in enabled_styles) - 1) > 1e-9:
         raise ValueError("style weights must sum to 1")
 
+    capacities = _require_record(record.get("capacities"), "capacities")
+    community_formula_catalog_capacity = capacities.get(
+        "community_formula_catalog"
+    )
+    if (
+        not _is_safe_integer_number(community_formula_catalog_capacity)
+        or community_formula_catalog_capacity <= 0
+    ):
+        raise ValueError(
+            "community_formula_catalog capacity must be a positive integer"
+        )
+
     limits = _require_record(record.get("limits"), "limits")
     for name in ("avoid_words", "community_examples", "bounty_candidates"):
         if not _is_safe_integer_number(limits.get(name)) or limits[name] <= 0:
             raise ValueError(f"{name} must be a positive integer")
+    if limits["community_examples"] > community_formula_catalog_capacity:
+        raise ValueError(
+            "community_examples must not exceed community formula catalog capacity"
+        )
     return deepcopy(record)
 
 

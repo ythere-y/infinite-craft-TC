@@ -32,9 +32,12 @@
       {"id":"disabled-style","enabled":false,"label":"禁用样式","guidance":"禁用指引","weight":0.9},
       {"id":"selected-style","enabled":true,"label":"选中样式","guidance":"选中指引","weight":0.6}
     ],
+    "capacities": {
+      "community_formula_catalog": 500
+    },
     "limits": {
       "avoid_words": 9007199254740991,
-      "community_examples": 9007199254740991,
+      "community_examples": 500,
       "bounty_candidates": 9007199254740991
     }
   },

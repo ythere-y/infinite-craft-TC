@@ -107,10 +107,26 @@ export function validatePromptSpec(value) {
   if (Math.abs(total - 1) > 1e-9) {
     throw new Error("style weights must sum to 1");
   }
+  requireRecord(value.capacities, "capacities");
+  const communityFormulaCatalogCapacity =
+    value.capacities.community_formula_catalog;
+  if (
+    !Number.isSafeInteger(communityFormulaCatalogCapacity) ||
+    communityFormulaCatalogCapacity <= 0
+  ) {
+    throw new Error(
+      "community_formula_catalog capacity must be a positive integer",
+    );
+  }
   for (const name of ["avoid_words", "community_examples", "bounty_candidates"]) {
     if (!Number.isSafeInteger(value.limits?.[name]) || value.limits[name] <= 0) {
       throw new Error(`${name} must be a positive integer`);
     }
+  }
+  if (value.limits.community_examples > communityFormulaCatalogCapacity) {
+    throw new Error(
+      "community_examples must not exceed community formula catalog capacity",
+    );
   }
   return structuredClone(value);
 }

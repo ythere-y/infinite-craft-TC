@@ -170,3 +170,38 @@ test("Makers feedback can supply more examples when prompt limits increase", asy
   assert.equal(feedback.negatives.length, 101);
   assert.equal(feedback.negatives.at(-1), "退役结果100");
 });
+
+test("Makers feedback stops catalog reads after both requested sets are full", async () => {
+  const ids = Array.from({ length: 100 }, (_, index) => `formula_${index}`);
+  const initial = {
+    community_public_formulas: JSON.stringify(ids),
+  };
+  for (const [index, id] of ids.entries()) {
+    initial[`community_formula_${id}`] = JSON.stringify({
+      id,
+      a: "社区输入",
+      b: "会议",
+      result: `目录结果${index}`,
+      emoji: "🗓️",
+      comment: "目录示例",
+      visibility: index === 0 ? "public" : "hidden",
+      status: index === 1 ? "retired" : "active",
+      up_votes: index === 0 ? 20 : 0,
+      down_votes: 0,
+    });
+  }
+  const kv = new FakeKV(initial);
+  const community = new CommunityStore(kv);
+
+  const feedback = await community.feedback(
+    {},
+    { positiveLimit: 1, negativeLimit: 1 },
+  );
+
+  assert.deepEqual(feedback.positives.map((item) => item.name), ["目录结果0"]);
+  assert.deepEqual(feedback.negatives, ["目录结果1"]);
+  assert.ok(
+    kv.getCalls < ids.length + 1,
+    `expected early catalog stop, observed ${kv.getCalls} KV reads`,
+  );
+});

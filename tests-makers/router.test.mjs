@@ -282,6 +282,7 @@ test("nickname, combine, wall, bounty and admin routes share KV state", async ()
 
 test("router carries raised prompt limits and one style draw into the model request", async () => {
   const positiveIds = Array.from({ length: 9 }, (_, index) => `positive_${index}`);
+  const retiredIds = ["retired_priority", "retired_recent_duplicate"];
   const initial = {
     snapshot_recent: JSON.stringify({
       items: Array.from({ length: 31 }, (_, index) => ({
@@ -298,7 +299,10 @@ test("router carries raised prompt limits and one style draw into the model requ
       "测试输入甲": { emoji: "🅰️", category: "tencent" },
       "测试输入乙": { emoji: "🅱️", category: "tencent" },
     }),
-    community_public_formulas: JSON.stringify(positiveIds),
+    community_public_formulas: JSON.stringify([
+      ...positiveIds,
+      ...retiredIds,
+    ]),
   };
   for (const [index, id] of positiveIds.entries()) {
     initial[`community_formula_${id}`] = JSON.stringify({
@@ -315,6 +319,18 @@ test("router carries raised prompt limits and one style draw into the model requ
       updated_at: index,
     });
   }
+  initial.community_formula_retired_priority = JSON.stringify({
+    id: "retired_priority",
+    result: "退役优先",
+    visibility: "public",
+    status: "retired",
+  });
+  initial.community_formula_retired_recent_duplicate = JSON.stringify({
+    id: "retired_recent_duplicate",
+    result: "最近结果30",
+    visibility: "public",
+    status: "retired",
+  });
 
   let capturedBody;
   let randomCalls = 0;
@@ -363,8 +379,20 @@ test("router carries raised prompt limits and one style draw into the model requ
 
   assert.equal(response.body.result, "共享上限");
   const user = capturedBody.messages[1].content;
-  assert.match(user, /最近结果0/u);
+  assert.match(user, /最近结果30/u);
   assert.match(user, /社区输入8/u);
+  const avoidSection = user
+    .split("【avoid_words（禁词，不要再用）】\n")[1]
+    .split("\n\n【悬赏候选")[0];
+  const avoidWords = avoidSection.split("、");
+  assert.equal(avoidWords.length, 31);
+  assert.deepEqual(avoidWords.slice(0, 2), ["退役优先", "最近结果30"]);
+  assert.equal(
+    avoidWords.filter((item) => item === "最近结果30").length,
+    1,
+  );
+  assert.equal(avoidWords.at(-1), "最近结果1");
+  assert.equal(avoidWords.includes("最近结果0"), false);
   const bountySection = user
     .split("【悬赏候选（未解锁 · 若语义顺理成章，请优先产出其中一个）】")[1]
     .split("（以上词语义不合适就忽略，不要硬塞。）")[0];
