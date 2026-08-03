@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-28T08:50:45.637Z",
+  "generatedAt": "2026-08-03T10:03:37.631Z",
   "sources": {
     "notoEmoji": {
       "version": "2.048 (Emoji 16.0)",
@@ -15,5 +15,5 @@
     "emojiManifestEntries": 9111,
     "emojiPngs": 3786
   },
-  "sha256": "2a00f5e7a72003f1f9feeaef9d450ce72b7848f2f3f2dcc3b2f9a9a1e526a964"
+  "sha256": "4ad0591b94413fff7cc1b06d886d4b9214244d9580ffd6edce047807fa8af13f"
 }

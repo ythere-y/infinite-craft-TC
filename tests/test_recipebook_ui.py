@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import html
 import json
 from pathlib import Path
@@ -11,6 +12,7 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 FRONTEND = ROOT / "frontend"
 INDEX = FRONTEND / "index.html"
+CLOSE_SVG = FRONTEND / "assets/icons/actions/x.svg"
 
 
 def _chrome() -> str:
@@ -80,6 +82,10 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
     page = tmp_path / "recipebook-browser-frame.html"
     profile = tmp_path / "chrome-profile"
     probe = """
+    <img id="close-asset-probe"
+         src="data:image/svg+xml;base64,__CLOSE_SVG_DATA__"
+         width="64" height="64" alt=""
+         style="position:fixed;left:-10000px;top:0">
     <pre id="recipebook-result"></pre>
     <script>
     setTimeout(function () {
@@ -91,9 +97,14 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
           });
         var drawer = document.getElementById("recipebook");
         var close = document.getElementById("recipebook-close");
+        var scorePanel = document.getElementById("score-panel");
+        var scoreClose = document.getElementById("score-panel-close");
         drawer.style.transition = "none";
         close.style.transition = "none";
+        scorePanel.style.animation = "none";
+        scoreClose.style.transition = "none";
         document.getElementById("btn-recipebook").click();
+        document.getElementById("btn-score").click();
         var header = drawer.querySelector(".recipebook-header");
         var rows = Array.from(drawer.querySelectorAll(".recipe-row"));
         var shortRow = rows.find(function (row) { return row.textContent.indexOf("蒸汽") >= 0; });
@@ -104,6 +115,14 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
         var fitName = fitRow.querySelector(".recipe-chip[data-name] .name");
         var fitArrow = fitRow.querySelector(".recipe-arrow");
         var closeRect = close.getBoundingClientRect();
+        var closeStyle = getComputedStyle(close);
+        var closeBorderRadius = closeStyle.borderRadius;
+        var closeBorderColor = closeStyle.borderColor;
+        var scoreCloseRect = scoreClose.getBoundingClientRect();
+        var scoreCloseStyle = getComputedStyle(scoreClose);
+        var scoreCloseBackground = scoreCloseStyle.backgroundColor;
+        var scoreCloseBorderRadius = scoreCloseStyle.borderRadius;
+        var scoreCloseBorderColor = scoreCloseStyle.borderColor;
         var headerRect = header.getBoundingClientRect();
         var titleRange = document.createRange();
         titleRange.selectNodeContents(drawer.querySelector(".recipebook-title"));
@@ -118,6 +137,17 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
         var closeIconWell = close.querySelector(".action-icon");
         var closeIconWellRect = closeIconWell.getBoundingClientRect();
         var closeIconRect = closeIcon.getBoundingClientRect();
+        var scoreCloseIcon = scoreClose.querySelector(".action-icon img");
+        var scoreCloseIconWell = scoreClose.querySelector(".action-icon");
+        var scoreCloseIconWellRect = scoreCloseIconWell.getBoundingClientRect();
+        var scoreCloseIconRect = scoreCloseIcon.getBoundingClientRect();
+        var assetCanvas = document.createElement("canvas");
+        assetCanvas.width = 64;
+        assetCanvas.height = 64;
+        var assetContext = assetCanvas.getContext("2d");
+        assetContext.drawImage(document.getElementById("close-asset-probe"), 0, 0, 64, 64);
+        var closeAssetBackdropAlpha =
+          assetContext.getImageData(32, 14, 1, 1).data[3];
         var shortChip = shortRow.querySelector(".recipe-chip[data-name]");
         var shortName = shortChip.querySelector(".name");
         var shortPlus = shortRow.querySelector(".recipe-plus");
@@ -137,6 +167,8 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
         document.body.classList.add("ura-on");
         var nightBackground = getComputedStyle(close).backgroundColor;
         var nightColor = getComputedStyle(close).color;
+        var nightScoreCloseBackground = getComputedStyle(scoreClose).backgroundColor;
+        var nightScoreCloseColor = getComputedStyle(scoreClose).color;
         var nightIconFilter = closeIcon && getComputedStyle(closeIcon).filter;
         var nightIconRect = closeIcon && closeIcon.getBoundingClientRect();
         var nightRowColor = getComputedStyle(shortRow).color;
@@ -181,6 +213,9 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
         }));
         var denseChipDragged =
           document.querySelectorAll("#workspace .element.on-canvas").length === canvasCountBeforeDrag + 1;
+        var scoreWasOpen = scorePanel.classList.contains("show");
+        scoreClose.click();
+        var scoreClosed = !scorePanel.classList.contains("show");
         var beforeClose = drawer.classList.contains("show");
         close.click();
         document.getElementById("recipebook-result").textContent = JSON.stringify({
@@ -190,6 +225,8 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
           closeBackground: getComputedStyle(close).backgroundColor,
           closeWidth: closeRect.width,
           closeHeight: closeRect.height,
+          closeBorderRadius: closeBorderRadius,
+          closeBorderColor: closeBorderColor,
           closeTitle: close.title,
           closeAriaLabel: close.getAttribute("aria-label"),
           hydratedCloseIcon: !!closeIcon && closeIcon.getAttribute("src").indexOf("/actions/x.svg") >= 0,
@@ -205,6 +242,26 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
           closeIconCenterDeltaY: Math.abs(
             (closeIconRect.top + closeIconRect.height / 2) -
             (closeIconWellRect.top + closeIconWellRect.height / 2)
+          ),
+          closeAssetBackdropAlpha: closeAssetBackdropAlpha,
+          scoreCloseBackground: scoreCloseBackground,
+          scoreCloseWidth: scoreCloseRect.width,
+          scoreCloseHeight: scoreCloseRect.height,
+          scoreCloseBorderRadius: scoreCloseBorderRadius,
+          scoreCloseBorderColor: scoreCloseBorderColor,
+          scoreCloseTitle: scoreClose.title,
+          scoreCloseAriaLabel: scoreClose.getAttribute("aria-label"),
+          scoreCloseIconWellWidth: scoreCloseIconWellRect.width,
+          scoreCloseIconWellHeight: scoreCloseIconWellRect.height,
+          scoreCloseIconWidth: scoreCloseIconRect.width,
+          scoreCloseIconHeight: scoreCloseIconRect.height,
+          scoreCloseIconCenterDeltaX: Math.abs(
+            (scoreCloseIconRect.left + scoreCloseIconRect.width / 2) -
+            (scoreCloseIconWellRect.left + scoreCloseIconWellRect.width / 2)
+          ),
+          scoreCloseIconCenterDeltaY: Math.abs(
+            (scoreCloseIconRect.top + scoreCloseIconRect.height / 2) -
+            (scoreCloseIconWellRect.top + scoreCloseIconWellRect.height / 2)
           ),
           shortRowGap: parseFloat(shortRowStyle.gap),
           shortChipPaddingLeft: parseFloat(shortChipStyle.paddingLeft),
@@ -237,8 +294,12 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
           titleDoesNotOverlapClose: titleRight <= closeRect.left,
           nightBackground: nightBackground,
           nightColor: nightColor,
+          nightScoreCloseBackground: nightScoreCloseBackground,
+          nightScoreCloseColor: nightScoreCloseColor,
           denseChipDoubleActivated: denseChipDoubleActivated,
           denseChipDragged: denseChipDragged,
+          scoreWasOpen: scoreWasOpen,
+          scoreClosed: scoreClosed,
           wasOpen: beforeClose,
           closed: !drawer.classList.contains("show"),
           shortClasses: Array.from(shortRow.classList),
@@ -254,6 +315,10 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
     }, 600);
     </script>
     """
+    probe = probe.replace(
+        "__CLOSE_SVG_DATA__",
+        base64.b64encode(CLOSE_SVG.read_bytes()).decode("ascii"),
+    )
     production = _production_page().replace("</body>", probe + "</body>")
     page.write_text(
         f"""<!doctype html><meta charset=\"utf-8\">
@@ -320,6 +385,20 @@ def test_recipebook_close_control_and_formula_density_use_real_production_page(t
     assert desktop["closeIconHeight"] == 14
     assert desktop["closeIconCenterDeltaX"] <= 0.5
     assert desktop["closeIconCenterDeltaY"] <= 0.5
+    assert desktop["closeAssetBackdropAlpha"] == 0
+    assert desktop["scoreCloseBackground"] == desktop["closeBackground"]
+    assert desktop["scoreCloseWidth"] == desktop["closeWidth"] == 30
+    assert desktop["scoreCloseHeight"] == desktop["closeHeight"] == 30
+    assert desktop["scoreCloseBorderRadius"] == desktop["closeBorderRadius"]
+    assert desktop["scoreCloseBorderColor"] == desktop["closeBorderColor"]
+    assert desktop["scoreCloseTitle"] == "关闭"
+    assert desktop["scoreCloseAriaLabel"] == "关闭分数记录"
+    assert desktop["scoreCloseIconWellWidth"] == desktop["closeIconWellWidth"]
+    assert desktop["scoreCloseIconWellHeight"] == desktop["closeIconWellHeight"]
+    assert desktop["scoreCloseIconWidth"] == desktop["closeIconWidth"]
+    assert desktop["scoreCloseIconHeight"] == desktop["closeIconHeight"]
+    assert desktop["scoreCloseIconCenterDeltaX"] <= 0.5
+    assert desktop["scoreCloseIconCenterDeltaY"] <= 0.5
     assert desktop["shortRowGap"] <= 4
     assert desktop["shortChipPaddingLeft"] <= 5
     assert desktop["shortChipIconWidth"] <= 22
@@ -340,7 +419,11 @@ def test_recipebook_close_control_and_formula_density_use_real_production_page(t
     assert desktop["titleDoesNotOverlapClose"] is True
     assert desktop["nightBackground"] == "rgb(36, 36, 60)"
     assert desktop["nightColor"] == "rgb(215, 212, 245)"
+    assert desktop["nightScoreCloseBackground"] == desktop["nightBackground"]
+    assert desktop["nightScoreCloseColor"] == desktop["nightColor"]
     assert desktop["denseChipDoubleActivated"] is True
+    assert desktop["scoreWasOpen"] is True
+    assert desktop["scoreClosed"] is True
     assert desktop["wasOpen"] is True
     assert desktop["closed"] is True
     assert "recipe-row-dense" not in desktop["shortClasses"]

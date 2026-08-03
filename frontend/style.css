@@ -1922,7 +1922,7 @@ body.quaking { animation: quake .5s 2; }
   background: linear-gradient(135deg, #E0F7F5, #FFFFFF);
 }
 
-/* ---------- 配方图鉴面板（左侧抽屉，Mac 风格关闭）---------- */
+/* ---------- 配方图鉴面板（左侧抽屉）---------- */
 
 .recipebook {
   position: fixed;
@@ -1955,45 +1955,11 @@ body.quaking { animation: quake .5s 2; }
   padding-right: 38px;
 }
 
-.score-panel .mac-traffic-lights {
-  display: flex;
-  gap: 8px;
-  padding: 2px 0 6px;
-}
-.score-panel .mac-light {
-  width: var(--action-icon-well);
-  height: var(--action-icon-well);
-  border-radius: 50%;
-  border: none;
-  padding: 0;
-  cursor: default;
-  background: #E0E0E0;
-  transition: filter .15s;
-  position: relative;
-}
-.score-panel .mac-light-close {
-  background: #FF5F57;
-  cursor: pointer;
-}
-.score-panel .mac-light-close:hover { filter: brightness(0.9); }
-.score-panel .mac-light-close:hover::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  font-size: 9px;
-  color: #7A0000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-}
-.recipebook-close-button {
-  position: absolute;
-  top: 12px;
-  right: 14px;
+.panel-close-button {
   width: 30px;
   height: 30px;
   display: inline-grid;
+  flex: 0 0 30px;
   place-items: center;
   border: 1px solid #E1E5EA;
   border-radius: 8px;
@@ -2003,7 +1969,12 @@ body.quaking { animation: quake .5s 2; }
   cursor: pointer;
   transition: background .15s, border-color .15s, box-shadow .15s;
 }
-.recipebook-close-button > .action-icon {
+.recipebook-close-button {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+}
+.panel-close-button > .action-icon {
   /* Compensate for the button's 1px border on both sides. */
   width: calc(100% + 2px);
   min-width: 0;
@@ -2012,13 +1983,13 @@ body.quaking { animation: quake .5s 2; }
   place-items: center;
   transform: none;
 }
-.recipebook-close-button > .action-icon > img {
+.panel-close-button > .action-icon > img {
   display: block;
   width: 14px;
   height: 14px;
 }
-.recipebook-close-button:hover { background: #E9EDF2; }
-.recipebook-close-button:focus-visible {
+.panel-close-button:hover { background: #E9EDF2; }
+.panel-close-button:focus-visible {
   outline: none;
   border-color: #2F80ED;
   box-shadow: 0 0 0 3px rgba(47,128,237,.25);
@@ -2525,19 +2496,16 @@ body.ura-on .recipebook-empty { color: #6A6490; }
 body.ura-on .recipebook-list::-webkit-scrollbar-thumb { background: #2A2A4A; }
 body.ura-on .recipebook-list::-webkit-scrollbar-thumb:hover { background: #3A3A5A; }
 
-/* Mac 关闭按钮保持红色识别性，但暗色下加点边 */
-body.ura-on .score-panel .mac-light { background: #2A2A4A; }
-body.ura-on .score-panel .mac-light-close { background: #FF5F57; }
-body.ura-on .recipebook-close-button {
+body.ura-on .panel-close-button {
   background: #24243C;
   color: #D7D4F5;
   border-color: #3A3A5A;
 }
-body.ura-on .recipebook-close-button .action-icon img {
+body.ura-on .panel-close-button .action-icon img {
   filter: brightness(0) invert(1) opacity(.86);
 }
-body.ura-on .recipebook-close-button:hover { background: #303052; }
-body.ura-on .recipebook-close-button:focus-visible {
+body.ura-on .panel-close-button:hover { background: #303052; }
+body.ura-on .panel-close-button:focus-visible {
   border-color: #A78BFA;
   box-shadow: 0 0 0 3px rgba(167,139,250,.3);
 }

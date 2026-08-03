@@ -22,12 +22,23 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCE_ROOT = resolve(ROOT, "words/emoji-data");
 const SOURCE_EMOJI_JSON = resolve(SOURCE_ROOT, "emoji.json");
 const SOURCE_PNGS = resolve(SOURCE_ROOT, "img-google-64");
-const PHOSPHOR_ROOT = resolve(
-  ROOT,
-  "node_modules/@phosphor-icons/core/assets/duotone",
-);
+const PHOSPHOR_ROOTS = {
+  duotone: resolve(
+    ROOT,
+    "node_modules/@phosphor-icons/core/assets/duotone",
+  ),
+  regular: resolve(
+    ROOT,
+    "node_modules/@phosphor-icons/core/assets/regular",
+  ),
+};
 const ICONS_ROOT = resolve(ROOT, "frontend/assets/icons");
 const GENERATED_ROOT = resolve(ICONS_ROOT, "generated");
+
+function actionIconSource(name) {
+  if (name === "x") return resolve(PHOSPHOR_ROOTS.regular, "x.svg");
+  return resolve(PHOSPHOR_ROOTS.duotone, `${name}-duotone.svg`);
+}
 
 function emojiFromCodepoints(codepoints) {
   return String.fromCodePoint(
@@ -137,7 +148,14 @@ export async function replaceStagedTargetsTransactionally(
 async function main() {
   await requireFile(SOURCE_EMOJI_JSON, "Emoji source JSON");
   await requireDirectory(SOURCE_PNGS, "Google 64px emoji source directory");
-  await requireDirectory(PHOSPHOR_ROOT, "Phosphor duotone source directory");
+  await requireDirectory(
+    PHOSPHOR_ROOTS.duotone,
+    "Phosphor duotone source directory",
+  );
+  await requireDirectory(
+    PHOSPHOR_ROOTS.regular,
+    "Phosphor regular source directory",
+  );
 
   const stagingRoot = resolve(
     ICONS_ROOT,
@@ -182,7 +200,7 @@ async function main() {
 
     const actionFiles = [];
     for (const name of requiredActionIcons()) {
-      const source = resolve(PHOSPHOR_ROOT, `${name}-duotone.svg`);
+      const source = actionIconSource(name);
       await requireFile(source, `Phosphor action icon ${name}`);
       const target = resolve(stagedActionsRoot, `${name}.svg`);
       await copyFile(source, target);
