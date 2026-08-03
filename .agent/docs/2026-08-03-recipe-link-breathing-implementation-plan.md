@@ -193,22 +193,25 @@ function startDraw(edge, hoveredId, generation, onComplete) {
   ) return false;
   const drawable = anime.svg.createDrawable(edge.draw);
   const forward = edge.leftId === hoveredId;
-  edge.animation = anime.animate(drawable, {
+  const animation = anime.animate(drawable, {
     draw: forward ? ["0 0", "0 1"] : ["1 1", "0 1"],
     duration: Number(
       edge.group.style.getPropertyValue("--recipe-link-duration"),
     ),
     ease: "outQuad",
     onComplete: () => {
-      edge.animation = null;
+      if (edge.animation === animation) edge.animation = null;
       onComplete(edge, generation);
     },
   });
+  edge.animation = animation;
   return true;
 }
 ```
 
-The `Boolean` return states whether a finite draw was actually started.
+The identity check prevents a stale completion callback from clearing a newer
+draw handle owned by the same edge. The `Boolean` return states whether a
+finite draw was actually started.
 
 - [ ] **Step 5: Replace per-edge immediate starts with an active draw barrier**
 
