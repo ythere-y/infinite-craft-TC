@@ -897,3 +897,314 @@ test("Makers formula markers enumerate every paginated version without a discove
   assert.deepEqual([markers[0].version, markers.at(-1).version], [1, 257]);
   assert.ok(kv.listCalls >= 2);
 });
+
+test("Makers reconciliation retries marker, formula, ready, and pointer write phases without losing the old formula", async () => {
+  class PhaseFaultKV extends FakeKV {
+    constructor() {
+      super();
+      this.failure = null;
+    }
+
+    async put(key, value) {
+      if (this.failure?.(key)) {
+        this.failure = null;
+        throw new Error(`failed ${key}`);
+      }
+      return super.put(key, value);
+    }
+  }
+
+  for (const { name: phase, matches } of [
+    { name: "marker", matches: (key) => key.startsWith("community_formula_marker_") },
+    { name: "formula", matches: (key) => /^community_formula_[a-f0-9]{32}$/u.test(key) },
+    { name: "ready", matches: (key) => key.startsWith("community_formula_ready_") },
+    { name: "pointer", matches: (key) => key.startsWith("community_active_") },
+  ]) {
+    const kv = new PhaseFaultKV();
+    const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+    const old = await community.ensureFormula({
+      a: "水", b: "水", result: "错误水", emoji: "❌",
+      comment: "冲突的旧公式。", source: "llm", discoverer: "旧鹅", playerId: "seed-player",
+    });
+    kv.failure = matches;
+    const seed = {
+      a: "水", b: "水", result: "水塘", emoji: "💧",
+      comment: "两滴水先汇成池塘。", source: "seed", playerId: "seed-player",
+    };
+
+    await assert.rejects(() => community.reconcileAuthoritativeFormula(seed));
+    if (phase !== "pointer") {
+      assert.equal((await community.get(`community_formula_${old.id}`)).status, "active", phase);
+    }
+    const active = await community.reconcileAuthoritativeFormula(seed);
+
+    assert.equal(active.version, 2, phase);
+    assert.equal(active.source, "seed", phase);
+    assert.equal((await community.get(`community_formula_${old.id}`)).status, "retired", phase);
+    const activeRecords = [...kv.values.values()]
+      .map((value) => JSON.parse(value))
+      .filter((value) => value?.combo_key === "水 + 水" && value.status === "active");
+    assert.deepEqual(activeRecords.map((value) => value.version), [2], phase);
+  }
+});
+
+test("Makers ensureFormula marks an active legacy pointer ready before returning it", async () => {
+  const kv = new FakeKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const pair = "水 + 水";
+  const formula = await community.createFormula({
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "llm", discoverer: "旧鹅",
+  }, 1);
+  await community.put(`community_formula_${formula.id}`, formula);
+  await community.put(await activePointerKey("水", "水"), { id: formula.id, version: 1 });
+
+  const ensured = await community.ensureFormula({
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "llm", discoverer: "旧鹅", playerId: "new-player",
+  });
+
+  assert.equal(ensured.id, formula.id);
+  assert.ok(await community.readFormulaMarker(pair, formula.version));
+  assert.ok(await community.readFormulaReady(pair, formula.version));
+});
+
+test("Makers reconciliation backfills a valid unmarked pointer despite a complete inventory", async () => {
+  const kv = new FakeKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const pair = "水 + 水";
+  const seed = await community.createFormula({
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "seed", discoverer: null,
+  }, 1);
+  await community.put(`community_formula_${seed.id}`, seed);
+  await community.put(await activePointerKey("水", "水"), { id: seed.id, version: 1 });
+  await community.put(await community.formulaInventoryKey(pair), {
+    schema_version: 1, pair, complete: true,
+  });
+  const governed = await community.get(`community_formula_${seed.id}`);
+  governed.protected = true;
+  governed.ai_positive_enabled = false;
+  await community.put(`community_formula_${seed.id}`, governed);
+
+  const first = await community.reconcileAuthoritativeFormula({
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "seed", playerId: "seed-player",
+  });
+  assert.equal(first.id, seed.id);
+  assert.equal((await community.get(`community_formula_${seed.id}`)).protected, true);
+  assert.equal((await community.get(`community_formula_${seed.id}`)).ai_positive_enabled, false);
+  assert.ok(await community.readFormulaMarker(pair, 1));
+  await kv.delete(await activePointerKey("水", "水"));
+  const recovered = await community.reconcileAuthoritativeFormula({
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "seed", playerId: "seed-player",
+  });
+  assert.equal(recovered.id, seed.id);
+  assert.equal((await community.get(`community_formula_${seed.id}`)).protected, true);
+  assert.equal((await community.get(`community_formula_${seed.id}`)).ai_positive_enabled, false);
+});
+
+test("Makers ensureFormula refuses a missing-pointer target with different immutable marker intent", async () => {
+  const kv = new FakeKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const pair = "水 + 水";
+  const old = await community.createFormula({
+    a: "水", b: "水", result: "旧历史", emoji: "🕰️",
+    comment: "旧公式不能覆盖。", source: "llm", discoverer: "旧鹅",
+  }, 1);
+  await community.put(`community_formula_${old.id}`, old);
+  await community.put(await community.formulaMarkerKey(pair, 1), {
+    schema_version: 1, pair, version: 1, id: old.id, formula: old,
+  });
+  await community.put(await community.formulaInventoryKey(pair), {
+    schema_version: 1, pair, complete: true,
+  });
+
+  await assert.rejects(
+    () => community.ensureFormula({
+      a: "水", b: "水", result: "新公式", emoji: "✨",
+      comment: "不能覆盖旧历史。", source: "llm", discoverer: "新鹅", playerId: "new-player",
+    }),
+    (error) => error?.status === 503,
+  );
+  assert.equal((await community.get(`community_formula_${old.id}`)).result, "旧历史");
+});
+
+test("Makers reconciliation retries a marker readback gap before retiring old history", async () => {
+  class MarkerReadbackFaultKV extends FakeKV {
+    constructor() {
+      super();
+      this.markerKey = null;
+      this.hiddenReads = 0;
+    }
+
+    async put(key, value) {
+      const result = await super.put(key, value);
+      if (key === this.markerKey) this.hiddenReads = 2;
+      return result;
+    }
+
+    async get(key, options) {
+      if (key === this.markerKey && this.hiddenReads > 0) {
+        this.hiddenReads -= 1;
+        return null;
+      }
+      return super.get(key, options);
+    }
+  }
+
+  const kv = new MarkerReadbackFaultKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const old = await community.ensureFormula({
+    a: "水", b: "水", result: "错误水", emoji: "❌",
+    comment: "冲突的旧公式。", source: "llm", discoverer: "旧鹅", playerId: "seed-player",
+  });
+  kv.markerKey = await community.formulaMarkerKey("水 + 水", 2);
+  const seed = {
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "seed", playerId: "seed-player",
+  };
+
+  await assert.rejects(() => community.reconcileAuthoritativeFormula(seed));
+  assert.equal((await community.get(`community_formula_${old.id}`)).status, "active");
+  assert.equal((await community.reconcileAuthoritativeFormula(seed)).version, 2);
+});
+
+test("Makers marker pagination fails closed for malformed, empty, missing, or repeated cursors", async () => {
+  const prefix = "community_formula_marker_test_";
+  for (const response of [
+    null,
+    { keys: [], complete: false, cursor: "next" },
+    { keys: [{ key: `${prefix}one` }], complete: false },
+  ]) {
+    class FaultyListKV extends FakeKV {
+      async list() {
+        return response;
+      }
+    }
+    const community = new CommunityStore(new FaultyListKV());
+    await assert.rejects(
+      () => community.listCompleteKeys(prefix),
+      (error) => error?.status === 503,
+    );
+  }
+  class RepeatedCursorKV extends FakeKV {
+    constructor() {
+      super();
+      this.calls = 0;
+    }
+
+    async list() {
+      this.calls += 1;
+      return {
+        keys: [{ key: `${prefix}${this.calls}` }],
+        complete: false,
+        cursor: "stuck",
+      };
+    }
+  }
+  await assert.rejects(
+    () => new CommunityStore(new RepeatedCursorKV()).listCompleteKeys(prefix),
+    (error) => error?.status === 503,
+  );
+});
+
+test("Makers reconciliation never rewrites a ready formula that is temporarily unreadable", async () => {
+  class ReadyReadFaultKV extends FakeKV {
+    constructor() {
+      super();
+      this.hiddenKey = null;
+      this.puts = [];
+    }
+
+    async get(key, options) {
+      if (key === this.hiddenKey) return null;
+      return super.get(key, options);
+    }
+
+    async put(key, value) {
+      this.puts.push({ key, value });
+      return super.put(key, value);
+    }
+  }
+
+  const kv = new ReadyReadFaultKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const seed = {
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "seed", playerId: "seed-player",
+  };
+  const active = await community.reconcileAuthoritativeFormula(seed);
+  assert.ok(await community.readFormulaReady("水 + 水", active.version));
+  kv.puts = [];
+  kv.hiddenKey = `community_formula_${active.id}`;
+  const marker = await community.readFormulaMarker("水 + 水", active.version);
+
+  await assert.rejects(
+    () => community.materializeFormulaMarker("水 + 水", marker),
+    (error) => error?.status === 503,
+  );
+  assert.deepEqual(kv.puts, []);
+});
+
+test("Makers reconciliation retries a failed ready write before exposing or retiring formulas", async () => {
+  class ReadyWriteFaultKV extends FakeKV {
+    constructor() {
+      super();
+      this.failKey = null;
+      this.failed = false;
+    }
+
+    async put(key, value) {
+      if (key === this.failKey && !this.failed) {
+        this.failed = true;
+        throw new Error("ready write failed");
+      }
+      return super.put(key, value);
+    }
+  }
+
+  const kv = new ReadyWriteFaultKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const old = await community.ensureFormula({
+    a: "水", b: "水", result: "错误水", emoji: "❌",
+    comment: "冲突的旧公式。", source: "llm", discoverer: "旧鹅", playerId: "seed-player",
+  });
+  kv.failKey = await community.formulaReadyKey("水 + 水", 2);
+  const seed = {
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "seed", playerId: "seed-player",
+  };
+
+  await assert.rejects(() => community.reconcileAuthoritativeFormula(seed));
+  assert.equal((await community.get(`community_formula_${old.id}`)).status, "active");
+  assert.equal((await community.get(await activePointerKey("水", "水"))).id, old.id);
+
+  const recovered = await community.reconcileAuthoritativeFormula(seed);
+  assert.equal(recovered.version, 2);
+  assert.equal((await community.get(`community_formula_${old.id}`)).status, "retired");
+  assert.ok(await community.readFormulaReady("水 + 水", recovered.version));
+});
+
+test("Makers ready marker discovery preserves published, voted, and protected fields", async () => {
+  const kv = new FakeKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const seed = {
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "seed", playerId: "seed-player",
+  };
+  const active = await community.reconcileAuthoritativeFormula(seed);
+  await community.publish(active.id, "seed-player");
+  await community.vote(active.id, "voter", 1);
+  await community.moderate(active.id, "protect", "community_quality");
+  await kv.delete(await activePointerKey("水", "水"));
+
+  const recovered = await community.reconcileAuthoritativeFormula(seed);
+  const stored = await community.get(`community_formula_${recovered.id}`);
+
+  assert.equal(recovered.id, active.id);
+  assert.equal(stored.visibility, "public");
+  assert.equal(stored.up_votes, 1);
+  assert.equal(stored.protected, true);
+});
