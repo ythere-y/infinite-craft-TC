@@ -287,6 +287,9 @@ test("authoritative seed reconciliation supersedes stale cache and conflicting a
   await store.putCombination("水", "水", {
     result: "缓存错误", emoji: "❌", comment: "缓存覆盖。", source: "llm", chain: null,
   });
+  for (let count = 0; count < 3; count += 1) {
+    await store.incrementCombinationHit("水", "水");
+  }
   const service = createGameService({ store, env: {}, now: () => 1_700_000_000_000 });
 
   const result = await service.combine({
@@ -294,8 +297,19 @@ test("authoritative seed reconciliation supersedes stale cache and conflicting a
   });
 
   assert.equal(result.result, COMBINATIONS[normalizePair("水", "水")].result);
+  assert.equal(result.emoji, COMBINATIONS[normalizePair("水", "水")].emoji);
+  assert.equal(result.comment, normalizeComment(COMBINATIONS[normalizePair("水", "水")].comment));
   assert.equal(result.source, "seed");
-  assert.equal((await store.getCombination("水", "水")).result, result.result);
+  const cached = await store.getCombination("水", "水");
+  assert.equal(cached.result, result.result);
+  assert.equal(cached.emoji, result.emoji);
+  assert.equal(cached.comment, result.comment);
+  assert.equal(cached.source, "seed");
+  assert.equal(cached.hit_count, 4);
+  const formula = await community.get(`community_formula_${result.formula_id}`);
+  assert.equal(formula.emoji, result.emoji);
+  assert.equal(formula.comment, result.comment);
+  assert.equal(formula.source, "seed");
   assert.equal((await community.combinationState("水", "水")).version, 2);
 });
 

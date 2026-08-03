@@ -6,6 +6,7 @@ import {
   CommunityStore,
   normalizePublicPagination,
 } from "../edge-functions/_lib/community.js";
+import { sha256Hex } from "../edge-functions/_lib/keys.js";
 import { FakeKV } from "./fake-kv.mjs";
 
 function service() {
@@ -601,4 +602,111 @@ test("Makers reconciliation retries a failed pointer update without another acti
     .filter((value) => value?.combo_key === "水 + 水" && value.status === "active" && value.source === "seed");
   assert.equal(activeSeeds.length, 1);
   assert.equal((await community.get(`community_formula_${old.id}`)).status, "retired");
+});
+
+test("Makers reconciliation discovers and retires v1 when its active pointer is missing", async () => {
+  const kv = new FakeKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const old = await community.ensureFormula({
+    a: "水", b: "水", result: "错误水", emoji: "❌",
+    comment: "冲突的旧公式。", source: "llm", discoverer: "旧鹅", playerId: "seed-player",
+  });
+  await community.publish(old.id, "seed-player");
+  await community.vote(old.id, "voter", 1);
+  await kv.delete(`community_active_${await sha256Hex("水 + 水")}`);
+
+  const active = await community.reconcileAuthoritativeFormula({
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "seed", playerId: "seed-player",
+  });
+
+  const retired = await community.get(`community_formula_${old.id}`);
+  assert.equal(retired.status, "retired");
+  assert.equal(retired.visibility, "hidden");
+  assert.equal(retired.up_votes, 1);
+  assert.equal(active.version, 2);
+  assert.equal(active.source, "seed");
+  assert.deepEqual(
+    (await community.get("community_retired_formulas")).map((item) => item.id),
+    [old.id],
+  );
+});
+
+test("Makers reconciliation retries a temporarily unreadable pointed record before changing state", async () => {
+  class OneReadLagKV extends FakeKV {
+    constructor() {
+      super();
+      this.hiddenKey = null;
+      this.hidden = false;
+    }
+
+    async get(key, options) {
+      if (key === this.hiddenKey && !this.hidden) {
+        this.hidden = true;
+        return null;
+      }
+      return super.get(key, options);
+    }
+  }
+
+  const kv = new OneReadLagKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const old = await community.ensureFormula({
+    a: "水", b: "水", result: "错误水", emoji: "❌",
+    comment: "冲突的旧公式。", source: "llm", discoverer: "旧鹅", playerId: "seed-player",
+  });
+  kv.hiddenKey = `community_formula_${old.id}`;
+
+  const active = await community.reconcileAuthoritativeFormula({
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "seed", playerId: "seed-player",
+  });
+
+  assert.equal(active.version, 2);
+  assert.equal((await community.get(`community_formula_${old.id}`)).status, "retired");
+  const activeRecords = [...kv.values.values()]
+    .map((value) => JSON.parse(value))
+    .filter((value) => value?.combo_key === "水 + 水" && value.status === "active");
+  assert.deepEqual(activeRecords.map((value) => value.version), [2]);
+});
+
+test("Makers reconciliation returns its authoritative seed when pointer readback is stale", async () => {
+  class StalePointerReadKV extends FakeKV {
+    constructor() {
+      super();
+      this.stalePointer = null;
+    }
+
+    async put(key, value) {
+      if (key.startsWith("community_active_") && this.values.has(key)) {
+        this.stalePointer = this.values.get(key);
+      }
+      return super.put(key, value);
+    }
+
+    async get(key, options) {
+      if (key.startsWith("community_active_") && this.stalePointer) {
+        const stale = this.stalePointer;
+        this.stalePointer = null;
+        return typeof options === "string" && options === "json" ? JSON.parse(stale) : stale;
+      }
+      return super.get(key, options);
+    }
+  }
+
+  const kv = new StalePointerReadKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  await community.ensureFormula({
+    a: "水", b: "水", result: "错误水", emoji: "❌",
+    comment: "冲突的旧公式。", source: "llm", discoverer: "旧鹅", playerId: "seed-player",
+  });
+
+  const active = await community.reconcileAuthoritativeFormula({
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "seed", playerId: "seed-player",
+  });
+
+  assert.equal(active.version, 2);
+  assert.equal(active.source, "seed");
+  assert.equal(active.result, "水塘");
 });

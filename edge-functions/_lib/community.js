@@ -8,6 +8,7 @@ const MAX_PUBLIC_INDEX = 500;
 const MAX_PUBLIC_PAGE = 100;
 // This is a retirement catalogue capacity, independent from prompt limits.
 const MAX_RETIRED_FORMULA_INDEX = 500;
+const MAX_FORMULA_DISCOVERY_VERSION = 32;
 // The public formula catalogue is intentionally bounded for KV read cost.
 // Prompt limits select within this catalogue and do not impose another cap.
 const PUBLIC_FORMULA_CATALOG_CAPACITY =
@@ -30,6 +31,13 @@ function normalizePublicPageValue(value, fallback, minimum, maximum) {
   }
   if (!Number.isFinite(parsed)) return fallback;
   return Math.max(minimum, Math.min(maximum, Math.trunc(parsed)));
+}
+
+function retryableConsistencyError(message) {
+  const error = new Error(message);
+  error.retryable = true;
+  error.status = 503;
+  return error;
 }
 
 export function normalizePublicPagination({ limit, offset } = {}) {
@@ -109,12 +117,47 @@ export class CommunityStore {
     await this.kv.put(key, JSON.stringify(value));
     return value;
   }
+  async formulaId(pair, version) {
+    return (await sha256Hex(`${pair}:v${version}`)).slice(0, 32);
+  }
+  async readConsistently(key, fallback = null) {
+    // KV may briefly return an older replica. A finite immediate reread avoids
+    // destructive work based on a single absent or stale value without sleep.
+    const first = await this.get(key, fallback);
+    const second = await this.get(key, fallback);
+    return second ?? first;
+  }
+  validFormulaVersion(value) {
+    const version = Number(value);
+    return Number.isSafeInteger(version) && version > 0 ? version : null;
+  }
+  async readVersionedFormula(pair, version) {
+    const id = await this.formulaId(pair, version);
+    const formula = await this.readConsistently(`community_formula_${id}`);
+    if (!formula) return null;
+    if (
+      formula.id !== id ||
+      formula.combo_key !== pair ||
+      this.validFormulaVersion(formula.version) !== version
+    ) {
+      throw retryableConsistencyError("社区公式版本记录不一致，请重试");
+    }
+    return formula;
+  }
+  async discoverFormulaVersions(pair) {
+    const formulas = [];
+    for (let version = 1; version <= MAX_FORMULA_DISCOVERY_VERSION; version += 1) {
+      const formula = await this.readVersionedFormula(pair, version);
+      if (formula) formulas.push(formula);
+    }
+    return formulas;
+  }
   async createFormula(
     { a, b, result, emoji, comment, source, discoverer },
     version,
   ) {
     const pair = normalizePair(a, b);
-    const id = (await sha256Hex(`${pair}:v${version}`)).slice(0, 32);
+    const id = await this.formulaId(pair, version);
     const now = this.now() / 1000;
     return {
       id, a, b, combo_key: pair, result, emoji, comment, source,
@@ -160,44 +203,45 @@ export class CommunityStore {
   async reconcileAuthoritativeFormula(input) {
     const pair = normalizePair(input.a, input.b);
     const pointerKey = `community_active_${await sha256Hex(pair)}`;
-    const pointer = await this.get(pointerKey);
-    const current = pointer
-      ? await this.get(`community_formula_${pointer.id}`)
-      : null;
-
-    if (this.formulaMatches(current, input)) {
-      await this.rememberReproduction(current, input.playerId);
-      const readbackPointer = await this.get(pointerKey);
-      return (readbackPointer && await this.get(`community_formula_${readbackPointer.id}`)) || current;
+    const pointer = await this.readConsistently(pointerKey);
+    let pointedFormula = null;
+    if (pointer) {
+      const pointerVersion = this.validFormulaVersion(pointer.version);
+      if (!pointerVersion || pointer.id !== await this.formulaId(pair, pointerVersion)) {
+        throw retryableConsistencyError("社区公式指针不一致，请重试");
+      }
+      pointedFormula = await this.readVersionedFormula(pair, pointerVersion);
+      if (!pointedFormula) {
+        throw retryableConsistencyError("社区公式指向的记录暂不可读，请重试");
+      }
     }
 
-    if (current?.status === "active") {
-      const retiredAt = this.now() / 1000;
-      const retired = {
-        ...current,
-        status: "retired",
-        visibility: "hidden",
-        retired_at: retiredAt,
-        updated_at: retiredAt,
-      };
-      await this.put(`community_formula_${retired.id}`, retired);
-      await this.rememberRetired(retired);
-    } else if (current?.status === "retired") {
-      // A failed prior reconciliation may have retired the old version before
-      // its retirement catalogue or pointer update completed.
-      await this.rememberRetired(current);
-    }
+    const known = new Map(
+      (await this.discoverFormulaVersions(pair)).map((formula) => [formula.id, formula]),
+    );
+    if (pointedFormula) known.set(pointedFormula.id, pointedFormula);
+    const formulas = [...known.values()];
+    const matching = formulas
+      .filter((formula) => this.formulaMatches(formula, input))
+      .sort((left, right) => left.version - right.version);
+    let formula = matching.at(-1) || null;
+    let needsCreate = false;
 
-    const currentVersion = Number.isFinite(Number(current?.version))
-      ? Number(current.version)
-      : 0;
-    const pointerVersion = Number.isFinite(Number(pointer?.version))
-      ? Number(pointer.version)
-      : 0;
-    const version = Math.max(currentVersion, pointerVersion) + 1;
-    const id = (await sha256Hex(`${pair}:v${version}`)).slice(0, 32);
-    let formula = await this.get(`community_formula_${id}`);
-    if (!this.formulaMatches(formula, input)) {
+    if (!formula) {
+      const highestVersion = formulas.reduce(
+        (highest, candidate) => Math.max(highest, candidate.version),
+        0,
+      );
+      const version = highestVersion + 1;
+      if (version > MAX_FORMULA_DISCOVERY_VERSION) {
+        throw retryableConsistencyError("社区公式版本超过安全发现上限，请重试");
+      }
+      const existing = await this.readVersionedFormula(pair, version);
+      if (existing) {
+        // Discovery and the target preflight disagree, so another edge may
+        // have written concurrently. Never replace an observed mismatch.
+        throw retryableConsistencyError("社区公式目标版本已变化，请重试");
+      }
       formula = await this.createFormula({
         ...input,
         a: cleanText(input.a),
@@ -207,13 +251,49 @@ export class CommunityStore {
         comment: normalizeComment(input.comment),
         source: cleanText(input.source),
       }, version);
-      await this.put(`community_formula_${id}`, formula);
+      needsCreate = true;
     }
-    await this.put(pointerKey, { id, version });
+
+    const retirees = formulas.filter(
+      (candidate) => candidate.status === "active" && candidate.id !== formula.id,
+    );
+    for (const candidate of retirees) {
+      const retiredAt = this.now() / 1000;
+      const retired = {
+        ...candidate,
+        status: "retired",
+        visibility: "hidden",
+        retired_at: retiredAt,
+        updated_at: retiredAt,
+      };
+      await this.put(`community_formula_${retired.id}`, retired);
+      await this.ensureRetiredRemembered(retired);
+    }
+    for (const candidate of formulas) {
+      if (candidate.status === "retired") {
+        await this.ensureRetiredRemembered(candidate);
+      }
+    }
+
+    if (needsCreate) {
+      const existing = await this.readVersionedFormula(pair, formula.version);
+      if (existing) {
+        throw retryableConsistencyError("社区公式目标版本已变化，请重试");
+      }
+      await this.put(`community_formula_${formula.id}`, formula);
+    }
+    if (pointer?.id !== formula.id || pointer?.version !== formula.version) {
+      await this.put(pointerKey, { id: formula.id, version: formula.version });
+    }
     await this.rememberReproduction(formula, input.playerId);
 
-    const readbackPointer = await this.get(pointerKey);
-    return (readbackPointer && await this.get(`community_formula_${readbackPointer.id}`)) || formula;
+    const readbackPointer = await this.readConsistently(pointerKey);
+    const readbackVersion = this.validFormulaVersion(readbackPointer?.version);
+    const readback = readbackPointer && readbackVersion &&
+      readbackPointer.id === await this.formulaId(pair, readbackVersion)
+      ? await this.readVersionedFormula(pair, readbackVersion)
+      : null;
+    return this.formulaMatches(readback, input) ? readback : formula;
   }
   async combinationState(a, b) {
     const pointer = await this.get(`community_active_${await sha256Hex(normalizePair(a, b))}`);
@@ -306,6 +386,11 @@ export class CommunityStore {
       if (byId.size >= MAX_RETIRED_FORMULA_INDEX) break;
     }
     await this.put(RETIRED_INDEX_KEY, [...byId.values()]);
+  }
+  async ensureRetiredRemembered(formula) {
+    const existing = await this.get(RETIRED_INDEX_KEY, []);
+    if (existing.some((item) => item?.id === formula?.id)) return;
+    await this.rememberRetired(formula);
   }
   async publish(id, playerId) {
     const formula = await this.get(`community_formula_${id}`);
