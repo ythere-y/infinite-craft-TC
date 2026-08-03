@@ -56,6 +56,38 @@
         <div class="hint-credit">— created by chaoohu · with AI —</div>
         <div class="hint-credit-sub">参考 <a href="https://neal.fun/infinite-craft/" target="_blank" rel="noopener">infinite-craft</a></div>
       </div>
+
+      <section id="casino-hud" class="casino-hud" aria-label="里模式待收获奖池">
+        <div class="casino-table">
+          <div class="casino-stack-column">
+            <div class="casino-streak-status">
+              <strong id="casino-streak-count">等待全球首发</strong>
+              <span id="casino-next-multiplier">合成全球首发获得首枚筹码</span>
+            </div>
+            <div id="casino-chip-stack" class="casino-chip-stack"></div>
+          </div>
+
+          <div class="casino-pot-column">
+            <span class="casino-pot-label">本轮待收获</span>
+            <strong class="casino-pot-value">
+              <span id="casino-pot-value">0</span><small>分</small>
+            </strong>
+            <button id="casino-harvest" class="casino-harvest" disabled>暂无可收获分数</button>
+          </div>
+
+          <div class="casino-penguin-column">
+            <span class="casino-penguin-seal">
+              <img src="/assets/icons/generated/emoji/1f427.png" alt="">
+            </span>
+            <span>MIDNIGHT HOUSE</span>
+          </div>
+
+          <div id="casino-score-lane" class="casino-score-lane"></div>
+          <div class="casino-wind" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div id="casino-loss-copy" class="casino-loss-copy"></div>
+          <div id="casino-score-burst" class="casino-score-burst" aria-hidden="true"></div>
+        </div>
+      </section>
     </section>
 
     <!-- 侧边栏 -->
@@ -173,7 +205,10 @@
   <script src="/icon-system.js?v=20260730b"></script>
   <script src="/combine-feedback.js?v=20260730b"></script>
   <script src="/score-level.js?v=20260730b"></script>
+  <script src="/vendor/anime.iife.min.js?v=20260803a"></script>
+  <script src="/casino-round.js?v=20260803a"></script>
   <script src="/effects.js?v=20260730b"></script>
+  <script src="/casino-mode.js?v=20260803a"></script>
   <script src="/recipe-links.js?v=20260730b"></script>
   <script src="/app.js?v=20260730b"></script>
 </body>
