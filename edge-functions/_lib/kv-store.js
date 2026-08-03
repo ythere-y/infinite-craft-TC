@@ -22,6 +22,7 @@ const RECORD_READ_BATCH = 20;
 const INDEX_RECONCILE_SECONDS = 60;
 const INDEX_SHARDS = "0123456789abcdef".split("");
 const MAX_FEED_TIMESTAMP_MS = 9_999_999_999_999;
+const FIRST_FEED_KEY_PATTERN = /^feed_\d{13}_([a-f0-9]{64})$/u;
 
 function finiteInteger(value, fallback = 0) {
   const parsed = Number(value);
@@ -53,6 +54,11 @@ function newestFirst(left, right) {
 
 function listOptions(prefix, limit, cursor) {
   return cursor ? { prefix, limit, cursor } : { prefix, limit };
+}
+
+function canonicalFirstKeyFromFeedKey(key) {
+  const match = FIRST_FEED_KEY_PATTERN.exec(String(key));
+  return match ? `first_${match[1]}` : null;
 }
 
 export class KvStore {
@@ -150,13 +156,17 @@ export class KvStore {
   }
 
   normalizeIndexSnapshot(value) {
-    return {
+    const snapshot = {
       items:
         value?.items && typeof value.items === "object"
           ? value.items
           : {},
       reconciled_at: Number(value?.reconciled_at) || 0,
     };
+    if (value?.first_feeds_backfilled === true) {
+      snapshot.first_feeds_backfilled = true;
+    }
+    return snapshot;
   }
 
   trimIndexItems(kind, items) {
@@ -192,6 +202,17 @@ export class KvStore {
     );
     for (const { key, value } of await this.readRecords(missingKeys)) {
       snapshot.items[key] = { ...value, storage_key: key };
+    }
+    if (
+      kind === "first" &&
+      snapshot.first_feeds_backfilled !== true
+    ) {
+      await this.writeFirstFeeds(
+        canonicalKeys
+          .map((key) => ({ key, value: snapshot.items[key] }))
+          .filter((item) => item.value),
+      );
+      snapshot.first_feeds_backfilled = true;
     }
     snapshot.items = this.trimIndexItems(kind, snapshot.items);
     snapshot.reconciled_at = this.timestamp();
@@ -263,6 +284,24 @@ export class KvStore {
       "0",
     );
     return `feed_${inverted}_${canonicalKey.slice("first_".length)}`;
+  }
+
+  async writeFirstFeeds(records) {
+    for (
+      let index = 0;
+      index < records.length;
+      index += RECORD_READ_BATCH
+    ) {
+      await Promise.all(
+        records
+          .slice(index, index + RECORD_READ_BATCH)
+          .map(({ key, value }) =>
+            this.putJson(
+              this.firstFeedKey(value, key),
+              this.publicFirst(value),
+            )),
+      );
+    }
   }
 
   async listKeyWindow(prefix, offset, limit) {
@@ -652,9 +691,26 @@ export class KvStore {
     const recent = this.normalizeRecentSnapshot(
       await this.getJson(RECENT_KEY, { items: [] }),
     );
+    const indexed = await this.loadIndexRecords("first");
+    const indexedCanonicalKeys = new Set(
+      indexed
+        .map((item) => item?.storage_key)
+        .filter((key) => typeof key === "string"),
+    );
+    const feedWindow = await this.listKeyWindow(
+      "feed_",
+      0,
+      this.firstsCapacity,
+    );
+    const missingFeedKeys = feedWindow.keys.filter((key) => {
+      const canonicalKey = canonicalFirstKeyFromFeedKey(key);
+      return canonicalKey && !indexedCanonicalKeys.has(canonicalKey);
+    });
+    const feedRecords = await this.readRecords(missingFeedKeys);
     const recordsByResult = new Map();
     for (const item of [
-      ...(await this.loadIndexRecords("first")),
+      ...indexed,
+      ...feedRecords.map(({ value }) => value),
       ...recent.items,
     ]) {
       const result = cleanText(item?.result);

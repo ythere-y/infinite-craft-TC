@@ -10,6 +10,23 @@ import { PROMPT_SPEC } from "../edge-functions/_generated/prompt-data.js";
 import { KvStore } from "../edge-functions/_lib/kv-store.js";
 import { FakeKV } from "./fake-kv.mjs";
 
+const SAME_SHARD_DISCOVERIES = [
+  "索引容量元素5",
+  "索引容量元素11",
+  "索引容量元素40",
+  "索引容量元素43",
+];
+const MAX_FEED_TIMESTAMP_MS = 9_999_999_999_999;
+
+function feedKeyFor(record, canonicalKey) {
+  const timestamp = Math.floor(record.ts * 1_000);
+  const inverted = String(MAX_FEED_TIMESTAMP_MS - timestamp).padStart(
+    13,
+    "0",
+  );
+  return `feed_${inverted}_${canonicalKey.slice("first_".length)}`;
+}
+
 test("KV keys are legal, stable and combination order independent", async () => {
   assert.equal(normalizePair(" 水 ", "火"), normalizePair("火", "水"));
 
@@ -191,12 +208,6 @@ test("KvStore rejects invalid injected firsts capacities", () => {
 });
 
 test("injected firsts capacity bounds stored and returned newest discoveries", async () => {
-  const discoveries = [
-    "索引容量元素5",
-    "索引容量元素11",
-    "索引容量元素40",
-    "索引容量元素43",
-  ];
   const newestThree = [
     "索引容量元素43",
     "索引容量元素40",
@@ -208,7 +219,7 @@ test("injected firsts capacity bounds stored and returned newest discoveries", a
     now: () => now,
     firstsCapacity: 3,
   });
-  for (const result of discoveries) {
+  for (const result of SAME_SHARD_DISCOVERIES) {
     await boundedStore.recordFirst(
       result,
       "🧪",
@@ -237,13 +248,147 @@ test("injected firsts capacity bounds stored and returned newest discoveries", a
     now: () => expandedNow,
     firstsCapacity: 4,
   });
-  for (const result of discoveries) {
+  for (const result of SAME_SHARD_DISCOVERIES) {
     await expandedStore.recordFirst(result, "🧪", "容量鹅");
     expandedNow += 1_000;
   }
   assert.deepEqual(
     (await expandedStore.allFirsts()).map((item) => item.result),
-    [...discoveries].reverse(),
+    [...SAME_SHARD_DISCOVERIES].reverse(),
+  );
+});
+
+test("shrinking and expanding firsts capacity is reversible on one KV catalog", async () => {
+  let now = 1_700_000_000_000;
+  const kv = new FakeKV();
+  const writer = new KvStore(kv, {
+    now: () => now,
+    firstsCapacity: 4,
+  });
+  for (const result of SAME_SHARD_DISCOVERIES) {
+    await writer.recordFirst(result, "🧪", "迁移鹅");
+    now += 1_000;
+  }
+  await kv.put("indexmeta_first", JSON.stringify({
+    next_shard: 0,
+    next_reconcile_at: 1_800_000_000,
+  }));
+
+  const bounded = new KvStore(kv, {
+    now: () => now,
+    firstsCapacity: 3,
+  });
+  assert.deepEqual(
+    (await bounded.allFirsts()).map((item) => item.result),
+    [
+      "索引容量元素43",
+      "索引容量元素40",
+      "索引容量元素11",
+    ],
+  );
+
+  const expanded = new KvStore(kv, {
+    now: () => now,
+    firstsCapacity: 4,
+  });
+  assert.deepEqual(
+    (await expanded.allFirsts()).map((item) => item.result),
+    [...SAME_SHARD_DISCOVERIES].reverse(),
+  );
+});
+
+test("allFirsts supplements a skewed shard from ordered feed keys", async () => {
+  const firstsCapacity = 2_001;
+  const indexItems = {};
+  const initial = {
+    indexmeta_first: JSON.stringify({
+      next_shard: 0,
+      next_reconcile_at: 1_800_000_000,
+    }),
+    snapshot_recent: JSON.stringify({
+      items: [],
+      total: firstsCapacity,
+      initialized: true,
+    }),
+  };
+  for (let index = 0; index < firstsCapacity; index += 1) {
+    const canonicalKey = `first_0${String(index).padStart(63, "0")}`;
+    const record = {
+      result: `偏斜元素${index}`,
+      emoji: "🧪",
+      discoverer: "偏斜鹅",
+      ts: 1_700_000_000 + index,
+      seq: index + 1,
+    };
+    initial[feedKeyFor(record, canonicalKey)] = JSON.stringify(record);
+    if (index > 0) {
+      indexItems[canonicalKey] = {
+        ...record,
+        storage_key: canonicalKey,
+      };
+    }
+  }
+  initial.index_first_0 = JSON.stringify({
+    items: indexItems,
+    reconciled_at: 1_700_000_000,
+  });
+  const kv = new FakeKV(initial);
+  const store = new KvStore(kv, {
+    now: () => 1_700_000_000_000,
+    firstsCapacity,
+  });
+
+  const firsts = await store.allFirsts();
+
+  assert.equal(firsts.length, 2_001);
+  assert.equal(firsts[0].result, "偏斜元素2000");
+  assert.equal(firsts.at(-1).result, "偏斜元素0");
+  assert.ok(
+    kv.getCalls <= 20,
+    `expected only the missing feed object to be read, observed ${kv.getCalls} KV reads`,
+  );
+});
+
+test("legacy canonical reconcile backfills feed before trimming a first shard", async () => {
+  const initial = {
+    snapshot_recent: JSON.stringify({
+      items: [],
+      total: 4,
+      initialized: true,
+    }),
+  };
+  for (let index = 0; index < 4; index += 1) {
+    const canonicalKey = `first_0${String(index).padStart(63, "0")}`;
+    initial[canonicalKey] = JSON.stringify({
+      result: `遗留元素${index}`,
+      emoji: "🧭",
+      discoverer: "遗留鹅",
+      ts: 1_700_000_000 + index,
+      seq: index + 1,
+    });
+  }
+  const kv = new FakeKV(initial);
+  const bounded = new KvStore(kv, {
+    now: () => 1_700_000_000_000,
+    firstsCapacity: 3,
+  });
+
+  assert.deepEqual(
+    (await bounded.allFirsts()).map((item) => item.result),
+    ["遗留元素3", "遗留元素2", "遗留元素1"],
+  );
+  assert.equal(
+    [...kv.values.keys()].filter((key) => key.startsWith("feed_")).length,
+    4,
+  );
+
+  const expanded = new KvStore(kv, {
+    now: () => 1_700_000_000_000,
+    firstsCapacity: 4,
+  });
+  assert.deepEqual(
+    (await expanded.allFirsts()).map((item) => item.result),
+    ["遗留元素3", "遗留元素2", "遗留元素1", "遗留元素0"],
   );
 });
 
@@ -550,6 +695,9 @@ test("ten thousand indexed firsts use bounded hot-path KV operations", async () 
   kv.getCalls = 0;
   const leaderboard = await store.leaderboard({ limit: 10 });
   assert.equal(leaderboard.total_players, 100);
-  assert.equal(kv.listCalls, 0);
+  assert.ok(
+    kv.listCalls <= 40,
+    `expected bounded feed-key pagination, observed ${kv.listCalls} list calls`,
+  );
   assert.ok(kv.getCalls <= 18);
 });
