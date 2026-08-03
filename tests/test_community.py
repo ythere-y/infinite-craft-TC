@@ -116,6 +116,41 @@ def test_public_list_http_accepts_tolerant_pagination_queries(tmp_path, monkeypa
         assert all(item["my_vote"] is None for item in items), query
 
 
+def test_admin_logout_rejects_cross_origin_requests():
+    app = FastAPI()
+    app.include_router(community_router)
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/community/admin/logout",
+        headers={"origin": "https://attacker.example"},
+    )
+
+    assert response.status_code == 403
+
+
+def test_admin_logout_is_idempotent_for_same_origin_requests(monkeypatch):
+    monkeypatch.setenv("APP_ENV", "test")
+    app = FastAPI()
+    app.include_router(community_router)
+    client = TestClient(app)
+
+    for headers in [{}, {"origin": "http://testserver"}]:
+        response = client.post(
+            "/api/community/admin/logout",
+            headers=headers,
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {"ok": True}
+        cookie = response.headers["set-cookie"].lower()
+        assert "craft_admin=" in cookie
+        assert "max-age=0" in cookie
+        assert "path=/" in cookie
+        assert "httponly" in cookie
+        assert "samesite=strict" in cookie
+
+
 def test_formula_is_hidden_and_only_reproducer_can_publish(tmp_path, monkeypatch):
     setup_db(tmp_path, monkeypatch)
     row = formula()

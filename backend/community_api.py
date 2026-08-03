@@ -68,10 +68,14 @@ def player(request: Request | None, response: Response | None) -> str:
     return player_id
 
 
-def require_admin(request: Request) -> None:
+def require_same_origin(request: Request) -> None:
     origin = request.headers.get("origin")
     if origin and origin.rstrip("/") != str(request.base_url).rstrip("/"):
         raise HTTPException(403, "拒绝跨站管理员请求")
+
+
+def require_admin(request: Request) -> None:
+    require_same_origin(request)
     value = community.unsign(request.cookies.get(ADMIN_COOKIE))
     if not value or not value.startswith("admin:"):
         raise HTTPException(401, "管理员会话无效")
@@ -164,8 +168,14 @@ def admin_login(body: LoginReq, response: Response):
 
 
 @router.post("/admin/logout")
-def admin_logout(response: Response):
-    response.delete_cookie(ADMIN_COOKIE)
+def admin_logout(request: Request, response: Response):
+    require_same_origin(request)
+    response.delete_cookie(
+        ADMIN_COOKIE,
+        httponly=True,
+        secure=_secure(),
+        samesite="strict",
+    )
     return {"ok": True}
 
 
