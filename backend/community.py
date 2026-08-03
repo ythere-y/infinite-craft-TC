@@ -344,7 +344,7 @@ def list_public(limit: Any = None, offset: Any = None) -> list[dict[str, Any]]:
                ORDER BY net_score DESC, published_at DESC, id DESC LIMIT ? OFFSET ?""",
             (limit, offset),
         ).fetchall()
-        return [dict(row) for row in rows]
+        return [{**dict(row), "my_vote": None} for row in rows]
     finally:
         con.close()
 

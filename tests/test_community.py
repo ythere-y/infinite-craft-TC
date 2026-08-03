@@ -64,7 +64,9 @@ def test_public_list_normalizes_pagination_inputs(tmp_path, monkeypatch):
         (50, "1e0", ["page_2", "page_1"]),
         (50, 10_000_001, []),
     ]:
-        assert [item["id"] for item in community.list_public(limit, offset)] == expected
+        items = community.list_public(limit, offset)
+        assert [item["id"] for item in items] == expected
+        assert all(item["my_vote"] is None for item in items)
 
 
 def test_public_list_http_accepts_tolerant_pagination_queries(tmp_path, monkeypatch):
@@ -109,7 +111,9 @@ def test_public_list_http_accepts_tolerant_pagination_queries(tmp_path, monkeypa
     ]:
         response = client.get(f"/api/community/formulas{query}")
         assert response.status_code == 200, query
-        assert len(response.json()["items"]) == expected, query
+        items = response.json()["items"]
+        assert len(items) == expected, query
+        assert all(item["my_vote"] is None for item in items), query
 
 
 def test_formula_is_hidden_and_only_reproducer_can_publish(tmp_path, monkeypatch):
