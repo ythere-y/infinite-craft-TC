@@ -1379,8 +1379,10 @@ def test_recipe_links_expand_all_discovered_instance_pairs(tmp_path):
               groups: workspace.querySelectorAll(".recipe-link").length,
               basePaths:
                 workspace.querySelectorAll(".recipe-link-base").length,
-              flowPaths:
-                workspace.querySelectorAll(".recipe-link-flow").length,
+              emphasisPaths:
+                workspace.querySelectorAll(".recipe-link-emphasis").length,
+              drawPaths:
+                workspace.querySelectorAll(".recipe-link-draw").length,
               selfLinks: workspace.querySelectorAll(
                 ".recipe-link[data-recipe-key='A + A']"
               ).length,
@@ -1397,7 +1399,8 @@ def test_recipe_links_expand_all_discovered_instance_pairs(tmp_path):
     assert actual == {
         "groups": 7,
         "basePaths": 7,
-        "flowPaths": 7,
+        "emphasisPaths": 7,
+        "drawPaths": 7,
         "selfLinks": 1,
         "svgPointerEvents": "none",
     }
@@ -1455,20 +1458,14 @@ def test_recipe_links_scale_to_40_update_geometry_and_clean_up(tmp_path):
             controller.scheduleGeometryUpdate(elements);
             requestAnimationFrame(function () {
               var rows = groups.map(function (group) {
+                var base = group.querySelector(".recipe-link-base");
                 return {
-                  width: Number(
-                    group.style.getPropertyValue("--recipe-link-width")
-                  ),
-                  opacity: Number(
-                    group.style.getPropertyValue("--recipe-link-opacity")
-                  ),
-                  glow: Number(
-                    group.style.getPropertyValue("--recipe-link-glow")
-                  ),
-                  duration: Number(
-                    group.style.getPropertyValue("--recipe-link-duration")
-                  ),
-                  rarity: group.dataset.rarity
+                  width: Number(group.style.getPropertyValue("--recipe-link-width")),
+                  opacity: Number(group.style.getPropertyValue("--recipe-link-opacity")),
+                  glow: Number(group.style.getPropertyValue("--recipe-link-glow")),
+                  duration: Number(group.style.getPropertyValue("--recipe-link-duration")),
+                  color: group.style.getPropertyValue("--recipe-link-color"),
+                  baseAnimation: getComputedStyle(base).animationName
                 };
               });
               var movedFirst = beforeFirst !== firstPath.getAttribute("d");
@@ -1497,15 +1494,8 @@ def test_recipe_links_scale_to_40_update_geometry_and_clean_up(tmp_path):
     )
 
     rows = actual["rows"]
-    assert [row["rarity"] for row in rows] == [
-        "common",
-        "uncommon",
-        "rare",
-        "epic",
-        "legendary",
-        "legendary",
-        "common",
-    ]
+    assert len({row["color"] for row in rows}) == 1
+    assert all(row["baseAnimation"] == "none" for row in rows)
     assert [row["width"] for row in rows[:5]] == sorted(
         row["width"] for row in rows[:5]
     )
@@ -1537,7 +1527,6 @@ def test_recipe_links_are_isolated_and_honor_reduced_motion():
         assert forbidden not in source
     assert ".RECIPE_LINKS" in source
     assert "@media (prefers-reduced-motion: reduce)" in css
-    assert ".recipe-link-flow" in css
 
 
 def test_combine_feedback_assets_share_one_cache_version():

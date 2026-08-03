@@ -2,33 +2,13 @@
   "use strict";
 
   const SVG_NS = "http://www.w3.org/2000/svg";
-  const RARITIES = Object.freeze([
-    Object.freeze({ maxDepth: 2, name: "common", color: "#9AA6B2" }),
-    Object.freeze({ maxDepth: 4, name: "uncommon", color: "#35C978" }),
-    Object.freeze({ maxDepth: 6, name: "rare", color: "#3B82F6" }),
-    Object.freeze({ maxDepth: 9, name: "epic", color: "#A855F7" }),
-    Object.freeze({
-      maxDepth: Infinity,
-      name: "legendary",
-      color: "#F2B84B",
-    }),
-  ]);
+  const LINK_COLOR = "#78A9D6";
   const STRENGTH_STOPS = Object.freeze([
-    Object.freeze({
-      hits: 1, width: 0.7, opacity: 0.1, glow: 0, duration: 10,
-    }),
-    Object.freeze({
-      hits: 3, width: 0.95, opacity: 0.17, glow: 1, duration: 9,
-    }),
-    Object.freeze({
-      hits: 8, width: 1.25, opacity: 0.26, glow: 3, duration: 7.5,
-    }),
-    Object.freeze({
-      hits: 20, width: 1.75, opacity: 0.39, glow: 6, duration: 5.5,
-    }),
-    Object.freeze({
-      hits: 40, width: 2.4, opacity: 0.56, glow: 10, duration: 3.8,
-    }),
+    Object.freeze({ hits: 1, width: 0.7, opacity: 0.34, glow: 0, duration: 900 }),
+    Object.freeze({ hits: 3, width: 0.95, opacity: 0.43, glow: 1, duration: 820 }),
+    Object.freeze({ hits: 8, width: 1.25, opacity: 0.54, glow: 3, duration: 720 }),
+    Object.freeze({ hits: 20, width: 1.75, opacity: 0.68, glow: 6, duration: 620 }),
+    Object.freeze({ hits: 40, width: 2.4, opacity: 0.82, glow: 10, duration: 500 }),
   ]);
 
   function finiteNumber(value, fallback) {
@@ -63,11 +43,6 @@
       glow: interpolate("glow"),
       duration: interpolate("duration"),
     };
-  }
-
-  function rarityFor(value) {
-    const depth = Math.max(1, Math.trunc(finiteNumber(value, 1)));
-    return RARITIES.find((rarity) => depth <= rarity.maxDepth);
   }
 
   function normalizedElements(elements) {
@@ -141,12 +116,10 @@
   }
 
   function setVisualProfile(edge, recipe) {
-    const rarity = rarityFor(recipe.depth);
     const strength = strengthFor(recipe.hitCount);
     edge.group.dataset.recipeKey = recipe.key;
     edge.group.dataset.hitCount = String(strength.hits);
-    edge.group.dataset.rarity = rarity.name;
-    edge.group.style.setProperty("--recipe-link-color", rarity.color);
+    edge.group.style.setProperty("--recipe-link-color", LINK_COLOR);
     edge.group.style.setProperty(
       "--recipe-link-width",
       String(strength.width),
@@ -182,16 +155,22 @@
     group.dataset.linkId = key;
     const base = documentRef.createElementNS(SVG_NS, "path");
     base.classList.add("recipe-link-base");
-    const flow = documentRef.createElementNS(SVG_NS, "path");
-    flow.classList.add("recipe-link-flow");
-    group.append(base, flow);
+    const emphasis = documentRef.createElementNS(SVG_NS, "path");
+    emphasis.classList.add("recipe-link-emphasis");
+    const draw = documentRef.createElementNS(SVG_NS, "path");
+    draw.classList.add("recipe-link-draw");
+    group.append(base, emphasis, draw);
     const edge = {
       key,
       group,
-      paths: [base, flow],
+      base,
+      emphasis,
+      draw,
+      paths: [base, emphasis, draw],
       leftId: left.id,
       rightId: right.id,
       sign: curveSign(key),
+      animation: null,
     };
     setVisualProfile(edge, recipe);
     return edge;
