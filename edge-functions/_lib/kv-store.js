@@ -6,12 +6,13 @@ import {
 } from "./keys.js";
 import { normalizeComment } from "./comments.js";
 import { normalizeIcon } from "./icon-recipes.js";
+import { PROMPT_SPEC } from "../_generated/prompt-data.js";
 
 const RECENT_KEY = "snapshot_recent";
 const ELEMENTS_KEY = "snapshot_elements";
 const STATS_KEY = "snapshot_stats";
-const MAX_FIRSTS = 10_000;
-const MAX_RECENT_FIRSTS = 500;
+// This is a KV value-size boundary for the hot snapshot, not a catalogue cap.
+const MAX_RECENT_SNAPSHOT_ITEMS = 500;
 const MAX_INDEX_RECORDS_PER_SHARD = 2_000;
 const MAX_RECIPES_PER_RESULT = 100;
 // Legacy kpi_* compatibility records retain their existing key and constant names.
@@ -55,12 +56,28 @@ function listOptions(prefix, limit, cursor) {
 }
 
 export class KvStore {
-  constructor(kv, { now = () => Date.now() } = {}) {
+  constructor(
+    kv,
+    {
+      now = () => Date.now(),
+      firstsCapacity = PROMPT_SPEC.capacities.recent_firsts,
+    } = {},
+  ) {
     if (!kv || typeof kv.get !== "function" || typeof kv.put !== "function") {
       throw new TypeError("A bound EdgeOne Makers KV namespace is required");
     }
+    if (!Number.isSafeInteger(firstsCapacity) || firstsCapacity <= 0) {
+      throw new TypeError(
+        "firstsCapacity must be a positive safe integer",
+      );
+    }
     this.kv = kv;
     this.now = now;
+    this.firstsCapacity = firstsCapacity;
+    this.recentSnapshotCapacity = Math.min(
+      firstsCapacity,
+      MAX_RECENT_SNAPSHOT_ITEMS,
+    );
     this.uniqueSequence = 0;
   }
 
@@ -142,13 +159,16 @@ export class KvStore {
     };
   }
 
-  trimIndexItems(items) {
+  trimIndexItems(kind, items) {
     const entries = Object.entries(items);
-    if (entries.length <= MAX_INDEX_RECORDS_PER_SHARD) return items;
+    const capacity = kind === "first"
+      ? Math.min(this.firstsCapacity, MAX_INDEX_RECORDS_PER_SHARD)
+      : MAX_INDEX_RECORDS_PER_SHARD;
+    if (entries.length <= capacity) return items;
     return Object.fromEntries(
       entries
         .sort((left, right) => newestFirst(left[1], right[1]))
-        .slice(0, MAX_INDEX_RECORDS_PER_SHARD),
+        .slice(0, capacity),
     );
   }
 
@@ -173,7 +193,7 @@ export class KvStore {
     for (const { key, value } of await this.readRecords(missingKeys)) {
       snapshot.items[key] = { ...value, storage_key: key };
     }
-    snapshot.items = this.trimIndexItems(snapshot.items);
+    snapshot.items = this.trimIndexItems(kind, snapshot.items);
     snapshot.reconciled_at = this.timestamp();
     await this.putJson(storageKey, snapshot);
     return snapshot;
@@ -226,7 +246,7 @@ export class KvStore {
       ...record,
       storage_key: canonicalKey,
     };
-    snapshot.items = this.trimIndexItems(snapshot.items);
+    snapshot.items = this.trimIndexItems(kind, snapshot.items);
     await this.putJson(storageKey, snapshot);
   }
 
@@ -461,7 +481,7 @@ export class KvStore {
     }
     return [...byResult.values()]
       .sort(newestFirst)
-      .slice(0, MAX_RECENT_FIRSTS);
+      .slice(0, this.recentSnapshotCapacity);
   }
 
   async repairRecentSnapshot(snapshot) {
@@ -538,10 +558,10 @@ export class KvStore {
       const feedWindow = await this.listKeyWindow(
         "feed_",
         0,
-        MAX_RECENT_FIRSTS + 1,
+        this.recentSnapshotCapacity + 1,
       );
       const feedRecords = await this.readRecords(
-        feedWindow.keys.slice(0, MAX_RECENT_FIRSTS),
+        feedWindow.keys.slice(0, this.recentSnapshotCapacity),
       );
       const feedItems = feedRecords.map(({ value }) => value);
       if (feedItems.length) {
@@ -549,7 +569,7 @@ export class KvStore {
           items: this.mergeRecent([], feedItems),
           total:
             feedItems.length +
-            (feedWindow.keys.length > MAX_RECENT_FIRSTS ||
+            (feedWindow.keys.length > this.recentSnapshotCapacity ||
             !feedWindow.complete
               ? 1
               : 0),
@@ -648,11 +668,11 @@ export class KvStore {
         if (byTime) return byTime;
         return cleanText(left?.result).localeCompare(cleanText(right?.result));
       })
-      .slice(-MAX_FIRSTS)
+      .slice(-this.firstsCapacity)
       .map((item, index) => ({ ...item, seq: index + 1 }));
     const items = chronological.reverse();
     const nextRecent = {
-      items: items.slice(0, MAX_RECENT_FIRSTS).map((item) =>
+      items: items.slice(0, this.recentSnapshotCapacity).map((item) =>
         this.publicFirst(item),
       ),
       total: items.length,

@@ -6,6 +6,7 @@ import {
   normalizePair,
 } from "../edge-functions/_lib/keys.js";
 import { DEFAULT_COMMENT } from "../edge-functions/_lib/comments.js";
+import { PROMPT_SPEC } from "../edge-functions/_generated/prompt-data.js";
 import { KvStore } from "../edge-functions/_lib/kv-store.js";
 import { FakeKV } from "./fake-kv.mjs";
 
@@ -172,6 +173,87 @@ test("initial Makers KV list calls omit an undefined cursor", async () => {
     keys: ["record_a"],
     complete: true,
   });
+});
+
+test("KvStore rejects invalid injected firsts capacities", () => {
+  for (const firstsCapacity of [
+    0,
+    -1,
+    1.5,
+    true,
+    Number.MAX_SAFE_INTEGER + 1,
+  ]) {
+    assert.throws(
+      () => new KvStore(new FakeKV(), { firstsCapacity }),
+      /firstsCapacity must be a positive safe integer/,
+    );
+  }
+});
+
+test("injected firsts capacity bounds stored and returned newest discoveries", async () => {
+  const discoveries = [
+    "索引容量元素5",
+    "索引容量元素11",
+    "索引容量元素40",
+    "索引容量元素43",
+  ];
+  const newestThree = [
+    "索引容量元素43",
+    "索引容量元素40",
+    "索引容量元素11",
+  ];
+  let now = 1_700_000_000_000;
+  const kv = new FakeKV();
+  const boundedStore = new KvStore(kv, {
+    now: () => now,
+    firstsCapacity: 3,
+  });
+  for (const result of discoveries) {
+    await boundedStore.recordFirst(
+      result,
+      "🧪",
+      "容量鹅",
+    );
+    now += 1_000;
+  }
+
+  const stored = JSON.parse(kv.values.get("snapshot_recent"));
+  assert.deepEqual(
+    stored.items.map((item) => item.result),
+    newestThree,
+  );
+  const storedIndex = JSON.parse(kv.values.get("index_first_0"));
+  assert.deepEqual(
+    Object.values(storedIndex.items).map((item) => item.result),
+    newestThree,
+  );
+  assert.deepEqual(
+    (await boundedStore.allFirsts()).map((item) => item.result),
+    newestThree,
+  );
+
+  let expandedNow = 1_700_000_000_000;
+  const expandedStore = new KvStore(new FakeKV(), {
+    now: () => expandedNow,
+    firstsCapacity: 4,
+  });
+  for (const result of discoveries) {
+    await expandedStore.recordFirst(result, "🧪", "容量鹅");
+    expandedNow += 1_000;
+  }
+  assert.deepEqual(
+    (await expandedStore.allFirsts()).map((item) => item.result),
+    [...discoveries].reverse(),
+  );
+});
+
+test("KvStore defaults firsts capacity to the generated prompt contract", () => {
+  const store = new KvStore(new FakeKV());
+
+  assert.equal(
+    store.firstsCapacity,
+    PROMPT_SPEC.capacities.recent_firsts,
+  );
 });
 
 test("first discovery keeps the earliest claimant and powers pagination", async () => {
