@@ -323,6 +323,41 @@ def _production_app_page() -> str:
     (async function () {
       try {
         await new Promise(function (resolve) { setTimeout(resolve, 120); });
+        function captureToastStyles() {
+          var toast = document.getElementById("first-toast");
+          var comment = toast.querySelector(".first-toast-comment");
+          var actions = toast.querySelector(".first-toast-actions");
+          var button = actions.querySelector("button");
+          var result = toast.querySelector(".first-toast-result");
+          var toastStyle = getComputedStyle(toast);
+          var buttonStyle = getComputedStyle(button);
+          return {
+            backgroundImage: toastStyle.backgroundImage,
+            color: toastStyle.color,
+            borderColor: toastStyle.borderColor,
+            resultColor: getComputedStyle(result).color,
+            commentColor: getComputedStyle(comment).color,
+            dividerColor: getComputedStyle(actions).borderTopColor,
+            buttonBackground: buttonStyle.backgroundImage + "|" + buttonStyle.backgroundColor,
+            buttonColor: buttonStyle.color
+          };
+        }
+        window.EFFECTS.firstToast({
+          name: "救火总指挥",
+          emoji: "🧯",
+          comment: "老板亲自下场，火势瞬间变成绩效。"
+        }, {
+          tier: "global_new",
+          depth: 12,
+          comment: "老板亲自下场，火势瞬间变成绩效。"
+        });
+        window.COMBINE_FEEDBACK.renderPublishAction(
+          document,
+          document.getElementById("first-toast"),
+          { publish: async function () { return { ok: true }; } }
+        );
+        var midnightToast = captureToastStyles();
+        var hintText = document.getElementById("hint").textContent;
         var initial = {
           active: window.EFFECTS.isUraMode(),
           transitionCount: document.querySelectorAll(".ura-transition").length,
@@ -339,6 +374,7 @@ def _production_app_page() -> str:
           window.dispatchEvent(new KeyboardEvent("keydown", { key: key }));
         });
         await new Promise(function (resolve) { setTimeout(resolve, 30); });
+        var lightToast = captureToastStyles();
         var afterFirstCode = {
           active: window.EFFECTS.isUraMode(),
           chips: window.CASINO_MODE.getState().chips
@@ -459,6 +495,17 @@ def _production_app_page() -> str:
           tiers: JSON.parse(localStorage.getItem("ic_scores") || "[]")
             .map(function (event) { return event.tier; })
         };
+        var beforeDoubleClick =
+          document.querySelectorAll("#workspace .element.on-canvas").length;
+        document.querySelector('#element-list .element[data-name="水"]')
+          .dispatchEvent(new MouseEvent("dblclick", {
+            bubbles: true,
+            cancelable: true
+          }));
+        await new Promise(function (resolve) { setTimeout(resolve, 20); });
+        var doubleClickRetained =
+          document.querySelectorAll("#workspace .element.on-canvas").length
+          === beforeDoubleClick + 1;
 
         document.getElementById("casino-app-result").textContent =
           JSON.stringify({
@@ -468,6 +515,12 @@ def _production_app_page() -> str:
               after_first_code: afterFirstCode,
               after_second_code: afterSecondCode,
               events: window.__uraEvents,
+              ui: {
+                midnight_toast: midnightToast,
+                light_toast: lightToast,
+                hint_text: hintText,
+                double_click_retained: doubleClickRetained
+              },
               scoring: {
                 before_harvest: beforeHarvest,
                 after_harvest: afterHarvest,
@@ -595,6 +648,25 @@ def test_game_starts_silently_in_inner_mode_and_preserves_reentry_animation(
         {"active": False, "initial": False},
         {"active": True, "initial": False},
     ]
+
+
+def test_midnight_toast_is_dark_and_guidance_omits_case_and_double_click(
+    tmp_path,
+):
+    actual = _run_app_page(tmp_path)["ui"]
+    midnight = actual["midnight_toast"]
+    light = actual["light_toast"]
+
+    assert "案例展示" not in actual["hint_text"]
+    assert "双击" not in actual["hint_text"]
+    assert actual["double_click_retained"] is True
+    assert midnight["backgroundImage"] != light["backgroundImage"]
+    assert midnight["color"] != light["color"]
+    assert midnight["resultColor"] != light["resultColor"]
+    assert midnight["commentColor"] != light["commentColor"]
+    assert midnight["dividerColor"] != light["dividerColor"]
+    assert midnight["buttonBackground"] != light["buttonBackground"]
+    assert midnight["buttonColor"] != light["buttonColor"]
 
 
 def test_inner_mode_routes_score_to_harvest_and_normal_mode_keeps_direct_score(

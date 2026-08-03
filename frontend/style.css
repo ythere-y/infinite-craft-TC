@@ -2318,6 +2318,65 @@ body.ura-on .hint .hint-credit-sub a:hover {
   border-bottom-color: #CAA6FF;
 }
 
+/* 首发浮层与午夜页面使用同一套深紫牌桌语义。 */
+body.ura-on .first-toast {
+  color: #F2EDFF;
+  border-color: #65538F;
+  background: linear-gradient(145deg, #201A3B, #111126);
+  box-shadow:
+    0 16px 36px rgba(0,0,0,.5),
+    inset 0 0 0 1px rgba(202,166,255,.08);
+}
+body.ura-on .first-toast.tier-global_new {
+  border-color: #D5AA45;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(255,213,79,.12), transparent 34%),
+    linear-gradient(145deg, #251D3F, #121126);
+}
+body.ura-on .first-toast.tier-global_known {
+  border-color: #4AAEA8;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(78,205,196,.12), transparent 34%),
+    linear-gradient(145deg, #182F3B, #111126);
+}
+body.ura-on .first-toast-title {
+  color: #D9CEFF;
+}
+body.ura-on .first-toast.tier-global_new .first-toast-title {
+  color: #FFE28A;
+}
+body.ura-on .first-toast.tier-global_known .first-toast-title {
+  color: #91E4DE;
+}
+body.ura-on .first-toast-result,
+body.ura-on .first-toast-result .name {
+  color: #F5F1FF;
+}
+body.ura-on .first-toast-comment {
+  color: #AAA2C8;
+}
+body.ura-on .first-toast-actions {
+  border-top-color: rgba(202,166,255,.2);
+}
+body.ura-on .first-toast-actions button,
+body.ura-on .first-toast-actions a {
+  color: #201604;
+  background: linear-gradient(180deg, #FFE69A, #D6AA48);
+  box-shadow: 0 5px 14px rgba(255,213,79,.12);
+}
+body.ura-on .first-toast.tier-global_known .first-toast-actions button,
+body.ura-on .first-toast.tier-global_known .first-toast-actions a {
+  color: #082523;
+  background: linear-gradient(180deg, #A7ECE7, #4ECDC4);
+  box-shadow: 0 5px 14px rgba(78,205,196,.12);
+}
+body.ura-on .first-toast-actions button:disabled {
+  opacity: .58;
+}
+body.ura-on .first-toast-published {
+  color: #A7E8C8;
+}
+
 /* 侧栏 */
 body.ura-on .sidebar {
   background: #0F0F22;

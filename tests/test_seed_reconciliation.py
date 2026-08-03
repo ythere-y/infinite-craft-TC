@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from html.parser import HTMLParser
 import json
 from pathlib import Path
-import re
 
 from backend import archive, community, db, seed_loader
 
@@ -189,49 +187,13 @@ def test_seed_load_replaces_conflicting_stores_without_touching_dynamic_formulas
     }
 
 
-class CaseStepParser(HTMLParser):
-    def __init__(self) -> None:
-        super().__init__()
-        self.steps: list[str] = []
-        self._parts: list[str] | None = None
+def test_homepage_guidance_omits_case_study_and_double_click_copy():
+    homepage = (ROOT / "frontend/index.html").read_text(encoding="utf-8")
 
-    def handle_starttag(self, tag, attrs):
-        if tag != "div":
-            return
-        classes = dict(attrs).get("class", "").split()
-        if "case-step" in classes:
-            self._parts = []
-
-    def handle_data(self, data):
-        if self._parts is not None:
-            self._parts.append(data)
-
-    def handle_endtag(self, tag):
-        if tag == "div" and self._parts is not None:
-            self.steps.append(" ".join("".join(self._parts).split()))
-            self._parts = None
-
-
-def test_homepage_case_steps_all_exist_in_authoritative_seed_library():
-    parser = CaseStepParser()
-    parser.feed((ROOT / "frontend/index.html").read_text(encoding="utf-8"))
-    assert len(parser.steps) == 9
-
-    seed_source = json.loads(
-        (ROOT / "backend/seed_combinations.json").read_text(encoding="utf-8")
-    )["combinations"]
-    normalized_seed = {}
-    for raw_key, formula in seed_source.items():
-        parents = [part.strip() for part in raw_key.split("+")]
-        if len(parents) == 2:
-            normalized_seed[" + ".join(sorted(parents))] = formula
-
-    for step in parser.steps:
-        match = re.fullmatch(
-            r"\d+\.\s+(\S+)\s+\S+\s+\+\s+(\S+)\s+\S+\s+=\s+(\S+)\s+(\S+)",
-            step,
-        )
-        assert match, step
-        left, right, result, emoji = match.groups()
-        formula = normalized_seed[" + ".join(sorted((left, right)))]
-        assert (formula["result"], formula["emoji"]) == (result, emoji)
+    hint = homepage.split('<div id="hint" class="hint">', 1)[1].split(
+        '<section id="casino-hud"',
+        1,
+    )[0]
+    assert "案例展示" not in hint
+    assert "case-step" not in hint
+    assert "双击" not in hint

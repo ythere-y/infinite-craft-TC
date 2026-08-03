@@ -20,6 +20,17 @@ test("score-level helper loads before consumers", async () => {
   assert.ok(html.indexOf("casino-mode.js") < html.indexOf("app.js"));
 });
 
+test("homepage guidance omits the case study and double-click copy", async () => {
+  const html = await readFile("frontend/index.html", "utf8");
+  const hint = html.match(/<div id="hint" class="hint">([\s\S]*?)<\/div>\s*<section id="casino-hud"/);
+
+  assert.ok(hint, "homepage hint should remain present before the casino table");
+  assert.doesNotMatch(hint[1], /案例展示/);
+  assert.doesNotMatch(hint[1], /双击/);
+  assert.match(hint[1], /拖/);
+  assert.match(hint[1], /↑↑↓↓←→←→BA/);
+});
+
 test("vendored casino animation runtime keeps its license and adds no npm dependency", async () => {
   const [vendor, notices, packageJson] = await Promise.all([
     readFile("frontend/vendor/anime.iife.min.js", "utf8"),
