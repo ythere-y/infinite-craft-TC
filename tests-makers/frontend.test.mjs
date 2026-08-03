@@ -47,6 +47,16 @@ test("vendored casino animation runtime keeps its license and adds no npm depend
   assert.equal(packageJson.devDependencies?.animejs, undefined);
 });
 
+test("THUOCL notice names the canonical and generated nickname artifacts", async () => {
+  const notices = await readFile("THIRD_PARTY_NOTICES.md", "utf8");
+
+  assert.match(notices, /shared\/nickname-data\.json/);
+  assert.match(
+    notices,
+    /edge-functions\/_generated\/nickname-data\.js/,
+  );
+});
+
 test("recipe comments prefer API rows and safely fall back to an open formula", () => {
   const formula = {
     id: "formula-1",

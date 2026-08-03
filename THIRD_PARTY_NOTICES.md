@@ -29,8 +29,9 @@ SOFTWARE.
 
 ## THUOCL
 
-The generated Makers nickname lexicon in
-`edge-functions/_generated/nickname-data.js` is derived from THUOCL.
+The canonical nickname lexicon in `shared/nickname-data.json` and its
+generated Makers module at `edge-functions/_generated/nickname-data.js` are
+derived from THUOCL.
 
 MIT License
 

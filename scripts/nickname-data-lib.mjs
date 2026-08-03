@@ -2,8 +2,11 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { readStrictJson } from "./shared-json-lib.mjs";
+
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SNAPSHOT_KEYS = ["chengyu", "schema_version", "states"];
+const OBJECT_CONSTRUCTOR_SOURCE = Function.prototype.toString.call(Object);
 const BLANK_CODE_POINT_RANGES = [
   [0x0009, 0x000d],
   [0x001c, 0x0020],
@@ -106,7 +109,8 @@ function isPlainObject(value) {
   return (
     Object.getPrototypeOf(prototype) === null &&
     typeof constructor === "function" &&
-    constructor.name === "Object"
+    constructor.name === "Object" &&
+    Function.prototype.toString.call(constructor) === OBJECT_CONSTRUCTOR_SOURCE
   );
 }
 
@@ -204,12 +208,7 @@ export async function generateMakersNicknameData({
   const destination = outputPath
     ? resolve(outputPath)
     : resolve(projectRoot, "edge-functions/_generated/nickname-data.js");
-  let parsed;
-  try {
-    parsed = JSON.parse(await readFile(sourcePath, "utf8"));
-  } catch (error) {
-    throw new Error(`Nickname snapshot is invalid: ${error.message}`);
-  }
+  const parsed = await readStrictJson(sourcePath, "Nickname snapshot");
   const snapshot = validateNicknameData(parsed);
   const banner =
     "// Generated from shared/nickname-data.json by scripts/generate-makers-nickname-data.mjs. Do not edit.\n";

@@ -72,6 +72,7 @@ const COMMITTED_BUILD_INPUTS = [
   "scripts/icon-data-lib.mjs",
   "scripts/nickname-data-lib.mjs",
   "scripts/prompt-data-lib.mjs",
+  "scripts/shared-json-lib.mjs",
   "shared/combine-prompt.json",
   "shared/nickname-data.json",
   "shared/runtime-contract.json",
@@ -96,6 +97,10 @@ async function copyCommittedBuildFixture(
   const sourceBase = resolve(sourceRoot);
   const destinationBase = resolve(root);
   const trackedFiles = stdout.split("\0").filter(Boolean);
+
+  if (trackedFiles.length === 0) {
+    return;
+  }
 
   for (const relativePath of trackedFiles) {
     if (isAbsolute(relativePath)) {
@@ -181,6 +186,14 @@ async function collectTextFiles(root) {
     }
   }
   return files;
+}
+
+async function replaceAsciiWithInvalidUtf8(path, marker) {
+  const bytes = await readFile(path);
+  const offset = bytes.indexOf(Buffer.from(marker, "ascii"));
+  assert.notEqual(offset, -1, `missing corruption marker ${marker}`);
+  bytes[offset] = 0x80;
+  await writeFile(path, bytes);
 }
 
 test("build fixture copies only paths retained in the source Git index", async () => {
@@ -276,6 +289,50 @@ test("build fixture copies only paths retained in the source Git index", async (
       access(join(fixtureRoot, "frontend/required-untracked.txt")),
       { code: "ENOENT" },
     );
+  } finally {
+    await Promise.all([
+      rm(sourceRoot, { force: true, recursive: true }),
+      rm(fixtureRoot, { force: true, recursive: true }),
+    ]);
+  }
+});
+
+test("build fixture no-ops when no requested files are tracked", async () => {
+  const sourceRoot = await mkdtemp(join(tmpdir(), "empty-build-source-"));
+  const fixtureRoot = await mkdtemp(join(tmpdir(), "empty-build-fixture-"));
+  try {
+    await mkdir(join(sourceRoot, "frontend"), { recursive: true });
+    await writeFile(join(sourceRoot, "frontend/tracked.txt"), "tracked");
+    await execFileAsync("git", ["init", "-q", sourceRoot]);
+    await execFileAsync(
+      "git",
+      ["-C", sourceRoot, "add", "frontend/tracked.txt"],
+    );
+    await execFileAsync(
+      "git",
+      ["-C", sourceRoot, "config", "user.name", "Empty Build Test"],
+    );
+    await execFileAsync(
+      "git",
+      [
+        "-C",
+        sourceRoot,
+        "config",
+        "user.email",
+        "empty-build-test@example.invalid",
+      ],
+    );
+    await execFileAsync(
+      "git",
+      ["-C", sourceRoot, "commit", "-q", "-m", "fixture baseline"],
+    );
+
+    await copyCommittedBuildFixture(fixtureRoot, {
+      sourceRoot,
+      inputs: ["missing-path"],
+    });
+
+    assert.deepEqual(await readdir(fixtureRoot), []);
   } finally {
     await Promise.all([
       rm(sourceRoot, { force: true, recursive: true }),
@@ -459,6 +516,10 @@ test("nickname generator is deterministic and needs no words checkout", async ()
       "scripts/nickname-data-lib.mjs",
       join(root, "scripts/nickname-data-lib.mjs"),
     );
+    await cp(
+      "scripts/shared-json-lib.mjs",
+      join(root, "scripts/shared-json-lib.mjs"),
+    );
     await writeFile(
       join(root, "shared/nickname-data.json"),
       `${JSON.stringify({
@@ -513,6 +574,80 @@ test("normal build rejects malformed shared nickname data", async () => {
     assert.match(
       `${result.stdout}\n${result.stderr}`,
       /nickname.*chengyu.*non-empty/i,
+    );
+  } finally {
+    await rm(root, { force: true, recursive: true });
+  }
+});
+
+test("normal build strictly decodes every canonical shared JSON input", async () => {
+  const cases = [
+    {
+      path: "shared/nickname-data.json",
+      marker: "visible",
+      prepare: async (root) => {
+        await writeFile(
+          join(root, "shared/nickname-data.json"),
+          '{"schema_version":1,"chengyu":["visible"],"states":["state"]}\n',
+          "utf8",
+        );
+      },
+    },
+    {
+      path: "shared/combine-prompt.json",
+      marker: "identity",
+    },
+    {
+      path: "shared/runtime-contract.json",
+      marker: "max_combine_element_length",
+    },
+  ];
+
+  for (const fixture of cases) {
+    const root = await mkdtemp(join(tmpdir(), "strict-json-build-"));
+    try {
+      await copyWorkingBuildFixture(root);
+      await fixture.prepare?.(root);
+      await replaceAsciiWithInvalidUtf8(
+        join(root, fixture.path),
+        fixture.marker,
+      );
+
+      const result = await runFixtureBuild(root);
+
+      assert.notEqual(
+        result.code,
+        0,
+        `${fixture.path} must reject malformed UTF-8`,
+      );
+      assert.match(
+        `${result.stdout}\n${result.stderr}`,
+        /UTF-8/iu,
+        fixture.path,
+      );
+    } finally {
+      await rm(root, { force: true, recursive: true });
+    }
+  }
+});
+
+test("normal build rejects a UTF-8 BOM like the Python JSON readers", async () => {
+  const root = await mkdtemp(join(tmpdir(), "strict-json-bom-build-"));
+  try {
+    await copyWorkingBuildFixture(root);
+    const contractPath = join(root, "shared/runtime-contract.json");
+    const source = await readFile(contractPath);
+    await writeFile(
+      contractPath,
+      Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), source]),
+    );
+
+    const result = await runFixtureBuild(root);
+
+    assert.notEqual(result.code, 0, "UTF-8 BOM must not be stripped");
+    assert.match(
+      `${result.stdout}\n${result.stderr}`,
+      /runtime contract.*JSON/iu,
     );
   } finally {
     await rm(root, { force: true, recursive: true });
@@ -648,6 +783,21 @@ test("nickname snapshot validator accepts a cross-realm plain object", () => {
   });
   assert.throws(
     () => validateNicknameData(fakePlainObject),
+    /plain object/i,
+  );
+
+  const forgedPrototype = Object.create(null);
+  forgedPrototype.constructor = function Object() {};
+  const forgedPlainObject = Object.assign(
+    Object.create(forgedPrototype),
+    {
+      schema_version: 1,
+      chengyu: ["一心一意"],
+      states: ["代码"],
+    },
+  );
+  assert.throws(
+    () => validateNicknameData(forgedPlainObject),
     /plain object/i,
   );
 

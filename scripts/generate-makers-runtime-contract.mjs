@@ -1,6 +1,8 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { readStrictJson } from "./shared-json-lib.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCE_PATH = "shared/runtime-contract.json";
@@ -57,12 +59,7 @@ export async function generateMakersRuntimeContract({
   const destination = outputPath
     ? resolve(outputPath)
     : resolve(projectRoot, GENERATED_PATH);
-  let parsed;
-  try {
-    parsed = JSON.parse(await readFile(sourcePath, "utf8"));
-  } catch (error) {
-    throw new Error(`Runtime contract is invalid: ${error.message}`);
-  }
+  const parsed = await readStrictJson(sourcePath, "Runtime contract");
   const contract = validateRuntimeContract(parsed);
   const generated = [
     "// Generated from shared/runtime-contract.json by scripts/generate-makers-runtime-contract.mjs. Do not edit.",

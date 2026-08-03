@@ -1,6 +1,8 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { readStrictJson } from "./shared-json-lib.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CANONICAL_PATH = "shared/combine-prompt.json";
@@ -153,7 +155,7 @@ export function validatePromptSpec(value) {
 }
 
 export async function loadPromptSpec(path) {
-  return validatePromptSpec(JSON.parse(await readFile(path, "utf8")));
+  return validatePromptSpec(await readStrictJson(path, "Prompt spec"));
 }
 
 export async function generateMakersPromptData({
