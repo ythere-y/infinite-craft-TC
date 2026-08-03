@@ -1517,6 +1517,87 @@ def test_recipe_links_scale_to_40_update_geometry_and_clean_up(tmp_path):
     assert actual["svgGone"] is True
 
 
+def test_recipe_links_hover_draws_only_incident_edges_and_fades_on_leave(tmp_path):
+    actual = _run_browser(
+        tmp_path,
+        """
+        var drawCalls = [];
+        window.anime = {
+          svg: {
+            createDrawable: function (path) {
+              return [{ path: path, draw: "0 0" }];
+            }
+          },
+          animate: function (target, options) {
+            drawCalls.push({
+              path: target[0].path,
+              draw: options.draw,
+              duration: options.duration
+            });
+            return { cancel: function () {} };
+          }
+        };
+        var workspace = document.getElementById("fixture");
+        workspace.style.cssText =
+          "position:relative;width:800px;height:500px;overflow:hidden";
+        function addElement(id, name) {
+          var element = document.createElement("div");
+          element.className = "element on-canvas";
+          element.dataset.id = String(id);
+          element.dataset.name = name;
+          workspace.appendChild(element);
+          return element;
+        }
+        var a = addElement(1, "A");
+        addElement(2, "B");
+        addElement(3, "C");
+        var controller = window.RECIPE_LINKS.create(workspace);
+        controller.sync({
+          recipes: [
+            { key: "A + B", a: "A", b: "B", hit_count: 8, depth: 5 },
+            { key: "B + C", a: "B", b: "C", hit_count: 8, depth: 5 }
+          ],
+          elements: [
+            { id: 1, name: "A", x: 100, y: 100 },
+            { id: 2, name: "B", x: 360, y: 220 },
+            { id: 3, name: "C", x: 620, y: 100 }
+          ]
+        });
+        a.dispatchEvent(new PointerEvent("pointerover", { bubbles: true }));
+        var activeDuring = Array.from(
+          workspace.querySelectorAll(".recipe-link.is-active")
+        ).map(function (group) { return group.dataset.recipeKey; });
+        var mutedDuring = Array.from(
+          workspace.querySelectorAll(".recipe-link.is-muted")
+        ).map(function (group) { return group.dataset.recipeKey; });
+        a.dispatchEvent(new PointerEvent("pointerout", {
+          bubbles: true,
+          relatedTarget: workspace
+        }));
+        return {
+          activeDuring: activeDuring,
+          mutedDuring: mutedDuring,
+          drawCalls: drawCalls.length,
+          drawDirection: drawCalls[0] ? drawCalls[0].draw : null,
+          activeAfterLeave: workspace.querySelectorAll(
+            ".recipe-link.is-active"
+          ).length,
+          workspaceActiveAfterLeave: workspace.querySelector(
+            ".recipe-links"
+          ).classList.contains("has-active-link")
+        };
+        """,
+        include_recipe_links=True,
+    )
+
+    assert actual["activeDuring"] == ["A + B"]
+    assert actual["mutedDuring"] == ["B + C"]
+    assert actual["drawCalls"] == 1
+    assert actual["drawDirection"] == ["0 0", "0 1"]
+    assert actual["activeAfterLeave"] == 0
+    assert actual["workspaceActiveAfterLeave"] is False
+
+
 def test_recipe_links_are_isolated_and_honor_reduced_motion():
     assert RECIPE_LINKS_SOURCE.exists(), "recipe-links.js must exist"
     assert RECIPE_LINKS_CSS_SOURCE.exists(), "recipe-links.css must exist"

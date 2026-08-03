@@ -33,6 +33,31 @@
     filter 520ms ease;
 }
 
+.recipe-links.has-active-link .recipe-link-base {
+  opacity: .025;
+}
+
+.recipe-link.is-active .recipe-link-base {
+  opacity: .12;
+}
+
+.recipe-link.is-active .recipe-link-emphasis {
+  opacity: var(--recipe-link-opacity, .34);
+  filter:
+    drop-shadow(
+      0 0 calc(var(--recipe-link-glow, 0) * 1px)
+      var(--recipe-link-color, #78A9D6)
+    );
+}
+
+.recipe-link.is-active .recipe-link-draw {
+  opacity: min(1, calc(var(--recipe-link-opacity, .34) + .18));
+}
+
+.recipe-link.is-muted .recipe-link-base {
+  opacity: .012;
+}
+
 body.ura-on .recipe-links {
   opacity: .82;
 }

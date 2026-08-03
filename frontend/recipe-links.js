@@ -188,6 +188,10 @@
     let elements = new Map();
     let frameId = null;
     let destroyed = false;
+    let activeElementId = null;
+    const reducedMotion = global.matchMedia?.(
+      "(prefers-reduced-motion: reduce)",
+    )?.matches === true;
     const requestFrame =
       global.requestAnimationFrame?.bind(global) ||
       ((callback) => global.setTimeout(callback, 16));
@@ -220,6 +224,74 @@
       if (destroyed) return;
       elements = normalizedElements(nextElements);
       schedule();
+    }
+
+    function canvasElementFromEventTarget(target) {
+      const element = target?.closest?.(".element.on-canvas[data-id]");
+      return element && workspace.contains(element) ? element : null;
+    }
+
+    function cancelDraw(edge) {
+      edge.animation?.cancel?.();
+      edge.animation = null;
+    }
+
+    function startDraw(edge, hoveredId) {
+      cancelDraw(edge);
+      if (reducedMotion) return;
+      const anime = global.anime;
+      if (
+        typeof anime?.animate !== "function"
+        || typeof anime?.svg?.createDrawable !== "function"
+      ) return;
+      const drawable = anime.svg.createDrawable(edge.draw);
+      const forward = edge.leftId === hoveredId;
+      edge.animation = anime.animate(drawable, {
+        draw: forward ? ["0 0", "0 1"] : ["1 1", "0 1"],
+        duration: Number(
+          edge.group.style.getPropertyValue("--recipe-link-duration"),
+        ),
+        ease: "outQuad",
+      });
+    }
+
+    function applyActiveState(playDraw) {
+      svg.classList.toggle("has-active-link", activeElementId !== null);
+      for (const edge of edges.values()) {
+        const incident = activeElementId !== null
+          && (edge.leftId === activeElementId || edge.rightId === activeElementId);
+        edge.group.classList.toggle("is-active", incident);
+        edge.group.classList.toggle(
+          "is-muted",
+          activeElementId !== null && !incident,
+        );
+        if (incident) {
+          if (playDraw) startDraw(edge, activeElementId);
+        } else {
+          cancelDraw(edge);
+        }
+      }
+    }
+
+    function setActiveElement(id) {
+      const nextId = id ? String(id) : null;
+      if (nextId === activeElementId) return;
+      activeElementId = nextId;
+      applyActiveState(true);
+    }
+
+    function onPointerOver(event) {
+      const element = canvasElementFromEventTarget(event.target);
+      if (!element) return;
+      if (element.contains(event.relatedTarget)) return;
+      setActiveElement(element.dataset.id);
+    }
+
+    function onPointerOut(event) {
+      const element = canvasElementFromEventTarget(event.target);
+      if (!element || element.contains(event.relatedTarget)) return;
+      const next = canvasElementFromEventTarget(event.relatedTarget);
+      setActiveElement(next?.dataset.id || null);
     }
 
     function sync(payload = {}) {
@@ -260,6 +332,7 @@
 
       for (const [key, edge] of edges) {
         if (desired.has(key)) continue;
+        cancelDraw(edge);
         edge.group.remove();
         edges.delete(key);
       }
@@ -282,12 +355,16 @@
           setVisualProfile(edge, item.recipe);
         }
       }
+      applyActiveState(false);
       schedule();
     }
 
     function clear() {
       if (destroyed) return;
-      edges.forEach((edge) => edge.group.remove());
+      edges.forEach((edge) => {
+        cancelDraw(edge);
+        edge.group.remove();
+      });
       edges.clear();
     }
 
@@ -298,6 +375,9 @@
       frameId = null;
       resizeObserver?.disconnect();
       if (!resizeObserver) global.removeEventListener?.("resize", schedule);
+      workspace.removeEventListener("pointerover", onPointerOver);
+      workspace.removeEventListener("pointerout", onPointerOut);
+      edges.forEach(cancelDraw);
       edges.clear();
       svg.remove();
     }
@@ -310,6 +390,8 @@
     } else {
       global.addEventListener?.("resize", schedule);
     }
+    workspace.addEventListener("pointerover", onPointerOver);
+    workspace.addEventListener("pointerout", onPointerOut);
     schedule();
 
     return Object.freeze({
