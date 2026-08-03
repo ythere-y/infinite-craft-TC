@@ -42,6 +42,13 @@ from .icon_recipes import resolve_icon_recipe
 from .seed_loader import store
 from .nickname import generate_unique, stats as nickname_stats
 from .prompt_spec import load_prompt_spec
+from .runtime_contract import (
+    MAX_COMBINE_ELEMENT_LENGTH,
+    MAX_DISCOVERER_LENGTH,
+    MAX_RECIPE_FIELD_LENGTH,
+    MAX_SESSION_ID_LENGTH,
+    MAX_VERIFY_RECIPES,
+)
 
 # ---- app bootstrap ----
 app = FastAPI(title="Infinity Craft · 鹅厂打工人版", version="1.0.0")
@@ -399,6 +406,15 @@ async def api_combine(
     a, b = req.a.strip(), req.b.strip()
     if not a or not b:
         raise HTTPException(400, "a/b 不能为空")
+    if (
+        len(a) > MAX_COMBINE_ELEMENT_LENGTH
+        or len(b) > MAX_COMBINE_ELEMENT_LENGTH
+    ):
+        raise HTTPException(400, "a/b 过长")
+    if len((req.discoverer or "").strip()) > MAX_DISCOVERER_LENGTH:
+        raise HTTPException(400, "discoverer 过长")
+    if len((req.session_id or "").strip()) > MAX_SESSION_ID_LENGTH:
+        raise HTTPException(400, "session_id 过长")
     print(
         f"[combine] event=request_started request_id={request_id} "
         f"a={a[:40]!r} b={b[:40]!r}",
@@ -677,6 +693,8 @@ async def _combine_via_llm(
 
 # ---- 分数 ----
 def _add_score(req: ScoreReq) -> dict:
+    if len((req.session_id or "").strip()) > MAX_SESSION_ID_LENGTH:
+        raise HTTPException(400, "session_id 过长")
     # db.kpi_add retains the legacy KV identifier for persisted score records.
     db.kpi_add(req.session_id, req.delta, req.reason)
     return {"ok": True, "total": db.kpi_total(req.session_id)}
@@ -710,14 +728,32 @@ async def api_recipes_verify(req: VerifyReq):
       unknown: [{a,b}]                   — 全球库里还没有这对组合（可能是旧导出）
     只接受 valid 的条目，另两类前端会告知用户被拒绝的数量。
     """
+    recipes = req.recipes or []
+    if len(recipes) > MAX_VERIFY_RECIPES:
+        raise HTTPException(
+            400,
+            f"每次最多校验 {MAX_VERIFY_RECIPES} 条配方",
+        )
+
+    def recipe_text(value) -> str:
+        return value.strip() if isinstance(value, str) else ""
+
     valid, invalid, unknown = [], [], []
-    for r in req.recipes or []:
-        a = (r.get("a") or "").strip()
-        b = (r.get("b") or "").strip()
-        result = (r.get("result") or "").strip()
-        emoji = (r.get("emoji") or "").strip()
+    for item in recipes:
+        r = item if isinstance(item, dict) else {}
+        a = recipe_text(r.get("a"))
+        b = recipe_text(r.get("b"))
+        result = recipe_text(r.get("result"))
+        emoji = recipe_text(r.get("emoji"))
         if not a or not b or not result:
             invalid.append({"a": a, "b": b, "reason": "缺少必填字段"})
+            continue
+        if (
+            len(a) > MAX_RECIPE_FIELD_LENGTH
+            or len(b) > MAX_RECIPE_FIELD_LENGTH
+            or len(result) > MAX_RECIPE_FIELD_LENGTH
+        ):
+            invalid.append({"a": a, "b": b, "reason": "字段过长"})
             continue
 
         key = db.normalize_key(a, b)
@@ -752,7 +788,7 @@ async def api_recipes_verify(req: VerifyReq):
         "valid": valid,
         "invalid": invalid,
         "unknown": unknown,
-        "total_input": len(req.recipes or []),
+        "total_input": len(recipes),
     }
 
 

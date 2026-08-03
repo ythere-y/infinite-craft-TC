@@ -3,6 +3,13 @@ import test from "node:test";
 
 import { KvStore } from "../edge-functions/_lib/kv-store.js";
 import { createRouter } from "../edge-functions/_lib/router.js";
+import {
+  MAX_COMBINE_ELEMENT_LENGTH,
+  MAX_DISCOVERER_LENGTH,
+  MAX_RECIPE_FIELD_LENGTH,
+  MAX_SESSION_ID_LENGTH,
+  MAX_VERIFY_RECIPES,
+} from "../edge-functions/_generated/runtime-contract-data.js";
 import { FakeKV } from "./fake-kv.mjs";
 
 function request(path, { method = "GET", body, headers = {} } = {}) {
@@ -828,6 +835,118 @@ test("recipe verification rejects oversized imports and bounds KV concurrency", 
   assert.equal(bounded.body.unknown.length, 41);
   assert.ok(kv.maxComboReads > 1);
   assert.ok(kv.maxComboReads <= 20);
+});
+
+test("Makers generated runtime contract exposes the canonical limits", () => {
+  assert.deepEqual(
+    {
+      MAX_COMBINE_ELEMENT_LENGTH,
+      MAX_DISCOVERER_LENGTH,
+      MAX_SESSION_ID_LENGTH,
+      MAX_VERIFY_RECIPES,
+      MAX_RECIPE_FIELD_LENGTH,
+    },
+    {
+      MAX_COMBINE_ELEMENT_LENGTH: 80,
+      MAX_DISCOVERER_LENGTH: 80,
+      MAX_SESSION_ID_LENGTH: 128,
+      MAX_VERIFY_RECIPES: 500,
+      MAX_RECIPE_FIELD_LENGTH: 80,
+    },
+  );
+});
+
+test("Makers recipe validation rejects unsafe entries before KV reads", async () => {
+  const astral = "🪿";
+
+  {
+    const kv = new FakeKV();
+    const router = createRouter({ kv, env: {} });
+    const oversized = await json(router, "/api/recipes/verify", {
+      method: "POST",
+      body: { recipes: Array.from({ length: 501 }, () => ({})) },
+    });
+    assert.equal(oversized.response.status, 400);
+    assert.equal(kv.getCalls, 0);
+  }
+
+  {
+    const kv = new FakeKV();
+    const router = createRouter({ kv, env: {} });
+    const primitive = await json(router, "/api/recipes/verify", {
+      method: "POST",
+      body: { recipes: [null, 7, "not-an-object"] },
+    });
+    assert.equal(primitive.response.status, 200);
+    assert.deepEqual(primitive.body.invalid, [
+      { a: "", b: "", reason: "缺少必填字段" },
+      { a: "", b: "", reason: "缺少必填字段" },
+      { a: "", b: "", reason: "缺少必填字段" },
+    ]);
+    assert.equal(kv.getCalls, 0);
+  }
+
+  for (const field of ["a", "b", "result"]) {
+    const kv = new FakeKV();
+    const router = createRouter({ kv, env: {} });
+    const recipe = { a: "甲", b: "乙", result: "结果" };
+    recipe[field] = astral.repeat(81);
+    const overlong = await json(router, "/api/recipes/verify", {
+      method: "POST",
+      body: { recipes: [recipe] },
+    });
+    assert.equal(overlong.response.status, 200);
+    assert.deepEqual(overlong.body.invalid, [
+      { a: recipe.a, b: recipe.b, reason: "字段过长" },
+    ]);
+    assert.equal(kv.getCalls, 0, field);
+  }
+});
+
+test("Makers recipe and session score accept exact astral boundaries", async () => {
+  const kv = new FakeKV();
+  const router = createRouter({ kv, env: {} });
+  const astral = "🪿";
+  const recipe = await json(router, "/api/recipes/verify", {
+    method: "POST",
+    body: {
+      recipes: [{
+        a: astral.repeat(80),
+        b: astral.repeat(80),
+        result: astral.repeat(80),
+      }],
+    },
+  });
+  assert.equal(recipe.response.status, 200);
+  assert.deepEqual(recipe.body.invalid, []);
+  assert.deepEqual(recipe.body.unknown, [
+    { a: astral.repeat(80), b: astral.repeat(80) },
+  ]);
+  assert.ok(kv.getCalls > 0);
+
+  const score = await json(router, "/api/session/score", {
+    method: "POST",
+    body: {
+      session_id: astral.repeat(128),
+      delta: 1,
+      reason: "测试",
+    },
+  });
+  assert.equal(score.response.status, 200);
+  assert.equal(score.body.total, 1);
+
+  const writesBeforeRejection = kv.values.size;
+  const overlong = await json(router, "/api/session/score", {
+    method: "POST",
+    body: {
+      session_id: astral.repeat(129),
+      delta: 1,
+      reason: "测试",
+    },
+  });
+  assert.equal(overlong.response.status, 400);
+  assert.match(overlong.body.detail, /session_id 过长/u);
+  assert.equal(kv.values.size, writesBeforeRejection);
 });
 
 test("admin and analytics routes support an optional bearer token", async () => {

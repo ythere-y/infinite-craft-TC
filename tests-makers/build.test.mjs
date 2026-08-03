@@ -22,6 +22,10 @@ import { runInNewContext } from "node:vm";
 import {
   validateNicknameData,
 } from "../scripts/nickname-data-lib.mjs";
+import {
+  generateMakersRuntimeContract,
+  validateRuntimeContract,
+} from "../scripts/generate-makers-runtime-contract.mjs";
 
 const execFileAsync = promisify(execFile);
 const REQUIRED_FILES = [
@@ -64,11 +68,13 @@ const COMMITTED_BUILD_INPUTS = [
   "scripts/generate-makers-data.mjs",
   "scripts/generate-makers-nickname-data.mjs",
   "scripts/generate-makers-prompt-data.mjs",
+  "scripts/generate-makers-runtime-contract.mjs",
   "scripts/icon-data-lib.mjs",
   "scripts/nickname-data-lib.mjs",
   "scripts/prompt-data-lib.mjs",
   "shared/combine-prompt.json",
   "shared/nickname-data.json",
+  "shared/runtime-contract.json",
 ];
 
 async function copyCommittedBuildFixture(
@@ -108,7 +114,15 @@ async function copyCommittedBuildFixture(
   if (!useIndex) {
     const { stdout: archive } = await execFileAsync(
       "git",
-      ["-C", sourceRoot, "archive", "--format=tar", sourceRevision, "--", ...inputs],
+      [
+        "-C",
+        sourceRoot,
+        "archive",
+        "--format=tar",
+        sourceRevision,
+        "--",
+        ...trackedFiles,
+      ],
       { encoding: "buffer", maxBuffer: 64 * 1024 * 1024 },
     );
     const archivePath = join(destinationBase, ".build-fixture-inputs.tar");
@@ -729,4 +743,114 @@ test("Compose resolves the shared prompt as a read-only web bind mount", async (
   assert.ok(sharedMount, "Compose must expose the shared prompt directory to web");
   assert.equal(sharedMount.source, resolve("shared"));
   assert.equal(sharedMount.read_only, true);
+});
+
+test("runtime contract generator validates shape and emits named exports", async () => {
+  const valid = {
+    schema_version: 1,
+    max_combine_element_length: 80,
+    max_discoverer_length: 80,
+    max_session_id_length: 128,
+    max_verify_recipes: 500,
+    max_recipe_field_length: 80,
+  };
+  assert.deepEqual(validateRuntimeContract(valid), valid);
+  for (const invalid of [
+    null,
+    [],
+    { ...valid, schema_version: 2 },
+    { ...valid, max_verify_recipes: 0 },
+    { ...valid, max_recipe_field_length: 1.5 },
+    { ...valid, max_session_id_length: "128" },
+    { ...valid, max_verify_recipes: Number.MAX_SAFE_INTEGER + 1 },
+    { ...valid, extra: 1 },
+  ]) {
+    assert.throws(
+      () => validateRuntimeContract(invalid),
+      /runtime contract/i,
+    );
+  }
+
+  const root = await mkdtemp(join(tmpdir(), "runtime-contract-generate-"));
+  try {
+    await mkdir(join(root, "shared"), { recursive: true });
+    await writeFile(
+      join(root, "shared/runtime-contract.json"),
+      `${JSON.stringify(valid)}\n`,
+      "utf8",
+    );
+    await generateMakersRuntimeContract({ root });
+    const generated = await import(
+      `${pathToFileURL(join(root, "edge-functions/_generated/runtime-contract-data.js")).href}?generated=${Date.now()}`,
+    );
+    assert.deepEqual(
+      {
+        schema: generated.RUNTIME_CONTRACT_SCHEMA_VERSION,
+        combine: generated.MAX_COMBINE_ELEMENT_LENGTH,
+        discoverer: generated.MAX_DISCOVERER_LENGTH,
+        session: generated.MAX_SESSION_ID_LENGTH,
+        recipes: generated.MAX_VERIFY_RECIPES,
+        recipeField: generated.MAX_RECIPE_FIELD_LENGTH,
+      },
+      {
+        schema: 1,
+        combine: 80,
+        discoverer: 80,
+        session: 128,
+        recipes: 500,
+        recipeField: 80,
+      },
+    );
+  } finally {
+    await rm(root, { force: true, recursive: true });
+  }
+});
+
+test("tracked-only build regenerates the Makers runtime contract", async () => {
+  const root = await mkdtemp(join(tmpdir(), "runtime-contract-build-"));
+  try {
+    await copyCommittedBuildFixture(root, { sourceRevision: "index" });
+    await rm(
+      join(root, "edge-functions/_generated/runtime-contract-data.js"),
+      { force: true },
+    );
+
+    const result = await runFixtureBuild(root);
+    assert.equal(
+      result.code,
+      0,
+      `tracked-only build failed:\n${result.stdout}\n${result.stderr}`,
+    );
+    const generated = await import(
+      `${pathToFileURL(join(root, "edge-functions/_generated/runtime-contract-data.js")).href}?build=${Date.now()}`,
+    );
+    assert.equal(generated.MAX_COMBINE_ELEMENT_LENGTH, 80);
+    assert.equal(generated.MAX_DISCOVERER_LENGTH, 80);
+    assert.equal(generated.MAX_SESSION_ID_LENGTH, 128);
+    assert.equal(generated.MAX_VERIFY_RECIPES, 500);
+    assert.equal(generated.MAX_RECIPE_FIELD_LENGTH, 80);
+  } finally {
+    await rm(root, { force: true, recursive: true });
+  }
+});
+
+test("normal build rejects a malformed shared runtime contract", async () => {
+  const root = await mkdtemp(join(tmpdir(), "runtime-contract-invalid-"));
+  try {
+    await copyWorkingBuildFixture(root);
+    await writeFile(
+      join(root, "shared/runtime-contract.json"),
+      '{"schema_version":1,"max_combine_element_length":0}\n',
+      "utf8",
+    );
+
+    const result = await runFixtureBuild(root);
+    assert.notEqual(result.code, 0);
+    assert.match(
+      `${result.stdout}\n${result.stderr}`,
+      /runtime contract/i,
+    );
+  } finally {
+    await rm(root, { force: true, recursive: true });
+  }
 });

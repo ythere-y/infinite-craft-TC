@@ -14,6 +14,11 @@ import { KvStore } from "../edge-functions/_lib/kv-store.js";
 import { CommunityStore } from "../edge-functions/_lib/community.js";
 import { COMBINATIONS } from "../edge-functions/_generated/seed-data.js";
 import {
+  MAX_COMBINE_ELEMENT_LENGTH,
+  MAX_DISCOVERER_LENGTH,
+  MAX_SESSION_ID_LENGTH,
+} from "../edge-functions/_generated/runtime-contract-data.js";
+import {
   entityKey,
   normalizePair,
 } from "../edge-functions/_lib/keys.js";
@@ -645,4 +650,59 @@ test("missing model configuration degrades to the established fallback", async (
   assert.equal(result.kpi_delta, 0);
   assert.equal(result.comment, DEFAULT_COMMENT);
   assert.equal(result.icon, undefined);
+});
+
+test("Makers combine accepts exact astral code-point boundaries", async () => {
+  assert.equal(MAX_COMBINE_ELEMENT_LENGTH, 80);
+  assert.equal(MAX_DISCOVERER_LENGTH, 80);
+  assert.equal(MAX_SESSION_ID_LENGTH, 128);
+  const { service } = makeService();
+  const astral = "🪿";
+
+  const result = await service.combine({
+    a: astral.repeat(80),
+    b: astral.repeat(80),
+    discoverer: astral.repeat(80),
+    session_id: astral.repeat(128),
+  });
+
+  assert.equal(result.a, astral.repeat(80));
+  assert.equal(result.b, astral.repeat(80));
+  assert.equal(result.source, "fallback");
+});
+
+test("Makers combine rejects overlong fields before KV or model side effects", async () => {
+  const astral = "🪿";
+  const cases = [
+    ["a", astral.repeat(81), /a\/b 过长/u],
+    ["b", astral.repeat(81), /a\/b 过长/u],
+    ["discoverer", astral.repeat(81), /discoverer 过长/u],
+    ["session_id", astral.repeat(129), /session_id 过长/u],
+  ];
+
+  for (const [field, value, message] of cases) {
+    let modelCalls = 0;
+    const { kv, service } = makeService({
+      env: { MAKERS_MODELS_KEY: "secret" },
+      fetchImpl: async () => {
+        modelCalls += 1;
+        throw new Error("model must not be called");
+      },
+    });
+    const input = {
+      a: "甲",
+      b: "乙",
+      discoverer: "测试鹅",
+      session_id: "session",
+      [field]: value,
+    };
+
+    await assert.rejects(
+      service.combine(input),
+      (error) => error?.status === 400 && message.test(error.message),
+    );
+    assert.equal(kv.getCalls, 0, field);
+    assert.equal(kv.values.size, 0, field);
+    assert.equal(modelCalls, 0, field);
+  }
 });

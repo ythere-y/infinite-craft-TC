@@ -4,6 +4,11 @@ import {
   RECIPES_BY_RESULT,
   STARTERS,
 } from "../_generated/seed-data.js";
+import {
+  MAX_RECIPE_FIELD_LENGTH,
+  MAX_SESSION_ID_LENGTH,
+  MAX_VERIFY_RECIPES,
+} from "../_generated/runtime-contract-data.js";
 import { buildBounty, buildCategory } from "./bounty.js";
 import { createGameService } from "./game-service.js";
 import {
@@ -43,8 +48,6 @@ import {
   resolveIconRecipe,
 } from "./icon-recipes.js";
 
-const MAX_VERIFY_RECIPES = 500;
-const MAX_RECIPE_FIELD_LENGTH = 80;
 const VERIFY_READ_BATCH = 20;
 
 function intParam(searchParams, name, fallback, minimum, maximum) {
@@ -512,7 +515,7 @@ export function createRouter({
       const body = await readJson(request);
       const sessionId = cleanText(body?.session_id);
       if (!sessionId) throw new HttpError(400, "session_id 不能为空");
-      if ([...sessionId].length > 128) {
+      if ([...sessionId].length > MAX_SESSION_ID_LENGTH) {
         throw new HttpError(400, "session_id 过长");
       }
       const delta = Math.max(

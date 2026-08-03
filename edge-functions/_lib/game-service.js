@@ -5,6 +5,11 @@ import {
   STARTERS,
 } from "../_generated/seed-data.js";
 import { PROMPT_SPEC } from "../_generated/prompt-data.js";
+import {
+  MAX_COMBINE_ELEMENT_LENGTH,
+  MAX_DISCOVERER_LENGTH,
+  MAX_SESSION_ID_LENGTH,
+} from "../_generated/runtime-contract-data.js";
 import { selectBountyCandidates } from "./bounty.js";
 import { normalizePair, cleanText } from "./keys.js";
 import {
@@ -211,14 +216,22 @@ export function createGameService({
     if (!a || !b) {
       throw badRequest("a/b 不能为空");
     }
-    if ([...a].length > 80 || [...b].length > 80) {
+    if (
+      [...a].length > MAX_COMBINE_ELEMENT_LENGTH ||
+      [...b].length > MAX_COMBINE_ELEMENT_LENGTH
+    ) {
       throw badRequest("a/b 过长");
     }
     const sessionId = cleanText(input?.session_id) || "default";
     const clientIdentity =
       cleanText(input?.client_identity) || sessionId;
-    if ([...sessionId].length > 128) throw badRequest("session_id 过长");
-    if ([...cleanText(input?.discoverer)].length > 80) {
+    if ([...sessionId].length > MAX_SESSION_ID_LENGTH) {
+      throw badRequest("session_id 过长");
+    }
+    if (
+      [...cleanText(input?.discoverer)].length >
+      MAX_DISCOVERER_LENGTH
+    ) {
       throw badRequest("discoverer 过长");
     }
     const discoverer = validDiscoverer(input?.discoverer);

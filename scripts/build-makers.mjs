@@ -7,6 +7,9 @@ import { generateMakersData } from "./generate-makers-data.mjs";
 import { generateMakersNicknameData } from "./nickname-data-lib.mjs";
 import { validateCommittedIconAssets } from "./icon-data-lib.mjs";
 import { generateMakersPromptData } from "./prompt-data-lib.mjs";
+import {
+  generateMakersRuntimeContract,
+} from "./generate-makers-runtime-contract.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const FRONTEND = resolve(ROOT, "frontend");
@@ -107,6 +110,7 @@ export async function buildMakersSite() {
   await generateMakersData();
   await generateMakersNicknameData();
   await generateMakersPromptData();
+  await generateMakersRuntimeContract();
   await rm(OUTPUT, { recursive: true, force: true });
   await mkdir(OUTPUT, { recursive: true });
   await cp(FRONTEND, OUTPUT, { recursive: true });

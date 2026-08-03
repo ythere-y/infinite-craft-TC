@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "max_combine_element_length": 80,
+  "max_discoverer_length": 80,
+  "max_session_id_length": 128,
+  "max_verify_recipes": 500,
+  "max_recipe_field_length": 80
+}
