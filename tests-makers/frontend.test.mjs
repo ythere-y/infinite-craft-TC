@@ -232,8 +232,8 @@ test("main game feeds plain snapshots to the replaceable recipe-link module", as
   ]);
 
   assert.match(html, /recipe-links\.css\?v=([^"]+)/);
-  assert.match(html, /recipe-links\.css\?v=20260803c/);
-  assert.match(html, /recipe-links\.js\?v=20260803c/);
+  assert.match(html, /recipe-links\.css\?v=20260803d/);
+  assert.match(html, /recipe-links\.js\?v=20260803d/);
   assert.ok(html.indexOf("anime.iife.min.js") < html.indexOf("recipe-links.js"));
   assert.ok(html.indexOf("recipe-links.js") < html.indexOf("app.js"));
   assert.match(app, /const NOOP_RECIPE_LINKS = Object\.freeze/);

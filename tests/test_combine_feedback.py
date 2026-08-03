@@ -2161,16 +2161,23 @@ def test_recipe_links_hover_falls_back_to_visible_active_emphasis_without_anime(
         element.dispatchEvent(new PointerEvent("pointerover", { bubbles: true }));
         var draw = workspace.querySelector(".recipe-link-draw");
         var emphasis = workspace.querySelector(".recipe-link-emphasis");
+        var group = workspace.querySelector(".recipe-link");
         return {
           active: workspace.querySelectorAll(".recipe-link.is-active").length,
           drawStyle: draw.getAttribute("style"),
+          groupInlineOpacity: group.style.getPropertyValue("opacity"),
           emphasisOpacity: Number(getComputedStyle(emphasis).opacity)
         };
         """,
         include_recipe_links=True,
     )
 
-    assert actual == {"active": 1, "drawStyle": None, "emphasisOpacity": 0.54}
+    assert actual == {
+        "active": 1,
+        "drawStyle": None,
+        "groupInlineOpacity": "",
+        "emphasisOpacity": 0.54,
+    }
 
 
 def test_recipe_links_leave_transitions_base_opacity_and_emphasis_width(tmp_path):
@@ -2206,16 +2213,24 @@ def test_recipe_links_leave_transitions_base_opacity_and_emphasis_width(tmp_path
           bubbles: true
         }));
         return new Promise(function (resolve) {
-          window.setTimeout(function () {
+          var deadline = performance.now() + 900;
+          function readActiveTransition() {
             var activeEmphasisWidth = parseFloat(
               getComputedStyle(emphasis).strokeWidth
             );
+            if (
+              activeEmphasisWidth <= restingEmphasisWidth + 0.01
+              && performance.now() < deadline
+            ) {
+              window.setTimeout(readActiveTransition, 20);
+              return;
+            }
             element.dispatchEvent(new PointerEvent("pointerout", {
               bubbles: true,
               relatedTarget: workspace
             }));
-            resolve({
-              baseTransitionProperty: baseStyle.transitionProperty,
+                resolve({
+                  baseTransitionProperty: baseStyle.transitionProperty,
               baseTransitionDuration: baseStyle.transitionDuration,
               restingEmphasisWidth: restingEmphasisWidth,
               activeEmphasisWidth: activeEmphasisWidth,
@@ -2223,7 +2238,8 @@ def test_recipe_links_leave_transitions_base_opacity_and_emphasis_width(tmp_path
                 ".recipe-link.is-active"
               ).length
             });
-          }, 560);
+          }
+          readActiveTransition();
         });
         """,
         include_recipe_links=True,
@@ -2241,15 +2257,17 @@ def test_recipe_links_reduced_motion_uses_static_visible_emphasis_without_drawin
     actual = _run_browser(
         tmp_path,
         """
-        var animateCalls = 0;
+        var drawCalls = 0;
+        var breathingCalls = 0;
         window.anime = {
           svg: {
             createDrawable: function () {
               return [{ draw: "0 0" }];
             }
           },
-          animate: function () {
-            animateCalls += 1;
+          animate: function (targets, options) {
+            if (options.loop === true) breathingCalls += 1;
+            else drawCalls += 1;
             return { cancel: function () {} };
           }
         };
@@ -2276,7 +2294,8 @@ def test_recipe_links_reduced_motion_uses_static_visible_emphasis_without_drawin
         var emphasis = workspace.querySelector(".recipe-link-emphasis");
         return {
           active: workspace.querySelectorAll(".recipe-link.is-active").length,
-          animateCalls: animateCalls,
+          drawCalls: drawCalls,
+          breathingCalls: breathingCalls,
           emphasisOpacity: Number(getComputedStyle(emphasis).opacity),
           baseTransitionDuration:
             getComputedStyle(base).transitionDuration,
@@ -2290,7 +2309,8 @@ def test_recipe_links_reduced_motion_uses_static_visible_emphasis_without_drawin
 
     assert actual == {
         "active": 1,
-        "animateCalls": 0,
+        "drawCalls": 0,
+        "breathingCalls": 0,
         "emphasisOpacity": 0.54,
         "baseTransitionDuration": "0.12s",
         "emphasisTransitionDuration": "0.12s",
