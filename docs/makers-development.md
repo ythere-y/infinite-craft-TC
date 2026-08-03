@@ -87,13 +87,47 @@ Compose 固定向 Web 容器注入 `APP_ENV=dev` 和
 `REDIS_URL=redis://redis:6379/1`，本机 `.env` 不能把它们改为生产值或远端
 Redis。后端与前端源码以只读方式挂载，Uvicorn 会在代码修改后自动重载。
 
-### 组合提示词
+<a id="共享业务契约与运行时边界"></a>
 
-组合提示词只编辑 `shared/combine-prompt.json`。本地 Web 容器以只读方式挂载
-该目录，Python 后端直接加载这份 canonical JSON。执行 `npm run build` 会从它
-重新生成 Makers 的 `edge-functions/_generated/prompt-data.js`；提示词测试会拒绝
-canonical JSON 与已提交 Makers artifact 之间的漂移，构建测试也会在只含已提交
-文件的夹具中重新生成并加载该 artifact。
+### 共享业务契约与运行时边界
+
+本地 FastAPI 与 Makers 共用以下已提交来源：
+
+| 来源 | 责任 | 维护方式 |
+| --- | --- | --- |
+| `shared/combine-prompt.json` | 组合提示词与风格规则 | 唯一可编辑来源 |
+| `shared/nickname-data.json` | 正常运行和构建使用的花名语料 | 提交经过筛选的语料快照 |
+| `shared/runtime-contract.json` | 组合元素、发现者、会话 ID、批量配方数与配方字段的五项应用层请求限制 | 唯一可编辑来源 |
+
+Docker 镜像会复制 `shared/`，Compose 也将它只读挂载到 Web 容器；Python 后端
+直接加载这些 JSON。`npm run build` 会校验共享来源，并重新生成已提交到
+`edge-functions/_generated/` 的 Makers 模块。生成文件只用于适配 V8 运行时，
+不得手工编辑；修改共享来源后应运行构建并一并提交生成结果。
+
+花名语料的原始 THUOCL checkout 位于被 Git 忽略的 `words/THUOCL/data`，仅在
+维护者明确刷新语料时运行：
+
+```bash
+npm run refresh:nickname-corpus
+```
+
+该命令会更新 `shared/nickname-data.json`。正常的 FastAPI/Makers 运行、
+`npm test` 和 `npm run build` 都只读取已提交快照，不读取或要求存在 `words/`。
+
+共享契约统一的是提示词规则、花名语料和应用层请求限制，不是让两个运行时逐字节
+相同。以下差异是有意保留的平台适配：
+
+- 本地使用 Redis + SQLite；Makers 使用最终一致的 KV，写入原子性不同，不提供
+  SQL 式事务保证。
+- 本地通过 `LLM_API_KEY` 调用 OpenAI-compatible DeepSeek；Makers 使用
+  `MAKERS_MODELS_KEY` 和 Makers Models。
+- 本地首发墙使用进程内队列支持 SSE 增量推送；Makers 受边缘连接投递约束，
+  `/api/wall/stream` 不维持同类队列流，页面通过查询接口获取更新。
+- 限频状态按实现分别存放在本地 Redis 与 Makers KV 中。
+- 本地管理统计可直接读取 SQL/Redis 视图；Makers 统计使用分片和尽力计数，
+  属于近似值。
+- Makers 额外保留一兆字节请求体限制和生产环境专用安全控制；这些平台边界不属于
+  `shared/runtime-contract.json` 的五项应用限制。
 
 ### 日常命令
 

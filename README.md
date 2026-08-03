@@ -135,7 +135,7 @@ POST /api/combine
 
 ### 双运行时，而不是“一套配置跑所有环境”
 
-本地开发和线上生产共享业务语义，但针对运行环境采用不同的后端与存储：
+本地开发和线上生产共享组合提示词、花名语料和应用层请求限制，但针对运行环境采用不同的后端与存储：
 
 | 场景 | API 运行时 | 存储 | 模型 |
 | --- | --- | --- | --- |
@@ -146,6 +146,19 @@ POST /api/combine
 - PR 合并到 `main` 后由 Git 集成自动发布，静态页面和 API 运行在边缘节点。
 - 本地与线上数据完全隔离，避免开发数据污染生产 KV。
 - KV 热区、历史分页、分片统计和最终一致性按边缘存储约束设计。
+
+### 共享业务契约
+
+需要同时影响 FastAPI 与 Makers 的内容只在 `shared/` 下维护：
+`combine-prompt.json` 是组合提示词的唯一编辑源，`nickname-data.json` 是正常运行与
+构建使用的已提交花名语料，`runtime-contract.json` 是五项应用层请求限制的唯一编辑
+源。`npm run build` 会据此重新生成 `edge-functions/_generated/` 下的 Makers 模块；
+生成文件不要手工修改。花名原始语料仅由维护者通过 `npm run refresh:nickname-corpus`
+手动刷新，日常运行和构建不依赖被忽略的 `words/` 目录。
+
+共享契约不意味着两个运行时逐字节相同：Redis + SQLite 与最终一致的 KV、模型提供方、
+SSE 投递、限频存储和统计精度仍按各自平台实现。完整边界见
+[开发与 Makers 发布指南](docs/makers-development.md#共享业务契约与运行时边界)。
 
 ### 可控的模型成本与风险
 
@@ -259,6 +272,7 @@ infinite-craft-TC/
 ├── backend/             FastAPI、本地存储、LLM 与领域逻辑
 ├── frontend/            游戏、首发墙与管理页面
 ├── edge-functions/      Makers 生产 API、KV 与 Models 适配
+├── shared/              双运行时共享的提示词、花名语料与请求限制
 ├── scripts/             静态构建、种子数据与图标生成
 ├── tests/               Python / FastAPI 测试
 ├── tests-makers/        Node.js / Makers 测试
