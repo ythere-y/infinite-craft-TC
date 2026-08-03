@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
-import { access, readFile, readdir, stat } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { access, readFile, readdir } from "node:fs/promises";
+import { promisify } from "node:util";
 import test from "node:test";
+
+const execFileAsync = promisify(execFile);
 
 async function exists(path) {
   try {
@@ -23,7 +27,12 @@ test("retired root entrypoints are removed or organized under scripts", async ()
     "scripts/local/run-conda.sh",
     "scripts/local/reset-redis.sh",
   ]) {
-    assert.notEqual((await stat(path)).mode & 0o111, 0, `${path} is executable`);
+    const { stdout } = await execFileAsync(
+      "git",
+      ["ls-files", "--stage", "--", path],
+      { encoding: "utf8" },
+    );
+    assert.match(stdout, /^100755\s/u, `${path} is executable in Git`);
   }
 });
 

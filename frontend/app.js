@@ -383,10 +383,15 @@ function spawnAtWorkspaceCenter(info) {
  * 触发条件：两次 pointerup 间隔 < 350ms 且位移 < 12px → 视为 double-tap
  * 副作用：触发后会取消当前正在进行的 drag（如果第二次 pointerdown 起飞了 ghost）。
  */
+function isMouseDuplicationEvent(event) {
+  return event.pointerType === "mouse";
+}
+
 function bindDoubleTap(el, handler) {
   let last = 0;
   let lastX = 0, lastY = 0;
   let downX = 0, downY = 0;
+  let lastPointerType = "";
   let lastFired = 0;  // 上次真正触发 handler 的时刻；去重用
 
   // handler 在 500ms 窗口内只允许触发一次，
@@ -401,11 +406,16 @@ function bindDoubleTap(el, handler) {
   }
 
   el.addEventListener("pointerdown", (e) => {
+    lastPointerType = e.pointerType;
     downX = e.clientX;
     downY = e.clientY;
   });
   el.addEventListener("pointerup", (e) => {
-    if (e.button !== 0 && e.pointerType === "mouse") return;
+    if (!isMouseDuplicationEvent(e)) {
+      last = 0;
+      return;
+    }
+    if (e.button !== 0) return;
     // 如果这次 pointerdown → pointerup 移动过大，视为拖拽，不参与 double-tap
     const moved = Math.abs(e.clientX - downX) > 8 || Math.abs(e.clientY - downY) > 8;
     if (moved) {
@@ -426,6 +436,10 @@ function bindDoubleTap(el, handler) {
   });
   // 原生 dblclick 兜底（走 fireOnce 去重）
   el.addEventListener("dblclick", (e) => {
+    if (lastPointerType && lastPointerType !== "mouse") {
+      lastPointerType = "";
+      return;
+    }
     e.preventDefault();
     e.stopPropagation();
     fireOnce(e);
@@ -434,13 +448,21 @@ function bindDoubleTap(el, handler) {
 
 /** 如果当前正在 drag，取消并清理（用于 double-tap 抢占时）。 */
 function cancelActiveDrag() {
-  if (!drag.active) return;
-  const { ghost } = drag.active;
+  finishActiveDrag();
+}
+
+function finishActiveDrag() {
+  if (!drag.active) return null;
+  const active = drag.active;
+  const target = drag.hoverTarget;
+  const { ghost } = active;
   ghost?.remove();
   setDragTarget(drag.hoverTarget, false);
   document.querySelectorAll(".element.dragging").forEach(el => el.classList.remove("dragging"));
   drag.active = null;
   drag.hoverTarget = null;
+  document.body.classList.remove("drag-active");
+  return { active, target };
 }
 
 // ============================================================
@@ -469,6 +491,7 @@ function onPointerDown(e, el, info, source) {
   document.body.appendChild(ghost);
 
   drag.active = { ghost, info, sourceId, offsetX, offsetY };
+  document.body.classList.add("drag-active");
 
   // 如果是 canvas 元素，立刻隐藏原位（视觉上只留 ghost）
   if (sourceId != null) {
@@ -485,7 +508,7 @@ function onPointerDown(e, el, info, source) {
 function bindGlobalPointerEvents() {
   window.addEventListener("pointermove", onPointerMove);
   window.addEventListener("pointerup", onPointerUp);
-  window.addEventListener("pointercancel", onPointerUp);
+  window.addEventListener("pointercancel", cancelActiveDrag);
 }
 
 function onPointerMove(e) {
@@ -505,18 +528,11 @@ function onPointerMove(e) {
 
 async function onPointerUp(e) {
   if (!drag.active) return;
-  const { ghost, info, sourceId } = drag.active;
+  const cleaned = finishActiveDrag();
+  if (!cleaned) return;
+  const { info, sourceId } = cleaned.active;
+  const { target } = cleaned;
   const clientX = e.clientX, clientY = e.clientY;
-
-  // 收尾
-  ghost.remove();
-  setDragTarget(drag.hoverTarget, false);
-  document.querySelectorAll(".element.dragging").forEach(el => el.classList.remove("dragging"));
-
-  drag.active = null;
-  const target = drag.hoverTarget;
-  drag.hoverTarget = null;
-
   // 判断落点
   const wsRect = workspace.getBoundingClientRect();
   const inWorkspace = clientX >= wsRect.left && clientX <= wsRect.right
