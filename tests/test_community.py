@@ -295,3 +295,62 @@ def test_only_threshold_qualified_formulas_enter_positive_examples(tmp_path, mon
 
     positive, _ = community.feedback_examples()
     assert positive[0]["name"] == "排期"
+
+
+def test_feedback_examples_can_supply_more_when_prompt_limits_increase(
+    tmp_path,
+    monkeypatch,
+):
+    setup_db(tmp_path, monkeypatch)
+    positive_ids = []
+    for index in range(9):
+        row = community.ensure_formula(
+            f"输入{index} + 会议",
+            f"输入{index}",
+            "会议",
+            f"社区结果{index}",
+            "🗓️",
+            "有效示例",
+            "llm",
+            "测试鹅",
+        )
+        positive_ids.append(row["id"])
+
+    con = archive._conn()
+    try:
+        con.executemany(
+            """
+            UPDATE formula_versions
+            SET visibility='public', up_votes=20, updated_at=?
+            WHERE id=?
+            """,
+            [(1_700_000_000 + index, formula_id)
+             for index, formula_id in enumerate(positive_ids)],
+        )
+        con.executemany(
+            "INSERT INTO retired_combo_keys VALUES (?, ?, ?, ?)",
+            [
+                (
+                    f"退役输入{index} + 会议",
+                    1,
+                    f"退役结果{index}",
+                    1_700_000_000 + index,
+                )
+                for index in range(9)
+            ],
+        )
+        con.commit()
+    finally:
+        con.close()
+
+    positives, negatives = community.feedback_examples(
+        positive_limit=9,
+        negative_limit=9,
+    )
+
+    assert len(positives) == 9
+    assert {item["name"] for item in positives} == {
+        f"社区结果{index}" for index in range(9)
+    }
+    assert len(negatives) == 9
+    assert "退役结果0" in negatives

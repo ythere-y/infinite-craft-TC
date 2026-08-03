@@ -245,7 +245,7 @@ def leaderboard(limit: int = 20, me: Optional[str] = None) -> Dict:
     return {"top": top, "total_players": len(ranking), "me": me_info}
 
 
-def recent_result_names(limit: int = 30) -> List[str]:
+def recent_result_names(limit: int) -> List[str]:
     """
     取最近一批首发的 result 名字，作为 avoid_words 传给 GLM。
     既避免重复，又能让模型知道已经造过哪些词。

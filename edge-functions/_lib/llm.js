@@ -1,5 +1,6 @@
 import { normalizeComment } from "./comments.js";
-import { buildPromptMessages } from "./prompt.js";
+import { PROMPT_SPEC } from "../_generated/prompt-data.js";
+import { buildPromptMessagesFromSpec } from "./prompt.js";
 
 const DEFAULT_BASE_URL = "https://ai-gateway.edgeone.link/v1";
 const DEFAULT_MODEL = "@makers/deepseek-v4-flash";
@@ -74,6 +75,7 @@ export async function requestModelCombination({
   env = {},
   fetchImpl = globalThis.fetch,
   random = Math.random,
+  promptLimits = PROMPT_SPEC.limits,
 }) {
   const config = llmConfiguration(env);
   if (!config.configured || typeof fetchImpl !== "function") return null;
@@ -87,7 +89,10 @@ export async function requestModelCombination({
         )
       : null;
   try {
-    const messages = buildPromptMessages({
+    const messages = buildPromptMessagesFromSpec({
+      ...PROMPT_SPEC,
+      limits: promptLimits,
+    }, {
       a,
       b,
       avoid_words: avoidWords,

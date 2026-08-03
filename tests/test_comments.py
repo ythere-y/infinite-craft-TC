@@ -457,3 +457,71 @@ def test_llm_comment_is_persisted_once(monkeypatch):
     assert result["comment"] == "一行需求开完会，变成季度项目。"
     assert len(writes) == 1
     assert writes[0][1]["comment"] == result["comment"]
+
+
+def test_fastapi_llm_producers_receive_raised_shared_limits(monkeypatch):
+    from copy import deepcopy
+
+    from backend import main
+    from backend.prompt_spec import load_prompt_spec
+
+    spec = deepcopy(load_prompt_spec())
+    spec["limits"] = {
+        "avoid_words": 31,
+        "community_examples": 9,
+        "bounty_candidates": 13,
+    }
+    recent_calls = []
+    feedback_calls = []
+    combine_calls = []
+
+    def recent_results(limit):
+        recent_calls.append(limit)
+        return [f"最近结果{index}" for index in range(limit)]
+
+    def feedback_examples(*, positive_limit, negative_limit):
+        feedback_calls.append((positive_limit, negative_limit))
+        return (
+            [
+                {
+                    "a": f"社区输入{index}",
+                    "b": "会议",
+                    "name": f"社区结果{index}",
+                    "emoji": "🗓️",
+                    "comment": "有效示例",
+                }
+                for index in range(positive_limit)
+            ],
+            [],
+        )
+
+    def combine(*args, **kwargs):
+        combine_calls.append((args, kwargs))
+        return {
+            "name": "共享上限",
+            "emoji": "📏",
+            "comment": "上游不再提前截断。",
+        }
+
+    monkeypatch.setattr(main.db, "recent_result_names", recent_results)
+    monkeypatch.setattr(main.community, "feedback_examples", feedback_examples)
+    monkeypatch.setattr(main.db, "put_cache", lambda **kwargs: None)
+    monkeypatch.setattr(prompt, "combine_via_llm", combine)
+
+    result = asyncio.run(
+        main._combine_via_llm(
+            "需求",
+            "咖啡",
+            "req-producer-limits",
+            prompt_spec=spec,
+        )
+    )
+
+    assert result["result"] == "共享上限"
+    assert recent_calls == [31]
+    assert feedback_calls == [(9, 31)]
+    assert len(combine_calls) == 1
+    _, kwargs = combine_calls[0]
+    assert kwargs["avoid_words"][-1] == "最近结果30"
+    assert len(kwargs["community_examples"]) == 9
+    assert kwargs["prompt_spec"] is spec

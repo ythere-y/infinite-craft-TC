@@ -119,3 +119,54 @@ test("Makers retirement preserves v1 and allows an active v2", async () => {
   assert.equal(second.version, 2);
   assert.equal((await community.combinationState("需求", "会议")).status, "active");
 });
+
+test("Makers feedback can supply more examples when prompt limits increase", async () => {
+  const positiveIds = Array.from(
+    { length: 101 },
+    (_, index) => `positive_${index}`,
+  );
+  const negativeIds = Array.from(
+    { length: 101 },
+    (_, index) => `negative_${index}`,
+  );
+  const initial = {
+    community_public_formulas: JSON.stringify([...positiveIds, ...negativeIds]),
+  };
+  for (const [index, id] of positiveIds.entries()) {
+    initial[`community_formula_${id}`] = JSON.stringify({
+      id,
+      a: `社区输入${index}`,
+      b: "会议",
+      result: `社区结果${index}`,
+      emoji: "🗓️",
+      comment: "有效示例",
+      visibility: "public",
+      status: "active",
+      up_votes: 20,
+      down_votes: 0,
+      updated_at: index,
+    });
+  }
+  for (const [index, id] of negativeIds.entries()) {
+    initial[`community_formula_${id}`] = JSON.stringify({
+      id,
+      result: `退役结果${index}`,
+      visibility: "hidden",
+      status: "retired",
+      up_votes: 0,
+      down_votes: 0,
+      updated_at: index,
+    });
+  }
+  const community = new CommunityStore(new FakeKV(initial));
+
+  const feedback = await community.feedback(
+    {},
+    { positiveLimit: 101, negativeLimit: 101 },
+  );
+
+  assert.equal(feedback.positives.length, 101);
+  assert.equal(feedback.positives.at(-1).name, "社区结果100");
+  assert.equal(feedback.negatives.length, 101);
+  assert.equal(feedback.negatives.at(-1), "退役结果100");
+});

@@ -142,6 +142,25 @@ test("bounty candidates preserve input-aware Makers model hints", () => {
   assert.ok(candidates.length <= 12);
 });
 
+test("bounty candidate supply grows beyond the former producer cap", () => {
+  const elements = {
+    ...ELEMENTS,
+    "测试输入甲": { emoji: "🅰️", category: "tencent" },
+    "测试输入乙": { emoji: "🅱️", category: "tencent" },
+  };
+
+  const candidates = selectBountyCandidates({
+    a: "测试输入甲",
+    b: "测试输入乙",
+    elements,
+    starters: STARTERS,
+    firsts: [],
+    limit: 51,
+  });
+
+  assert.equal(candidates.length, 51);
+});
+
 test("JSON responses avoid unsupported Response.json static helper", async () => {
   const response = jsonResponse({ ok: true }, { status: 201 });
   assert.equal(response.status, 201);

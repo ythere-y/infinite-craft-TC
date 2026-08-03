@@ -280,6 +280,99 @@ test("nickname, combine, wall, bounty and admin routes share KV state", async ()
   assert.deepEqual(admin.body.recent_firsts[0].icon, combine.body.icon);
 });
 
+test("router carries raised prompt limits and one style draw into the model request", async () => {
+  const positiveIds = Array.from({ length: 9 }, (_, index) => `positive_${index}`);
+  const initial = {
+    snapshot_recent: JSON.stringify({
+      items: Array.from({ length: 31 }, (_, index) => ({
+        result: `最近结果${index}`,
+        emoji: "🧪",
+        discoverer: "测试鹅",
+        ts: index,
+        seq: index + 1,
+      })),
+      total: 31,
+      initialized: true,
+    }),
+    snapshot_elements: JSON.stringify({
+      "测试输入甲": { emoji: "🅰️", category: "tencent" },
+      "测试输入乙": { emoji: "🅱️", category: "tencent" },
+    }),
+    community_public_formulas: JSON.stringify(positiveIds),
+  };
+  for (const [index, id] of positiveIds.entries()) {
+    initial[`community_formula_${id}`] = JSON.stringify({
+      id,
+      a: `社区输入${index}`,
+      b: "会议",
+      result: `社区结果${index}`,
+      emoji: "🗓️",
+      comment: "有效示例",
+      visibility: "public",
+      status: "active",
+      up_votes: 20,
+      down_votes: 0,
+      updated_at: index,
+    });
+  }
+
+  let capturedBody;
+  let randomCalls = 0;
+  const router = createRouter({
+    kv: new FakeKV(initial),
+    env: {
+      APP_ENV: "test",
+      SESSION_SECRET: "test-secret",
+      MAKERS_MODELS_KEY: "secret",
+    },
+    promptLimits: {
+      avoid_words: 31,
+      community_examples: 9,
+      bounty_candidates: 13,
+    },
+    random: () => {
+      randomCalls += 1;
+      return 0.30;
+    },
+    now: () => 1_700_000_000_000,
+    fetchImpl: async (_url, init) => {
+      capturedBody = JSON.parse(init.body);
+      return new Response(
+        JSON.stringify({
+          choices: [{
+            message: {
+              content:
+                '{"name":"共享上限","emoji":"📏","comment":"上游不再提前截断。"}',
+            },
+          }],
+        }),
+        { status: 200 },
+      );
+    },
+  });
+
+  const response = await json(router, "/api/combine", {
+    method: "POST",
+    body: {
+      a: "测试输入甲",
+      b: "测试输入乙",
+      discoverer: "测试鹅",
+      session_id: "prompt-limit-session",
+    },
+  });
+
+  assert.equal(response.body.result, "共享上限");
+  const user = capturedBody.messages[1].content;
+  assert.match(user, /最近结果0/u);
+  assert.match(user, /社区输入8/u);
+  const bountySection = user
+    .split("【悬赏候选（未解锁 · 若语义顺理成章，请优先产出其中一个）】")[1]
+    .split("（以上词语义不合适就忽略，不要硬塞。）")[0];
+  assert.equal((bountySection.match(/^- /gmu) || []).length, 13);
+  assert.match(user, /【本次偏好】偏具体场景/u);
+  assert.equal(randomCalls, 1);
+});
+
 test("combine responses expose increasing global popularity", async () => {
   const router = makeRouter();
   const body = {

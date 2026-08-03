@@ -5,11 +5,21 @@ import re
 from typing import Dict, List, Optional
 
 from .comments import normalize_comment
-from .prompt_spec import build_prompt_messages
+from .prompt_spec import (
+    build_prompt_messages,
+    build_prompt_messages_from_spec,
+    load_prompt_spec,
+)
 
 
-def _select_bounty_candidates(a: str, b: str, limit: int = 12) -> List[Dict]:
+def _select_bounty_candidates(
+    a: str,
+    b: str,
+    limit: Optional[int] = None,
+) -> List[Dict]:
     """Return relevant, undiscovered bounty candidates for a combination."""
+    if limit is None:
+        limit = load_prompt_spec()["limits"]["bounty_candidates"]
     try:
         from . import bounty, db, seed_loader
     except Exception:
@@ -135,16 +145,23 @@ def combine_via_llm(
     avoid_words: Optional[List[str]] = None,
     community_examples: Optional[List[Dict]] = None,
     request_id: Optional[str] = None,
+    prompt_spec: Optional[Dict] = None,
 ) -> Optional[Dict[str, str]]:
     """Call the configured OpenAI-compatible LLM for a combination."""
     from .llm import query
 
+    spec = prompt_spec or load_prompt_spec()
     try:
-        bounty_candidates = _select_bounty_candidates(a, b, limit=12)
+        bounty_candidates = _select_bounty_candidates(
+            a,
+            b,
+            limit=spec["limits"]["bounty_candidates"],
+        )
     except Exception:
         bounty_candidates = []
 
-    messages = build_prompt_messages(
+    messages = build_prompt_messages_from_spec(
+        spec,
         a=a,
         b=b,
         avoid_words=avoid_words or [],

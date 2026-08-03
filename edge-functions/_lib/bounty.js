@@ -1,3 +1,5 @@
+import { PROMPT_SPEC } from "../_generated/prompt-data.js";
+
 const TABS = [{ key: "tencent", label: "鹅厂生态", emoji: "🐧" }];
 
 const GROUPS = [
@@ -178,7 +180,7 @@ export function selectBountyCandidates({
   elements,
   starters,
   firsts,
-  limit = 12,
+  limit = PROMPT_SPEC.limits.bounty_candidates,
 }) {
   const firstByName = new Map(
     (firsts || []).map((item) => [item.result, item]),
@@ -246,6 +248,6 @@ export function selectBountyCandidates({
 
   return scored
     .sort((left, right) => right.score - left.score)
-    .slice(0, Math.max(1, Math.min(50, Number(limit) || 12)))
+    .slice(0, Math.max(1, Math.trunc(Number(limit))))
     .map((item) => item.value);
 }

@@ -12,6 +12,7 @@ import uuid
 from typing import Any
 
 from . import archive
+from .prompt_spec import load_prompt_spec
 
 UP_THRESHOLD = int(os.getenv("FORMULA_UP_THRESHOLD", "10"))
 UP_MIN_VOTES = int(os.getenv("FORMULA_UP_MIN_VOTES", "12"))
@@ -580,8 +581,18 @@ def is_retired_key(combo_key: str) -> bool:
         con.close()
 
 
-def feedback_examples(limit: int = 8) -> tuple[list[dict[str, str]], list[str]]:
+def feedback_examples(
+    *,
+    positive_limit: int | None = None,
+    negative_limit: int | None = None,
+) -> tuple[list[dict[str, str]], list[str]]:
     """Return curated positive examples and retired/negative result words."""
+    if positive_limit is None or negative_limit is None:
+        prompt_limits = load_prompt_spec()["limits"]
+        if positive_limit is None:
+            positive_limit = prompt_limits["community_examples"]
+        if negative_limit is None:
+            negative_limit = prompt_limits["avoid_words"]
     con = archive._conn()
     try:
         try:
@@ -591,11 +602,11 @@ def feedback_examples(limit: int = 8) -> tuple[list[dict[str, str]], list[str]]:
                AND ai_positive_enabled=1 AND (up_votes-down_votes)>=?
                AND (up_votes+down_votes)>=?
                ORDER BY (up_votes-down_votes) DESC LIMIT ?""",
-            (UP_THRESHOLD, UP_MIN_VOTES, limit),
+            (UP_THRESHOLD, UP_MIN_VOTES, positive_limit),
             ).fetchall()
             negatives = con.execute(
             """SELECT retired_result FROM retired_combo_keys
-               ORDER BY created_at DESC LIMIT ?""", (limit,)
+               ORDER BY created_at DESC LIMIT ?""", (negative_limit,)
             ).fetchall()
         except sqlite3.OperationalError:
             return [], []

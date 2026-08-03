@@ -4,6 +4,7 @@ import {
   ELEMENTS,
   STARTERS,
 } from "../_generated/seed-data.js";
+import { PROMPT_SPEC } from "../_generated/prompt-data.js";
 import { selectBountyCandidates } from "./bounty.js";
 import { normalizePair, cleanText } from "./keys.js";
 import {
@@ -54,6 +55,8 @@ export function createGameService({
   env = {},
   fetchImpl = globalThis.fetch,
   now = () => Date.now(),
+  random = Math.random,
+  promptLimits = PROMPT_SPEC.limits,
 } = {}) {
   if (!store) throw new TypeError("Game service requires a KV store");
   const modelConfigured = llmConfiguration(env).configured;
@@ -132,14 +135,20 @@ export function createGameService({
     }
 
     const firsts = await store.allFirsts();
-    const feedback = await community.feedback(env);
+    const feedback = await community.feedback(env, {
+      positiveLimit: promptLimits.community_examples,
+      negativeLimit: promptLimits.avoid_words,
+    });
+    const avoidWords = [
+      ...new Set([
+        ...feedback.negatives,
+        ...firsts.map((item) => item.result),
+      ]),
+    ].slice(0, promptLimits.avoid_words);
     const generated = await requestModelCombination({
       a,
       b,
-      avoidWords: [
-        ...feedback.negatives,
-        ...firsts.slice(0, 30).map((item) => item.result),
-      ],
+      avoidWords,
       communityExamples: feedback.positives,
       bountyCandidates: selectBountyCandidates({
         a,
@@ -147,9 +156,12 @@ export function createGameService({
         elements: { ...(await store.dynamicElements()), ...ELEMENTS },
         starters: STARTERS,
         firsts,
+        limit: promptLimits.bounty_candidates,
       }),
       env,
       fetchImpl,
+      random,
+      promptLimits,
     });
     if (!generated) return null;
     const generatedHit = await withResolvedIcon(

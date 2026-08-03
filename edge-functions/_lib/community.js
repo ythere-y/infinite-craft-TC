@@ -1,6 +1,10 @@
+import { PROMPT_SPEC } from "../_generated/prompt-data.js";
 import { cleanText, entityKey, normalizePair, sha256Hex } from "./keys.js";
 
 const INDEX_KEY = "community_public_formulas";
+// The public formula catalogue is intentionally bounded for KV read cost.
+// Prompt limits select within this catalogue and do not impose another cap.
+const PUBLIC_FORMULA_CATALOG_CAPACITY = 500;
 const encoder = new TextEncoder();
 
 async function hmac(secret, value) {
@@ -98,17 +102,27 @@ export class CommunityStore {
     const formula = await this.get(`community_formula_${pointer.id}`);
     return formula ? { status: formula.status, version: formula.version } : null;
   }
-  async feedback(env = {}) {
+  async feedback(
+    env = {},
+    {
+      positiveLimit = PROMPT_SPEC.limits.community_examples,
+      negativeLimit = PROMPT_SPEC.limits.avoid_words,
+    } = {},
+  ) {
     const up = Number(env.FORMULA_UP_THRESHOLD ?? 10);
     const minimum = Number(env.FORMULA_UP_MIN_VOTES ?? 12);
     const ids = await this.get(INDEX_KEY, []);
-    const values = await Promise.all(ids.slice(0, 100).map((id) => this.get(`community_formula_${id}`)));
+    const values = await Promise.all(
+      ids
+        .slice(0, PUBLIC_FORMULA_CATALOG_CAPACITY)
+        .map((id) => this.get(`community_formula_${id}`)),
+    );
     const positives = values.filter((f) =>
       f?.visibility === "public" && f.status === "active" &&
       f.up_votes - f.down_votes >= up && f.up_votes + f.down_votes >= minimum
-    ).slice(0, 8).map(({ a, b, result: name, emoji, comment }) => ({ a, b, name, emoji, comment }));
+    ).slice(0, positiveLimit).map(({ a, b, result: name, emoji, comment }) => ({ a, b, name, emoji, comment }));
     const negatives = values.filter((f) => f?.status === "retired")
-      .slice(0, 8).map((f) => f.result);
+      .slice(0, negativeLimit).map((f) => f.result);
     return { positives, negatives };
   }
   async publish(id, playerId) {
@@ -123,7 +137,10 @@ export class CommunityStore {
     formula.updated_at = this.now() / 1000;
     const index = await this.get(INDEX_KEY, []);
     if (!index.includes(id)) index.unshift(id);
-    await Promise.all([this.put(`community_formula_${id}`, formula), this.put(INDEX_KEY, index.slice(0, 500))]);
+    await Promise.all([
+      this.put(`community_formula_${id}`, formula),
+      this.put(INDEX_KEY, index.slice(0, PUBLIC_FORMULA_CATALOG_CAPACITY)),
+    ]);
     return formula;
   }
   publicView(formula, myVote = null) {

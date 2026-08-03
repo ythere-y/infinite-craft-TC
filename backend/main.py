@@ -599,7 +599,12 @@ async def api_combine(
     )
 
 
-async def _combine_via_llm(a: str, b: str, request_id: str) -> Optional[dict]:
+async def _combine_via_llm(
+    a: str,
+    b: str,
+    request_id: str,
+    prompt_spec: Optional[dict] = None,
+) -> Optional[dict]:
     """seed/cache miss 后调 LLM，成功则落 Redis。"""
     started = time.perf_counter()
     try:
@@ -611,10 +616,16 @@ async def _combine_via_llm(a: str, b: str, request_id: str) -> Optional[dict]:
             flush=True,
         )
         return None
-    # 传入最近的 30 个 result 作为 avoid_words，减少撞词
-    avoid = db.recent_result_names(30)
-    positive_examples, negative_results = community.feedback_examples()
-    avoid = list(dict.fromkeys([*negative_results, *avoid]))
+    spec = prompt_spec or load_prompt_spec()
+    prompt_limits = spec["limits"]
+    recent_results = db.recent_result_names(prompt_limits["avoid_words"])
+    positive_examples, negative_results = community.feedback_examples(
+        positive_limit=prompt_limits["community_examples"],
+        negative_limit=prompt_limits["avoid_words"],
+    )
+    avoid = list(
+        dict.fromkeys([*negative_results, *recent_results])
+    )[: prompt_limits["avoid_words"]]
     print(
         f"[combine] event=llm_started request_id={request_id} "
         f"avoid_words={len(avoid)}",
@@ -625,11 +636,12 @@ async def _combine_via_llm(a: str, b: str, request_id: str) -> Optional[dict]:
         _LLM_EXECUTOR,
         partial(
             combine_via_llm,
-            a,
-            b,
-            avoid,
+            a=a,
+            b=b,
+            avoid_words=avoid,
             community_examples=positive_examples,
             request_id=request_id,
+            prompt_spec=spec,
         ),
     )
     elapsed_ms = round((time.perf_counter() - started) * 1000)

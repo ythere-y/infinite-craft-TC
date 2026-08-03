@@ -98,9 +98,17 @@ export function createRouter({
   fetchImpl = globalThis.fetch,
   now = () => Date.now(),
   random = Math.random,
+  promptLimits,
 } = {}) {
   const store = new KvStore(kv, { now });
-  const game = createGameService({ store, env, fetchImpl, now, random });
+  const game = createGameService({
+    store,
+    env,
+    fetchImpl,
+    now,
+    random,
+    promptLimits,
+  });
   const community = new CommunityStore(kv, { now });
 
   async function candidateNickname() {
