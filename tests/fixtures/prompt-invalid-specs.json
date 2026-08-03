@@ -14,6 +14,9 @@
   {"name":"system module enabled must be boolean","op":"set","path":["system_modules",0,"enabled"],"value":"true"},
   {"name":"system module order must be integer","op":"set","path":["system_modules",0,"order"],"value":"10"},
   {"name":"system module order rejects booleans","op":"set","path":["system_modules",0,"order"],"value":true},
+  {"name":"system module order rejects first unsafe positive integer","op":"set","path":["system_modules",0,"order"],"value":9007199254740992},
+  {"name":"system module order rejects rounded unsafe positive integer","op":"set","path":["system_modules",0,"order"],"value":9007199254740993},
+  {"name":"system module order rejects first unsafe negative integer","op":"set","path":["system_modules",0,"order"],"value":-9007199254740992},
   {"name":"system module content must not be blank","op":"set","path":["system_modules",0,"content"],"value":" "},
   {"name":"at least one system module must be enabled","op":"disable_all","path":["system_modules"]},
   {"name":"examples must be an array","op":"set","path":["examples"],"value":{}},
@@ -42,5 +45,8 @@
   {"name":"avoid words limit must be positive","op":"set","path":["limits","avoid_words"],"value":0},
   {"name":"community examples limit must be integer","op":"set","path":["limits","community_examples"],"value":1.5},
   {"name":"bounty candidates limit must be numeric","op":"set","path":["limits","bounty_candidates"],"value":"12"},
-  {"name":"limits reject booleans","op":"set","path":["limits","avoid_words"],"value":true}
+  {"name":"limits reject booleans","op":"set","path":["limits","avoid_words"],"value":true},
+  {"name":"avoid words limit rejects unsafe integers","op":"set","path":["limits","avoid_words"],"value":9007199254740992},
+  {"name":"community examples limit rejects unsafe integers","op":"set","path":["limits","community_examples"],"value":9007199254740992},
+  {"name":"bounty candidates limit rejects unsafe integers","op":"set","path":["limits","bounty_candidates"],"value":9007199254740992}
 ]

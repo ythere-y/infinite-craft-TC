@@ -216,8 +216,9 @@ test("renderer uses injected random once when style value is absent", () => {
 });
 
 test("Makers renderer from spec matches independent variant oracle", () => {
+  const validated = validatePromptSpec(RENDERER_VARIANT.spec);
   assert.deepEqual(
-    buildPromptMessagesFromSpec(RENDERER_VARIANT.spec, RENDERER_VARIANT.input),
+    buildPromptMessagesFromSpec(validated, RENDERER_VARIANT.input),
     RENDERER_VARIANT.expected,
   );
 });

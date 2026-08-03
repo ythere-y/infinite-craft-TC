@@ -113,4 +113,5 @@ def test_cross_runtime_limits_dynamic_sections_and_preserves_section_order():
 
 def test_python_renderer_from_spec_matches_independent_variant_oracle():
     render_from_spec = getattr(prompt_spec, "build_prompt_messages_from_spec")
-    assert render_from_spec(VARIANT["spec"], **VARIANT["input"]) == VARIANT["expected"]
+    validated = prompt_spec.validate_prompt_spec(VARIANT["spec"])
+    assert render_from_spec(validated, **VARIANT["input"]) == VARIANT["expected"]

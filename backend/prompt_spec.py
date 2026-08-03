@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional
 
 
 SPEC_PATH = Path(__file__).parent.parent / "shared" / "combine-prompt.json"
+MAX_SAFE_INTEGER = (1 << 53) - 1
 
 
 def _require_record(value: Any, label: str) -> Dict[str, Any]:
@@ -47,15 +48,19 @@ def _is_finite_number(value: Any) -> bool:
         return False
 
 
-def _is_integer_number(value: Any) -> bool:
-    return _is_finite_number(value) and float(value).is_integer()
+def _is_safe_integer_number(value: Any) -> bool:
+    return (
+        _is_finite_number(value)
+        and float(value).is_integer()
+        and abs(value) <= MAX_SAFE_INTEGER
+    )
 
 
 def _validate_system_module(item: Any) -> str:
     record = _require_record(item, "system_modules record")
     item_id = _validate_id(record.get("id"), "system_modules")
     _require_boolean(record.get("enabled"), "system_modules enabled")
-    if not _is_integer_number(record.get("order")):
+    if not _is_safe_integer_number(record.get("order")):
         raise ValueError("system_modules order must be an integer")
     _require_non_empty_string(record.get("content"), "system_modules content")
     return item_id
@@ -123,7 +128,7 @@ def validate_prompt_spec(value: Any) -> Dict[str, Any]:
 
     limits = _require_record(record.get("limits"), "limits")
     for name in ("avoid_words", "community_examples", "bounty_candidates"):
-        if not _is_integer_number(limits.get(name)) or limits[name] <= 0:
+        if not _is_safe_integer_number(limits.get(name)) or limits[name] <= 0:
             raise ValueError(f"{name} must be a positive integer")
     return deepcopy(record)
 

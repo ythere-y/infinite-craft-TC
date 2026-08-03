@@ -41,7 +41,7 @@ function validateSystemModule(item) {
   requireRecord(item, "system_modules record");
   const id = validateId(item.id, "system_modules");
   requireBoolean(item.enabled, "system_modules enabled");
-  if (!Number.isInteger(item.order)) {
+  if (!Number.isSafeInteger(item.order)) {
     throw new Error("system_modules order must be an integer");
   }
   requireNonEmptyString(item.content, "system_modules content");
@@ -108,7 +108,7 @@ export function validatePromptSpec(value) {
     throw new Error("style weights must sum to 1");
   }
   for (const name of ["avoid_words", "community_examples", "bounty_candidates"]) {
-    if (!Number.isInteger(value.limits?.[name]) || value.limits[name] <= 0) {
+    if (!Number.isSafeInteger(value.limits?.[name]) || value.limits[name] <= 0) {
       throw new Error(`${name} must be a positive integer`);
     }
   }
