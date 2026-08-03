@@ -352,7 +352,7 @@ In `app.js`:
 ```js
 async function init() {
   await window.ICON_SYSTEM.ready;
-  window.CASINO_MODE?.init?.({ awardScore: awardCasinoScore });
+  window.CASINO_MODE?.init?.();
   window.EFFECTS?.initBossMode?.({ defaultOn: true });
   await loadElements();
   // existing initialization continues, without a second initBossMode call
@@ -455,6 +455,12 @@ function awardCasinoScore({ amount, sourceEl, streak }) {
     is_starter: false,
   }, gained, streak, "casino");
 }
+```
+
+Upgrade the early initialization call to:
+
+```js
+window.CASINO_MODE?.init?.({ awardScore: awardCasinoScore });
 ```
 
 Add `.score-row .gain.tier-casino` and its midnight variant.

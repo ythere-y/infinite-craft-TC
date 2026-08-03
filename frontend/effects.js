@@ -489,6 +489,8 @@
   ];
   let uraOn = false;
   let observer = null;
+  let bossModeInitialized = false;
+  let konamiBuffer = [];
   const originalPayloads = new WeakMap();
   const paintedElements = new Set();
 
@@ -575,50 +577,92 @@
     if (uraOn) scanAndPaint(document);
   };
 
-  EFFECTS.initBossMode = function () {
-    let buf = [];
-    window.addEventListener("keydown", (e) => {
-      const tag = (e.target?.tagName || "").toLowerCase();
-      if (tag === "input" || tag === "textarea" || e.target?.isContentEditable) {
-        buf = [];
-        return;
-      }
-      buf.push(e.key);
-      if (buf.length > KONAMI.length) buf = buf.slice(-KONAMI.length);
-      if (buf.length === KONAMI.length
-        && buf.every((k, i) => k.toLowerCase() === KONAMI[i].toLowerCase())) {
-        toggleUra();
-        buf = [];
-      }
-    });
-  };
+  function announceUraMode(initial) {
+    window.dispatchEvent(new CustomEvent("ura-mode-change", {
+      detail: {
+        active: uraOn,
+        initial: initial === true,
+      },
+    }));
+  }
+
+  function applyUraStableState(initial) {
+    uraOn = true;
+    const banner = document.getElementById("boss-banner");
+    if (banner) {
+      banner.textContent = "🤪 里模式·彻底疯狂 · ↑↑↓↓←→←→BA 再按可关闭";
+      banner.classList.add("show");
+    }
+    document.body.classList.add("ura-on");
+    scanAndPaint(document);
+    startObserver();
+    announceUraMode(initial);
+  }
+
+  function enterUra() {
+    if (uraOn) return;
+    uraOn = true;
+    // 后续手动进入仍保留当前动画，方便以后单独重做这一段。
+    playUraEnterTransition();
+    setTimeout(() => {
+      if (!uraOn) return;
+      applyUraStableState(false);
+    }, 600);
+  }
+
+  function exitUra() {
+    if (!uraOn) return;
+    uraOn = false;
+    const banner = document.getElementById("boss-banner");
+    if (banner) banner.classList.remove("show");
+    document.body.classList.remove("ura-on");
+    stopObserver();
+    restorePaintedElements();
+    announceUraMode(false);
+    playUraExitTransition();
+  }
 
   function toggleUra() {
-    uraOn = !uraOn;
-    const banner = document.getElementById("boss-banner");
-    if (uraOn) {
-      // 顺序：先播月亮/闪电等装饰，延迟 600ms 再降夜幕
-      // 让月亮先"从天而降"，画布才开始变暗
-      playUraEnterTransition();
-      setTimeout(() => {
-        if (!uraOn) return;
-        if (banner) {
-          banner.textContent = "🤪 里模式·彻底疯狂 · ↑↑↓↓←→←→BA 再按可关闭";
-          banner.classList.add("show");
-        }
-        document.body.classList.add("ura-on");
-        scanAndPaint(document);
-        startObserver();
-      }, 600);
-    } else {
-      // 退场：先升幕布（body.ura-on 去掉），再播日出装饰
-      if (banner) banner.classList.remove("show");
-      document.body.classList.remove("ura-on");
-      stopObserver();
-      restorePaintedElements();
-      playUraExitTransition();
-    }
+    if (uraOn) exitUra();
+    else enterUra();
   }
+
+  EFFECTS.isUraMode = function () {
+    return uraOn;
+  };
+
+  EFFECTS.initBossMode = function ({ defaultOn = true } = {}) {
+    if (!bossModeInitialized) {
+      window.addEventListener("keydown", (event) => {
+        const tag = (event.target?.tagName || "").toLowerCase();
+        if (
+          tag === "input"
+          || tag === "textarea"
+          || event.target?.isContentEditable
+        ) {
+          konamiBuffer = [];
+          return;
+        }
+        konamiBuffer.push(event.key);
+        if (konamiBuffer.length > KONAMI.length) {
+          konamiBuffer = konamiBuffer.slice(-KONAMI.length);
+        }
+        if (
+          konamiBuffer.length === KONAMI.length
+          && konamiBuffer.every(
+            (key, index) => key.toLowerCase() === KONAMI[index].toLowerCase(),
+          )
+        ) {
+          toggleUra();
+          konamiBuffer = [];
+        }
+      });
+      bossModeInitialized = true;
+    }
+    if (defaultOn && !uraOn) {
+      applyUraStableState(true);
+    }
+  };
 
   // ---------- 里模式进场装饰层（不含背景，背景由 .workspace::before 做） ----------
   function playUraEnterTransition() {

@@ -1026,7 +1026,7 @@ def test_boss_mode_preserves_canvas_element_geometry_and_restores_icon(tmp_path)
             });
           }
           var before = geometry();
-          window.EFFECTS.initBossMode();
+          window.EFFECTS.initBossMode({ defaultOn: false });
 
           var code = [
             "ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown",

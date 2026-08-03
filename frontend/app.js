@@ -265,6 +265,8 @@ function setDragTarget(record, active) {
 // ============================================================
 async function init() {
   await window.ICON_SYSTEM.ready;
+  window.CASINO_MODE?.init?.();
+  window.EFFECTS?.initBossMode?.({ defaultOn: true });
   await loadElements();
   window.ICON_SYSTEM.hydrateActions(document);
   renderHomeLevel();
@@ -276,7 +278,6 @@ async function init() {
   // 初始化右下角图鉴按钮计数
   const c = document.getElementById("recipebook-btn-count");
   if (c) c.textContent = state.recipes.length;
-  window.EFFECTS?.initBossMode?.();
 }
 
 async function loadElements() {
