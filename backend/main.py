@@ -41,6 +41,7 @@ from .comments import normalize_comment
 from .icon_recipes import resolve_icon_recipe
 from .seed_loader import store
 from .nickname import generate_unique, stats as nickname_stats
+from .prompt_spec import load_prompt_spec
 
 # ---- app bootstrap ----
 app = FastAPI(title="Infinity Craft · 鹅厂打工人版", version="1.0.0")
@@ -63,6 +64,7 @@ _LLM_EXECUTOR = ThreadPoolExecutor(
 
 @app.on_event("startup")
 async def _startup() -> None:
+    load_prompt_spec()
     db.init_db()  # 连 Redis + 建 SQLite 表
     community.init()
     # 1) 从 SQLite 恢复历史数据到 Redis（重启不丢 AI 生成的长尾）

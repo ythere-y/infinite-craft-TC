@@ -1,8 +1,8 @@
 import { PROMPT_SPEC } from "../_generated/prompt-data.js";
 
-function selectStyle(value) {
+function selectStyle(spec, value) {
   const roll = Math.max(0, Math.min(0.9999999999999999, Number(value)));
-  const styles = PROMPT_SPEC.styles.filter((item) => item.enabled !== false);
+  const styles = spec.styles.filter((item) => item.enabled !== false);
   let cumulative = 0;
   for (const style of styles) {
     cumulative += Number(style.weight);
@@ -11,7 +11,7 @@ function selectStyle(value) {
   return styles[styles.length - 1];
 }
 
-export function buildPromptMessages({
+export function buildPromptMessagesFromSpec(spec, {
   a,
   b,
   avoid_words = [],
@@ -20,19 +20,28 @@ export function buildPromptMessages({
   style_value,
   random = Math.random,
 }) {
-  const style = selectStyle(style_value === undefined ? random() : style_value);
-  const system = [...PROMPT_SPEC.system_modules]
+  const style = selectStyle(
+    spec,
+    style_value === undefined ? random() : style_value,
+  );
+  const system = [...spec.system_modules]
     .filter((item) => item.enabled !== false)
     .sort((left, right) => left.order - right.order)
     .map((item) => item.content)
     .join("\n\n");
-  const { limits } = PROMPT_SPEC;
+  const { limits } = spec;
   const lines = ["【示例】"];
 
-  for (const example of PROMPT_SPEC.examples) {
+  for (const example of spec.examples) {
     if (example.enabled === false) continue;
-    lines.push(`输入：${JSON.stringify(example.input)}`);
-    lines.push(`输出：${JSON.stringify(example.output)}`);
+    const input = { a: example.input.a, b: example.input.b };
+    const output = {
+      name: example.output.name,
+      emoji: example.output.emoji,
+      comment: example.output.comment,
+    };
+    lines.push(`输入：${JSON.stringify(input)}`);
+    lines.push(`输出：${JSON.stringify(output)}`);
   }
   lines.push("");
 
@@ -78,7 +87,11 @@ export function buildPromptMessages({
   return {
     system,
     user: lines.join("\n"),
-    temperature: Number(PROMPT_SPEC.temperature),
+    temperature: Number(spec.temperature),
     style_id: style.id,
   };
+}
+
+export function buildPromptMessages(input) {
+  return buildPromptMessagesFromSpec(PROMPT_SPEC, input);
 }

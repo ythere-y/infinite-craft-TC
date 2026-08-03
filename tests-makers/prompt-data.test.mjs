@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -9,7 +9,46 @@ import {
   loadPromptSpec,
   validatePromptSpec,
 } from "../scripts/prompt-data-lib.mjs";
-import { buildPromptMessages } from "../edge-functions/_lib/prompt.js";
+import {
+  buildPromptMessages,
+  buildPromptMessagesFromSpec,
+} from "../edge-functions/_lib/prompt.js";
+
+const INVALID_CASES = JSON.parse(
+  await readFile("tests/fixtures/prompt-invalid-specs.json", "utf8"),
+);
+const RENDERER_VARIANT = JSON.parse(
+  await readFile("tests/fixtures/prompt-renderer-variant.json", "utf8"),
+);
+
+function atPath(value, path) {
+  let current = value;
+  for (const part of path.slice(0, -1)) current = current[part];
+  return [current, path.at(-1)];
+}
+
+function invalidSource(caseItem, canonicalSource) {
+  if (caseItem.op === "raw_replace") {
+    assert.ok(canonicalSource.includes(caseItem.target));
+    return canonicalSource.replace(caseItem.target, caseItem.replacement);
+  }
+
+  let value = JSON.parse(canonicalSource);
+  if (caseItem.op === "replace_root") {
+    value = caseItem.value;
+  } else if (caseItem.op === "disable_all") {
+    const [parent, key] = atPath(value, caseItem.path);
+    for (const item of parent[key]) item.enabled = false;
+  } else if (caseItem.op === "copy") {
+    const [sourceParent, sourceKey] = atPath(value, caseItem.from);
+    const [targetParent, targetKey] = atPath(value, caseItem.path);
+    targetParent[targetKey] = structuredClone(sourceParent[sourceKey]);
+  } else {
+    const [parent, key] = atPath(value, caseItem.path);
+    parent[key] = caseItem.value;
+  }
+  return JSON.stringify(value);
+}
 
 test("canonical prompt has stable modules examples styles and limits", async () => {
   const spec = await loadPromptSpec("shared/combine-prompt.json");
@@ -34,6 +73,20 @@ test("canonical prompt has stable modules examples styles and limits", async () 
     community_examples: 8,
     bounty_candidates: 12,
   });
+});
+
+test("Makers loader rejects the shared invalid prompt corpus", async () => {
+  const canonicalSource = await readFile("shared/combine-prompt.json", "utf8");
+  const root = await mkdtemp(join(tmpdir(), "invalid-prompt-spec-"));
+  for (const caseItem of INVALID_CASES) {
+    const path = join(root, "combine-prompt.json");
+    await writeFile(path, invalidSource(caseItem, canonicalSource), "utf8");
+    await assert.rejects(
+      loadPromptSpec(path),
+      undefined,
+      caseItem.name,
+    );
+  }
 });
 
 test("prompt validation rejects duplicate ids", async () => {
@@ -160,4 +213,11 @@ test("renderer uses injected random once when style value is absent", () => {
 
   assert.equal(calls, 1);
   assert.equal(messages.style_id, "concrete-scene");
+});
+
+test("Makers renderer from spec matches independent variant oracle", () => {
+  assert.deepEqual(
+    buildPromptMessagesFromSpec(RENDERER_VARIANT.spec, RENDERER_VARIANT.input),
+    RENDERER_VARIANT.expected,
+  );
 });

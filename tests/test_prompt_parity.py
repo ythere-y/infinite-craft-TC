@@ -4,10 +4,16 @@ import subprocess
 
 import pytest
 
+from backend import prompt_spec
 from backend.prompt_spec import build_prompt_messages
 
 
 ROOT = Path(__file__).resolve().parent.parent
+VARIANT = json.loads(
+    (ROOT / "tests" / "fixtures" / "prompt-renderer-variant.json").read_text(
+        encoding="utf-8"
+    )
+)
 
 
 def fixture():
@@ -103,3 +109,8 @@ def test_cross_runtime_limits_dynamic_sections_and_preserves_section_order():
         user.index("【本次输入】"),
     ]
     assert section_positions == sorted(section_positions)
+
+
+def test_python_renderer_from_spec_matches_independent_variant_oracle():
+    render_from_spec = getattr(prompt_spec, "build_prompt_messages_from_spec")
+    assert render_from_spec(VARIANT["spec"], **VARIANT["input"]) == VARIANT["expected"]
