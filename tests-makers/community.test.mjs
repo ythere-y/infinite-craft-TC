@@ -210,9 +210,18 @@ test("Makers public list normalizes direct pagination inputs like the HTTP contr
     { options: { limit: "nope" }, expected: ids },
     { options: { limit: Number.NaN }, expected: ids },
     { options: { limit: Number.POSITIVE_INFINITY }, expected: ids },
+    { options: { limit: "0x0" }, expected: ids },
+    { options: { limit: "0b0" }, expected: ids },
+    { options: { limit: "0o0" }, expected: ids },
+    { options: { limit: "0_0" }, expected: ids },
+    { options: { limit: "\uFEFF1" }, expected: ids },
     { options: { limit: 0 }, expected: ["page_3"] },
     { options: { limit: -1 }, expected: ["page_3"] },
     { options: { limit: 2.8 }, expected: ["page_3", "page_2"] },
+    { options: { limit: " \t2.8\r" }, expected: ["page_3", "page_2"] },
+    { options: { limit: ".5" }, expected: ["page_3"] },
+    { options: { limit: "1." }, expected: ["page_3"] },
+    { options: { limit: "1e2" }, expected: ids },
     { options: { limit: 999 }, expected: ids },
     { options: { offset: undefined }, expected: ids },
     { options: { offset: null }, expected: ids },
@@ -220,8 +229,15 @@ test("Makers public list normalizes direct pagination inputs like the HTTP contr
     { options: { offset: "nope" }, expected: ids },
     { options: { offset: Number.NaN }, expected: ids },
     { options: { offset: Number.POSITIVE_INFINITY }, expected: ids },
+    { options: { offset: "0x1" }, expected: ids },
+    { options: { offset: "0b1" }, expected: ids },
+    { options: { offset: "0o1" }, expected: ids },
+    { options: { offset: "0_0" }, expected: ids },
+    { options: { offset: "\uFEFF1" }, expected: ids },
     { options: { offset: -2 }, expected: ids },
     { options: { offset: 1.8 }, expected: ["page_2", "page_1"] },
+    { options: { offset: "1e0" }, expected: ["page_2", "page_1"] },
+    { options: { offset: ".5" }, expected: ids },
     { options: { offset: 10_000_001 }, expected: [] },
   ]) {
     assert.deepEqual(
@@ -233,6 +249,10 @@ test("Makers public list normalizes direct pagination inputs like the HTTP contr
   assert.deepEqual(
     normalizePublicPagination({ limit: 999, offset: 10_000_001 }),
     { limit: 100, offset: 10_000_000 },
+  );
+  assert.deepEqual(
+    normalizePublicPagination({ limit: "0x0", offset: "\uFEFF1" }),
+    { limit: 50, offset: 0 },
   );
 });
 

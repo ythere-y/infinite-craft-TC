@@ -6,6 +6,7 @@ import hashlib
 import hmac
 import math
 import os
+import re
 import secrets
 import sqlite3
 import time
@@ -21,16 +22,24 @@ DOWN_THRESHOLD = int(os.getenv("FORMULA_DOWN_THRESHOLD", "-5"))
 DOWN_MIN_VOTES = int(os.getenv("FORMULA_DOWN_MIN_VOTES", "8"))
 MAX_PUBLIC_PAGE = 100
 MAX_PUBLIC_OFFSET = 10_000_000
+ASCII_QUERY_WHITESPACE = " \t\n\f\r"
+ASCII_DECIMAL = re.compile(
+    r"^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+    re.ASCII,
+)
 
 
 def _normalize_public_page_value(
     value: Any, fallback: int, minimum: int, maximum: int,
 ) -> int:
-    if value is None or (isinstance(value, str) and not value.strip()):
-        return fallback
-    try:
+    if isinstance(value, str):
+        raw = value.strip(ASCII_QUERY_WHITESPACE)
+        if not raw or not ASCII_DECIMAL.fullmatch(raw):
+            return fallback
+        parsed = float(raw)
+    elif isinstance(value, (int, float)) and not isinstance(value, bool):
         parsed = float(value)
-    except (TypeError, ValueError):
+    else:
         return fallback
     if not math.isfinite(parsed):
         return fallback

@@ -10,12 +10,20 @@ const PUBLIC_FORMULA_CATALOG_CAPACITY =
   PROMPT_SPEC.capacities.community_formula_catalog;
 const FEEDBACK_CATALOG_READ_BATCH_SIZE = 50;
 const encoder = new TextEncoder();
+const ASCII_QUERY_WHITESPACE = /^[ \t\n\f\r]+|[ \t\n\f\r]+$/g;
+const ASCII_DECIMAL = /^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$/;
 
 function normalizePublicPageValue(value, fallback, minimum, maximum) {
-  if (value == null || (typeof value === "string" && value.trim() === "")) {
+  let parsed;
+  if (typeof value === "number") {
+    parsed = value;
+  } else if (typeof value === "string") {
+    const raw = value.replace(ASCII_QUERY_WHITESPACE, "");
+    if (!raw || !ASCII_DECIMAL.test(raw)) return fallback;
+    parsed = Number(raw);
+  } else {
     return fallback;
   }
-  const parsed = Number(value);
   if (!Number.isFinite(parsed)) return fallback;
   return Math.max(minimum, Math.min(maximum, Math.trunc(parsed)));
 }

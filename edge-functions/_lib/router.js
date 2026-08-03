@@ -55,6 +55,11 @@ function intParam(searchParams, name, fallback, minimum, maximum) {
   return Math.max(minimum, Math.min(maximum, Math.trunc(value)));
 }
 
+function lastQueryValue(searchParams, name) {
+  const values = searchParams.getAll(name);
+  return values.length ? values[values.length - 1] : null;
+}
+
 function decoded(value, label) {
   try {
     return decodeURIComponent(value);
@@ -413,8 +418,8 @@ export function createRouter({
       requireMethod(request, "GET");
       const [items, elements] = await Promise.all([
         community.listPublic(normalizePublicPagination({
-          limit: url.searchParams.get("limit"),
-          offset: url.searchParams.get("offset"),
+          limit: lastQueryValue(url.searchParams, "limit"),
+          offset: lastQueryValue(url.searchParams, "offset"),
         })),
         combinedElements(),
       ]);

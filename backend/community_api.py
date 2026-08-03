@@ -101,11 +101,16 @@ def rate_limit(player_id: str, operation: str, limit: int = 30) -> None:
 
 
 @router.get("/formulas")
-def formulas(limit: str | None = None, offset: str | None = None):
+def formulas(request: Request = None):
+    limit_values = request.query_params.getlist("limit") if request else []
+    offset_values = request.query_params.getlist("offset") if request else []
     return {
         "items": [
             _formula_icons(row)
-            for row in community.list_public(limit, offset)
+            for row in community.list_public(
+                limit_values[-1] if limit_values else None,
+                offset_values[-1] if offset_values else None,
+            )
         ]
     }
 
