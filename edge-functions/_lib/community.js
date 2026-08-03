@@ -2,8 +2,11 @@ import { PROMPT_SPEC } from "../_generated/prompt-data.js";
 import { cleanText, entityKey, normalizePair, sha256Hex } from "./keys.js";
 
 const INDEX_KEY = "community_public_formulas";
+const RETIRED_INDEX_KEY = "community_retired_formulas";
 const MAX_PUBLIC_INDEX = 500;
 const MAX_PUBLIC_PAGE = 100;
+// This is a retirement catalogue capacity, independent from prompt limits.
+const MAX_RETIRED_FORMULA_INDEX = 500;
 // The public formula catalogue is intentionally bounded for KV read cost.
 // Prompt limits select within this catalogue and do not impose another cap.
 const PUBLIC_FORMULA_CATALOG_CAPACITY =
@@ -118,6 +121,7 @@ export class CommunityStore {
         version, visibility: "hidden", status: "active",
         global_discoverer: discoverer || null, first_publisher: null,
         up_votes: 0, down_votes: 0, protected: false,
+        ai_positive_enabled: true,
         created_at: this.now() / 1000, updated_at: this.now() / 1000,
       };
       await Promise.all([
@@ -145,39 +149,78 @@ export class CommunityStore {
     const minimum = Number(env.FORMULA_UP_MIN_VOTES ?? 12);
     const ids = (await this.get(INDEX_KEY, []))
       .slice(0, PUBLIC_FORMULA_CATALOG_CAPACITY);
-    const positives = [];
-    const negatives = [];
-    for (
-      let offset = 0;
-      offset < ids.length &&
-        (positives.length < positiveLimit || negatives.length < negativeLimit);
-      offset += FEEDBACK_CATALOG_READ_BATCH_SIZE
-    ) {
-      const values = await Promise.all(
+    const values = [];
+    for (let offset = 0; offset < ids.length; offset += FEEDBACK_CATALOG_READ_BATCH_SIZE) {
+      values.push(...await Promise.all(
         ids
           .slice(offset, offset + FEEDBACK_CATALOG_READ_BATCH_SIZE)
           .map((id) => this.get(`community_formula_${id}`)),
+      ));
+    }
+    const positives = values
+      .filter((formula) =>
+        formula?.visibility === "public" &&
+        formula.status === "active" &&
+        formula.ai_positive_enabled !== false &&
+        Number(formula.ai_positive_enabled ?? 1) !== 0 &&
+        formula.up_votes - formula.down_votes >= up &&
+        formula.up_votes + formula.down_votes >= minimum
+      )
+      .sort((left, right) =>
+        (right.up_votes - right.down_votes) - (left.up_votes - left.down_votes) ||
+        Number(right.updated_at || 0) - Number(left.updated_at || 0) ||
+        (String(left.id) > String(right.id) ? -1 : String(left.id) < String(right.id) ? 1 : 0)
+      )
+      .slice(0, positiveLimit)
+      .map(({ a, b, result: name, emoji, comment }) => ({ a, b, name, emoji, comment }));
+    const retirementRecords = await this.get(RETIRED_INDEX_KEY, []);
+    const negativeCandidates = [
+      ...retirementRecords.map((item) => ({
+        id: item?.id,
+        result: item?.result,
+        retired_at: Number(item?.retired_at || 0),
+      })),
+      ...values
+        .filter((formula) => formula?.status === "retired")
+        .map((formula) => ({
+          id: formula.id,
+          result: formula.result,
+          retired_at: Number(formula.retired_at || formula.updated_at || 0),
+        })),
+    ]
+      .filter((item) => item.id && item.result)
+      .sort((left, right) =>
+        right.retired_at - left.retired_at ||
+        (String(left.id) > String(right.id) ? -1 : String(left.id) < String(right.id) ? 1 : 0)
       );
-      for (const formula of values) {
-        if (
-          positives.length < positiveLimit &&
-          formula?.visibility === "public" &&
-          formula.status === "active" &&
-          formula.up_votes - formula.down_votes >= up &&
-          formula.up_votes + formula.down_votes >= minimum
-        ) {
-          const { a, b, result: name, emoji, comment } = formula;
-          positives.push({ a, b, name, emoji, comment });
-        }
-        if (
-          negatives.length < negativeLimit &&
-          formula?.status === "retired"
-        ) {
-          negatives.push(formula.result);
-        }
-      }
+    const seenIds = new Set();
+    const seenResults = new Set();
+    const negatives = [];
+    for (const item of negativeCandidates) {
+      if (seenIds.has(item.id) || seenResults.has(item.result)) continue;
+      seenIds.add(item.id);
+      seenResults.add(item.result);
+      negatives.push(item.result);
+      if (negatives.length >= negativeLimit) break;
     }
     return { positives, negatives };
+  }
+  async rememberRetired(formula) {
+    const retiredAt = Number(formula?.retired_at || formula?.updated_at || this.now() / 1000);
+    const entry = {
+      id: formula?.id,
+      result: formula?.result,
+      retired_at: retiredAt,
+    };
+    if (!entry.id || !entry.result) return;
+    const existing = await this.get(RETIRED_INDEX_KEY, []);
+    const byId = new Map();
+    for (const item of [entry, ...existing]) {
+      if (!item?.id || !item?.result || byId.has(item.id)) continue;
+      byId.set(item.id, item);
+      if (byId.size >= MAX_RETIRED_FORMULA_INDEX) break;
+    }
+    await this.put(RETIRED_INDEX_KEY, [...byId.values()]);
   }
   async publish(id, playerId) {
     const formula = await this.get(`community_formula_${id}`);
@@ -347,6 +390,7 @@ export class CommunityStore {
     ]);
     if (action === "retire") {
       await this.kv.delete(await entityKey("combo", formula.combo_key));
+      await this.rememberRetired({ ...formula, retired_at: formula.updated_at });
     }
     return formula;
   }

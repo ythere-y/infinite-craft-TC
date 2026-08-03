@@ -638,7 +638,7 @@ def feedback_examples(
                WHERE visibility='public' AND status='active'
                AND ai_positive_enabled=1 AND (up_votes-down_votes)>=?
                AND (up_votes+down_votes)>=?
-               ORDER BY (up_votes-down_votes) DESC LIMIT ?""",
+               ORDER BY (up_votes-down_votes) DESC, updated_at DESC, id DESC LIMIT ?""",
             (UP_THRESHOLD, UP_MIN_VOTES, positive_limit),
             ).fetchall()
             negatives = con.execute(

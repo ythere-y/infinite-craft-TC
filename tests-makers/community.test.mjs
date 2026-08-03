@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { PROMPT_SPEC } from "../edge-functions/_generated/prompt-data.js";
 import {
   CommunityStore,
   normalizePublicPagination,
@@ -322,12 +323,12 @@ test("Makers feedback can supply more examples when prompt limits increase", asy
   );
 
   assert.equal(feedback.positives.length, 101);
-  assert.equal(feedback.positives.at(-1).name, "社区结果100");
+  assert.equal(feedback.positives.at(-1).name, "社区结果0");
   assert.equal(feedback.negatives.length, 101);
-  assert.equal(feedback.negatives.at(-1), "退役结果100");
+  assert.equal(feedback.negatives.at(-1), "退役结果0");
 });
 
-test("Makers feedback stops catalog reads after both requested sets are full", async () => {
+test("Makers feedback reads the complete catalogue in 50-record batches before ranking", async () => {
   const ids = Array.from({ length: 100 }, (_, index) => `formula_${index}`);
   const initial = {
     community_public_formulas: JSON.stringify(ids),
@@ -358,7 +359,127 @@ test("Makers feedback stops catalog reads after both requested sets are full", a
   assert.deepEqual(feedback.negatives, ["目录结果1"]);
   assert.equal(
     kv.getCalls,
-    51,
-    "one index read plus one 50-record feedback batch",
+    102,
+    "one public-index read, two 50-record catalogue batches, and retirement index",
   );
+});
+
+test("Makers feedback ranks enabled qualified formulas and recent retirements", async () => {
+  let now = 1_700_000_000_000;
+  const community = new CommunityStore(new FakeKV(), { now: () => now });
+  const formulas = [];
+  for (const [result, upVotes, downVotes, enabled] of [
+    ["第二净赞", 13, 1, true],
+    ["禁止进入AI", 99, 0, false],
+    ["最高净赞", 15, 1, true],
+  ]) {
+    const formula = await community.ensureFormula({
+      a: `${result}输入`, b: "会议", result, emoji: "🗓️", comment: "反馈排序。",
+      source: "llm", discoverer: "测试鹅", playerId: "publisher",
+    });
+    await community.publish(formula.id, "publisher");
+    for (let vote = 0; vote < upVotes; vote += 1) {
+      await community.vote(formula.id, `${result}-up-${vote}`, 1);
+    }
+    for (let vote = 0; vote < downVotes; vote += 1) {
+      await community.vote(formula.id, `${result}-down-${vote}`, -1);
+    }
+    if (!enabled) {
+      const stored = await community.get(`community_formula_${formula.id}`);
+      stored.ai_positive_enabled = false;
+      await community.put(`community_formula_${formula.id}`, stored);
+    }
+    formulas.push(formula);
+  }
+
+  const earlyRetirement = await community.ensureFormula({
+    a: "先退役输入", b: "会议", result: "先退役", emoji: "🗓️", comment: "退役时序。",
+    source: "llm", discoverer: "测试鹅", playerId: "publisher",
+  });
+  await community.publish(earlyRetirement.id, "publisher");
+  now += 1_000;
+  await community.moderate(earlyRetirement.id, "retire", "community_quality");
+  const lateRetirement = await community.ensureFormula({
+    a: "后退役输入", b: "会议", result: "后退役", emoji: "🗓️", comment: "退役时序。",
+    source: "llm", discoverer: "测试鹅", playerId: "publisher",
+  });
+  await community.publish(lateRetirement.id, "publisher");
+  now += 1_000;
+  await community.moderate(lateRetirement.id, "retire", "community_quality");
+
+  const feedback = await community.feedback({
+    FORMULA_UP_THRESHOLD: "10",
+    FORMULA_UP_MIN_VOTES: "12",
+  });
+
+  assert.deepEqual(
+    feedback.positives.map((item) => item.name),
+    ["最高净赞", "第二净赞"],
+  );
+  assert.ok(!feedback.positives.some((item) => item.name === "禁止进入AI"));
+  assert.deepEqual(feedback.negatives.slice(0, 2), ["后退役", "先退役"]);
+});
+
+test("Makers retirement catalogue is retryable without affecting takedowns", async () => {
+  class RetirementIndexFaultKV extends FakeKV {
+    constructor() {
+      super();
+      this.failRetirementIndex = true;
+    }
+
+    async put(key, value) {
+      if (key === "community_retired_formulas" && this.failRetirementIndex) {
+        this.failRetirementIndex = false;
+        throw new Error("retirement index unavailable");
+      }
+      return super.put(key, value);
+    }
+  }
+
+  const kv = new RetirementIndexFaultKV();
+  const community = new CommunityStore(kv);
+  const retired = await hiddenFormula(community);
+  const takenDown = await community.ensureFormula({
+    a: "下架", b: "会议", result: "下架结果", emoji: "🚫", comment: "不应记入退役。",
+    source: "llm", discoverer: "测试鹅", playerId: "publisher",
+  });
+
+  await assert.rejects(
+    () => community.moderate(retired.id, "retire", "community_quality"),
+    /retirement index unavailable/,
+  );
+  assert.equal((await community.get(`community_formula_${retired.id}`)).status, "retired");
+  await community.moderate(retired.id, "retire", "community_quality");
+  await community.moderate(takenDown.id, "takedown", "unsafe");
+
+  const catalogue = await community.get("community_retired_formulas");
+  assert.deepEqual(catalogue.map((item) => item.id), [retired.id]);
+  assert.equal((await community.get(`community_formula_${takenDown.id}`)).status, "takedown");
+});
+
+test("Makers retirement catalogue retains its newest unique records", async () => {
+  const community = service();
+  const capacity = PROMPT_SPEC.capacities.community_formula_catalog;
+  for (let index = 0; index <= capacity; index += 1) {
+    await community.rememberRetired({
+      id: `retired_${index}`,
+      result: `退役结果${index}`,
+      retired_at: index,
+    });
+  }
+  await community.rememberRetired({
+    id: "retired_1",
+    result: "重试后的退役结果",
+    retired_at: capacity + 1,
+  });
+
+  const catalogue = await community.get("community_retired_formulas");
+  assert.equal(catalogue.length, capacity);
+  assert.deepEqual(catalogue[0], {
+    id: "retired_1",
+    result: "重试后的退役结果",
+    retired_at: capacity + 1,
+  });
+  assert.equal(catalogue.filter((item) => item.id === "retired_1").length, 1);
+  assert.equal(catalogue.some((item) => item.id === "retired_0"), false);
 });

@@ -432,6 +432,51 @@ def test_only_threshold_qualified_formulas_enter_positive_examples(tmp_path, mon
     assert positive[0]["name"] == "排期"
 
 
+def test_feedback_examples_rank_enabled_qualified_formulas_by_score_then_update(
+    tmp_path, monkeypatch,
+):
+    setup_db(tmp_path, monkeypatch)
+    formulas = []
+    for index, (result, up_votes, down_votes) in enumerate([
+        ("同分较早", 14, 2),
+        ("同分较新", 14, 2),
+        ("最高净赞", 15, 1),
+        ("禁止进入AI", 100, 0),
+    ]):
+        row = community.ensure_formula(
+            f"输入{index} + 会议", f"输入{index}", "会议", result, "🗓️",
+            "反馈排序。", "llm", "测试鹅",
+        )
+        formulas.append(row)
+
+    con = archive._conn()
+    try:
+        con.executemany(
+            """
+            UPDATE formula_versions
+            SET visibility='public', up_votes=?, down_votes=?, updated_at=?
+            WHERE id=?
+            """,
+            [
+                (12, 2, 1_700_000_001, formulas[0]["id"]),
+                (14, 2, 1_700_000_002, formulas[1]["id"]),
+                (15, 1, 1_700_000_003, formulas[2]["id"]),
+                (100, 0, 1_700_000_004, formulas[3]["id"]),
+            ],
+        )
+        con.execute(
+            "UPDATE formula_versions SET ai_positive_enabled=0 WHERE id=?",
+            (formulas[3]["id"],),
+        )
+        con.commit()
+    finally:
+        con.close()
+
+    positives, _ = community.feedback_examples(positive_limit=3)
+
+    assert [item["name"] for item in positives] == ["最高净赞", "同分较新", "同分较早"]
+
+
 def test_feedback_examples_can_supply_more_when_prompt_limits_increase(
     tmp_path,
     monkeypatch,
