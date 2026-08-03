@@ -61,7 +61,10 @@ function validatePool(value, label) {
     !Array.isArray(value) ||
     value.length === 0 ||
     value.some(
-      (word) => typeof word !== "string" || word.trim().length === 0,
+      (word) => (
+        typeof word !== "string" ||
+        /^[\s\u001c-\u001f]*$/u.test(word)
+      ),
     )
   ) {
     throw new TypeError(
@@ -71,13 +74,19 @@ function validatePool(value, label) {
   return [...value];
 }
 
+function isPlainObject(value) {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+  const prototype = Object.getPrototypeOf(value);
+  return (
+    prototype === null ||
+    Object.getPrototypeOf(prototype) === null
+  );
+}
+
 export function validateNicknameData(value) {
-  if (
-    value === null ||
-    typeof value !== "object" ||
-    Array.isArray(value) ||
-    Object.getPrototypeOf(value) !== Object.prototype
-  ) {
+  if (!isPlainObject(value)) {
     throw new TypeError("Nickname data must be a plain object");
   }
   const keys = Object.keys(value).sort();

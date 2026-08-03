@@ -17,6 +17,7 @@ import { dirname, isAbsolute, join, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 import test from "node:test";
 import { promisify } from "node:util";
+import { runInNewContext } from "node:vm";
 
 import {
   validateNicknameData,
@@ -521,6 +522,56 @@ test("nickname snapshot validator rejects schema and pool shape drift", () => {
   ]) {
     assert.throws(() => validateNicknameData(invalid), /nickname/i);
   }
+});
+
+test("nickname snapshot validator uses the shared blank-string domain", () => {
+  for (const blankWord of ["\ufeff", "\u001c"]) {
+    assert.throws(
+      () => validateNicknameData({
+        schema_version: 1,
+        chengyu: ["一心一意"],
+        states: [blankWord],
+      }),
+      /nickname/i,
+    );
+  }
+
+  assert.deepEqual(
+    validateNicknameData({
+      schema_version: 1,
+      chengyu: ["一心一意"],
+      states: ["\ufeff代码\u001c"],
+    }),
+    {
+      schema_version: 1,
+      chengyu: ["一心一意"],
+      states: ["\ufeff代码\u001c"],
+    },
+  );
+});
+
+test("nickname snapshot validator accepts a cross-realm plain object", () => {
+  const crossRealm = runInNewContext(`({
+    schema_version: 1,
+    chengyu: ["一心一意"],
+    states: ["代码"]
+  })`);
+
+  assert.deepEqual(validateNicknameData(crossRealm), {
+    schema_version: 1,
+    chengyu: ["一心一意"],
+    states: ["代码"],
+  });
+
+  class NicknameRecord {}
+  assert.throws(
+    () => validateNicknameData(Object.assign(new NicknameRecord(), {
+      schema_version: 1,
+      chengyu: ["一心一意"],
+      states: ["代码"],
+    })),
+    /plain object/i,
+  );
 });
 
 test("normal build rejects each missing casino runtime asset", async () => {

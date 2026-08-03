@@ -1,5 +1,7 @@
 import json
 
+import pytest
+
 from backend import nickname
 
 
@@ -37,6 +39,55 @@ def test_python_loads_a_valid_shared_snapshot_without_thuocl(
     monkeypatch.setattr(nickname, "_SHARED_DATA", snapshot)
 
     assert nickname.load_word_pools() == (["一心一意"], ["代码"])
+
+
+@pytest.mark.parametrize("blank_word", ["\ufeff", "\u001c"])
+def test_python_falls_back_for_union_blank_strings(
+    monkeypatch,
+    tmp_path,
+    blank_word,
+):
+    snapshot = tmp_path / "nickname-data.json"
+    snapshot.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "chengyu": ["一心一意"],
+                "states": [blank_word],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(nickname, "_SHARED_DATA", snapshot)
+
+    _, states = nickname.load_word_pools()
+
+    assert states == ["代码", "周报", "咖啡", "火锅"]
+
+
+def test_python_accepts_visible_words_with_union_whitespace(
+    monkeypatch,
+    tmp_path,
+):
+    snapshot = tmp_path / "nickname-data.json"
+    snapshot.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "chengyu": ["一心一意"],
+                "states": ["\ufeff代码\u001c"],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(nickname, "_SHARED_DATA", snapshot)
+
+    assert nickname.load_word_pools() == (
+        ["一心一意"],
+        ["\ufeff代码\u001c"],
+    )
 
 
 def test_python_falls_back_for_missing_malformed_or_empty_snapshot(

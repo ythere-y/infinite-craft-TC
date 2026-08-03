@@ -60,6 +60,10 @@ def _fallback_word_pools() -> tuple[List[str], List[str]]:
     return list(_FALLBACK_CHENGYU), list(_FALLBACK_STATES)
 
 
+def _is_blank_word(value: str) -> bool:
+    return all(char.isspace() or char == "\ufeff" for char in value)
+
+
 def load_word_pools() -> tuple[List[str], List[str]]:
     """Load the committed nickname snapshot, or a minimal startup-safe fallback."""
     try:
@@ -81,8 +85,14 @@ def load_word_pools() -> tuple[List[str], List[str]]:
         or not isinstance(states, list)
         or not chengyu
         or not states
-        or any(not isinstance(word, str) or not word.strip() for word in chengyu)
-        or any(not isinstance(word, str) or not word.strip() for word in states)
+        or any(
+            not isinstance(word, str) or _is_blank_word(word)
+            for word in chengyu
+        )
+        or any(
+            not isinstance(word, str) or _is_blank_word(word)
+            for word in states
+        )
     ):
         return _fallback_word_pools()
     return list(chengyu), list(states)
