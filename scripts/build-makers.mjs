@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { runIconAudit } from "./audit-icon-map.mjs";
 import { generateMakersData } from "./generate-makers-data.mjs";
 import { validateCommittedIconAssets } from "./icon-data-lib.mjs";
+import { generateMakersPromptData } from "./prompt-data-lib.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const FRONTEND = resolve(ROOT, "frontend");
@@ -100,6 +101,7 @@ export async function buildMakersSite() {
   await validateCommittedIconAssets({ root: ROOT });
   await auditCommittedIconMap({ root: ROOT });
   await generateMakersData();
+  await generateMakersPromptData();
   await rm(OUTPUT, { recursive: true, force: true });
   await mkdir(OUTPUT, { recursive: true });
   await cp(FRONTEND, OUTPUT, { recursive: true });

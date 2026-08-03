@@ -54,6 +54,8 @@ const COMMITTED_BUILD_INPUTS = [
   "scripts/build-makers.mjs",
   "scripts/generate-makers-data.mjs",
   "scripts/icon-data-lib.mjs",
+  "scripts/prompt-data-lib.mjs",
+  "shared/combine-prompt.json",
 ];
 
 async function copyCommittedBuildFixture(
