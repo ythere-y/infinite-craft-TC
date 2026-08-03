@@ -277,7 +277,8 @@ def public_formula(formula_id: str, player_id: str | None = None) -> dict[str, A
             """SELECT id,a,b,result,emoji,comment,version,status,first_publisher,
                       published_at,up_votes,down_votes,(up_votes-down_votes) net_score,
                       protected
-               FROM formula_versions WHERE id=? AND visibility='public'""",
+               FROM formula_versions
+               WHERE id=? AND visibility='public' AND status!='takedown'""",
             (formula_id,),
         ).fetchone()
         if not row:
@@ -304,7 +305,7 @@ def list_public(limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
                       published_at,up_votes,down_votes,(up_votes-down_votes) net_score,
                       protected
                FROM formula_versions WHERE visibility='public' AND status!='takedown'
-               ORDER BY net_score DESC, published_at DESC LIMIT ? OFFSET ?""",
+               ORDER BY net_score DESC, published_at DESC, id DESC LIMIT ? OFFSET ?""",
             (min(max(limit, 1), 100), max(offset, 0)),
         ).fetchall()
         return [dict(row) for row in rows]

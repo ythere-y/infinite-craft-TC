@@ -31,6 +31,7 @@ import {
 } from "./nickname.js";
 import {
   adminSessionCookie,
+  clearAdminSessionCookie,
   CommunityStore,
   hasAdminSession,
   playerIdentity,
@@ -410,7 +411,10 @@ export function createRouter({
     if (path === "/api/community/formulas") {
       requireMethod(request, "GET");
       const [items, elements] = await Promise.all([
-        community.listPublic(),
+        community.listPublic({
+          limit: intParam(url.searchParams, "limit", 50, 1, 100),
+          offset: intParam(url.searchParams, "offset", 0, 0, 10_000_000),
+        }),
         combinedElements(),
       ]);
       return jsonResponse({
@@ -441,6 +445,23 @@ export function createRouter({
       const formula = await community.vote(voteMatch[1], identity.id, value);
       return jsonResponse(formula, {
         headers: identity.setCookie ? { "set-cookie": identity.setCookie } : {},
+      });
+    }
+    const detailMatch = path.match(/^\/api\/community\/formulas\/([^/]+)$/);
+    if (detailMatch) {
+      requireMethod(request, "GET");
+      const identity = await playerIdentity(request, env);
+      const formula = await community.publicFormula(detailMatch[1], identity.id);
+      if (!formula) throw new HttpError(404, "公开公式不存在");
+      return jsonResponse(withFormulaIcons(formula, await combinedElements()), {
+        headers: identity.setCookie ? { "set-cookie": identity.setCookie } : {},
+      });
+    }
+    if (path === "/api/community/admin/logout") {
+      requireMethod(request, "POST");
+      requireSameOrigin(request);
+      return jsonResponse({ ok: true }, {
+        headers: { "set-cookie": clearAdminSessionCookie() },
       });
     }
     if (path === "/api/community/admin/login") {

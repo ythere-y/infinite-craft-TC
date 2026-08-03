@@ -2,6 +2,8 @@ import { PROMPT_SPEC } from "../_generated/prompt-data.js";
 import { cleanText, entityKey, normalizePair, sha256Hex } from "./keys.js";
 
 const INDEX_KEY = "community_public_formulas";
+const MAX_PUBLIC_INDEX = 500;
+const MAX_PUBLIC_PAGE = 100;
 // The public formula catalogue is intentionally bounded for KV read cost.
 // Prompt limits select within this catalogue and do not impose another cap.
 const PUBLIC_FORMULA_CATALOG_CAPACITY =
@@ -49,6 +51,10 @@ export async function adminSessionCookie(env = {}, now = Date.now()) {
   const secret = cleanText(env.SESSION_SECRET || env.ADMIN_TOKEN);
   const value = `admin:${Math.floor(now / 1000) + 8 * 3600}`;
   return `craft_admin=${value}.${await hmac(secret, value)}; Max-Age=28800; Path=/; HttpOnly; SameSite=Strict; Secure`;
+}
+
+export function clearAdminSessionCookie() {
+  return "craft_admin=; Max-Age=0; Path=/; HttpOnly; SameSite=Strict; Secure";
 }
 
 export async function hasAdminSession(request, env = {}, now = Date.now()) {
@@ -184,16 +190,32 @@ export class CommunityStore {
       my_vote: myVote,
     };
   }
-  async listPublic() {
-    const ids = await this.get(INDEX_KEY, []);
-    const values = await Promise.all(ids.slice(0, 100).map((id) => this.get(`community_formula_${id}`)));
+  async listPublic({ limit = 50, offset = 0 } = {}) {
+    const boundedLimit = Math.max(1, Math.min(MAX_PUBLIC_PAGE, Math.trunc(Number(limit) || 50)));
+    const boundedOffset = Math.max(0, Math.trunc(Number(offset) || 0));
+    const ids = (await this.get(INDEX_KEY, [])).slice(0, MAX_PUBLIC_INDEX);
+    const values = await Promise.all(ids.map((id) => this.get(`community_formula_${id}`)));
     return values.map((item) => this.publicView(item)).filter(Boolean)
-      .sort((a, b) => b.net_score - a.net_score || b.published_at - a.published_at);
+      .sort((a, b) =>
+        b.net_score - a.net_score ||
+        Number(b.published_at || 0) - Number(a.published_at || 0) ||
+        String(b.id).localeCompare(String(a.id)),
+      )
+      .slice(boundedOffset, boundedOffset + boundedLimit);
+  }
+  async publicFormula(id, playerId = null) {
+    const formula = await this.get(`community_formula_${id}`);
+    const view = this.publicView(formula);
+    if (!view) return null;
+    const myVote = playerId
+      ? Number(await this.kv.get(`community_vote_${id}_${await sha256Hex(playerId)}`) || 0) || null
+      : null;
+    return { ...view, my_vote: myVote };
   }
   async publicByResults(results = [], playerId = null) {
     const wanted = new Set(results.map((item) => cleanText(item)).filter(Boolean));
     if (!wanted.size) return {};
-    const items = (await this.listPublic()).filter(
+    const items = (await this.listPublic({ limit: MAX_PUBLIC_PAGE })).filter(
       (item) => item.status === "active" && wanted.has(item.result),
     );
     const votes = {};
@@ -276,7 +298,7 @@ export class CommunityStore {
   async queue(env = {}) {
     const down = Number(env.FORMULA_DOWN_THRESHOLD ?? -5);
     const minimum = Number(env.FORMULA_DOWN_MIN_VOTES ?? 8);
-    return (await this.listPublic()).filter((f) =>
+    return (await this.listPublic({ limit: MAX_PUBLIC_PAGE })).filter((f) =>
       f.status === "active" && !f.protected &&
       f.net_score <= down && f.up_votes + f.down_votes >= minimum
     );

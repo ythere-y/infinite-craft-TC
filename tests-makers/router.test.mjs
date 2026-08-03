@@ -22,6 +22,7 @@ function makeRouter() {
     env: {
       APP_ENV: "test",
       DASHBOARD_PUBLIC: "1",
+      ADMIN_TOKEN: "test-admin",
       SESSION_SECRET: "test-secret",
       MAKERS_MODELS_KEY: "secret",
       LLM_MODEL: "test-model",
@@ -278,6 +279,97 @@ test("nickname, combine, wall, bounty and admin routes share KV state", async ()
   assert.equal(admin.body.nick_count, 1);
   assert.equal(admin.body.recent_firsts[0].result, "蒸汽");
   assert.deepEqual(admin.body.recent_firsts[0].icon, combine.body.icon);
+});
+
+test("community list, detail and logout expose the public HTTP contract", async () => {
+  const router = makeRouter();
+  const combined = await json(router, "/api/combine", {
+    method: "POST",
+    body: {
+      a: "水",
+      b: "火",
+      discoverer: "测试鹅",
+      session_id: "community-detail-session",
+    },
+  });
+  const playerCookie = combined.response.headers.get("set-cookie");
+  const formulaId = combined.body.formula_id;
+
+  const published = await json(router, `/api/community/formulas/${formulaId}/publish`, {
+    method: "POST",
+    headers: playerCookie ? { cookie: playerCookie } : {},
+  });
+  assert.equal(published.response.status, 200);
+
+  const vote = await json(router, `/api/community/formulas/${formulaId}/vote`, {
+    method: "PUT",
+    headers: playerCookie ? { cookie: playerCookie } : {},
+    body: { value: 1 },
+  });
+  assert.equal(vote.body.my_vote, 1);
+
+  const page = await json(router, "/api/community/formulas?limit=7&offset=2");
+  assert.equal(page.response.status, 200);
+  assert.ok(page.body.items.length <= 7);
+
+  const detail = await json(router, `/api/community/formulas/${formulaId}`, {
+    headers: playerCookie ? { cookie: playerCookie } : {},
+  });
+  assert.equal(detail.response.status, 200);
+  assert.equal(detail.body.id, formulaId);
+  assert.equal(detail.body.my_vote, 1);
+
+  const logout = await json(router, "/api/community/admin/logout", { method: "POST" });
+  assert.equal(logout.response.status, 200);
+  assert.equal(logout.body.ok, true);
+  assert.match(logout.response.headers.get("set-cookie"), /craft_admin=;/);
+  assert.match(logout.response.headers.get("set-cookie"), /Max-Age=0/);
+  assert.match(logout.response.headers.get("set-cookie"), /Path=\//);
+  assert.match(logout.response.headers.get("set-cookie"), /HttpOnly/);
+  assert.match(logout.response.headers.get("set-cookie"), /SameSite=Strict/);
+  assert.match(logout.response.headers.get("set-cookie"), /Secure/);
+
+  const crossOriginLogout = await json(router, "/api/community/admin/logout", {
+    method: "POST",
+    headers: { origin: "https://attacker.example" },
+  });
+  assert.equal(crossOriginLogout.response.status, 403);
+});
+
+test("community detail returns 404 after an administrator takedown", async () => {
+  const router = makeRouter();
+  const combined = await json(router, "/api/combine", {
+    method: "POST",
+    body: {
+      a: "水",
+      b: "火",
+      discoverer: "测试鹅",
+      session_id: "community-takedown-session",
+    },
+  });
+  const playerCookie = combined.response.headers.get("set-cookie");
+  const formulaId = combined.body.formula_id;
+  await json(router, `/api/community/formulas/${formulaId}/publish`, {
+    method: "POST",
+    headers: playerCookie ? { cookie: playerCookie } : {},
+  });
+  const beforeTakedown = await json(router, `/api/community/formulas/${formulaId}`);
+  assert.equal(beforeTakedown.response.status, 200);
+
+  const login = await json(router, "/api/community/admin/login", {
+    method: "POST",
+    body: { key: "test-admin" },
+  });
+  const adminCookie = login.response.headers.get("set-cookie");
+  const moderated = await json(router, `/api/community/admin/formulas/${formulaId}/moderate`, {
+    method: "POST",
+    headers: adminCookie ? { cookie: adminCookie } : {},
+    body: { action: "takedown", reason_code: "unsafe" },
+  });
+  assert.equal(moderated.response.status, 200);
+
+  const detail = await json(router, `/api/community/formulas/${formulaId}`);
+  assert.equal(detail.response.status, 404);
 });
 
 test("router carries raised prompt limits and one style draw into the model request", async () => {

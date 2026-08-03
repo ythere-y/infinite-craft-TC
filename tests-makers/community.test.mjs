@@ -120,6 +120,52 @@ test("Makers retirement preserves v1 and allows an active v2", async () => {
   assert.equal((await community.combinationState("需求", "会议")).status, "active");
 });
 
+test("Makers public listing globally ranks the bounded catalogue before pagination", async () => {
+  const community = service();
+  const formulas = [];
+  for (let index = 0; index < 105; index += 1) {
+    const formula = await community.ensureFormula({
+      a: `输入${index}`, b: "会议", result: `结果${index}`, emoji: "🗓️",
+      comment: "跨页排序。", source: "llm", discoverer: "测试鹅", playerId: "publisher",
+    });
+    await community.publish(formula.id, "publisher");
+    for (let vote = 0; vote < 105 - index; vote += 1) {
+      await community.vote(formula.id, `voter-${index}-${vote}`, 1);
+    }
+    formulas.push(formula);
+  }
+
+  const top = await community.listPublic({ limit: 10, offset: 0 });
+  assert.deepEqual(top.map((item) => item.id), formulas.slice(0, 10).map((item) => item.id));
+
+  const page = await community.listPublic({ limit: 10, offset: 100 });
+  assert.equal(page.length, 5);
+  assert.deepEqual(page.map((item) => item.id), formulas.slice(100).map((item) => item.id));
+  assert.ok(page.every((item, index, items) =>
+    index === 0 || items[index - 1].net_score >= item.net_score,
+  ));
+});
+
+test("Makers public formula detail includes the caller vote and hides non-public formulas", async () => {
+  const community = service();
+  const target = await hiddenFormula(community);
+  await community.publish(target.id, "publisher");
+  await community.vote(target.id, "voter", 1);
+
+  const detail = await community.publicFormula(target.id, "voter");
+  assert.equal(detail.id, target.id);
+  assert.equal(detail.my_vote, 1);
+
+  const hidden = await community.ensureFormula({
+    a: "隐藏", b: "会议", result: "隐藏结果", emoji: "🙈",
+    comment: "不公开。", source: "llm", discoverer: "测试鹅", playerId: "player",
+  });
+  assert.equal(await community.publicFormula(hidden.id, "player"), null);
+
+  await community.moderate(target.id, "takedown", "unsafe");
+  assert.equal(await community.publicFormula(target.id, "player"), null);
+});
+
 test("Makers feedback can supply more examples when prompt limits increase", async () => {
   const positiveIds = Array.from(
     { length: 101 },

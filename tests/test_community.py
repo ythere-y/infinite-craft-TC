@@ -181,6 +181,17 @@ def test_retirement_preserves_history_and_creates_v2(tmp_path, monkeypatch):
     assert not community.is_retired_key(first["combo_key"])
 
 
+def test_takedown_formula_is_not_available_from_public_detail(tmp_path, monkeypatch):
+    setup_db(tmp_path, monkeypatch)
+    row = formula()
+    community.record_reproduction(row["id"], "publisher")
+    community.publish(row["id"], "publisher")
+
+    community.moderate(row["id"], "takedown", "unsafe")
+
+    assert community.public_formula(row["id"], "publisher") is None
+
+
 def test_seed_reconciliation_supersedes_conflicting_active_formula(
     tmp_path,
     monkeypatch,
