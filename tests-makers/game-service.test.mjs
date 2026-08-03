@@ -11,6 +11,8 @@ import {
 } from "../edge-functions/_lib/comments.js";
 import { createGameService } from "../edge-functions/_lib/game-service.js";
 import { KvStore } from "../edge-functions/_lib/kv-store.js";
+import { CommunityStore } from "../edge-functions/_lib/community.js";
+import { COMBINATIONS } from "../edge-functions/_generated/seed-data.js";
 import {
   entityKey,
   normalizePair,
@@ -271,6 +273,52 @@ test("authoritative seed combinations cannot be shadowed by KV", async () => {
   });
   assert.equal(result.result, "蒸汽");
   assert.equal(result.source, "seed");
+});
+
+test("authoritative seed reconciliation supersedes stale cache and conflicting active formula", async () => {
+  const kv = new FakeKV();
+  const store = new KvStore(kv, { now: () => 1_700_000_000_000 });
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const old = await community.ensureFormula({
+    a: "水", b: "水", result: "错误水", emoji: "❌",
+    comment: "冲突的旧公式。", source: "llm", discoverer: "旧鹅", playerId: "seed-player",
+  });
+  await community.publish(old.id, "seed-player");
+  await store.putCombination("水", "水", {
+    result: "缓存错误", emoji: "❌", comment: "缓存覆盖。", source: "llm", chain: null,
+  });
+  const service = createGameService({ store, env: {}, now: () => 1_700_000_000_000 });
+
+  const result = await service.combine({
+    a: "水", b: "水", discoverer: "种子鹅", session_id: "seed-session", player_id: "seed-player",
+  });
+
+  assert.equal(result.result, COMBINATIONS[normalizePair("水", "水")].result);
+  assert.equal(result.source, "seed");
+  assert.equal((await store.getCombination("水", "水")).result, result.result);
+  assert.equal((await community.combinationState("水", "水")).version, 2);
+});
+
+test("authoritative cache overwrite preserves hit count while dynamic callers remain first-write", async () => {
+  const { store } = makeService();
+  await store.putCombination("水", "水", {
+    result: "缓存错误", emoji: "❌", comment: "缓存覆盖。", source: "llm", chain: null,
+  });
+  for (let count = 0; count < 3; count += 1) {
+    await store.incrementCombinationHit("水", "水");
+  }
+
+  const dynamic = await store.putCombination("水", "水", {
+    result: "仍然错误", emoji: "❌", comment: "动态不能覆盖。", source: "llm", chain: null,
+  }, { overwrite: true });
+  const seed = await store.putCombination("水", "水", {
+    result: "水塘", emoji: "💧", comment: DEFAULT_COMMENT, source: "seed", chain: "geo",
+  }, { rememberElement: false, overwrite: true });
+
+  assert.equal(dynamic.result, "缓存错误");
+  assert.equal(seed.result, "水塘");
+  assert.equal(seed.hit_count, 3);
+  assert.equal((await store.getCombination("水", "水")).hit_count, 3);
 });
 
 test("LLM misses are cached in KV and reused without another model request", async () => {

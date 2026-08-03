@@ -114,14 +114,14 @@ export function createGameService({
   }
 
   async function resolveCombination(a, b, clientIdentity = "anonymous") {
+    const seeded = COMBINATIONS[normalizePair(a, b)];
+    if (seeded?.result) return withResolvedIcon(seeded, a, b);
     const communityState = await community.combinationState(a, b);
     const cached = await store.getCombination(a, b);
     if (communityState?.status === "active" && communityState.version > 1 && cached?.result) {
       return withResolvedIcon(cached, a, b);
     }
     if (communityState?.status !== "retired") {
-      const seeded = COMBINATIONS[normalizePair(a, b)];
-      if (seeded?.result) return withResolvedIcon(seeded, a, b);
       if (cached?.result) return withResolvedIcon(cached, a, b);
     }
     if (!modelConfigured) return null;
@@ -270,6 +270,7 @@ export function createGameService({
           ...(icon ? { icon } : {}),
         }, {
           rememberElement: false,
+          overwrite: source === "seed",
         });
         const counted = await store.incrementCombinationHit(a, b);
         hitCount = Math.max(1, Number(counted?.hit_count) || 1);
@@ -279,7 +280,12 @@ export function createGameService({
     }
 
     let formula = null;
-    if (source !== "fallback" && cleanText(input?.player_id)) {
+    if (source === "seed") {
+      formula = await community.reconcileAuthoritativeFormula({
+        a, b, result: hit.result, emoji: hit.emoji, comment, source,
+        discoverer: recordedDiscoverer, playerId: cleanText(input?.player_id) || null,
+      });
+    } else if (source !== "fallback" && cleanText(input?.player_id)) {
       formula = await community.ensureFormula({
         a, b, result: hit.result, emoji: hit.emoji, comment, source,
         discoverer: recordedDiscoverer, playerId: cleanText(input.player_id),

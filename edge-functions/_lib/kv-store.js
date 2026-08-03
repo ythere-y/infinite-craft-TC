@@ -348,12 +348,13 @@ export class KvStore {
     a,
     b,
     rawRecord,
-    { rememberElement = true } = {},
+    { rememberElement = true, overwrite = false } = {},
   ) {
     const [left, right] = [cleanText(a), cleanText(b)].sort();
     const key = await entityKey("combo", normalizePair(left, right));
     const existing = await this.getJson(key);
-    if (existing?.result) return existing;
+    const authorizedOverwrite = overwrite && cleanText(rawRecord?.source) === "seed";
+    if (existing?.result && !authorizedOverwrite) return existing;
 
     const icon = normalizeIcon(rawRecord.icon);
     const record = {
@@ -365,7 +366,7 @@ export class KvStore {
       source: cleanText(rawRecord.source) || "llm",
       chain: cleanText(rawRecord.chain) || null,
       ...(icon ? { icon } : {}),
-      hit_count: 0,
+      hit_count: authorizedOverwrite ? finiteInteger(existing?.hit_count) : 0,
       ts: this.timestamp(),
     };
     await this.putJson(key, record);

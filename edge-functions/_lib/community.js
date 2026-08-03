@@ -1,5 +1,6 @@
 import { PROMPT_SPEC } from "../_generated/prompt-data.js";
 import { cleanText, entityKey, normalizePair, sha256Hex } from "./keys.js";
+import { normalizeComment } from "./comments.js";
 
 const INDEX_KEY = "community_public_formulas";
 const RETIRED_INDEX_KEY = "community_retired_formulas";
@@ -108,6 +109,36 @@ export class CommunityStore {
     await this.kv.put(key, JSON.stringify(value));
     return value;
   }
+  async createFormula(
+    { a, b, result, emoji, comment, source, discoverer },
+    version,
+  ) {
+    const pair = normalizePair(a, b);
+    const id = (await sha256Hex(`${pair}:v${version}`)).slice(0, 32);
+    const now = this.now() / 1000;
+    return {
+      id, a, b, combo_key: pair, result, emoji, comment, source,
+      version, visibility: "hidden", status: "active",
+      global_discoverer: discoverer || null, first_publisher: null,
+      up_votes: 0, down_votes: 0, protected: false,
+      ai_positive_enabled: true,
+      created_at: now, updated_at: now,
+    };
+  }
+  formulaMatches(formula, input) {
+    return formula?.status === "active" &&
+      normalizePair(formula.a, formula.b) === normalizePair(input.a, input.b) &&
+      cleanText(formula.result) === cleanText(input.result) &&
+      cleanText(formula.emoji) === cleanText(input.emoji) &&
+      normalizeComment(formula.comment) === normalizeComment(input.comment) &&
+      cleanText(formula.source) === cleanText(input.source);
+  }
+  async rememberReproduction(formula, playerId) {
+    const player = cleanText(playerId);
+    if (!player) return;
+    const key = `community_repro_${formula.id}_${await sha256Hex(player)}`;
+    if (!(await this.kv.get(key))) await this.kv.put(key, "1");
+  }
   async ensureFormula({ a, b, result, emoji, comment, source, discoverer, playerId }) {
     const pair = normalizePair(a, b);
     const pointerKey = `community_active_${await sha256Hex(pair)}`;
@@ -115,22 +146,74 @@ export class CommunityStore {
     let formula = pointer ? await this.get(`community_formula_${pointer.id}`) : null;
     if (!formula || formula.status !== "active") {
       const version = Number(pointer?.version || 0) + 1;
-      const id = (await sha256Hex(`${pair}:v${version}`)).slice(0, 32);
-      formula = {
-        id, a, b, combo_key: pair, result, emoji, comment, source,
-        version, visibility: "hidden", status: "active",
-        global_discoverer: discoverer || null, first_publisher: null,
-        up_votes: 0, down_votes: 0, protected: false,
-        ai_positive_enabled: true,
-        created_at: this.now() / 1000, updated_at: this.now() / 1000,
-      };
+      formula = await this.createFormula({
+        a, b, result, emoji, comment, source, discoverer,
+      }, version);
       await Promise.all([
-        this.put(`community_formula_${id}`, formula),
-        this.put(pointerKey, { id, version }),
+        this.put(`community_formula_${formula.id}`, formula),
+        this.put(pointerKey, { id: formula.id, version }),
       ]);
     }
-    await this.kv.put(`community_repro_${formula.id}_${await sha256Hex(playerId)}`, "1");
+    await this.rememberReproduction(formula, playerId);
     return formula;
+  }
+  async reconcileAuthoritativeFormula(input) {
+    const pair = normalizePair(input.a, input.b);
+    const pointerKey = `community_active_${await sha256Hex(pair)}`;
+    const pointer = await this.get(pointerKey);
+    const current = pointer
+      ? await this.get(`community_formula_${pointer.id}`)
+      : null;
+
+    if (this.formulaMatches(current, input)) {
+      await this.rememberReproduction(current, input.playerId);
+      const readbackPointer = await this.get(pointerKey);
+      return (readbackPointer && await this.get(`community_formula_${readbackPointer.id}`)) || current;
+    }
+
+    if (current?.status === "active") {
+      const retiredAt = this.now() / 1000;
+      const retired = {
+        ...current,
+        status: "retired",
+        visibility: "hidden",
+        retired_at: retiredAt,
+        updated_at: retiredAt,
+      };
+      await this.put(`community_formula_${retired.id}`, retired);
+      await this.rememberRetired(retired);
+    } else if (current?.status === "retired") {
+      // A failed prior reconciliation may have retired the old version before
+      // its retirement catalogue or pointer update completed.
+      await this.rememberRetired(current);
+    }
+
+    const currentVersion = Number.isFinite(Number(current?.version))
+      ? Number(current.version)
+      : 0;
+    const pointerVersion = Number.isFinite(Number(pointer?.version))
+      ? Number(pointer.version)
+      : 0;
+    const version = Math.max(currentVersion, pointerVersion) + 1;
+    const id = (await sha256Hex(`${pair}:v${version}`)).slice(0, 32);
+    let formula = await this.get(`community_formula_${id}`);
+    if (!this.formulaMatches(formula, input)) {
+      formula = await this.createFormula({
+        ...input,
+        a: cleanText(input.a),
+        b: cleanText(input.b),
+        result: cleanText(input.result),
+        emoji: cleanText(input.emoji),
+        comment: normalizeComment(input.comment),
+        source: cleanText(input.source),
+      }, version);
+      await this.put(`community_formula_${id}`, formula);
+    }
+    await this.put(pointerKey, { id, version });
+    await this.rememberReproduction(formula, input.playerId);
+
+    const readbackPointer = await this.get(pointerKey);
+    return (readbackPointer && await this.get(`community_formula_${readbackPointer.id}`)) || formula;
   }
   async combinationState(a, b) {
     const pointer = await this.get(`community_active_${await sha256Hex(normalizePair(a, b))}`);

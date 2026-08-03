@@ -516,3 +516,89 @@ test("Makers retirement catalogue retains its newest unique records", async () =
   assert.equal(catalogue.filter((item) => item.id === "retired_1").length, 1);
   assert.equal(catalogue.some((item) => item.id === "retired_0"), false);
 });
+
+test("Makers reconciliation retires a conflicting published formula and is write-idempotent", async () => {
+  const kv = new FakeKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const old = await community.ensureFormula({
+    a: "水", b: "水", result: "错误水", emoji: "❌",
+    comment: "冲突的旧公式。", source: "llm", discoverer: "旧鹅", playerId: "seed-player",
+  });
+  await community.publish(old.id, "seed-player");
+  const seed = {
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "seed", discoverer: null, playerId: "seed-player",
+  };
+
+  const active = await community.reconcileAuthoritativeFormula(seed);
+
+  assert.equal(active.version, 2);
+  assert.equal(active.result, "水塘");
+  assert.equal(active.source, "seed");
+  assert.equal(active.visibility, "hidden");
+  const retired = await community.get(`community_formula_${old.id}`);
+  assert.equal(retired.status, "retired");
+  assert.equal(retired.visibility, "hidden");
+  assert.deepEqual(
+    (await community.get("community_retired_formulas")).map((item) => item.id),
+    [old.id],
+  );
+
+  const writes = [];
+  const put = kv.put.bind(kv);
+  kv.put = async (key, value) => {
+    writes.push({ key, value });
+    return put(key, value);
+  };
+  try {
+    const repeated = await community.reconcileAuthoritativeFormula(seed);
+    assert.equal(repeated.id, active.id);
+    assert.equal(repeated.version, active.version);
+  } finally {
+    kv.put = put;
+  }
+  assert.deepEqual(writes, []);
+});
+
+test("Makers reconciliation retries a failed pointer update without another active seed version", async () => {
+  class PointerFaultKV extends FakeKV {
+    constructor() {
+      super();
+      this.failPointer = false;
+    }
+
+    async put(key, value) {
+      if (this.failPointer && key.startsWith("community_active_")) {
+        this.failPointer = false;
+        throw new Error("active pointer unavailable");
+      }
+      return super.put(key, value);
+    }
+  }
+
+  const kv = new PointerFaultKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const old = await community.ensureFormula({
+    a: "水", b: "水", result: "错误水", emoji: "❌",
+    comment: "冲突的旧公式。", source: "llm", discoverer: "旧鹅", playerId: "seed-player",
+  });
+  kv.failPointer = true;
+  const seed = {
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "seed", discoverer: null, playerId: "seed-player",
+  };
+
+  await assert.rejects(
+    () => community.reconcileAuthoritativeFormula(seed),
+    /active pointer unavailable/,
+  );
+  const active = await community.reconcileAuthoritativeFormula(seed);
+
+  assert.equal(active.version, 2);
+  assert.equal((await community.combinationState("水", "水")).version, 2);
+  const activeSeeds = [...kv.values.values()]
+    .map((value) => JSON.parse(value))
+    .filter((value) => value?.combo_key === "水 + 水" && value.status === "active" && value.source === "seed");
+  assert.equal(activeSeeds.length, 1);
+  assert.equal((await community.get(`community_formula_${old.id}`)).status, "retired");
+});
