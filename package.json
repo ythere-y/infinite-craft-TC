@@ -11,6 +11,7 @@
     "generate:makers-data": "node scripts/generate-makers-data.mjs",
     "generate:makers-prompt-data": "node scripts/generate-makers-prompt-data.mjs",
     "generate:makers-nickname-data": "node scripts/generate-makers-nickname-data.mjs",
+    "refresh:nickname-corpus": "node scripts/refresh-nickname-corpus.mjs",
     "generate:icons": "node scripts/generate-icon-assets.mjs",
     "generate:icon-data": "node scripts/generate-icon-data.mjs",
     "audit:icons": "node scripts/audit-icon-map.mjs",

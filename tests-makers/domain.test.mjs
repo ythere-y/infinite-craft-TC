@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
@@ -11,6 +12,7 @@ import {
 } from "../edge-functions/_lib/kpi.js";
 import {
   generateNickname,
+  MEME_POOL,
   nicknameStats,
 } from "../edge-functions/_lib/nickname.js";
 import {
@@ -83,14 +85,24 @@ test("KPI effects keep their established scores and explosion rules", () => {
   assert.equal(shouldExplode(null, "生产故障"), true);
 });
 
-test("nickname generator preserves the established display format", () => {
+test("nickname generator uses the committed shared corpus", async () => {
+  const source = JSON.parse(
+    await readFile("shared/nickname-data.json", "utf8"),
+  );
   const nickname = generateNickname({ random: () => 0 });
   const stats = nicknameStats();
   assert.match(nickname, /^.{4}的.+鹅$/u);
-  assert.equal(stats.source, "bundled");
-  assert.ok(stats.chengyu >= 7_000);
-  assert.ok(stats.thuocl_states >= 4_000);
-  assert.ok(stats.effective_combo_space >= 30_000_000);
+  assert.equal(source.schema_version, 1);
+  assert.equal(source.chengyu.length, 7_831);
+  assert.equal(source.states.length, 4_350);
+  assert.deepEqual(stats, {
+    source: "bundled",
+    chengyu: 7_831,
+    thuocl_states: 4_350,
+    meme_pool: MEME_POOL.length,
+    meme_weight: 0.4,
+    effective_combo_space: 7_831 * (MEME_POOL.length + 4_350),
+  });
 });
 
 test("bounty hides role group while retaining starter discoveries and first metadata", () => {

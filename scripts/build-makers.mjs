@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { runIconAudit } from "./audit-icon-map.mjs";
 import { generateMakersData } from "./generate-makers-data.mjs";
+import { generateMakersNicknameData } from "./nickname-data-lib.mjs";
 import { validateCommittedIconAssets } from "./icon-data-lib.mjs";
 import { generateMakersPromptData } from "./prompt-data-lib.mjs";
 
@@ -104,6 +105,7 @@ export async function buildMakersSite() {
   await validateCommittedIconAssets({ root: ROOT });
   await auditCommittedIconMap({ root: ROOT });
   await generateMakersData();
+  await generateMakersNicknameData();
   await generateMakersPromptData();
   await rm(OUTPUT, { recursive: true, force: true });
   await mkdir(OUTPUT, { recursive: true });

@@ -18,6 +18,10 @@ import { pathToFileURL } from "node:url";
 import test from "node:test";
 import { promisify } from "node:util";
 
+import {
+  validateNicknameData,
+} from "../scripts/nickname-data-lib.mjs";
+
 const execFileAsync = promisify(execFile);
 const REQUIRED_FILES = [
   "dist/THIRD_PARTY_NOTICES.md",
@@ -57,10 +61,13 @@ const COMMITTED_BUILD_INPUTS = [
   "scripts/audit-icon-map.mjs",
   "scripts/build-makers.mjs",
   "scripts/generate-makers-data.mjs",
+  "scripts/generate-makers-nickname-data.mjs",
   "scripts/generate-makers-prompt-data.mjs",
   "scripts/icon-data-lib.mjs",
+  "scripts/nickname-data-lib.mjs",
   "scripts/prompt-data-lib.mjs",
   "shared/combine-prompt.json",
+  "shared/nickname-data.json",
 ];
 
 async function copyCommittedBuildFixture(
@@ -419,6 +426,100 @@ test("normal build needs no words checkout and ships only local icon assets", as
     }
   } finally {
     await rm(root, { force: true, recursive: true });
+  }
+});
+
+test("nickname generator is deterministic and needs no words checkout", async () => {
+  const root = await mkdtemp(join(tmpdir(), "nickname-generator-"));
+  try {
+    await Promise.all([
+      mkdir(join(root, "scripts"), { recursive: true }),
+      mkdir(join(root, "shared"), { recursive: true }),
+    ]);
+    await cp(
+      "scripts/generate-makers-nickname-data.mjs",
+      join(root, "scripts/generate-makers-nickname-data.mjs"),
+    );
+    await cp(
+      "scripts/nickname-data-lib.mjs",
+      join(root, "scripts/nickname-data-lib.mjs"),
+    );
+    await writeFile(
+      join(root, "shared/nickname-data.json"),
+      `${JSON.stringify({
+        schema_version: 1,
+        chengyu: ["一心一意", "全力以赴"],
+        states: ["代码", "咖啡"],
+      })}\n`,
+      "utf8",
+    );
+    await assert.rejects(access(join(root, "words")), { code: "ENOENT" });
+
+    await execFileAsync(
+      process.execPath,
+      ["scripts/generate-makers-nickname-data.mjs"],
+      { cwd: root, encoding: "utf8" },
+    );
+    const first = await readFile(
+      join(root, "edge-functions/_generated/nickname-data.js"),
+      "utf8",
+    );
+    await execFileAsync(
+      process.execPath,
+      ["scripts/generate-makers-nickname-data.mjs"],
+      { cwd: root, encoding: "utf8" },
+    );
+    const second = await readFile(
+      join(root, "edge-functions/_generated/nickname-data.js"),
+      "utf8",
+    );
+
+    assert.equal(second, first);
+    assert.match(first, /NICKNAME_CHENGYU = \["一心一意","全力以赴"\]/u);
+    assert.match(first, /NICKNAME_STATES = \["代码","咖啡"\]/u);
+  } finally {
+    await rm(root, { force: true, recursive: true });
+  }
+});
+
+test("normal build rejects malformed shared nickname data", async () => {
+  const root = await mkdtemp(join(tmpdir(), "nickname-build-invalid-"));
+  try {
+    await copyWorkingBuildFixture(root);
+    await writeFile(
+      join(root, "shared/nickname-data.json"),
+      '{"schema_version":1,"chengyu":[],"states":["代码"]}\n',
+      "utf8",
+    );
+
+    const result = await runFixtureBuild(root);
+
+    assert.notEqual(result.code, 0, "an empty nickname corpus must fail");
+    assert.match(
+      `${result.stdout}\n${result.stderr}`,
+      /nickname.*chengyu.*non-empty/i,
+    );
+  } finally {
+    await rm(root, { force: true, recursive: true });
+  }
+});
+
+test("nickname snapshot validator rejects schema and pool shape drift", () => {
+  const valid = {
+    schema_version: 1,
+    chengyu: ["一心一意"],
+    states: ["代码"],
+  };
+
+  assert.deepEqual(validateNicknameData(valid), valid);
+  for (const invalid of [
+    { ...valid, schema_version: "1" },
+    { ...valid, extra: true },
+    { ...valid, chengyu: [] },
+    { ...valid, states: [" "] },
+    { ...valid, states: [1] },
+  ]) {
+    assert.throws(() => validateNicknameData(invalid), /nickname/i);
   }
 });
 
