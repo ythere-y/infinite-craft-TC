@@ -11,6 +11,11 @@ from typing import Any, Dict, List, Optional
 
 SPEC_PATH = Path(__file__).parent.parent / "shared" / "combine-prompt.json"
 MAX_SAFE_INTEGER = (1 << 53) - 1
+PROMPT_WHITESPACE = frozenset(
+    "\u0009\u000a\u000b\u000c\u000d\u0020\u0085\u00a0\u1680"
+    "\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a"
+    "\u2028\u2029\u202f\u205f\u3000\ufeff"
+)
 
 
 def _require_record(value: Any, label: str) -> Dict[str, Any]:
@@ -24,17 +29,28 @@ def _require_boolean(value: Any, label: str) -> None:
         raise ValueError(f"{label} must be a boolean")
 
 
+def _strip_prompt_whitespace(value: str) -> str:
+    start = 0
+    end = len(value)
+    while start < end and value[start] in PROMPT_WHITESPACE:
+        start += 1
+    while end > start and value[end - 1] in PROMPT_WHITESPACE:
+        end -= 1
+    return value[start:end]
+
+
 def _require_non_empty_string(value: Any, label: str) -> None:
-    if not isinstance(value, str) or not value.strip():
+    if not isinstance(value, str) or not _strip_prompt_whitespace(value):
         raise ValueError(f"{label} must be a non-empty string")
 
 
 def _validate_id(value: Any, field: str) -> str:
     if not isinstance(value, str):
         raise ValueError(f"{field} id must be a string")
-    if not value.strip():
+    stripped = _strip_prompt_whitespace(value)
+    if not stripped:
         raise ValueError(f"{field} id must not be blank")
-    if value != value.strip():
+    if value != stripped:
         raise ValueError(f"{field} id must not have surrounding whitespace")
     return value
 
@@ -127,24 +143,24 @@ def validate_prompt_spec(value: Any) -> Dict[str, Any]:
         raise ValueError("style weights must sum to 1")
 
     capacities = _require_record(record.get("capacities"), "capacities")
-    community_formula_catalog_capacity = capacities.get(
-        "community_formula_catalog"
-    )
-    if (
-        not _is_safe_integer_number(community_formula_catalog_capacity)
-        or community_formula_catalog_capacity <= 0
-    ):
-        raise ValueError(
-            "community_formula_catalog capacity must be a positive integer"
-        )
+    for name in ("community_formula_catalog", "recent_firsts"):
+        if (
+            not _is_safe_integer_number(capacities.get(name))
+            or capacities[name] <= 0
+        ):
+            raise ValueError(f"{name} capacity must be a positive integer")
 
     limits = _require_record(record.get("limits"), "limits")
     for name in ("avoid_words", "community_examples", "bounty_candidates"):
         if not _is_safe_integer_number(limits.get(name)) or limits[name] <= 0:
             raise ValueError(f"{name} must be a positive integer")
-    if limits["community_examples"] > community_formula_catalog_capacity:
+    if limits["community_examples"] > capacities["community_formula_catalog"]:
         raise ValueError(
             "community_examples must not exceed community formula catalog capacity"
+        )
+    if limits["avoid_words"] > capacities["recent_firsts"]:
+        raise ValueError(
+            "avoid_words must not exceed recent firsts capacity"
         )
     return deepcopy(record)
 

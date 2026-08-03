@@ -5,6 +5,13 @@ import { fileURLToPath } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CANONICAL_PATH = "shared/combine-prompt.json";
 const GENERATED_PATH = "edge-functions/_generated/prompt-data.js";
+const PROMPT_WHITESPACE = new Set([
+  "\u0009", "\u000a", "\u000b", "\u000c", "\u000d", "\u0020",
+  "\u0085", "\u00a0", "\u1680",
+  "\u2000", "\u2001", "\u2002", "\u2003", "\u2004", "\u2005",
+  "\u2006", "\u2007", "\u2008", "\u2009", "\u200a",
+  "\u2028", "\u2029", "\u202f", "\u205f", "\u3000", "\ufeff",
+]);
 
 function requireRecord(value, label) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -18,8 +25,17 @@ function requireBoolean(value, label) {
   }
 }
 
+function stripPromptWhitespace(value) {
+  const characters = [...value];
+  let start = 0;
+  let end = characters.length;
+  while (start < end && PROMPT_WHITESPACE.has(characters[start])) start += 1;
+  while (end > start && PROMPT_WHITESPACE.has(characters[end - 1])) end -= 1;
+  return characters.slice(start, end).join("");
+}
+
 function requireNonEmptyString(value, label) {
-  if (typeof value !== "string" || !value.trim()) {
+  if (typeof value !== "string" || !stripPromptWhitespace(value)) {
     throw new Error(`${label} must be a non-empty string`);
   }
 }
@@ -28,10 +44,11 @@ function validateId(value, field) {
   if (typeof value !== "string") {
     throw new Error(`${field} id must be a string`);
   }
-  if (!value.trim()) {
+  const stripped = stripPromptWhitespace(value);
+  if (!stripped) {
     throw new Error(`${field} id must not be blank`);
   }
-  if (value !== value.trim()) {
+  if (value !== stripped) {
     throw new Error(`${field} id must not have surrounding whitespace`);
   }
   return value;
@@ -108,25 +125,29 @@ export function validatePromptSpec(value) {
     throw new Error("style weights must sum to 1");
   }
   requireRecord(value.capacities, "capacities");
-  const communityFormulaCatalogCapacity =
-    value.capacities.community_formula_catalog;
-  if (
-    !Number.isSafeInteger(communityFormulaCatalogCapacity) ||
-    communityFormulaCatalogCapacity <= 0
-  ) {
-    throw new Error(
-      "community_formula_catalog capacity must be a positive integer",
-    );
+  for (const name of ["community_formula_catalog", "recent_firsts"]) {
+    if (
+      !Number.isSafeInteger(value.capacities[name]) ||
+      value.capacities[name] <= 0
+    ) {
+      throw new Error(`${name} capacity must be a positive integer`);
+    }
   }
   for (const name of ["avoid_words", "community_examples", "bounty_candidates"]) {
     if (!Number.isSafeInteger(value.limits?.[name]) || value.limits[name] <= 0) {
       throw new Error(`${name} must be a positive integer`);
     }
   }
-  if (value.limits.community_examples > communityFormulaCatalogCapacity) {
+  if (
+    value.limits.community_examples >
+    value.capacities.community_formula_catalog
+  ) {
     throw new Error(
       "community_examples must not exceed community formula catalog capacity",
     );
+  }
+  if (value.limits.avoid_words > value.capacities.recent_firsts) {
+    throw new Error("avoid_words must not exceed recent firsts capacity");
   }
   return structuredClone(value);
 }

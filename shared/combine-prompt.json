@@ -78,7 +78,8 @@
     { "id": "past-present", "enabled": true, "label": "偏古今对照", "guidance": "优先制造古语与现代职场或科技概念的对照。", "weight": 0.05 }
   ],
   "capacities": {
-    "community_formula_catalog": 500
+    "community_formula_catalog": 500,
+    "recent_firsts": 10000
   },
   "limits": {
     "avoid_words": 30,

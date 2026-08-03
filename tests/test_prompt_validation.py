@@ -41,6 +41,9 @@ def _invalid_source(case):
         source_parent, source_key = _at_path(value, case["from"])
         target_parent, target_key = _at_path(value, case["path"])
         target_parent[target_key] = copy.deepcopy(source_parent[source_key])
+    elif case["op"] == "delete":
+        parent, key = _at_path(value, case["path"])
+        parent.pop(key, None)
     else:
         parent, key = _at_path(value, case["path"])
         parent[key] = case["value"]
@@ -63,15 +66,19 @@ def test_python_loader_rejects_shared_invalid_spec_corpus(
         prompt_spec.load_prompt_spec.cache_clear()
 
 
-def test_python_validation_accepts_community_catalog_capacity_boundary():
+def test_python_validation_accepts_capacity_boundaries():
     spec = json.loads(CANONICAL_PATH.read_text(encoding="utf-8"))
-    capacity = spec["capacities"]["community_formula_catalog"]
-    spec["limits"]["community_examples"] = capacity
+    formula_capacity = spec["capacities"]["community_formula_catalog"]
+    recent_capacity = spec["capacities"]["recent_firsts"]
+    spec["limits"]["community_examples"] = formula_capacity
+    spec["limits"]["avoid_words"] = recent_capacity
 
     validated = prompt_spec.validate_prompt_spec(spec)
 
-    assert capacity == 500
+    assert formula_capacity == 500
+    assert recent_capacity == 10_000
     assert validated["limits"]["community_examples"] == 500
+    assert validated["limits"]["avoid_words"] == 10_000
 
 
 def test_startup_validates_prompt_before_initializing_services(monkeypatch):

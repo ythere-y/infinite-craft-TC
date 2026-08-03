@@ -43,6 +43,9 @@ function invalidSource(caseItem, canonicalSource) {
     const [sourceParent, sourceKey] = atPath(value, caseItem.from);
     const [targetParent, targetKey] = atPath(value, caseItem.path);
     targetParent[targetKey] = structuredClone(sourceParent[sourceKey]);
+  } else if (caseItem.op === "delete") {
+    const [parent, key] = atPath(value, caseItem.path);
+    delete parent[key];
   } else {
     const [parent, key] = atPath(value, caseItem.path);
     parent[key] = caseItem.value;
@@ -75,6 +78,7 @@ test("canonical prompt has stable modules examples styles and limits", async () 
   });
   assert.deepEqual(spec.capacities, {
     community_formula_catalog: 500,
+    recent_firsts: 10_000,
   });
 });
 
@@ -101,15 +105,19 @@ test("prompt validation rejects duplicate ids", async () => {
   );
 });
 
-test("prompt validation accepts the community formula catalog capacity boundary", async () => {
+test("prompt validation accepts capacity boundaries", async () => {
   const spec = await loadPromptSpec("shared/combine-prompt.json");
-  const capacity = spec.capacities.community_formula_catalog;
-  spec.limits.community_examples = capacity;
+  const formulaCapacity = spec.capacities.community_formula_catalog;
+  const recentCapacity = spec.capacities.recent_firsts;
+  spec.limits.community_examples = formulaCapacity;
+  spec.limits.avoid_words = recentCapacity;
 
   const validated = validatePromptSpec(spec);
 
-  assert.equal(capacity, 500);
+  assert.equal(formulaCapacity, 500);
+  assert.equal(recentCapacity, 10_000);
   assert.equal(validated.limits.community_examples, 500);
+  assert.equal(validated.limits.avoid_words, 10_000);
 });
 
 test("prompt validation rejects string style weights", async () => {

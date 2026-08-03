@@ -33,10 +33,11 @@
       {"id":"selected-style","enabled":true,"label":"选中样式","guidance":"选中指引","weight":0.6}
     ],
     "capacities": {
-      "community_formula_catalog": 500
+      "community_formula_catalog": 500,
+      "recent_firsts": 10000
     },
     "limits": {
-      "avoid_words": 9007199254740991,
+      "avoid_words": 10000,
       "community_examples": 500,
       "bounty_candidates": 9007199254740991
     }
