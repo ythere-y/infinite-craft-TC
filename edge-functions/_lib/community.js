@@ -191,15 +191,28 @@ export class CommunityStore {
     };
   }
   async listPublic({ limit = 50, offset = 0 } = {}) {
-    const boundedLimit = Math.max(1, Math.min(MAX_PUBLIC_PAGE, Math.trunc(Number(limit) || 50)));
-    const boundedOffset = Math.max(0, Math.trunc(Number(offset) || 0));
+    const parsedLimit = Number(limit);
+    const parsedOffset = Number(offset);
+    const boundedLimit = Math.max(
+      1,
+      Math.min(
+        MAX_PUBLIC_PAGE,
+        Number.isFinite(parsedLimit) ? Math.trunc(parsedLimit) : 50,
+      ),
+    );
+    const boundedOffset = Math.max(
+      0,
+      Number.isFinite(parsedOffset) ? Math.trunc(parsedOffset) : 0,
+    );
     const ids = (await this.get(INDEX_KEY, [])).slice(0, MAX_PUBLIC_INDEX);
     const values = await Promise.all(ids.map((id) => this.get(`community_formula_${id}`)));
     return values.map((item) => this.publicView(item)).filter(Boolean)
       .sort((a, b) =>
         b.net_score - a.net_score ||
         Number(b.published_at || 0) - Number(a.published_at || 0) ||
-        String(b.id).localeCompare(String(a.id)),
+        // Formula IDs are SHA-256-derived lowercase ASCII hex. Code-unit order
+        // is therefore SQLite BINARY order, including legacy ASCII IDs.
+        (String(a.id) > String(b.id) ? -1 : String(a.id) < String(b.id) ? 1 : 0),
       )
       .slice(boundedOffset, boundedOffset + boundedLimit);
   }

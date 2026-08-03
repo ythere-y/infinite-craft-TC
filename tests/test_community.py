@@ -192,6 +192,33 @@ def test_takedown_formula_is_not_available_from_public_detail(tmp_path, monkeypa
     assert community.public_formula(row["id"], "publisher") is None
 
 
+def test_public_list_uses_sqlite_binary_id_tiebreak_for_equal_scores(
+    tmp_path,
+    monkeypatch,
+):
+    setup_db(tmp_path, monkeypatch)
+    con = archive._conn()
+    try:
+        con.executemany(
+            """
+            INSERT INTO formula_versions(
+                id,combo_key,a,b,result,emoji,comment,source,version,
+                visibility,status,published_at,created_at,updated_at
+            ) VALUES (?, ?, '输入', '会议', ?, '🗓️', '同分同时间。', 'llm', 1,
+                      'public', 'active', 1700000000, 1700000000, 1700000000)
+            """,
+            [
+                (formula_id, f"输入{formula_id} + 会议", f"结果{formula_id}")
+                for formula_id in ["a", "B", "Z"]
+            ],
+        )
+        con.commit()
+    finally:
+        con.close()
+
+    assert [item["id"] for item in community.list_public(limit=10)] == ["a", "Z", "B"]
+
+
 def test_seed_reconciliation_supersedes_conflicting_active_formula(
     tmp_path,
     monkeypatch,

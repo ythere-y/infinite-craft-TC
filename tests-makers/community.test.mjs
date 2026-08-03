@@ -144,6 +144,80 @@ test("Makers public listing globally ranks the bounded catalogue before paginati
   assert.ok(page.every((item, index, items) =>
     index === 0 || items[index - 1].net_score >= item.net_score,
   ));
+  assert.equal((await community.listPublic({ limit: 999, offset: 0 })).length, 100);
+});
+
+test("Makers public list uses SQLite BINARY descending ID order for equal scores", async () => {
+  const ids = ["a", "B", "Z"];
+  const kv = new FakeKV({
+    community_public_formulas: JSON.stringify(ids),
+    ...Object.fromEntries(ids.map((id) => [
+      `community_formula_${id}`,
+      JSON.stringify({
+        id,
+        a: "输入",
+        b: "会议",
+        result: `结果${id}`,
+        emoji: "🗓️",
+        comment: "同分同时间。",
+        visibility: "public",
+        status: "active",
+        up_votes: 7,
+        down_votes: 0,
+        published_at: 1_700_000_000,
+      }),
+    ])),
+  });
+  const community = new CommunityStore(kv);
+
+  assert.deepEqual(
+    (await community.listPublic({ limit: 10 })).map((item) => item.id),
+    ["a", "Z", "B"],
+  );
+});
+
+test("Makers public list normalizes direct pagination inputs like the HTTP contract", async () => {
+  const ids = ["page_3", "page_2", "page_1"];
+  const kv = new FakeKV({
+    community_public_formulas: JSON.stringify(ids),
+    ...Object.fromEntries(ids.map((id, index) => [
+      `community_formula_${id}`,
+      JSON.stringify({
+        id,
+        a: "输入",
+        b: "会议",
+        result: `结果${id}`,
+        emoji: "🗓️",
+        comment: "分页边界。",
+        visibility: "public",
+        status: "active",
+        up_votes: 3 - index,
+        down_votes: 0,
+        published_at: 1_700_000_000 - index,
+      }),
+    ])),
+  });
+  const community = new CommunityStore(kv);
+
+  for (const { options, expected } of [
+    { options: { limit: 0 }, expected: ["page_3"] },
+    { options: { limit: -4 }, expected: ["page_3"] },
+    { options: { limit: 2.8 }, expected: ["page_3", "page_2"] },
+    { options: { limit: 999 }, expected: ids },
+    { options: { limit: "not-a-number" }, expected: ids },
+    { options: { limit: Number.POSITIVE_INFINITY }, expected: ids },
+    { options: { offset: -2 }, expected: ids },
+    { options: { offset: 1.8 }, expected: ["page_2", "page_1"] },
+    { options: { offset: "not-a-number" }, expected: ids },
+    { options: { offset: Number.POSITIVE_INFINITY }, expected: ids },
+    { options: { offset: 1_000_000 }, expected: [] },
+  ]) {
+    assert.deepEqual(
+      (await community.listPublic(options)).map((item) => item.id),
+      expected,
+      JSON.stringify(options),
+    );
+  }
 });
 
 test("Makers public formula detail includes the caller vote and hides non-public formulas", async () => {
