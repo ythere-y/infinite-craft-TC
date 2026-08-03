@@ -1601,6 +1601,112 @@ def test_recipe_links_hover_draws_only_incident_edges_and_fades_on_leave(tmp_pat
     assert actual["workspaceActiveAfterLeave"] is False
 
 
+def test_recipe_links_breathe_together_only_after_all_incident_draws_complete(
+    tmp_path,
+):
+    actual = _run_browser(
+        tmp_path,
+        """
+        var drawCalls = [];
+        var breathingCalls = [];
+        window.anime = {
+          svg: {
+            createDrawable: function (path) {
+              return [{ path: path, draw: "0 0" }];
+            }
+          },
+          animate: function (targets, options) {
+            if (options.loop === true) {
+              var breathing = {
+                targets: Array.from(targets),
+                options: options,
+                cancelCalls: 0,
+                cancel: function () { this.cancelCalls += 1; }
+              };
+              breathingCalls.push(breathing);
+              return breathing;
+            }
+            var draw = {
+              targets: targets,
+              options: options,
+              cancelCalls: 0,
+              cancel: function () { this.cancelCalls += 1; }
+            };
+            drawCalls.push(draw);
+            return draw;
+          }
+        };
+        var workspace = document.getElementById("fixture");
+        workspace.style.cssText =
+          "position:relative;width:800px;height:500px;overflow:hidden";
+        var a = document.createElement("div");
+        a.className = "element on-canvas";
+        a.dataset.id = "1";
+        workspace.appendChild(a);
+        var controller = window.RECIPE_LINKS.create(workspace);
+        controller.sync({
+          recipes: [
+            { key: "A + B", a: "A", b: "B", hit_count: 8, depth: 5 },
+            { key: "A + C", a: "A", b: "C", hit_count: 20, depth: 7 },
+            { key: "B + C", a: "B", b: "C", hit_count: 40, depth: 10 }
+          ],
+          elements: [
+            { id: 1, name: "A", x: 100, y: 100 },
+            { id: 2, name: "B", x: 360, y: 220 },
+            { id: 3, name: "C", x: 620, y: 100 }
+          ]
+        });
+        a.dispatchEvent(new PointerEvent("pointerover", { bubbles: true }));
+        var beforeAny = breathingCalls.length;
+        var canComplete = drawCalls.length === 2 && drawCalls.every(
+          function (call) {
+            return typeof call.options.onComplete === "function";
+          }
+        );
+        var afterFirst = breathingCalls.length;
+        if (canComplete) {
+          drawCalls[0].options.onComplete();
+          afterFirst = breathingCalls.length;
+          drawCalls[1].options.onComplete();
+        }
+        var breath = breathingCalls[0] || {
+          targets: [],
+          options: {}
+        };
+        return {
+          canComplete: canComplete,
+          drawCount: drawCalls.length,
+          breathingBeforeAnyComplete: beforeAny,
+          breathingAfterFirstComplete: afterFirst,
+          breathingCount: breathingCalls.length,
+          breathingRecipeKeys: breath.targets.map(function (group) {
+            return group.dataset.recipeKey;
+          }).sort(),
+          opacity: breath.options.opacity || null,
+          duration: breath.options.duration || null,
+          ease: breath.options.ease || null,
+          loop: breath.options.loop || false,
+          alternate: breath.options.alternate || false
+        };
+        """,
+        include_recipe_links=True,
+    )
+
+    assert actual == {
+        "canComplete": True,
+        "drawCount": 2,
+        "breathingBeforeAnyComplete": 0,
+        "breathingAfterFirstComplete": 0,
+        "breathingCount": 1,
+        "breathingRecipeKeys": ["A + B", "A + C"],
+        "opacity": [0.72, 1],
+        "duration": 700,
+        "ease": "inOutSine",
+        "loop": True,
+        "alternate": True,
+    }
+
+
 def test_recipe_links_draw_from_reverse_endpoint_toward_related_endpoint(tmp_path):
     actual = _run_browser(
         tmp_path,

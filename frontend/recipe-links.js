@@ -189,6 +189,9 @@
     let frameId = null;
     let destroyed = false;
     let activeElementId = null;
+    let breathingAnimation = null;
+    let breathingGroups = [];
+    let animationGeneration = 0;
     const reducedMotion = global.matchMedia?.(
       "(prefers-reduced-motion: reduce)",
     )?.matches === true;
@@ -240,26 +243,106 @@
       edges.forEach(cancelDraw);
     }
 
-    function startDraw(edge, hoveredId) {
+    function cancelBreathing() {
+      breathingAnimation?.cancel?.();
+      breathingAnimation = null;
+      breathingGroups.forEach((group) => {
+        group.style.removeProperty("opacity");
+      });
+      breathingGroups = [];
+    }
+
+    function startBreathing(groups, generation, hoveredId) {
+      if (
+        destroyed
+        || reducedMotion
+        || generation !== animationGeneration
+        || hoveredId !== activeElementId
+        || groups.length === 0
+      ) return;
+      const anime = global.anime;
+      if (typeof anime?.animate !== "function") return;
+      cancelBreathing();
+      breathingGroups = groups;
+      breathingAnimation = anime.animate(groups, {
+        opacity: [0.72, 1],
+        duration: 700,
+        ease: "inOutSine",
+        loop: true,
+        alternate: true,
+      });
+    }
+
+    function startDraw(edge, hoveredId, generation, onComplete) {
       cancelDraw(edge);
-      if (reducedMotion) return;
+      if (reducedMotion) return false;
       const anime = global.anime;
       if (
         typeof anime?.animate !== "function"
         || typeof anime?.svg?.createDrawable !== "function"
-      ) return;
+      ) return false;
       const drawable = anime.svg.createDrawable(edge.draw);
       const forward = edge.leftId === hoveredId;
-      edge.animation = anime.animate(drawable, {
+      const animation = anime.animate(drawable, {
         draw: forward ? ["0 0", "0 1"] : ["1 1", "0 1"],
         duration: Number(
           edge.group.style.getPropertyValue("--recipe-link-duration"),
         ),
         ease: "outQuad",
+        onComplete: () => {
+          if (edge.animation === animation) edge.animation = null;
+          onComplete(edge, generation);
+        },
+      });
+      edge.animation = animation;
+      return true;
+    }
+
+    function activeEdgesFor(id) {
+      return Array.from(edges.values()).filter(
+        (edge) => edge.leftId === id || edge.rightId === id,
+      );
+    }
+
+    function startActiveAnimations() {
+      cancelBreathing();
+      animationGeneration += 1;
+      const generation = animationGeneration;
+      const hoveredId = activeElementId;
+      if (hoveredId === null) return;
+      const activeEdges = activeEdgesFor(hoveredId);
+      let remaining = 0;
+      const completed = new Set();
+      const onComplete = (edge, completedGeneration) => {
+        if (
+          completedGeneration !== animationGeneration
+          || hoveredId !== activeElementId
+          || !edges.has(edge.key)
+          || completed.has(edge.key)
+        ) return;
+        completed.add(edge.key);
+        remaining -= 1;
+        if (remaining !== 0) return;
+        const current = activeEdgesFor(hoveredId);
+        if (
+          current.length === activeEdges.length
+          && current.every((item) => completed.has(item.key))
+        ) {
+          startBreathing(
+            current.map((item) => item.group),
+            generation,
+            hoveredId,
+          );
+        }
+      };
+      activeEdges.forEach((edge) => {
+        if (startDraw(edge, hoveredId, generation, onComplete)) {
+          remaining += 1;
+        }
       });
     }
 
-    function applyActiveState(playDraw) {
+    function applyActiveState() {
       svg.classList.toggle("has-active-link", activeElementId !== null);
       for (const edge of edges.values()) {
         const incident = activeElementId !== null
@@ -269,19 +352,18 @@
           "is-muted",
           activeElementId !== null && !incident,
         );
-        if (incident) {
-          if (playDraw) startDraw(edge, activeElementId);
-        } else {
-          cancelDraw(edge);
-        }
+        if (!incident) cancelDraw(edge);
       }
     }
 
     function setActiveElement(id) {
       const nextId = id ? String(id) : null;
       if (nextId === activeElementId) return;
+      animationGeneration += 1;
+      cancelBreathing();
       activeElementId = nextId;
-      applyActiveState(true);
+      applyActiveState();
+      if (activeElementId !== null) startActiveAnimations();
     }
 
     function onPointerOver(event) {
@@ -362,7 +444,7 @@
           setVisualProfile(edge, item.recipe);
         }
       }
-      applyActiveState(false);
+      applyActiveState();
       schedule();
     }
 
