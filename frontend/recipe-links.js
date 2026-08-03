@@ -361,6 +361,8 @@
 
     function clear() {
       if (destroyed) return;
+      activeElementId = null;
+      svg.classList.remove("has-active-link");
       edges.forEach((edge) => {
         cancelDraw(edge);
         edge.group.remove();

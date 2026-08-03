@@ -1598,6 +1598,52 @@ def test_recipe_links_hover_draws_only_incident_edges_and_fades_on_leave(tmp_pat
     assert actual["workspaceActiveAfterLeave"] is False
 
 
+def test_recipe_links_clear_resets_hover_state_before_a_later_sync(tmp_path):
+    actual = _run_browser(
+        tmp_path,
+        """
+        var workspace = document.getElementById("fixture");
+        workspace.style.cssText =
+          "position:relative;width:800px;height:500px;overflow:hidden";
+        function addElement(id, name) {
+          var element = document.createElement("div");
+          element.className = "element on-canvas";
+          element.dataset.id = String(id);
+          element.dataset.name = name;
+          workspace.appendChild(element);
+          return element;
+        }
+        var a = addElement(1, "A");
+        addElement(2, "B");
+        var payload = {
+          recipes: [
+            { key: "A + B", a: "A", b: "B", hit_count: 8, depth: 5 }
+          ],
+          elements: [
+            { id: 1, name: "A", x: 100, y: 100 },
+            { id: 2, name: "B", x: 620, y: 100 }
+          ]
+        };
+        var controller = window.RECIPE_LINKS.create(workspace);
+        controller.sync(payload);
+        a.dispatchEvent(new PointerEvent("pointerover", { bubbles: true }));
+        controller.clear();
+        controller.sync(payload);
+        return {
+          activeGroups: workspace.querySelectorAll(
+            ".recipe-link.is-active"
+          ).length,
+          workspaceActive: workspace.querySelector(
+            ".recipe-links"
+          ).classList.contains("has-active-link")
+        };
+        """,
+        include_recipe_links=True,
+    )
+
+    assert actual == {"activeGroups": 0, "workspaceActive": False}
+
+
 def test_recipe_links_are_isolated_and_honor_reduced_motion():
     assert RECIPE_LINKS_SOURCE.exists(), "recipe-links.js must exist"
     assert RECIPE_LINKS_CSS_SOURCE.exists(), "recipe-links.css must exist"
