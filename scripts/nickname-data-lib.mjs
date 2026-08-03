@@ -4,6 +4,19 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SNAPSHOT_KEYS = ["chengyu", "schema_version", "states"];
+const BLANK_CODE_POINT_RANGES = [
+  [0x0009, 0x000d],
+  [0x001c, 0x0020],
+  [0x0085, 0x0085],
+  [0x00a0, 0x00a0],
+  [0x1680, 0x1680],
+  [0x2000, 0x200a],
+  [0x2028, 0x2029],
+  [0x202f, 0x202f],
+  [0x205f, 0x205f],
+  [0x3000, 0x3000],
+  [0xfeff, 0xfeff],
+];
 
 export const BLOCKED_SUBSTRINGS = [
   "政府", "政治", "政策", "主席", "总理", "部长", "党", "军", "战争", "革命",
@@ -63,7 +76,12 @@ function validatePool(value, label) {
     value.some(
       (word) => (
         typeof word !== "string" ||
-        /^[\s\u001c-\u001f]*$/u.test(word)
+        [...word].every((character) => {
+          const codePoint = character.codePointAt(0);
+          return BLANK_CODE_POINT_RANGES.some(
+            ([start, end]) => codePoint >= start && codePoint <= end,
+          );
+        })
       ),
     )
   ) {
@@ -79,9 +97,16 @@ function isPlainObject(value) {
     return false;
   }
   const prototype = Object.getPrototypeOf(value);
+  if (prototype === null) {
+    return true;
+  }
+  const constructor = Object.hasOwn(prototype, "constructor")
+    ? prototype.constructor
+    : null;
   return (
-    prototype === null ||
-    Object.getPrototypeOf(prototype) === null
+    Object.getPrototypeOf(prototype) === null &&
+    typeof constructor === "function" &&
+    constructor.name === "Object"
   );
 }
 

@@ -41,7 +41,7 @@ def test_python_loads_a_valid_shared_snapshot_without_thuocl(
     assert nickname.load_word_pools() == (["一心一意"], ["代码"])
 
 
-@pytest.mark.parametrize("blank_word", ["\ufeff", "\u001c"])
+@pytest.mark.parametrize("blank_word", ["\ufeff", "\u001c", "\u0085"])
 def test_python_falls_back_for_union_blank_strings(
     monkeypatch,
     tmp_path,
@@ -64,6 +64,39 @@ def test_python_falls_back_for_union_blank_strings(
     _, states = nickname.load_word_pools()
 
     assert states == ["代码", "周报", "咖啡", "火锅"]
+
+
+def test_python_blank_code_point_ranges_and_boundaries_are_explicit():
+    ranges = (
+        (0x0009, 0x000D),
+        (0x001C, 0x0020),
+        (0x0085, 0x0085),
+        (0x00A0, 0x00A0),
+        (0x1680, 0x1680),
+        (0x2000, 0x200A),
+        (0x2028, 0x2029),
+        (0x202F, 0x202F),
+        (0x205F, 0x205F),
+        (0x3000, 0x3000),
+        (0xFEFF, 0xFEFF),
+    )
+    blank_points = {
+        code_point
+        for start, end in ranges
+        for code_point in range(start, end + 1)
+    }
+    boundary_points = {
+        code_point
+        for start, end in ranges
+        for code_point in (start - 1, end + 1)
+        if 0 <= code_point <= 0x10FFFF
+    } - blank_points
+
+    for code_point in blank_points:
+        assert nickname._is_blank_word(chr(code_point))
+    for code_point in boundary_points:
+        assert not nickname._is_blank_word(chr(code_point))
+    assert not nickname._is_blank_word("\u0085代码\ufeff")
 
 
 def test_python_accepts_visible_words_with_union_whitespace(

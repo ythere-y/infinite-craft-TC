@@ -30,6 +30,19 @@ _FALLBACK_CHENGYU = [
     "坚定不移", "全力以赴", "心有灵犀", "目不转睛",
 ]
 _FALLBACK_STATES = ["代码", "周报", "咖啡", "火锅"]
+_BLANK_CODE_POINT_RANGES = (
+    (0x0009, 0x000D),
+    (0x001C, 0x0020),
+    (0x0085, 0x0085),
+    (0x00A0, 0x00A0),
+    (0x1680, 0x1680),
+    (0x2000, 0x200A),
+    (0x2028, 0x2029),
+    (0x202F, 0x202F),
+    (0x205F, 0x205F),
+    (0x3000, 0x3000),
+    (0xFEFF, 0xFEFF),
+)
 
 # ============================================================
 # 人工精选梗词池（高权重，40% 几率从这抽）
@@ -61,7 +74,10 @@ def _fallback_word_pools() -> tuple[List[str], List[str]]:
 
 
 def _is_blank_word(value: str) -> bool:
-    return all(char.isspace() or char == "\ufeff" for char in value)
+    return all(
+        any(start <= ord(char) <= end for start, end in _BLANK_CODE_POINT_RANGES)
+        for char in value
+    )
 
 
 def load_word_pools() -> tuple[List[str], List[str]]:

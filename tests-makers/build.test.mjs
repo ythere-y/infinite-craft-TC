@@ -525,7 +525,7 @@ test("nickname snapshot validator rejects schema and pool shape drift", () => {
 });
 
 test("nickname snapshot validator uses the shared blank-string domain", () => {
-  for (const blankWord of ["\ufeff", "\u001c"]) {
+  for (const blankWord of ["\ufeff", "\u001c", "\u0085"]) {
     assert.throws(
       () => validateNicknameData({
         schema_version: 1,
@@ -550,6 +550,59 @@ test("nickname snapshot validator uses the shared blank-string domain", () => {
   );
 });
 
+test("nickname snapshot validator enforces every explicit blank range boundary", () => {
+  const ranges = [
+    [0x0009, 0x000d],
+    [0x001c, 0x0020],
+    [0x0085, 0x0085],
+    [0x00a0, 0x00a0],
+    [0x1680, 0x1680],
+    [0x2000, 0x200a],
+    [0x2028, 0x2029],
+    [0x202f, 0x202f],
+    [0x205f, 0x205f],
+    [0x3000, 0x3000],
+    [0xfeff, 0xfeff],
+  ];
+  const blankPoints = new Set(
+    ranges.flatMap(([start, end]) =>
+      Array.from(
+        { length: end - start + 1 },
+        (_, index) => start + index,
+      ),
+    ),
+  );
+  const boundaryPoints = new Set(
+    ranges
+      .flatMap(([start, end]) => [start - 1, end + 1])
+      .filter(
+        (codePoint) => (
+          codePoint >= 0 &&
+          codePoint <= 0x10ffff &&
+          !blankPoints.has(codePoint)
+        ),
+      ),
+  );
+  const validateState = (state) => validateNicknameData({
+    schema_version: 1,
+    chengyu: ["一心一意"],
+    states: [state],
+  });
+
+  for (const codePoint of blankPoints) {
+    assert.throws(
+      () => validateState(String.fromCodePoint(codePoint)),
+      /nickname/i,
+    );
+  }
+  for (const codePoint of boundaryPoints) {
+    assert.doesNotThrow(
+      () => validateState(String.fromCodePoint(codePoint)),
+    );
+  }
+  assert.doesNotThrow(() => validateState("\u0085代码\ufeff"));
+});
+
 test("nickname snapshot validator accepts a cross-realm plain object", () => {
   const crossRealm = runInNewContext(`({
     schema_version: 1,
@@ -572,6 +625,28 @@ test("nickname snapshot validator accepts a cross-realm plain object", () => {
     })),
     /plain object/i,
   );
+
+  const fakePrototype = Object.create(null);
+  const fakePlainObject = Object.assign(Object.create(fakePrototype), {
+    schema_version: 1,
+    chengyu: ["一心一意"],
+    states: ["代码"],
+  });
+  assert.throws(
+    () => validateNicknameData(fakePlainObject),
+    /plain object/i,
+  );
+
+  const nullPrototype = Object.assign(Object.create(null), {
+    schema_version: 1,
+    chengyu: ["一心一意"],
+    states: ["代码"],
+  });
+  assert.deepEqual(validateNicknameData(nullPrototype), {
+    schema_version: 1,
+    chengyu: ["一心一意"],
+    states: ["代码"],
+  });
 });
 
 test("normal build rejects each missing casino runtime asset", async () => {
