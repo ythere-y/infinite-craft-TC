@@ -21,11 +21,13 @@
 .recipe-link-base {
   stroke-width: calc((.45 + var(--recipe-link-width, .7) * .28) * 1px);
   opacity: .055;
+  transition: opacity 520ms ease;
 }
 
 .recipe-link-emphasis,
 .recipe-link-draw {
-  stroke-width: calc(var(--recipe-link-width, .7) * 1px);
+  stroke-width:
+    calc((.35 + var(--recipe-link-width, .7) * .16) * 1px);
   opacity: 0;
   transition:
     opacity 520ms ease,
@@ -42,6 +44,7 @@
 }
 
 .recipe-link.is-active .recipe-link-emphasis {
+  stroke-width: calc(var(--recipe-link-width, .7) * 1px);
   opacity: var(--recipe-link-opacity, .34);
   filter:
     drop-shadow(
@@ -51,6 +54,7 @@
 }
 
 .recipe-link.is-active .recipe-link-draw {
+  stroke-width: calc(var(--recipe-link-width, .7) * 1px);
   opacity: min(1, calc(var(--recipe-link-opacity, .34) + .18));
 }
 
@@ -63,6 +67,7 @@ body.ura-on .recipe-links {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .recipe-link-base,
   .recipe-link-emphasis,
   .recipe-link-draw {
     transition-duration: 120ms;

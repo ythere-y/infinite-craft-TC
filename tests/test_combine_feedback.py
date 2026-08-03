@@ -96,6 +96,7 @@ def _run_browser(
     include_app_styles=False,
     include_wall_styles=False,
     viewport: tuple[int, int] | None = None,
+    reduced_motion=False,
 ):
     scripts = [ICON_SOURCE.read_text(encoding="utf-8"), SOURCE.read_text(encoding="utf-8")]
     if include_effects:
@@ -170,6 +171,8 @@ def _run_browser(
     ]
     if viewport:
         command.append(f"--window-size={viewport[0]},{viewport[1]}")
+    if reduced_motion:
+        command.append("--force-prefers-reduced-motion=reduce")
     command.extend(["--dump-dom", page.as_uri()])
     completed = subprocess.run(
         command,
@@ -1598,6 +1601,125 @@ def test_recipe_links_hover_draws_only_incident_edges_and_fades_on_leave(tmp_pat
     assert actual["workspaceActiveAfterLeave"] is False
 
 
+def test_recipe_links_draw_from_reverse_endpoint_toward_related_endpoint(tmp_path):
+    actual = _run_browser(
+        tmp_path,
+        """
+        var drawDirections = [];
+        window.anime = {
+          svg: {
+            createDrawable: function (path) {
+              return [{ path: path, draw: "0 0" }];
+            }
+          },
+          animate: function (target, options) {
+            drawDirections.push(options.draw);
+            return { cancel: function () {} };
+          }
+        };
+        var workspace = document.getElementById("fixture");
+        workspace.style.cssText =
+          "position:relative;width:800px;height:500px;overflow:hidden";
+        var b = document.createElement("div");
+        b.className = "element on-canvas";
+        b.dataset.id = "2";
+        workspace.appendChild(b);
+        var controller = window.RECIPE_LINKS.create(workspace);
+        controller.sync({
+          recipes: [
+            { key: "A + B", a: "A", b: "B", hit_count: 8, depth: 5 }
+          ],
+          elements: [
+            { id: 1, name: "A", x: 100, y: 100 },
+            { id: 2, name: "B", x: 620, y: 100 }
+          ]
+        });
+        b.dispatchEvent(new PointerEvent("pointerover", { bubbles: true }));
+        return drawDirections;
+        """,
+        include_recipe_links=True,
+    )
+
+    assert actual == [["1 1", "0 1"]]
+
+
+def test_recipe_links_sync_clears_hover_when_active_endpoint_disappears(tmp_path):
+    actual = _run_browser(
+        tmp_path,
+        """
+        var handles = [];
+        window.anime = {
+          svg: {
+            createDrawable: function (path) {
+              return [{ path: path, draw: "0 0" }];
+            }
+          },
+          animate: function () {
+            var handle = {
+              cancelCalls: 0,
+              cancel: function () { this.cancelCalls += 1; }
+            };
+            handles.push(handle);
+            return handle;
+          }
+        };
+        var workspace = document.getElementById("fixture");
+        workspace.style.cssText =
+          "position:relative;width:800px;height:500px;overflow:hidden";
+        function addElement(id) {
+          var element = document.createElement("div");
+          element.className = "element on-canvas";
+          element.dataset.id = String(id);
+          workspace.appendChild(element);
+          return element;
+        }
+        var a = addElement(1);
+        addElement(2);
+        addElement(3);
+        var controller = window.RECIPE_LINKS.create(workspace);
+        controller.sync({
+          recipes: [
+            { key: "A + B", a: "A", b: "B", hit_count: 8, depth: 5 },
+            { key: "B + C", a: "B", b: "C", hit_count: 8, depth: 5 }
+          ],
+          elements: [
+            { id: 1, name: "A", x: 100, y: 100 },
+            { id: 2, name: "B", x: 360, y: 220 },
+            { id: 3, name: "C", x: 620, y: 100 }
+          ]
+        });
+        a.dispatchEvent(new PointerEvent("pointerover", { bubbles: true }));
+        a.remove();
+        controller.sync({
+          recipes: [
+            { key: "B + C", a: "B", b: "C", hit_count: 8, depth: 5 }
+          ],
+          elements: [
+            { id: 2, name: "B", x: 360, y: 220 },
+            { id: 3, name: "C", x: 620, y: 100 }
+          ]
+        });
+        var survivor = workspace.querySelector(".recipe-link");
+        return {
+          workspaceActive: workspace.querySelector(
+            ".recipe-links"
+          ).classList.contains("has-active-link"),
+          survivorActive: survivor.classList.contains("is-active"),
+          survivorMuted: survivor.classList.contains("is-muted"),
+          removedDrawCancelCalls: handles[0].cancelCalls
+        };
+        """,
+        include_recipe_links=True,
+    )
+
+    assert actual == {
+        "workspaceActive": False,
+        "survivorActive": False,
+        "survivorMuted": False,
+        "removedDrawCancelCalls": 1,
+    }
+
+
 def test_recipe_links_cancel_draws_when_hovered_edges_are_replaced_or_removed(tmp_path):
     actual = _run_browser(
         tmp_path,
@@ -1713,6 +1835,68 @@ def test_recipe_links_hover_falls_back_to_visible_active_emphasis_without_anime(
     assert actual == {"active": 1, "drawStyle": None, "emphasisOpacity": 0.54}
 
 
+def test_recipe_links_leave_transitions_base_opacity_and_emphasis_width(tmp_path):
+    actual = _run_browser(
+        tmp_path,
+        """
+        window.anime = undefined;
+        window.matchMedia = function () { return { matches: false }; };
+        var workspace = document.getElementById("fixture");
+        workspace.style.cssText =
+          "position:relative;width:800px;height:500px;overflow:hidden";
+        var element = document.createElement("div");
+        element.className = "element on-canvas";
+        element.dataset.id = "1";
+        workspace.appendChild(element);
+        var controller = window.RECIPE_LINKS.create(workspace);
+        controller.sync({
+          recipes: [
+            { key: "A + B", a: "A", b: "B", hit_count: 8, depth: 5 }
+          ],
+          elements: [
+            { id: 1, name: "A", x: 100, y: 100 },
+            { id: 2, name: "B", x: 620, y: 100 }
+          ]
+        });
+        var base = workspace.querySelector(".recipe-link-base");
+        var emphasis = workspace.querySelector(".recipe-link-emphasis");
+        var baseStyle = getComputedStyle(base);
+        var restingEmphasisWidth = parseFloat(
+          getComputedStyle(emphasis).strokeWidth
+        );
+        element.dispatchEvent(new PointerEvent("pointerover", {
+          bubbles: true
+        }));
+        return new Promise(function (resolve) {
+          window.setTimeout(function () {
+            var activeEmphasisWidth = parseFloat(
+              getComputedStyle(emphasis).strokeWidth
+            );
+            element.dispatchEvent(new PointerEvent("pointerout", {
+              bubbles: true,
+              relatedTarget: workspace
+            }));
+            resolve({
+              baseTransitionProperty: baseStyle.transitionProperty,
+              baseTransitionDuration: baseStyle.transitionDuration,
+              restingEmphasisWidth: restingEmphasisWidth,
+              activeEmphasisWidth: activeEmphasisWidth,
+              activeAfterLeave: workspace.querySelectorAll(
+                ".recipe-link.is-active"
+              ).length
+            });
+          }, 560);
+        });
+        """,
+        include_recipe_links=True,
+    )
+
+    assert actual["baseTransitionProperty"] == "opacity"
+    assert actual["baseTransitionDuration"] == "0.52s"
+    assert actual["restingEmphasisWidth"] < actual["activeEmphasisWidth"]
+    assert actual["activeAfterLeave"] == 0
+
+
 def test_recipe_links_reduced_motion_uses_static_visible_emphasis_without_drawing(
     tmp_path,
 ):
@@ -1750,17 +1934,94 @@ def test_recipe_links_reduced_motion_uses_static_visible_emphasis_without_drawin
           ]
         });
         element.dispatchEvent(new PointerEvent("pointerover", { bubbles: true }));
+        var base = workspace.querySelector(".recipe-link-base");
         var emphasis = workspace.querySelector(".recipe-link-emphasis");
         return {
           active: workspace.querySelectorAll(".recipe-link.is-active").length,
           animateCalls: animateCalls,
-          emphasisOpacity: Number(getComputedStyle(emphasis).opacity)
+          emphasisOpacity: Number(getComputedStyle(emphasis).opacity),
+          baseTransitionDuration:
+            getComputedStyle(base).transitionDuration,
+          emphasisTransitionDuration:
+            getComputedStyle(emphasis).transitionDuration
         };
+        """,
+        include_recipe_links=True,
+        reduced_motion=True,
+    )
+
+    assert actual == {
+        "active": 1,
+        "animateCalls": 0,
+        "emphasisOpacity": 0.54,
+        "baseTransitionDuration": "0.12s",
+        "emphasisTransitionDuration": "0.12s",
+    }
+
+
+def test_recipe_links_update_active_geometry_without_replaying_draw(tmp_path):
+    actual = _run_browser(
+        tmp_path,
+        """
+        var animateCalls = 0;
+        window.anime = {
+          svg: {
+            createDrawable: function (path) {
+              return [{ path: path, draw: "0 0" }];
+            }
+          },
+          animate: function () {
+            animateCalls += 1;
+            return { cancel: function () {} };
+          }
+        };
+        var workspace = document.getElementById("fixture");
+        workspace.style.cssText =
+          "position:relative;width:800px;height:500px;overflow:hidden";
+        var a = document.createElement("div");
+        a.className = "element on-canvas";
+        a.dataset.id = "1";
+        workspace.appendChild(a);
+        var controller = window.RECIPE_LINKS.create(workspace);
+        var elements = [
+          { id: 1, name: "A", x: 100, y: 100 },
+          { id: 2, name: "B", x: 620, y: 100 }
+        ];
+        controller.sync({
+          recipes: [
+            { key: "A + B", a: "A", b: "B", hit_count: 8, depth: 5 }
+          ],
+          elements: elements
+        });
+        return new Promise(function (resolve) {
+          requestAnimationFrame(function () {
+            var path = workspace.querySelector(".recipe-link-draw");
+            var before = path.getAttribute("d");
+            a.dispatchEvent(new PointerEvent("pointerover", {
+              bubbles: true
+            }));
+            elements[0] = { id: 1, name: "A", x: 220, y: 180 };
+            controller.scheduleGeometryUpdate(elements);
+            requestAnimationFrame(function () {
+              resolve({
+                pathChanged: before !== path.getAttribute("d"),
+                animateCalls: animateCalls,
+                active: workspace.querySelectorAll(
+                  ".recipe-link.is-active"
+                ).length
+              });
+            });
+          });
+        });
         """,
         include_recipe_links=True,
     )
 
-    assert actual == {"active": 1, "animateCalls": 0, "emphasisOpacity": 0.54}
+    assert actual == {
+        "pathChanged": True,
+        "animateCalls": 1,
+        "active": 1,
+    }
 
 
 def test_recipe_links_clear_resets_hover_state_before_a_later_sync(tmp_path):

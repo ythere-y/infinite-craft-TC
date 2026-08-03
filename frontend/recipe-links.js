@@ -301,6 +301,9 @@
     function sync(payload = {}) {
       if (destroyed) return;
       elements = normalizedElements(payload.elements);
+      if (activeElementId !== null && !elements.has(activeElementId)) {
+        activeElementId = null;
+      }
       const grouped = groupedByName(elements);
       const desired = new Map();
 
