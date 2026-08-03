@@ -1508,3 +1508,161 @@ test("Makers upgrades readable schema1 history to committed markers and rejects 
   );
   assert.deepEqual(missingKv.puts, []);
 });
+
+async function retirementHistoryFixture({ count = 501, activeResult = "权威水" } = {}) {
+  const kv = new FakeKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const pair = "水 + 水";
+  const retired = [];
+  const storeFormula = async (formula) => {
+    await community.put(`community_formula_${formula.id}`, formula);
+    await community.put(await community.formulaMarkerKey(pair, formula.version), {
+      schema_version: 2,
+      pair,
+      version: formula.version,
+      id: formula.id,
+      intent: {
+        id: formula.id,
+        a: formula.a,
+        b: formula.b,
+        combo_key: pair,
+        result: formula.result,
+        emoji: formula.emoji,
+        comment: formula.comment,
+        source: formula.source,
+        version: formula.version,
+        global_discoverer: formula.global_discoverer,
+      },
+      materializable: false,
+    });
+    await community.put(await community.formulaReadyKey(pair, formula.version), {
+      schema_version: 1, pair, version: formula.version, id: formula.id,
+    });
+  };
+  for (let version = 1; version <= count; version += 1) {
+    const formula = await community.createFormula({
+      a: "水", b: "水", result: `退役水${version}`, emoji: "🕰️",
+      comment: `退役公式${version}。`, source: "llm", discoverer: `旧鹅${version}`,
+    }, version);
+    formula.status = "retired";
+    formula.visibility = "hidden";
+    formula.retired_at = version;
+    formula.updated_at = version;
+    retired.push(formula);
+    await storeFormula(formula);
+  }
+  const active = await community.createFormula({
+    a: "水", b: "水", result: activeResult, emoji: "💧",
+    comment: "当前权威公式。", source: activeResult === "权威水" ? "seed" : "llm",
+    discoverer: activeResult === "权威水" ? null : "当前鹅",
+  }, count + 1);
+  await storeFormula(active);
+  await community.put(await activePointerKey("水", "水"), {
+    id: active.id, version: active.version,
+  });
+  await community.put(await community.formulaInventoryKey(pair), {
+    schema_version: 1, pair, complete: true,
+  });
+  const newest500 = retired.slice(-500).reverse().map(({ id, result, retired_at }) => ({
+    id, result, retired_at,
+  }));
+  return { kv, community, pair, retired, active, newest500 };
+}
+
+const authoritativeWaterSeed = {
+  a: "水", b: "水", result: "权威水", emoji: "💧",
+  comment: "当前权威公式。", source: "seed", playerId: "",
+};
+
+test("Makers reconciliation leaves an already-canonical newest-500 retirement catalogue untouched", async () => {
+  const { kv, community, newest500 } = await retirementHistoryFixture();
+  await community.put("community_retired_formulas", newest500);
+  const retiredIndexWrites = [];
+  const put = kv.put.bind(kv);
+  kv.put = async (key, value) => {
+    if (key === "community_retired_formulas") {
+      retiredIndexWrites.push(JSON.parse(value));
+      throw new Error("canonical retirement catalogue must not be rewritten");
+    }
+    return put(key, value);
+  };
+
+  await community.reconcileAuthoritativeFormula(authoritativeWaterSeed);
+  await community.reconcileAuthoritativeFormula(authoritativeWaterSeed);
+
+  assert.deepEqual(retiredIndexWrites, []);
+  assert.deepEqual(await community.get("community_retired_formulas"), newest500);
+});
+
+test("Makers reconciliation repairs a missing or stale retirement catalogue with one newest-500 write", async () => {
+  const { kv, community, newest500 } = await retirementHistoryFixture();
+  const retiredIndexWrites = [];
+  const put = kv.put.bind(kv);
+  kv.put = async (key, value) => {
+    if (key === "community_retired_formulas") {
+      retiredIndexWrites.push(JSON.parse(value));
+      if (retiredIndexWrites.length > 1) throw new Error("retirement catalogue written twice");
+    }
+    return put(key, value);
+  };
+
+  await community.reconcileAuthoritativeFormula(authoritativeWaterSeed);
+
+  assert.equal(retiredIndexWrites.length, 1);
+  assert.deepEqual(retiredIndexWrites[0], newest500);
+
+  await put("community_retired_formulas", JSON.stringify([newest500.at(-1)]));
+  retiredIndexWrites.length = 0;
+  await community.reconcileAuthoritativeFormula(authoritativeWaterSeed);
+  assert.equal(retiredIndexWrites.length, 1);
+  assert.deepEqual(retiredIndexWrites[0], newest500);
+});
+
+test("Makers reconciliation batches a newly retired active formula into the newest 500", async () => {
+  const { kv, community, retired, active, newest500 } = await retirementHistoryFixture({
+    activeResult: "冲突水",
+  });
+  await community.put("community_retired_formulas", newest500);
+  const retiredIndexWrites = [];
+  const put = kv.put.bind(kv);
+  kv.put = async (key, value) => {
+    if (key === "community_retired_formulas") {
+      retiredIndexWrites.push(JSON.parse(value));
+      if (retiredIndexWrites.length > 1) throw new Error("retirement catalogue written twice");
+    }
+    return put(key, value);
+  };
+
+  await community.reconcileAuthoritativeFormula(authoritativeWaterSeed);
+
+  assert.equal(retiredIndexWrites.length, 1);
+  assert.equal(retiredIndexWrites[0].length, 500);
+  assert.equal(retiredIndexWrites[0][0].id, active.id);
+  assert.deepEqual(
+    retiredIndexWrites[0].slice(1).map((item) => item.id),
+    retired.slice(-499).reverse().map((item) => item.id),
+  );
+});
+
+test("Makers retirement batch preserves existing source order for equal or missing timestamps", async () => {
+  const { community, retired } = await retirementHistoryFixture({ count: 4 });
+  const existing = retired.slice(0, 3).map(({ id, result }, index) => (
+    index === 1 ? { id, result, retired_at: 0 } : { id, result }
+  ));
+  for (const [index, formula] of retired.entries()) {
+    if (index === 1) formula.retired_at = 0;
+    else delete formula.retired_at;
+    formula.updated_at = 0;
+    await community.put(`community_formula_${formula.id}`, formula);
+  }
+  await community.put("community_retired_formulas", existing);
+
+  await community.reconcileAuthoritativeFormula(authoritativeWaterSeed);
+
+  assert.deepEqual(
+    (await community.get("community_retired_formulas")).map((item) => item.id),
+    retired.map((item) => item.id),
+  );
+  const feedback = await community.feedback({}, { positiveLimit: 0, negativeLimit: 4 });
+  assert.deepEqual(feedback.negatives, retired.map((item) => item.result));
+});

@@ -693,6 +693,7 @@ export class CommunityStore {
     const retirees = formulas.filter(
       (candidate) => candidate.status === "active" && candidate.id !== formula.id,
     );
+    const newlyRetired = [];
     for (const candidate of retirees) {
       const retiredAt = this.now() / 1000;
       const retired = {
@@ -703,13 +704,12 @@ export class CommunityStore {
         updated_at: retiredAt,
       };
       await this.put(`community_formula_${retired.id}`, retired);
-      await this.ensureRetiredRemembered(retired);
+      newlyRetired.push(retired);
     }
-    for (const candidate of formulas) {
-      if (candidate.status === "retired") {
-        await this.ensureRetiredRemembered(candidate);
-      }
-    }
+    await this.rememberRetiredBatch([
+      ...newlyRetired,
+      ...formulas.filter((candidate) => candidate.status === "retired"),
+    ]);
 
     if (pointer?.id !== formula.id || pointer?.version !== formula.version) {
       await this.put(pointerKey, { id: formula.id, version: formula.version });
@@ -800,26 +800,47 @@ export class CommunityStore {
     return { positives, negatives };
   }
   async rememberRetired(formula) {
-    const retiredAt = Number(formula?.retired_at || formula?.updated_at || this.now() / 1000);
-    const entry = {
-      id: formula?.id,
-      result: formula?.result,
-      retired_at: retiredAt,
-    };
-    if (!entry.id || !entry.result) return;
+    await this.rememberRetiredBatch([formula]);
+  }
+  async rememberRetiredBatch(formulas) {
     const existing = await this.get(RETIRED_INDEX_KEY, []);
     const byId = new Map();
-    for (const item of [entry, ...existing]) {
-      if (!item?.id || !item?.result || byId.has(item.id)) continue;
-      byId.set(item.id, item);
-      if (byId.size >= MAX_RETIRED_FORMULA_INDEX) break;
+    let sourceOrdinal = 0;
+    const add = (item, preferIncoming) => {
+      const id = item?.id;
+      const result = item?.result;
+      if (!id || !result) return;
+      const rawRetiredAt = item?.retired_at ?? item?.updated_at ?? 0;
+      const parsedRetiredAt = Number(rawRetiredAt);
+      const retiredAt = Number.isFinite(parsedRetiredAt) ? parsedRetiredAt : 0;
+      const current = byId.get(id);
+      if (!current) {
+        byId.set(id, { id, result, retired_at: retiredAt, sourceOrdinal });
+        sourceOrdinal += 1;
+        return;
+      }
+      if (retiredAt > current.retired_at ||
+        (preferIncoming && retiredAt === current.retired_at)) {
+        byId.set(id, {
+          id,
+          result,
+          retired_at: retiredAt,
+          sourceOrdinal: current.sourceOrdinal,
+        });
+      }
+    };
+    for (const item of Array.isArray(existing) ? existing : []) add(item, false);
+    for (const formula of formulas) add(formula, true);
+    const canonical = [...byId.values()]
+      .sort((left, right) =>
+        right.retired_at - left.retired_at || left.sourceOrdinal - right.sourceOrdinal
+      )
+      .slice(0, MAX_RETIRED_FORMULA_INDEX)
+      .map(({ id, result, retired_at }) => ({ id, result, retired_at }));
+    if (JSON.stringify(canonical) !== JSON.stringify(existing)) {
+      await this.put(RETIRED_INDEX_KEY, canonical);
     }
-    await this.put(RETIRED_INDEX_KEY, [...byId.values()]);
-  }
-  async ensureRetiredRemembered(formula) {
-    const existing = await this.get(RETIRED_INDEX_KEY, []);
-    if (existing.some((item) => item?.id === formula?.id)) return;
-    await this.rememberRetired(formula);
+    return canonical;
   }
   async publish(id, playerId) {
     const formula = await this.get(`community_formula_${id}`);
