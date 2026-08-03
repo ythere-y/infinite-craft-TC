@@ -420,6 +420,39 @@ test("Makers feedback ranks enabled qualified formulas and recent retirements", 
   assert.deepEqual(feedback.negatives.slice(0, 2), ["后退役", "先退役"]);
 });
 
+test("Makers feedback preserves legacy retirement source order when times tie", async () => {
+  const community = new CommunityStore(new FakeKV({
+    community_retired_formulas: JSON.stringify([
+      { id: "a_index_first", result: "索引先", retired_at: 0 },
+      { id: "b_index_second", result: "索引后", retired_at: 0 },
+    ]),
+    community_public_formulas: JSON.stringify([
+      "z_public_first",
+      "y_public_second",
+      "new_public",
+    ]),
+    community_formula_z_public_first: JSON.stringify({
+      id: "z_public_first", result: "公开先", visibility: "public", status: "retired",
+    }),
+    community_formula_y_public_second: JSON.stringify({
+      id: "y_public_second", result: "公开后", visibility: "public", status: "retired", updated_at: 0,
+    }),
+    community_formula_new_public: JSON.stringify({
+      id: "new_public", result: "较新退役", visibility: "public", status: "retired", updated_at: 20,
+    }),
+  }));
+
+  const feedback = await community.feedback({}, { positiveLimit: 0, negativeLimit: 5 });
+
+  assert.deepEqual(feedback.negatives, [
+    "较新退役",
+    "索引先",
+    "索引后",
+    "公开先",
+    "公开后",
+  ]);
+});
+
 test("Makers retirement catalogue is retryable without affecting takedowns", async () => {
   class RetirementIndexFaultKV extends FakeKV {
     constructor() {

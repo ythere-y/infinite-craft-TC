@@ -175,23 +175,25 @@ export class CommunityStore {
       .map(({ a, b, result: name, emoji, comment }) => ({ a, b, name, emoji, comment }));
     const retirementRecords = await this.get(RETIRED_INDEX_KEY, []);
     const negativeCandidates = [
-      ...retirementRecords.map((item) => ({
+      ...retirementRecords.map((item, sourceOrdinal) => ({
         id: item?.id,
         result: item?.result,
         retired_at: Number(item?.retired_at || 0),
+        sourceOrdinal,
       })),
       ...values
         .filter((formula) => formula?.status === "retired")
-        .map((formula) => ({
+        .map((formula, index) => ({
           id: formula.id,
           result: formula.result,
           retired_at: Number(formula.retired_at || formula.updated_at || 0),
+          sourceOrdinal: retirementRecords.length + index,
         })),
     ]
       .filter((item) => item.id && item.result)
       .sort((left, right) =>
         right.retired_at - left.retired_at ||
-        (String(left.id) > String(right.id) ? -1 : String(left.id) < String(right.id) ? 1 : 0)
+        left.sourceOrdinal - right.sourceOrdinal
       );
     const seenIds = new Set();
     const seenResults = new Set();
