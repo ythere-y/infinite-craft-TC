@@ -304,6 +304,14 @@
       );
     }
 
+    function activeEdgeSignature(id) {
+      if (id === null) return "";
+      return activeEdgesFor(id)
+        .map((edge) => edge.key)
+        .sort()
+        .join("\u0001");
+    }
+
     function startActiveAnimations() {
       cancelBreathing();
       animationGeneration += 1;
@@ -382,6 +390,8 @@
 
     function sync(payload = {}) {
       if (destroyed) return;
+      const previousActiveId = activeElementId;
+      const previousActiveSignature = activeEdgeSignature(activeElementId);
       elements = normalizedElements(payload.elements);
       if (activeElementId !== null && !elements.has(activeElementId)) {
         activeElementId = null;
@@ -444,12 +454,22 @@
           setVisualProfile(edge, item.recipe);
         }
       }
+      const nextActiveSignature = activeEdgeSignature(activeElementId);
+      if (
+        previousActiveId !== activeElementId
+        || previousActiveSignature !== nextActiveSignature
+      ) {
+        animationGeneration += 1;
+        cancelBreathing();
+      }
       applyActiveState();
       schedule();
     }
 
     function clear() {
       if (destroyed) return;
+      animationGeneration += 1;
+      cancelBreathing();
       activeElementId = null;
       svg.classList.remove("has-active-link");
       cancelAllDraws();
@@ -462,6 +482,8 @@
     function destroy() {
       if (destroyed) return;
       destroyed = true;
+      animationGeneration += 1;
+      cancelBreathing();
       if (frameId !== null && cancelFrame) cancelFrame(frameId);
       frameId = null;
       resizeObserver?.disconnect();

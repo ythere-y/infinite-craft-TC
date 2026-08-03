@@ -1707,6 +1707,238 @@ def test_recipe_links_breathe_together_only_after_all_incident_draws_complete(
     }
 
 
+def test_recipe_links_hover_switch_cancels_breathing_and_ignores_stale_draws(
+    tmp_path,
+):
+    actual = _run_browser(
+        tmp_path,
+        """
+        var drawCalls = [];
+        var breathingCalls = [];
+        window.anime = {
+          svg: {
+            createDrawable: function (path) {
+              return [{ path: path, draw: "0 0" }];
+            }
+          },
+          animate: function (targets, options) {
+            if (options.loop === true) {
+              var groups = Array.from(targets);
+              groups.forEach(function (group) {
+                group.style.opacity = "0.72";
+              });
+              var breathing = {
+                targets: groups,
+                cancelCalls: 0,
+                cancel: function () { this.cancelCalls += 1; }
+              };
+              breathingCalls.push(breathing);
+              return breathing;
+            }
+            var draw = {
+              options: options,
+              cancelCalls: 0,
+              cancel: function () { this.cancelCalls += 1; }
+            };
+            drawCalls.push(draw);
+            return draw;
+          }
+        };
+        var workspace = document.getElementById("fixture");
+        workspace.style.cssText =
+          "position:relative;width:800px;height:500px;overflow:hidden";
+        function addElement(id) {
+          var element = document.createElement("div");
+          element.className = "element on-canvas";
+          element.dataset.id = String(id);
+          workspace.appendChild(element);
+          return element;
+        }
+        var a = addElement(1);
+        var b = addElement(2);
+        addElement(3);
+        var controller = window.RECIPE_LINKS.create(workspace);
+        controller.sync({
+          recipes: [
+            { key: "A + B", a: "A", b: "B", hit_count: 8, depth: 5 },
+            { key: "B + C", a: "B", b: "C", hit_count: 20, depth: 7 }
+          ],
+          elements: [
+            { id: 1, name: "A", x: 100, y: 100 },
+            { id: 2, name: "B", x: 360, y: 220 },
+            { id: 3, name: "C", x: 620, y: 100 }
+          ]
+        });
+        a.dispatchEvent(new PointerEvent("pointerover", { bubbles: true }));
+        var staleComplete = drawCalls[0].options.onComplete;
+        staleComplete();
+        b.dispatchEvent(new PointerEvent("pointerover", { bubbles: true }));
+        staleComplete();
+        drawCalls[1].options.onComplete();
+        var breathingBeforeLastCurrentDraw = breathingCalls.length;
+        drawCalls[2].options.onComplete();
+        b.dispatchEvent(new PointerEvent("pointerout", {
+          bubbles: true,
+          relatedTarget: workspace
+        }));
+        return {
+          breathingBeforeLastCurrentDraw: breathingBeforeLastCurrentDraw,
+          breathingCalls: breathingCalls.length,
+          firstBreathingKeys: breathingCalls[0].targets.map(function (group) {
+            return group.dataset.recipeKey;
+          }).sort(),
+          secondBreathingKeys: breathingCalls[1].targets.map(function (group) {
+            return group.dataset.recipeKey;
+          }).sort(),
+          breathingCancelCounts: breathingCalls.map(function (breathing) {
+            return breathing.cancelCalls;
+          }),
+          inlineOpacityAfterLeave: Array.from(
+            workspace.querySelectorAll(".recipe-link")
+          ).map(function (group) {
+            return group.style.getPropertyValue("opacity");
+          }),
+          activeAfterLeave: workspace.querySelectorAll(
+            ".recipe-link.is-active"
+          ).length
+        };
+        """,
+        include_recipe_links=True,
+    )
+
+    assert actual == {
+        "breathingBeforeLastCurrentDraw": 1,
+        "breathingCalls": 2,
+        "firstBreathingKeys": ["A + B"],
+        "secondBreathingKeys": ["A + B", "B + C"],
+        "breathingCancelCounts": [1, 1],
+        "inlineOpacityAfterLeave": ["", ""],
+        "activeAfterLeave": 0,
+    }
+
+
+def test_recipe_links_breathing_survives_geometry_but_cancels_invalid_lifecycles(
+    tmp_path,
+):
+    actual = _run_browser(
+        tmp_path,
+        """
+        var drawCalls = [];
+        var breathingCalls = [];
+        window.anime = {
+          svg: {
+            createDrawable: function (path) {
+              return [{ path: path, draw: "0 0" }];
+            }
+          },
+          animate: function (targets, options) {
+            if (options.loop === true) {
+              var groups = Array.from(targets);
+              groups.forEach(function (group) {
+                group.style.opacity = "0.72";
+              });
+              var breathing = {
+                targets: groups,
+                cancelCalls: 0,
+                cancel: function () { this.cancelCalls += 1; }
+              };
+              breathingCalls.push(breathing);
+              return breathing;
+            }
+            var draw = {
+              options: options,
+              cancelCalls: 0,
+              cancel: function () { this.cancelCalls += 1; }
+            };
+            drawCalls.push(draw);
+            return draw;
+          }
+        };
+        var workspace = document.getElementById("fixture");
+        workspace.style.cssText =
+          "position:relative;width:800px;height:500px;overflow:hidden";
+        function addElement(id) {
+          var element = document.createElement("div");
+          element.className = "element on-canvas";
+          element.dataset.id = String(id);
+          workspace.appendChild(element);
+          return element;
+        }
+        var a = addElement(1);
+        addElement(2);
+        addElement(3);
+        var fullPayload = {
+          recipes: [
+            { key: "A + B", a: "A", b: "B", hit_count: 8, depth: 5 },
+            { key: "B + C", a: "B", b: "C", hit_count: 20, depth: 7 }
+          ],
+          elements: [
+            { id: 1, name: "A", x: 100, y: 100 },
+            { id: 2, name: "B", x: 360, y: 220 },
+            { id: 3, name: "C", x: 620, y: 100 }
+          ]
+        };
+        var withoutA = {
+          recipes: [fullPayload.recipes[1]],
+          elements: [
+            { id: 2, name: "B", x: 360, y: 220 },
+            { id: 3, name: "C", x: 620, y: 100 }
+          ]
+        };
+        var controller = window.RECIPE_LINKS.create(workspace);
+        controller.sync(fullPayload);
+        a.dispatchEvent(new PointerEvent("pointerover", { bubbles: true }));
+        drawCalls[0].options.onComplete();
+        var drawCallsBeforeGeometry = drawCalls.length;
+        controller.scheduleGeometryUpdate([
+          { id: 1, name: "A", x: 220, y: 180 },
+          { id: 2, name: "B", x: 360, y: 220 },
+          { id: 3, name: "C", x: 620, y: 100 }
+        ]);
+        var drawCallsAfterGeometry = drawCalls.length;
+        var breathingCallsAfterGeometry = breathingCalls.length;
+        controller.sync(fullPayload);
+        var firstCancelAfterSameSync = breathingCalls[0].cancelCalls;
+        controller.sync(withoutA);
+        var firstCancelAfterInvalidSync = breathingCalls[0].cancelCalls;
+        var inlineOpacityAfterInvalidSync =
+          breathingCalls[0].targets[0].style.getPropertyValue("opacity");
+
+        controller.sync(fullPayload);
+        a.dispatchEvent(new PointerEvent("pointerover", { bubbles: true }));
+        drawCalls[drawCalls.length - 1].options.onComplete();
+        var clearBreathing = breathingCalls[breathingCalls.length - 1];
+        controller.clear();
+
+        controller.sync(fullPayload);
+        a.dispatchEvent(new PointerEvent("pointerover", { bubbles: true }));
+        drawCalls[drawCalls.length - 1].options.onComplete();
+        var destroyBreathing = breathingCalls[breathingCalls.length - 1];
+        controller.destroy();
+
+        return {
+          drawCallsBeforeGeometry: drawCallsBeforeGeometry,
+          drawCallsAfterGeometry: drawCallsAfterGeometry,
+          breathingCallsAfterGeometry: breathingCallsAfterGeometry,
+          firstCancelAfterSameSync: firstCancelAfterSameSync,
+          firstCancelAfterInvalidSync: firstCancelAfterInvalidSync,
+          inlineOpacityAfterInvalidSync: inlineOpacityAfterInvalidSync,
+          clearBreathingCancelCalls: clearBreathing.cancelCalls,
+          destroyBreathingCancelCalls: destroyBreathing.cancelCalls
+        };
+        """,
+        include_recipe_links=True,
+    )
+
+    assert actual["drawCallsAfterGeometry"] == actual["drawCallsBeforeGeometry"]
+    assert actual["breathingCallsAfterGeometry"] == 1
+    assert actual["firstCancelAfterSameSync"] == 0
+    assert actual["firstCancelAfterInvalidSync"] == 1
+    assert actual["inlineOpacityAfterInvalidSync"] == ""
+    assert actual["clearBreathingCancelCalls"] == 1
+    assert actual["destroyBreathingCancelCalls"] == 1
+
+
 def test_recipe_links_draw_from_reverse_endpoint_toward_related_endpoint(tmp_path):
     actual = _run_browser(
         tmp_path,
