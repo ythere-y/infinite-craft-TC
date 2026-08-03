@@ -4,8 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🐧+🐧=? · 鹅厂无限合成 ♾️</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%90%A7%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="icon" type="image/png" href="/assets/icons/generated/emoji/1f427.png">
+  <link rel="stylesheet" href="/icon-system.css?v=20260803d" />
+  <link rel="stylesheet" href="/style.css?v=20260803d" />
+  <link rel="stylesheet" href="/recipe-links.css?v=20260803d" />
 </head>
 <body>
   <header class="topbar">
@@ -14,12 +16,20 @@
     <div id="boss-banner" class="boss-banner-inline">🤪 里模式·彻底疯狂 · ↑↑↓↓←→←→BA 再按可关闭</div>
     <div class="topbar-actions">
       <span id="nick-display" class="nick-chip" title="点击重抽一个昵称">🐧 加载中…</span>
-      <button id="btn-recipebook" class="btn-ghost" title="打开配方图鉴">📖 配方库 <span id="recipebook-btn-count">0</span></button>
-      <button id="btn-score" class="btn-ghost" title="打开 KPI 复盘面板">✨ KPI <span id="kpi-value">0</span></button>
-      <button id="btn-reset" class="btn-ghost">🗑️ 清空画布</button>
-      <a class="btn-ghost" href="/wall">📺 首发榜</a>
-      <a class="btn-ghost" href="/community.html">🧪 公式广场</a>
-      <button id="btn-help" class="btn-help" title="显示/隐藏操作引导" aria-label="帮助">?</button>
+      <button id="btn-recipebook" class="btn-ghost" title="打开配方图鉴" aria-label="配方库" data-action-icon="recipes"><span class="action-slot" data-icon-action="recipes" aria-hidden="true"></span><span class="action-label">配方库</span> <span id="recipebook-btn-count">0</span></button>
+      <button id="btn-score" class="btn-ghost score-level-button"
+              title="等级，1颗星星；点击打开分数记录" aria-label="等级，1颗星星"
+              data-action-icon="score">
+        <span class="action-slot" data-icon-action="score" aria-hidden="true"></span>
+        <span class="action-label">等级</span>
+        <span class="score-level-viewport">
+          <span id="score-level-icons" class="score-level-icons"
+                aria-hidden="true">🌟</span>
+        </span>
+      </button>
+      <button id="btn-reset" class="btn-ghost" aria-label="清空画布" data-action-icon="reset"><span class="action-slot" data-icon-action="reset" aria-hidden="true"></span><span class="action-label">清空画布</span></button>
+      <a id="first-wall" class="btn-ghost" href="/wall" aria-label="首发榜" data-action-icon="wall"><span class="action-slot" data-icon-action="wall" aria-hidden="true"></span><span class="action-label">首发榜</span></a>
+      <button id="btn-help" class="btn-help" title="显示/隐藏操作引导" aria-label="帮助" data-action-icon="help" data-icon-action="help"></button>
     </div>
   </header>
 
@@ -28,30 +38,52 @@
     <section id="workspace" class="workspace">
       <div id="hint" class="hint">
         <div class="hint-line">👆 把右边的元素<b>拖</b>到工作区，再把一个元素<b>拖</b>到另一个元素上合成新玩意儿</div>
-        <div class="hint-line">👆👆 <b>双击</b>右侧元素可快速放到画布中央；双击画布里的元素可就地复制一份</div>
-        <div class="hint-line">📖 配方库里的元素也支持拖拽和双击</div>
         <div class="hint-line">⌨️ 想不开的时候试试 <code>↑↑↓↓←→←→BA</code></div>
-        <br>
-        <div class="hint-divider">— 案例展示：9 步合成 <b>滨海大厦</b> 🌆 —</div>
-        <div class="hint-line case-step">1. 人 🧍 + 工位 🪑 = <b>打工人</b> 🧑‍💻</div>
-        <div class="hint-line case-step">2. 打工人 🧑‍💻 + 打工人 🧑‍💻 = <b>开放办公区</b> 🏢</div>
-        <div class="hint-line case-step">3. 开放办公区 🏢 + 开放办公区 🏢 = <b>楼层</b> 🏬</div>
-        <div class="hint-line case-step">4. 楼层 🏬 + 楼层 🏬 = <b>小楼</b> 🏢</div>
-        <div class="hint-line case-step">5. 小楼 🏢 + 小楼 🏢 = <b>大厦</b> 🏢</div>
-        <div class="hint-line case-step">6. 水 💧 + 水 💧 = <b>水塘</b> 💧</div>
-        <div class="hint-line case-step">7. 水塘 💧 + 水塘 💧 = <b>湖泊</b> 🏞️</div>
-        <div class="hint-line case-step">8. 湖泊 🏞️ + 湖泊 🏞️ = <b>海洋</b> 🌊</div>
-        <div class="hint-line case-step">9. 大厦 🏢 + 海洋 🌊 = <b>滨海大厦</b> 🌆</div>
 
         <div class="hint-credit">— created by chaoohu · with AI —</div>
         <div class="hint-credit-sub">参考 <a href="https://neal.fun/infinite-craft/" target="_blank" rel="noopener">infinite-craft</a></div>
       </div>
+
+      <section id="casino-hud" class="casino-hud" aria-label="里模式待收获奖池">
+        <div class="casino-table">
+          <div class="casino-stack-column">
+            <div class="casino-streak-status">
+              <strong id="casino-streak-count">等待全球首发</strong>
+              <span id="casino-next-multiplier">合成全球首发获得首枚筹码</span>
+            </div>
+            <div id="casino-chip-stack" class="casino-chip-stack"></div>
+          </div>
+
+          <div class="casino-pot-column">
+            <span class="casino-pot-label">本轮待收获</span>
+            <strong class="casino-pot-value">
+              <span id="casino-pot-value">0</span><small>分</small>
+            </strong>
+            <button id="casino-harvest" class="casino-harvest" disabled>暂无可收获分数</button>
+          </div>
+
+          <div class="casino-penguin-column">
+            <span class="casino-penguin-seal">
+              <img src="/assets/icons/generated/emoji/1f427.png" alt="">
+            </span>
+            <span>MIDNIGHT HOUSE</span>
+          </div>
+
+          <div id="casino-score-lane" class="casino-score-lane"></div>
+          <div class="casino-wind" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div id="casino-loss-copy" class="casino-loss-copy"></div>
+          <div id="casino-score-burst" class="casino-score-burst" aria-hidden="true"></div>
+        </div>
+      </section>
     </section>
 
     <!-- 侧边栏 -->
     <aside class="sidebar">
       <div class="sidebar-header">
-        <input id="search" type="text" placeholder="🔍 搜索元素…" />
+        <div class="search-control">
+          <span class="action-slot" data-icon-action="search" aria-hidden="true"></span>
+          <input id="search" type="text" placeholder="搜索元素…" aria-label="搜索元素" data-action-icon="search" />
+        </div>
         <div class="meta">
           已发现 <span id="count">0</span> 个
         </div>
@@ -60,33 +92,39 @@
     </aside>
   </main>
 
-  <!-- KPI delta 浮动提示（固定在顶栏分数按钮下方） -->
+  <!-- 分数 delta 浮动提示（固定在顶栏分数按钮下方） -->
   <span id="kpi-delta" class="kpi-delta"></span>
 
-  <!-- KPI 复盘面板：左=加分历史，右=段位路径 -->
+  <!-- 分数记录面板：左=加分历史，右=等级进度 -->
   <div id="score-panel" class="score-panel">
     <div class="score-panel-header">
-      <div class="mac-traffic-lights">
-        <button id="score-panel-close" class="mac-light mac-light-close" title="关闭"></button>
-      </div>
+      <button id="score-panel-close" class="panel-close-button" title="关闭" aria-label="关闭分数记录" data-action-icon="close" data-icon-action="close"></button>
       <div class="score-panel-title">
-        📈 KPI 复盘 · 累计 <span id="score-panel-total">0</span>
-        <span id="score-panel-rank" class="score-panel-rank"></span>
+        📈 分数记录 · 累计 <span id="score-panel-total">0</span> 分
+        <span id="score-panel-level" class="score-panel-rank"></span>
       </div>
     </div>
     <div class="score-panel-body">
-      <!-- 左：加分历史 -->
+      <!-- 左：分数记录 -->
       <div class="score-pane pane-history">
-        <div class="pane-title">🧾 加分历史</div>
+        <div class="pane-title">🧾 分数记录</div>
         <div id="score-panel-list" class="score-panel-list"></div>
         <div id="score-panel-empty" class="score-panel-empty">
           还没得分，去拖几个元素合成吧～
         </div>
       </div>
-      <!-- 右：段位路径 -->
+      <!-- 右：等级进度 -->
       <div class="score-pane pane-tiers">
-        <div class="pane-title">🏆 段位路径</div>
-        <div id="score-panel-tiers" class="score-panel-tiers"></div>
+        <div class="pane-title">🏆 等级进度</div>
+        <div id="score-panel-level-detail" class="score-panel-level-detail">
+          <div id="score-panel-full-icons" class="score-panel-full-icons"></div>
+          <div class="tier-progress" aria-label="当前星级进度">
+            <div id="score-panel-progress-fill" class="tier-progress-fill"></div>
+          </div>
+          <div id="score-panel-rules" class="score-panel-rules">
+            4🌟 = 1🌙 · 4🌙 = 1🌞 · 4🌞 = 1👑
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -116,9 +154,9 @@
       </div>
 
       <div class="nick-modal-actions">
-        <button id="nick-modal-reroll" class="btn-ghost">🎲 再来一个</button>
-        <button id="nick-modal-cancel" class="btn-ghost" style="display:none">取消</button>
-        <button id="nick-modal-confirm" class="btn-primary">✅ 确认覆盖</button>
+        <button id="nick-modal-reroll" class="btn-ghost" data-action-icon="sparkle"><span class="action-slot" data-icon-action="sparkle" aria-hidden="true"></span><span class="action-label">再来一个</span></button>
+        <button id="nick-modal-cancel" class="btn-ghost" style="display:none" data-action-icon="close"><span class="action-slot" data-icon-action="close" aria-hidden="true"></span><span class="action-label">取消</span></button>
+        <button id="nick-modal-confirm" class="btn-primary" data-action-icon="confirm"><span class="action-slot" data-icon-action="confirm" aria-hidden="true"></span><span class="action-label">确认覆盖</span></button>
       </div>
     </div>
   </div>
@@ -126,16 +164,17 @@
   <!-- 里模式指示器已合并进顶栏，这里不再渲染浮动版本 -->
 
 
-  <!-- 配方图鉴面板（左侧抽屉，Mac 风格关闭）-->
+  <!-- 配方图鉴面板（左侧抽屉）-->
   <div id="recipebook" class="recipebook">
     <div class="recipebook-header">
-      <div class="mac-traffic-lights">
-        <button id="recipebook-close" class="mac-light mac-light-close" title="关闭"></button>
-      </div>
+      <button id="recipebook-close" class="panel-close-button recipebook-close-button" title="关闭" aria-label="关闭配方图鉴" data-action-icon="close" data-icon-action="close"></button>
       <div class="recipebook-title">📖 我的配方图鉴 <span id="recipebook-count">(0)</span></div>
       <div class="recipebook-actions">
-        <input id="recipebook-search" type="text" placeholder="🔍 搜索（元素名或结果）" />
-        <button id="recipebook-export" class="btn-ghost">⬇️ 导出</button>
+        <div class="search-control recipe-search-control">
+          <span class="action-slot" data-icon-action="search" aria-hidden="true"></span>
+          <input id="recipebook-search" type="text" placeholder="搜索（元素名或结果）" aria-label="搜索配方" data-action-icon="search" />
+        </div>
+        <button id="recipebook-export" class="btn-ghost" data-action-icon="download"><span class="action-slot" data-icon-action="download" aria-hidden="true"></span><span class="action-label">导出</span></button>
         <!-- 导入功能暂时关闭（防止现场被脏数据污染）
         <label class="btn-ghost" for="recipebook-import-file">⬆️ 导入</label>
         <input id="recipebook-import-file" type="file" accept=".json,application/json" style="display:none" />
@@ -148,8 +187,14 @@
     </div>
   </div>
 
-  <script src="/combine-feedback.js"></script>
-  <script src="/effects.js"></script>
-  <script src="/app.js"></script>
+  <script src="/icon-system.js?v=20260803d"></script>
+  <script src="/combine-feedback.js?v=20260803d"></script>
+  <script src="/score-level.js?v=20260730b"></script>
+  <script src="/vendor/anime.iife.min.js?v=20260803a"></script>
+  <script src="/casino-round.js?v=20260803a"></script>
+  <script src="/effects.js?v=20260803d"></script>
+  <script src="/casino-mode.js?v=20260803a"></script>
+  <script src="/recipe-links.js?v=20260803d"></script>
+  <script src="/app.js?v=20260803d"></script>
 </body>
 </html>

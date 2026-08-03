@@ -1,0 +1,79 @@
+.recipe-links {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  overflow: visible;
+  pointer-events: none;
+  transition: opacity 240ms ease;
+}
+
+.recipe-link-base,
+.recipe-link-emphasis,
+.recipe-link-draw {
+  fill: none;
+  stroke: var(--recipe-link-color, #78A9D6);
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.recipe-link-base {
+  stroke-width: calc((.45 + var(--recipe-link-width, .7) * .28) * 1px);
+  opacity: .055;
+  transition: opacity 520ms ease;
+}
+
+.recipe-link-emphasis,
+.recipe-link-draw {
+  stroke-width:
+    calc((.35 + var(--recipe-link-width, .7) * .16) * 1px);
+  opacity: 0;
+  transition:
+    opacity 520ms ease,
+    stroke-width 520ms ease,
+    filter 520ms ease;
+}
+
+.recipe-links.has-active-link .recipe-link-base {
+  opacity: .025;
+}
+
+.recipe-link.is-active .recipe-link-base {
+  opacity: .12;
+}
+
+.recipe-link.is-active .recipe-link-emphasis {
+  stroke-width: calc(var(--recipe-link-width, .7) * 1px);
+  opacity: var(--recipe-link-opacity, .34);
+  filter:
+    drop-shadow(
+      0 0 calc(var(--recipe-link-glow, 0) * 1px)
+      var(--recipe-link-color, #78A9D6)
+    );
+}
+
+.recipe-link.is-active .recipe-link-draw {
+  stroke-width: calc(var(--recipe-link-width, .7) * 1px);
+  opacity: min(1, calc(var(--recipe-link-opacity, .34) + .18));
+}
+
+.recipe-link.is-muted .recipe-link-base {
+  opacity: .012;
+}
+
+body.ura-on .recipe-links {
+  opacity: .82;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recipe-link-base,
+  .recipe-link-emphasis,
+  .recipe-link-draw {
+    transition-duration: 120ms;
+  }
+
+  .recipe-link-draw {
+    display: none;
+  }
+}

@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import math
 import os
+import re
 import secrets
 import sqlite3
 import time
@@ -12,11 +14,45 @@ import uuid
 from typing import Any
 
 from . import archive
+from .prompt_spec import load_prompt_spec
 
 UP_THRESHOLD = int(os.getenv("FORMULA_UP_THRESHOLD", "10"))
 UP_MIN_VOTES = int(os.getenv("FORMULA_UP_MIN_VOTES", "12"))
 DOWN_THRESHOLD = int(os.getenv("FORMULA_DOWN_THRESHOLD", "-5"))
 DOWN_MIN_VOTES = int(os.getenv("FORMULA_DOWN_MIN_VOTES", "8"))
+MAX_PUBLIC_PAGE = 100
+MAX_PUBLIC_OFFSET = 10_000_000
+ASCII_QUERY_WHITESPACE = " \t\n\f\r"
+ASCII_DECIMAL = re.compile(
+    r"^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+    re.ASCII,
+)
+
+
+def _normalize_public_page_value(
+    value: Any, fallback: int, minimum: int, maximum: int,
+) -> int:
+    if isinstance(value, str):
+        raw = value.strip(ASCII_QUERY_WHITESPACE)
+        if not raw or not ASCII_DECIMAL.fullmatch(raw):
+            return fallback
+        parsed = float(raw)
+    elif isinstance(value, (int, float)) and not isinstance(value, bool):
+        parsed = float(value)
+    else:
+        return fallback
+    if not math.isfinite(parsed):
+        return fallback
+    return max(minimum, min(maximum, math.trunc(parsed)))
+
+
+def normalize_public_pagination(
+    limit: Any = None, offset: Any = None,
+) -> tuple[int, int]:
+    return (
+        _normalize_public_page_value(limit, 50, 1, MAX_PUBLIC_PAGE),
+        _normalize_public_page_value(offset, 0, 0, MAX_PUBLIC_OFFSET),
+    )
 
 
 def init() -> None:
@@ -63,6 +99,13 @@ def init() -> None:
                 value INTEGER NOT NULL CHECK(value IN (-1, 1)),
                 updated_at REAL NOT NULL,
                 PRIMARY KEY(formula_id, player_id)
+            );
+            CREATE TABLE IF NOT EXISTS result_votes (
+                result TEXT NOT NULL,
+                player_id TEXT NOT NULL,
+                value INTEGER NOT NULL CHECK(value IN (-1, 1)),
+                updated_at REAL NOT NULL,
+                PRIMARY KEY(result, player_id)
             );
             CREATE TABLE IF NOT EXISTS formula_moderation (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -129,6 +172,95 @@ def ensure_formula(
         con.close()
 
 
+def reconcile_seed_formulas(formulas: list[dict[str, Any]]) -> int:
+    """Supersede active formulas that conflict with authoritative seed data."""
+    now = time.time()
+    replaced = 0
+    con = archive._conn()
+    try:
+        con.execute("BEGIN IMMEDIATE")
+        for formula in formulas:
+            combo_key = str(formula.get("combo_key") or "").strip()
+            result = str(formula.get("result") or "").strip()
+            if not combo_key or not result:
+                continue
+            try:
+                existing = con.execute(
+                    """
+                    SELECT * FROM formula_versions
+                    WHERE combo_key=? AND status='active'
+                    """,
+                    (combo_key,),
+                ).fetchone()
+            except sqlite3.OperationalError:
+                con.rollback()
+                return 0
+            if not existing:
+                continue
+
+            expected = (
+                result,
+                str(formula.get("emoji") or "❓"),
+                str(formula.get("comment") or ""),
+                "seed",
+            )
+            current = (
+                existing["result"],
+                existing["emoji"],
+                existing["comment"],
+                existing["source"],
+            )
+            if current == expected:
+                continue
+
+            con.execute(
+                """
+                UPDATE formula_versions
+                SET status='retired', visibility='hidden', updated_at=?
+                WHERE id=?
+                """,
+                (now, existing["id"]),
+            )
+            latest = con.execute(
+                """
+                SELECT COALESCE(MAX(version), 0)
+                FROM formula_versions WHERE combo_key=?
+                """,
+                (combo_key,),
+            ).fetchone()[0]
+            con.execute(
+                """
+                INSERT INTO formula_versions(
+                    id, combo_key, a, b, result, emoji, comment, source,
+                    version, visibility, status, global_discoverer,
+                    created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'seed', ?, 'hidden', 'active',
+                          NULL, ?, ?)
+                """,
+                (
+                    uuid.uuid4().hex,
+                    combo_key,
+                    str(formula.get("a") or ""),
+                    str(formula.get("b") or ""),
+                    expected[0],
+                    expected[1],
+                    expected[2],
+                    latest + 1,
+                    now,
+                    now,
+                ),
+            )
+            con.execute(
+                "DELETE FROM retired_combo_keys WHERE combo_key=?",
+                (combo_key,),
+            )
+            replaced += 1
+        con.commit()
+        return replaced
+    finally:
+        con.close()
+
+
 def record_reproduction(formula_id: str, player_id: str) -> None:
     con = archive._conn()
     try:
@@ -180,7 +312,8 @@ def public_formula(formula_id: str, player_id: str | None = None) -> dict[str, A
             """SELECT id,a,b,result,emoji,comment,version,status,first_publisher,
                       published_at,up_votes,down_votes,(up_votes-down_votes) net_score,
                       protected
-               FROM formula_versions WHERE id=? AND visibility='public'""",
+               FROM formula_versions
+               WHERE id=? AND visibility='public' AND status!='takedown'""",
             (formula_id,),
         ).fetchone()
         if not row:
@@ -199,7 +332,8 @@ def public_formula(formula_id: str, player_id: str | None = None) -> dict[str, A
         con.close()
 
 
-def list_public(limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
+def list_public(limit: Any = None, offset: Any = None) -> list[dict[str, Any]]:
+    limit, offset = normalize_public_pagination(limit, offset)
     con = archive._conn()
     try:
         rows = con.execute(
@@ -207,12 +341,158 @@ def list_public(limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
                       published_at,up_votes,down_votes,(up_votes-down_votes) net_score,
                       protected
                FROM formula_versions WHERE visibility='public' AND status!='takedown'
-               ORDER BY net_score DESC, published_at DESC LIMIT ? OFFSET ?""",
-            (min(max(limit, 1), 100), max(offset, 0)),
+               ORDER BY net_score DESC, published_at DESC, id DESC LIMIT ? OFFSET ?""",
+            (limit, offset),
         ).fetchall()
         return [dict(row) for row in rows]
     finally:
         con.close()
+
+
+def public_by_results(
+    results: list[str], player_id: str | None = None,
+) -> dict[str, dict[str, Any]]:
+    wanted = [str(item or "").strip() for item in results if str(item or "").strip()]
+    if not wanted:
+        return {}
+    placeholders = ",".join("?" for _ in wanted)
+    con = archive._conn()
+    try:
+        rows = con.execute(
+            f"""SELECT id,a,b,result,emoji,comment,version,status,first_publisher,
+                       published_at,up_votes,down_votes,(up_votes-down_votes) net_score,
+                       protected
+                FROM formula_versions
+                WHERE visibility='public' AND status='active'
+                  AND result IN ({placeholders})
+                ORDER BY result ASC, net_score DESC, published_at DESC""",
+            wanted,
+        ).fetchall()
+        votes: dict[str, int] = {}
+        if player_id and rows:
+            formula_ids = [row["id"] for row in rows]
+            id_placeholders = ",".join("?" for _ in formula_ids)
+            vote_rows = con.execute(
+                f"""SELECT formula_id,value FROM formula_votes
+                    WHERE player_id=? AND formula_id IN ({id_placeholders})""",
+                [player_id, *formula_ids],
+            ).fetchall()
+            votes = {row["formula_id"]: row["value"] for row in vote_rows}
+        output: dict[str, dict[str, Any]] = {}
+        for row in rows:
+            result = row["result"]
+            if result in output:
+                continue
+            item = dict(row)
+            item["my_vote"] = votes.get(item["id"])
+            output[result] = item
+        return output
+    finally:
+        con.close()
+
+
+def _empty_reaction(my_vote: int | None = None) -> dict[str, Any]:
+    return {
+        "up_votes": 0,
+        "down_votes": 0,
+        "net_score": 0,
+        "my_vote": my_vote,
+    }
+
+
+def reactions_by_results(
+    results: list[str], player_id: str | None = None,
+) -> dict[str, dict[str, Any]]:
+    wanted = [str(item or "").strip() for item in results if str(item or "").strip()]
+    output = {result: _empty_reaction() for result in wanted}
+    if not wanted:
+        return output
+    placeholders = ",".join("?" for _ in wanted)
+    con = archive._conn()
+    try:
+        rows = con.execute(
+            f"""SELECT result,
+                       COALESCE(SUM(value=1),0) up_votes,
+                       COALESCE(SUM(value=-1),0) down_votes
+                FROM result_votes
+                WHERE result IN ({placeholders})
+                GROUP BY result""",
+            wanted,
+        ).fetchall()
+        for row in rows:
+            up_votes = int(row["up_votes"] or 0)
+            down_votes = int(row["down_votes"] or 0)
+            output[row["result"]] = {
+                "up_votes": up_votes,
+                "down_votes": down_votes,
+                "net_score": up_votes - down_votes,
+                "my_vote": None,
+            }
+        if player_id:
+            vote_rows = con.execute(
+                f"""SELECT result,value FROM result_votes
+                    WHERE player_id=? AND result IN ({placeholders})""",
+                [player_id, *wanted],
+            ).fetchall()
+            for row in vote_rows:
+                if row["result"] in output:
+                    output[row["result"]]["my_vote"] = row["value"]
+        return output
+    finally:
+        con.close()
+
+
+def vote_result(result: str, player_id: str, value: int) -> dict[str, Any]:
+    """value -1/1 toggles that reaction; 0 cancels any existing reaction."""
+    clean_result = str(result or "").strip()
+    clean_player = str(player_id or "").strip()
+    if not clean_result:
+        raise ValueError("result 不能为空")
+    if not clean_player:
+        raise ValueError("player_id 不能为空")
+    if value not in (-1, 0, 1):
+        raise ValueError("vote 必须是 -1、0 或 1")
+    con = archive._conn()
+    try:
+        con.execute("BEGIN IMMEDIATE")
+        existing = con.execute(
+            "SELECT value FROM result_votes WHERE result=? AND player_id=?",
+            (clean_result, clean_player),
+        ).fetchone()
+        old_value = existing["value"] if existing else None
+        next_value = None if value == 0 or old_value == value else value
+        if next_value is None:
+            con.execute(
+                "DELETE FROM result_votes WHERE result=? AND player_id=?",
+                (clean_result, clean_player),
+            )
+        else:
+            con.execute(
+                """INSERT INTO result_votes VALUES (?, ?, ?, ?)
+                   ON CONFLICT(result,player_id) DO UPDATE SET
+                   value=excluded.value, updated_at=excluded.updated_at""",
+                (clean_result, clean_player, next_value, time.time()),
+            )
+        con.commit()
+        return reactions_by_results([clean_result], clean_player)[clean_result]
+    finally:
+        con.close()
+
+
+def _vote_view(row: Any, player_id: str | None = None) -> dict[str, Any]:
+    out = dict(row)
+    out["net_score"] = out["up_votes"] - out["down_votes"]
+    if out["visibility"] == "public":
+        return public_formula(out["id"], player_id) or {}
+    return {
+        "id": out["id"],
+        "visibility": out["visibility"],
+        "status": out["status"],
+        "up_votes": out["up_votes"],
+        "down_votes": out["down_votes"],
+        "net_score": out["net_score"],
+        "my_vote": None,
+    }
 
 
 def vote(formula_id: str, player_id: str, value: int) -> dict[str, Any]:
@@ -223,12 +503,12 @@ def vote(formula_id: str, player_id: str, value: int) -> dict[str, Any]:
     try:
         con.execute("BEGIN IMMEDIATE")
         formula = con.execute(
-            """SELECT 1 FROM formula_versions
-               WHERE id=? AND visibility='public' AND status='active'""",
+            """SELECT id,visibility,status,up_votes,down_votes FROM formula_versions
+               WHERE id=? AND status='active'""",
             (formula_id,),
         ).fetchone()
         if not formula:
-            raise LookupError("只能为公开且有效的公式投票")
+            raise LookupError("只能为有效公式投票")
         if value == 0:
             con.execute(
                 "DELETE FROM formula_votes WHERE formula_id=? AND player_id=?",
@@ -251,7 +531,13 @@ def vote(formula_id: str, player_id: str, value: int) -> dict[str, Any]:
             (counts[0], counts[1], time.time(), formula_id),
         )
         con.commit()
-        return public_formula(formula_id, player_id) or {}
+        updated = con.execute(
+            "SELECT id,visibility,status,up_votes,down_votes FROM formula_versions WHERE id=?",
+            (formula_id,),
+        ).fetchone()
+        out = _vote_view(updated, player_id)
+        out["my_vote"] = value or None
+        return out
     finally:
         con.close()
 
@@ -332,8 +618,18 @@ def is_retired_key(combo_key: str) -> bool:
         con.close()
 
 
-def feedback_examples(limit: int = 8) -> tuple[list[dict[str, str]], list[str]]:
+def feedback_examples(
+    *,
+    positive_limit: int | None = None,
+    negative_limit: int | None = None,
+) -> tuple[list[dict[str, str]], list[str]]:
     """Return curated positive examples and retired/negative result words."""
+    if positive_limit is None or negative_limit is None:
+        prompt_limits = load_prompt_spec()["limits"]
+        if positive_limit is None:
+            positive_limit = prompt_limits["community_examples"]
+        if negative_limit is None:
+            negative_limit = prompt_limits["avoid_words"]
     con = archive._conn()
     try:
         try:
@@ -342,12 +638,12 @@ def feedback_examples(limit: int = 8) -> tuple[list[dict[str, str]], list[str]]:
                WHERE visibility='public' AND status='active'
                AND ai_positive_enabled=1 AND (up_votes-down_votes)>=?
                AND (up_votes+down_votes)>=?
-               ORDER BY (up_votes-down_votes) DESC LIMIT ?""",
-            (UP_THRESHOLD, UP_MIN_VOTES, limit),
+               ORDER BY (up_votes-down_votes) DESC, updated_at DESC, id DESC LIMIT ?""",
+            (UP_THRESHOLD, UP_MIN_VOTES, positive_limit),
             ).fetchall()
             negatives = con.execute(
             """SELECT retired_result FROM retired_combo_keys
-               ORDER BY created_at DESC LIMIT ?""", (limit,)
+               ORDER BY created_at DESC LIMIT ?""", (negative_limit,)
             ).fetchall()
         except sqlite3.OperationalError:
             return [], []

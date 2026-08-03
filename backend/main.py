@@ -7,8 +7,9 @@ FastAPI 主入口。
   GET  /api/elements      → 当前全部元素
   POST /api/combine       → 合成（seed/cache miss 时接 LLM）
   GET  /api/wall/stream   → SSE 首发推送（M4）
-  POST /api/session/kpi   → 上报 KPI（M4）
-  GET  /api/session/{sid}/rank → 绩效评级（M4）
+  POST /api/session/score → 上报分数
+  POST /api/session/kpi   → 上报分数（legacy compatibility route）
+  GET  /api/session/{sid}/rank → 分数等级
 """
 
 from __future__ import annotations
@@ -31,10 +32,16 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from . import db, kpi, archive, community, depth as depth_mod, bounty as bounty_mod
-from .community_api import router as community_router, player as community_player
+from .community_api import (
+    router as community_router,
+    player as community_player,
+    rate_limit as community_rate_limit,
+)
 from .comments import normalize_comment
+from .icon_recipes import resolve_icon_recipe
 from .seed_loader import store
 from .nickname import generate_unique, stats as nickname_stats
+from .prompt_spec import load_prompt_spec
 
 # ---- app bootstrap ----
 app = FastAPI(title="Infinity Craft · 鹅厂打工人版", version="1.0.0")
@@ -57,6 +64,7 @@ _LLM_EXECUTOR = ThreadPoolExecutor(
 
 @app.on_event("startup")
 async def _startup() -> None:
+    load_prompt_spec()
     db.init_db()  # 连 Redis + 建 SQLite 表
     community.init()
     # 1) 从 SQLite 恢复历史数据到 Redis（重启不丢 AI 生成的长尾）
@@ -96,13 +104,14 @@ class CombineResp(BaseModel):
     b: str
     result: str
     emoji: str
+    icon: Optional[dict] = None
     source: str  # seed | llm | fallback
     comment: str
     chain: Optional[str] = None
     is_first: bool = False
     discoverer: Optional[str] = None
     explode: bool = False
-    # 旧 KPI（保留兼容，但推荐用 depth/full_score）
+    # Legacy compatibility fields; new clients use depth/full_score for scores.
     kpi_delta: int = 0
     kpi_reason: str = ""
     # 新加分系统：depth 合成难度 + full_score（玩家未知时应得分）
@@ -110,12 +119,17 @@ class CombineResp(BaseModel):
     depth: int = 0
     full_score: int = 0
     formula_id: Optional[str] = None
+    hit_count: int = 0
 
 
-class KPIReq(BaseModel):
+class ScoreReq(BaseModel):
     session_id: str
     delta: int
     reason: str
+
+
+class VoteReq(BaseModel):
+    value: int
 
 
 # ============================================================
@@ -123,18 +137,15 @@ class KPIReq(BaseModel):
 # ============================================================
 @app.get("/api/tiers")
 async def api_tiers():
-    """前端用于检测段位跃迁、渲染进度条。和 kpi.TIERS 保持一致。"""
+    return {"tiers": [], "level_rules": _level_rules()}
+
+
+def _level_rules() -> dict:
     return {
-        "tiers": [
-            {
-                "floor": t[0],
-                "grade": t[1],
-                "label": t[2],
-                "emoji": t[3],
-                "comment": t[4],
-            }
-            for t in kpi.TIERS
-        ]
+        "base_star_cost": kpi.BASE_STAR_COST,
+        "star_cost_step": kpi.STAR_COST_STEP,
+        "merge_base": kpi.MERGE_BASE,
+        "icons": [icon for icon, _weight in kpi.LEVEL_WEIGHTS],
     }
 
 
@@ -259,7 +270,7 @@ async def api_admin_stats():
     top_chains = archive.top_chains(10)
 
     # 最近 15 条首发
-    recent_firsts = db.recent_firsts(limit=15)
+    recent_firsts = _attach_icons_to_firsts(db.recent_firsts(limit=15))
 
     return {
         "now": now_ts,
@@ -340,6 +351,43 @@ async def api_nickname_stats():
 @app.get("/api/elements")
 async def api_elements():
     return {"elements": store.elements}
+
+
+def _element_icon(name: str, emoji: str = "❓") -> dict:
+    info = store.elements.get(name) or {}
+    return resolve_icon_recipe(
+        name=name,
+        emoji=info.get("emoji") or emoji,
+        category=info.get("category"),
+        chain=info.get("chain"),
+        comment=info.get("comment", ""),
+        persisted=info.get("icon"),
+    )
+
+
+def _attach_icons_to_firsts(items: list[dict]) -> list[dict]:
+    return [
+        {
+            **item,
+            "icon": _element_icon(
+                item.get("result", ""),
+                item.get("emoji") or "❓",
+            ),
+        }
+        for item in items
+    ]
+
+
+def _attach_formula_icons(formula: dict) -> dict:
+    return {
+        **formula,
+        "result_icon": _element_icon(
+            formula.get("result", ""),
+            formula.get("emoji") or "❓",
+        ),
+        "a_icon": _element_icon(formula.get("a", "")),
+        "b_icon": _element_icon(formula.get("b", "")),
+    }
 
 
 @app.post("/api/combine", response_model=CombineResp)
@@ -430,6 +478,16 @@ async def api_combine(
     chain = hit.get("chain") or None
     source = hit.get("source", "seed")
     comment = normalize_comment(hit.get("comment"))
+    existing_info = store.elements.get(result) or {}
+    icon = resolve_icon_recipe(
+        name=result,
+        emoji=emoji,
+        category=existing_info.get("category") or chain or "ai",
+        parents=(a, b),
+        chain=chain,
+        comment=comment,
+        persisted=existing_info.get("icon"),
+    )
 
     # 4. 首发记录
     #    说明：即使 source == "seed"（缓存命中预设配方），只要 first:{result} 在 Redis 中
@@ -449,6 +507,7 @@ async def api_combine(
                 {
                     "result": result,
                     "emoji": emoji,
+                    "icon": icon,
                     "discoverer": who,
                 }
             )
@@ -457,12 +516,29 @@ async def api_combine(
 
     # 5. result 纳入 elements + 归档到 SQLite
     if result not in store.elements and source != "fallback":
-        store.elements[result] = {"emoji": emoji, "category": chain or "ai"}
+        store.elements[result] = {
+            "emoji": emoji,
+            "category": chain or "ai",
+            "icon": icon,
+        }
         archive.upsert_element(
-            name=result, emoji=emoji, category=chain, is_starter=False
+            name=result,
+            emoji=emoji,
+            category=chain,
+            is_starter=False,
+            icon=icon,
+        )
+    elif source != "fallback" and not existing_info.get("icon"):
+        store.elements[result]["icon"] = icon
+        archive.upsert_element(
+            name=result,
+            emoji=emoji,
+            category=existing_info.get("category") or chain,
+            is_starter=False,
+            icon=icon,
         )
 
-    # 6. KPI（保留旧 chain 打分）
+    # 6. Legacy compatibility score fields still use the old chain scorer.
     delta, reason = kpi.score_for(chain, is_first)
     if source != "fallback":
         db.kpi_add(req.session_id or "default", delta, reason)
@@ -483,6 +559,18 @@ async def api_combine(
         formula_id = formula["id"]
         community.record_reproduction(formula_id, player_id)
 
+    hit_count = 0
+    if source != "fallback":
+        try:
+            hit_count = max(1, int(db.touch_hit(key, hit)))
+        except Exception as exc:
+            hit_count = 1
+            print(
+                f"[combine] event=hit_count_failed request_id={request_id} "
+                f"error_type={type(exc).__name__}",
+                flush=True,
+            )
+
     elapsed_ms = round((time.perf_counter() - started) * 1000)
     print(
         f"[combine] event=request_completed request_id={request_id} "
@@ -495,6 +583,7 @@ async def api_combine(
         b=b,
         result=result,
         emoji=emoji,
+        icon=icon,
         source=source,
         comment=comment,
         chain=chain,
@@ -506,10 +595,16 @@ async def api_combine(
         depth=depth_val,
         full_score=full_score,
         formula_id=formula_id,
+        hit_count=hit_count,
     )
 
 
-async def _combine_via_llm(a: str, b: str, request_id: str) -> Optional[dict]:
+async def _combine_via_llm(
+    a: str,
+    b: str,
+    request_id: str,
+    prompt_spec: Optional[dict] = None,
+) -> Optional[dict]:
     """seed/cache miss 后调 LLM，成功则落 Redis。"""
     started = time.perf_counter()
     try:
@@ -521,10 +616,16 @@ async def _combine_via_llm(a: str, b: str, request_id: str) -> Optional[dict]:
             flush=True,
         )
         return None
-    # 传入最近的 30 个 result 作为 avoid_words，减少撞词
-    avoid = db.recent_result_names(30)
-    positive_examples, negative_results = community.feedback_examples()
-    avoid = list(dict.fromkeys([*negative_results, *avoid]))
+    spec = prompt_spec or load_prompt_spec()
+    prompt_limits = spec["limits"]
+    recent_results = db.recent_result_names(prompt_limits["avoid_words"])
+    positive_examples, negative_results = community.feedback_examples(
+        positive_limit=prompt_limits["community_examples"],
+        negative_limit=prompt_limits["avoid_words"],
+    )
+    avoid = list(
+        dict.fromkeys([*negative_results, *recent_results])
+    )[: prompt_limits["avoid_words"]]
     print(
         f"[combine] event=llm_started request_id={request_id} "
         f"avoid_words={len(avoid)}",
@@ -535,11 +636,12 @@ async def _combine_via_llm(a: str, b: str, request_id: str) -> Optional[dict]:
         _LLM_EXECUTOR,
         partial(
             combine_via_llm,
-            a,
-            b,
-            avoid,
+            a=a,
+            b=b,
+            avoid_words=avoid,
             community_examples=positive_examples,
             request_id=request_id,
+            prompt_spec=spec,
         ),
     )
     elapsed_ms = round((time.perf_counter() - started) * 1000)
@@ -573,11 +675,22 @@ async def _combine_via_llm(a: str, b: str, request_id: str) -> Optional[dict]:
     }
 
 
-# ---- KPI ----
-@app.post("/api/session/kpi")
-async def api_kpi(req: KPIReq):
+# ---- 分数 ----
+def _add_score(req: ScoreReq) -> dict:
+    # db.kpi_add retains the legacy KV identifier for persisted score records.
     db.kpi_add(req.session_id, req.delta, req.reason)
     return {"ok": True, "total": db.kpi_total(req.session_id)}
+
+
+@app.post("/api/session/score")
+async def api_score(req: ScoreReq):
+    return _add_score(req)
+
+
+@app.post("/api/session/kpi")
+async def api_kpi_legacy(req: ScoreReq):
+    """Legacy compatibility route for clients that still post score updates here."""
+    return _add_score(req)
 
 
 # ============================================================
@@ -645,13 +758,14 @@ async def api_recipes_verify(req: VerifyReq):
 
 @app.get("/api/session/{sid}/rank")
 async def api_rank(sid: str):
+    """返回 session 的分数等级。"""
     total = db.kpi_total(sid)
     return {"session_id": sid, "total": total, **kpi.rank_for(total)}
 
 
 @app.get("/api/rank")
 async def api_rank_for_total(total: int = 0):
-    """给定累计分数，返回对应段位。前端用它来按 state.kpi 正确显示段位。
+    """给定累计分数，返回对应分数等级。前端用它来按 state.score 正确显示等级。
     和 /api/session/{sid}/rank 的区别：不依赖 Redis 里的 session total，
     让前端完全掌握积分来源（depth-based），避免和后端 chain 评分不一致。"""
     total = max(0, int(total))
@@ -670,7 +784,8 @@ async def api_wall_stream(skip_history: int = 0):
 
     async def gen():
         if not skip_history:
-            for row in reversed(db.recent_firsts(limit=20)):
+            rows = _attach_icons_to_firsts(db.recent_firsts(limit=20))
+            for row in reversed(rows):
                 yield {"event": "first", "data": json.dumps(row, ensure_ascii=False)}
         queue: asyncio.Queue = app.state.first_queue
         while True:
@@ -682,11 +797,49 @@ async def api_wall_stream(skip_history: int = 0):
 
 @app.get("/api/wall/recent")
 async def api_wall_recent(limit: int = 50):
-    return {"items": db.recent_firsts(limit=limit)}
+    return {"items": _attach_icons_to_firsts(db.recent_firsts(limit=limit))}
+
+
+def _attach_wall_context_to_firsts(
+    items: list[dict],
+    player_id: str | None = None,
+) -> list[dict]:
+    results = [item.get("result", "") for item in items]
+    formulas = community.public_by_results(
+        results,
+        player_id,
+    )
+    formulas = {
+        result: _attach_formula_icons(formula)
+        for result, formula in formulas.items()
+    }
+    reactions = community.reactions_by_results(results, player_id)
+    return [
+        {
+            **item,
+            "reaction": reactions.get(item.get("result"), {
+                "up_votes": 0,
+                "down_votes": 0,
+                "net_score": 0,
+                "my_vote": None,
+            }),
+            **(
+                {"formula": formulas[item.get("result")]}
+                if item.get("result") in formulas
+                else {}
+            ),
+        }
+        for item in items
+    ]
 
 
 @app.get("/api/wall/page")
-async def api_wall_page(offset: int = 0, limit: int = 100):
+async def api_wall_page(
+    request: Request,
+    response: Response,
+    offset: int = 0,
+    limit: int = 100,
+):
     """
     首发墙分页接口：按 ts DESC（最新首发在前）分页返回。
     - offset: 从第几条开始（0-based）
@@ -695,7 +848,13 @@ async def api_wall_page(offset: int = 0, limit: int = 100):
     """
     offset = max(0, int(offset))
     limit = max(1, min(500, int(limit)))
-    items = db.recent_firsts(limit=limit, offset=offset)
+    items = _attach_icons_to_firsts(
+        db.recent_firsts(limit=limit, offset=offset)
+    )
+    items = _attach_wall_context_to_firsts(
+        items,
+        community_player(request, response),
+    )
     total = db.firsts_total()
     return {
         "items": items,
@@ -715,6 +874,21 @@ async def api_wall_leaderboard(limit: int = 20, me: Optional[str] = None):
     """
     limit = max(1, min(100, int(limit)))
     return db.leaderboard(limit=limit, me=me)
+
+
+@app.put("/api/wall/elements/{name}/vote")
+async def api_wall_element_vote(
+    name: str,
+    body: VoteReq,
+    request: Request,
+    response: Response,
+):
+    player_id = community_player(request, response)
+    community_rate_limit(player_id, "element-vote", 60)
+    try:
+        return community.vote_result(name, player_id, body.value)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
 
 
 @app.get("/api/wall/category/{category}")
@@ -749,6 +923,7 @@ def _build_category_raw(cat: str) -> dict:
         item = {
             "name": name,
             "emoji": info.get("emoji", "❓"),
+            "icon": _element_icon(name, info.get("emoji", "❓")),
             "category": cat,
             "is_starter": is_starter,
             "discovered": discovered,
@@ -806,14 +981,21 @@ async def api_element_recipes(name: str):
                 "b": b,
                 "a_emoji": a_info.get("emoji") or "❓",
                 "b_emoji": b_info.get("emoji") or "❓",
+                "a_icon": _element_icon(a, a_info.get("emoji") or "❓"),
+                "b_icon": _element_icon(b, b_info.get("emoji") or "❓"),
                 "source": r.get("source"),
                 "chain": r.get("chain"),
+                "comment": r.get("comment") or "",
                 "hit_count": r.get("hit_count"),
             }
         )
     return {
         "result": target,
         "result_emoji": result_info.get("emoji") or "❓",
+        "result_icon": _element_icon(
+            target,
+            result_info.get("emoji") or "❓",
+        ),
         "count": len(recipes),
         "recipes": recipes,
     }

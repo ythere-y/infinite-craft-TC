@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from types import SimpleNamespace
 from typing import Any, Optional
 
@@ -81,6 +82,120 @@ def test_generic_key_precedence_and_request_mapping(monkeypatch):
         "messages": [{"role": "user", "content": "咖啡 + 代码"}],
         "temperature": 0.42,
     }
+
+
+def test_optional_system_prompt_uses_two_message_shape(monkeypatch):
+    configure(monkeypatch, generic_key="generic-test-key")
+    factory, captured = fake_factory()
+
+    assert llm.query(
+        {"system_prompt": "系统规则", "question": "用户输入"},
+        temperature=0.85,
+        _client_factory=factory,
+    )
+
+    assert captured["create"]["messages"] == [
+        {"role": "system", "content": "系统规则"},
+        {"role": "user", "content": "用户输入"},
+    ]
+
+
+def test_combine_orchestration_builds_shared_messages_once(monkeypatch):
+    from backend import prompt
+
+    spec = deepcopy(prompt.load_prompt_spec())
+    spec["limits"] = {
+        "avoid_words": 31,
+        "community_examples": 9,
+        "bounty_candidates": 13,
+    }
+    avoid_words = [f"禁词{index}" for index in range(31)]
+    community_examples = [
+        {
+            "a": f"社区输入{index}",
+            "b": "会议",
+            "name": f"社区结果{index}",
+            "emoji": "🗓️",
+            "comment": "有效示例",
+        }
+        for index in range(9)
+    ]
+    renderer_calls = []
+    query_calls = []
+
+    def select_candidates(a, b, limit):
+        assert (a, b) == ("需求", "咖啡")
+        return [
+            {"name": f"悬赏{index}", "emoji": "🎯", "category": "tencent"}
+            for index in range(limit)
+        ]
+
+    def render_messages(prompt_spec, **inputs):
+        renderer_calls.append((prompt_spec, inputs))
+        return {
+            "system": "系统消息",
+            "user": "用户消息",
+            "temperature": 0.73,
+            "style_id": "test-style",
+        }
+
+    def query(payload, temperature):
+        query_calls.append((payload, temperature))
+        return {
+            "text": '{"name":"需求续杯","emoji":"☕","comment":"需求先续一杯。"}'
+        }
+
+    monkeypatch.setattr(prompt, "_select_bounty_candidates", select_candidates)
+    monkeypatch.setattr(
+        prompt,
+        "build_prompt_messages_from_spec",
+        render_messages,
+        raising=False,
+    )
+    monkeypatch.setattr(llm, "query", query)
+
+    result = prompt.combine_via_llm(
+        "需求",
+        "咖啡",
+        avoid_words=avoid_words,
+        community_examples=community_examples,
+        request_id="req-shared-limits",
+        prompt_spec=spec,
+    )
+
+    assert result == {
+        "name": "需求续杯",
+        "emoji": "☕",
+        "comment": "需求先续一杯。",
+    }
+    assert len(renderer_calls) == 1
+    assert renderer_calls[0] == (
+        spec,
+        {
+            "a": "需求",
+            "b": "咖啡",
+            "avoid_words": avoid_words,
+            "bounty_candidates": [
+                {
+                    "name": f"悬赏{index}",
+                    "emoji": "🎯",
+                    "category": "tencent",
+                }
+                for index in range(13)
+            ],
+            "community_examples": community_examples,
+        },
+    )
+    assert query_calls == [
+        (
+            {
+                "system_prompt": "系统消息",
+                "question": "用户消息",
+                "request_id": "req-shared-limits",
+            },
+            0.73,
+        )
+    ]
 
 
 def test_makers_key_fallback_and_optional_temperature(monkeypatch):

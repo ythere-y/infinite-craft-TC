@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, readFile } from "node:fs/promises";
+import { access, readFile, readdir, stat } from "node:fs/promises";
 import test from "node:test";
 
 async function exists(path) {
@@ -11,15 +11,34 @@ async function exists(path) {
   }
 }
 
-test("Render is archived outside the repository root", async () => {
+test("retired root entrypoints are removed or organized under scripts", async () => {
   assert.equal(await exists("render.yaml"), false);
-  assert.equal(await exists("deploy/legacy/render.yaml"), true);
+  assert.equal(await exists("deploy/legacy/render.yaml"), false);
+  assert.equal(await exists("run.sh"), false);
+  assert.equal(await exists("reset.sh"), false);
+  assert.equal(await exists("scripts/local/run-conda.sh"), true);
+  assert.equal(await exists("scripts/local/reset-redis.sh"), true);
 
-  const legacyRender = await readFile(
-    "deploy/legacy/render.yaml",
-    "utf8",
-  );
-  assert.match(legacyRender, /暂停|legacy|inactive/iu);
+  for (const path of [
+    "scripts/local/run-conda.sh",
+    "scripts/local/reset-redis.sh",
+  ]) {
+    assert.notEqual((await stat(path)).mode & 0o111, 0, `${path} is executable`);
+  }
+});
+
+test("AI process documents use the tracked dated agent directory", async () => {
+  assert.equal(await exists(".agent/README.md"), true);
+  assert.equal(await exists("docs/plans"), false);
+  assert.equal(await exists("docs/improvements"), false);
+  assert.equal(await exists("docs/superpowers"), false);
+
+  const names = (await readdir(".agent/docs"))
+    .filter((name) => name.endsWith(".md"));
+  assert.notEqual(names.length, 0);
+  for (const name of names) {
+    assert.match(name, /^\d{4}-\d{2}-\d{2}-[a-z0-9-]+\.md$/u);
+  }
 });
 
 test("primary docs describe local development and Makers production", async () => {

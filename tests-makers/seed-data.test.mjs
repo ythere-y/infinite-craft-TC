@@ -27,6 +27,20 @@ test("generated Makers data retains all seed elements and starters", async () =>
   );
 });
 
+test("generated Makers elements include every preset icon recipe", async () => {
+  const [source, presets] = await Promise.all([
+    readFile("backend/seed_elements.json", "utf8").then(JSON.parse),
+    readFile(
+      "frontend/assets/icons/generated/element-icon-map.json",
+      "utf8",
+    ).then(JSON.parse),
+  ]);
+
+  for (const name of Object.keys(source.elements)) {
+    assert.deepEqual(ELEMENTS[name].icon, presets[name].icon, name);
+  }
+});
+
 test("generated combinations use order-independent lookup keys", () => {
   const forward = COMBINATIONS[comboKey("水", "火")];
   const reverse = COMBINATIONS[comboKey("火", "水")];

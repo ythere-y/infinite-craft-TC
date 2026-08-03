@@ -4,6 +4,7 @@ import {
   ELEMENTS,
   STARTERS,
 } from "../_generated/seed-data.js";
+import { PROMPT_SPEC } from "../_generated/prompt-data.js";
 import { selectBountyCandidates } from "./bounty.js";
 import { normalizePair, cleanText } from "./keys.js";
 import {
@@ -16,6 +17,10 @@ import {
   normalizeComment,
 } from "./comments.js";
 import { CommunityStore } from "./community.js";
+import {
+  normalizeIcon,
+  resolveIconRecipe,
+} from "./icon-recipes.js";
 
 const FALLBACK = {
   result: "未知产物",
@@ -24,6 +29,7 @@ const FALLBACK = {
   source: "fallback",
   chain: null,
 };
+const ELEMENT_WRITE_NEEDED = Symbol("element-write-needed");
 
 function badRequest(message) {
   const error = new TypeError(message);
@@ -49,6 +55,8 @@ export function createGameService({
   env = {},
   fetchImpl = globalThis.fetch,
   now = () => Date.now(),
+  random = Math.random,
+  promptLimits = PROMPT_SPEC.limits,
 } = {}) {
   if (!store) throw new TypeError("Game service requires a KV store");
   const modelConfigured = llmConfiguration(env).configured;
@@ -58,16 +66,63 @@ export function createGameService({
     Math.min(1_000, Number(env.MODEL_CALLS_PER_MINUTE) || 20),
   );
 
+  async function elementInfo(name) {
+    const dynamic = (await store.getElement(name)) || {};
+    const seed = ELEMENTS[name] || {};
+    const dynamicIcon = normalizeIcon(dynamic.icon);
+    const seedIcon = normalizeIcon(seed.icon);
+    return {
+      info: {
+        ...dynamic,
+        ...seed,
+        ...(dynamicIcon ? { icon: dynamicIcon } : {}),
+      },
+      dynamicIcon,
+      seedIcon,
+    };
+  }
+
+  async function withResolvedIcon(hit, a, b) {
+    if (!hit?.result) return hit;
+    try {
+      const {
+        info,
+        dynamicIcon,
+        seedIcon,
+      } = await elementInfo(hit.result);
+      const persisted =
+        dynamicIcon ||
+        seedIcon ||
+        normalizeIcon(hit.icon);
+      const icon = resolveIconRecipe({
+        name: hit.result,
+        emoji: hit.emoji,
+        category: info.category || hit.chain || "ai",
+        parents: [a, b],
+        chain: hit.chain || null,
+        comment: normalizeComment(hit.comment),
+        persisted,
+      });
+      const enriched = { ...hit, icon };
+      Object.defineProperty(enriched, ELEMENT_WRITE_NEEDED, {
+        value: !dynamicIcon && !seedIcon,
+      });
+      return enriched;
+    } catch {
+      return hit;
+    }
+  }
+
   async function resolveCombination(a, b, clientIdentity = "anonymous") {
+    const seeded = COMBINATIONS[normalizePair(a, b)];
+    if (seeded?.result) return withResolvedIcon(seeded, a, b);
     const communityState = await community.combinationState(a, b);
     const cached = await store.getCombination(a, b);
     if (communityState?.status === "active" && communityState.version > 1 && cached?.result) {
-      return cached;
+      return withResolvedIcon(cached, a, b);
     }
     if (communityState?.status !== "retired") {
-      const seeded = COMBINATIONS[normalizePair(a, b)];
-      if (seeded?.result) return seeded;
-      if (cached?.result) return cached;
+      if (cached?.result) return withResolvedIcon(cached, a, b);
     }
     if (!modelConfigured) return null;
 
@@ -80,14 +135,20 @@ export function createGameService({
     }
 
     const firsts = await store.allFirsts();
-    const feedback = await community.feedback(env);
+    const feedback = await community.feedback(env, {
+      positiveLimit: promptLimits.community_examples,
+      negativeLimit: promptLimits.avoid_words,
+    });
+    const avoidWords = [
+      ...new Set([
+        ...feedback.negatives,
+        ...firsts.map((item) => item.result),
+      ]),
+    ].slice(0, promptLimits.avoid_words);
     const generated = await requestModelCombination({
       a,
       b,
-      avoidWords: [
-        ...feedback.negatives,
-        ...firsts.slice(0, 30).map((item) => item.result),
-      ],
+      avoidWords,
       communityExamples: feedback.positives,
       bountyCandidates: selectBountyCandidates({
         a,
@@ -95,18 +156,40 @@ export function createGameService({
         elements: { ...(await store.dynamicElements()), ...ELEMENTS },
         starters: STARTERS,
         firsts,
+        limit: promptLimits.bounty_candidates,
       }),
       env,
       fetchImpl,
+      random,
+      promptLimits,
     });
     if (!generated) return null;
-    return store.putCombination(a, b, {
+    const generatedHit = await withResolvedIcon(
+      {
+        result: generated.name,
+        emoji: generated.emoji,
+        comment: generated.comment,
+        source: "llm",
+        chain: null,
+      },
+      a,
+      b,
+    );
+    const stored = await store.putCombination(a, b, {
       result: generated.name,
       emoji: generated.emoji,
       comment: generated.comment,
       source: "llm",
       chain: null,
+      ...(generatedHit.icon ? { icon: generatedHit.icon } : {}),
+    }, {
+      rememberElement: false,
     });
+    Object.defineProperty(stored, ELEMENT_WRITE_NEEDED, {
+      value: generatedHit[ELEMENT_WRITE_NEEDED] !== false,
+      configurable: true,
+    });
+    return stored;
   }
 
   async function depthFor(a, b, result) {
@@ -148,31 +231,61 @@ export function createGameService({
     const source = hit.source || "seed";
     const chain = hit.chain || null;
     const comment = normalizeComment(hit.comment);
+    const icon = normalizeIcon(hit.icon);
     let isFirst = false;
     let recordedDiscoverer = null;
     let depth = 0;
+    // Retain the legacy kpi field names for response compatibility.
     let kpi = { delta: 0, reason: "" };
+    let hitCount = 0;
 
     if (source !== "fallback") {
       const first = await store.recordFirst(
         hit.result,
         hit.emoji,
         discoverer,
+        comment,
       );
       isFirst = first.created;
       recordedDiscoverer = first.record?.discoverer || null;
       depth = await depthFor(a, b, hit.result);
-      await store.rememberElement(hit.result, {
-        emoji: hit.emoji,
-        category: chain || ELEMENTS[hit.result]?.category || "ai",
-        depth,
-      });
+      if (hit[ELEMENT_WRITE_NEEDED]) {
+        await store.rememberElement(hit.result, {
+          emoji: hit.emoji,
+          category: chain || ELEMENTS[hit.result]?.category || "ai",
+          depth,
+          ...(icon ? { icon } : {}),
+        });
+      }
+      // The store method keeps legacy kpi_* score records for compatibility.
       kpi = scoreFor(chain, isFirst);
       await store.addKpi(sessionId, kpi.delta, kpi.reason);
+      try {
+        await store.putCombination(a, b, {
+          result: hit.result,
+          emoji: hit.emoji,
+          comment,
+          source,
+          chain,
+          ...(icon ? { icon } : {}),
+        }, {
+          rememberElement: false,
+          overwrite: source === "seed",
+        });
+        const counted = await store.incrementCombinationHit(a, b);
+        hitCount = Math.max(1, Number(counted?.hit_count) || 1);
+      } catch {
+        hitCount = 1;
+      }
     }
 
     let formula = null;
-    if (source !== "fallback" && cleanText(input?.player_id)) {
+    if (source === "seed") {
+      formula = await community.reconcileAuthoritativeFormula({
+        a, b, result: hit.result, emoji: hit.emoji, comment, source,
+        discoverer: recordedDiscoverer, playerId: cleanText(input?.player_id) || null,
+      });
+    } else if (source !== "fallback" && cleanText(input?.player_id)) {
       formula = await community.ensureFormula({
         a, b, result: hit.result, emoji: hit.emoji, comment, source,
         discoverer: recordedDiscoverer, playerId: cleanText(input.player_id),
@@ -195,17 +308,20 @@ export function createGameService({
       b,
       result: hit.result,
       emoji: hit.emoji,
+      ...(icon ? { icon } : {}),
       comment,
       source,
       chain,
       is_first: isFirst,
       discoverer: recordedDiscoverer,
       explode: shouldExplode(chain, hit.result),
+      // Legacy compatibility response fields; clients use depth/full_score.
       kpi_delta: kpi.delta,
       kpi_reason: kpi.reason,
       depth,
       full_score: 10 * depth * depth,
       formula_id: formula?.id || null,
+      hit_count: source === "fallback" ? 0 : hitCount,
     };
   }
 

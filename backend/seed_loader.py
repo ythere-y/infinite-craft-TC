@@ -1,13 +1,14 @@
 """
-启动时预热 seed 元素 + seed 合成规则到 Redis 和 SQLite。
-幂等：put_cache/upsert_element 在已存在时不覆盖。
+启动时同步 seed 元素 + seed 合成规则到 Redis 和 SQLite。
+种子公式是同键记录的权威来源；动态公式仍保持首次写入定型。
 """
 
 import json
 from pathlib import Path
 from typing import Dict, Tuple, List
 
-from . import db, archive
+from . import db, archive, community
+from .icon_recipes import attach_icon
 
 _HERE = Path(__file__).parent
 SEED_ELEMENTS_PATH = _HERE / "seed_elements.json"
@@ -24,8 +25,14 @@ class SeedStore:
     def load(self) -> Tuple[int, int]:
         with open(SEED_ELEMENTS_PATH, encoding="utf-8") as f:
             data = json.load(f)
-        self.starters = data.get("starters", [])
-        self.elements = dict(data.get("elements", {}))
+        self.starters = [
+            attach_icon(starter["name"], starter)
+            for starter in data.get("starters", [])
+        ]
+        self.elements = {
+            name: attach_icon(name, info)
+            for name, info in data.get("elements", {}).items()
+        }
 
         # 把 starter 和基础 element 灌进 SQLite
         starter_names = {s["name"] for s in self.starters}
@@ -33,21 +40,42 @@ class SeedStore:
             archive.upsert_element(
                 name=s["name"], emoji=s["emoji"],
                 category=s.get("category"), is_starter=True,
+                icon=s.get("icon"),
             )
         for name, info in self.elements.items():
             archive.upsert_element(
                 name=name, emoji=info.get("emoji", "❓"),
                 category=info.get("category"),
                 is_starter=(name in starter_names),
+                icon=info.get("icon"),
             )
 
         # 从 SQLite 恢复历史 element（AI 之前生成过但不在 seed 里的）
         for row in archive.all_elements():
-            if row["name"] not in self.elements:
-                self.elements[row["name"]] = {
-                    "emoji": row["emoji"],
-                    "category": row["category"] or "unknown",
-                }
+            name = row["name"]
+            persisted_icon = row.get("icon")
+            if name in self.elements:
+                if persisted_icon is not None:
+                    self.elements[name]["icon"] = persisted_icon
+                    for starter in self.starters:
+                        if starter["name"] == name:
+                            starter["icon"] = persisted_icon
+                continue
+            info = {
+                "emoji": row["emoji"],
+                "category": row["category"] or "unknown",
+                "icon": persisted_icon,
+            }
+            enriched = attach_icon(name, info)
+            self.elements[name] = enriched
+            if persisted_icon is None:
+                archive.upsert_element(
+                    name=name,
+                    emoji=row["emoji"],
+                    category=row["category"],
+                    is_starter=bool(row["is_starter"]),
+                    icon=enriched["icon"],
+                )
 
         # 合成规则
         with open(SEED_COMBINATIONS_PATH, encoding="utf-8") as f:
@@ -56,6 +84,7 @@ class SeedStore:
 
         warmed = 0
         bad = 0
+        authoritative_formulas = []
         for raw_key, info in combos.items():
             parts = [p.strip() for p in raw_key.split("+")]
             if len(parts) != 2:
@@ -65,28 +94,46 @@ class SeedStore:
                 bad += 1
                 continue
             key = db.normalize_key(parts[0], parts[1])
-            before = db.get_cached(key)
-            if before:
-                continue
-            db.put_cache(
+            db.put_cache_force(
                 key=key,
                 result=info["result"],
                 emoji=info.get("emoji", "❓"),
                 source="seed",
                 chain=info.get("chain"),
+                comment=info.get("comment", ""),
             )
             warmed += 1
+            authoritative_formulas.append({
+                "combo_key": key,
+                "a": parts[0],
+                "b": parts[1],
+                "result": info["result"],
+                "emoji": info.get("emoji", "❓"),
+                "comment": info.get("comment", ""),
+                "source": "seed",
+            })
             if info["result"] not in self.elements:
-                self.elements[info["result"]] = {
+                result_info = attach_icon(info["result"], {
                     "emoji": info.get("emoji", "❓"),
                     "category": info.get("chain", "seed"),
-                }
+                    "parents": tuple(parts),
+                    "chain": info.get("chain"),
+                    "comment": info.get("comment", ""),
+                })
+                self.elements[info["result"]] = result_info
                 archive.upsert_element(
                     name=info["result"], emoji=info.get("emoji", "❓"),
                     category=info.get("chain"), is_starter=False,
+                    icon=result_info["icon"],
                 )
         if bad > 0:
             print(f"[seed_loader] skipped {bad} malformed combinations")
+        reconciled = community.reconcile_seed_formulas(authoritative_formulas)
+        if reconciled:
+            print(
+                f"[seed_loader] superseded {reconciled} conflicting "
+                "community formulas"
+            )
 
         return len(self.elements), warmed
 

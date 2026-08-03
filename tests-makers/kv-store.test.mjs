@@ -6,8 +6,26 @@ import {
   normalizePair,
 } from "../edge-functions/_lib/keys.js";
 import { DEFAULT_COMMENT } from "../edge-functions/_lib/comments.js";
+import { PROMPT_SPEC } from "../edge-functions/_generated/prompt-data.js";
 import { KvStore } from "../edge-functions/_lib/kv-store.js";
 import { FakeKV } from "./fake-kv.mjs";
+
+const SAME_SHARD_DISCOVERIES = [
+  "索引容量元素5",
+  "索引容量元素11",
+  "索引容量元素40",
+  "索引容量元素43",
+];
+const MAX_FEED_TIMESTAMP_MS = 9_999_999_999_999;
+
+function feedKeyFor(record, canonicalKey) {
+  const timestamp = Math.floor(record.ts * 1_000);
+  const inverted = String(MAX_FEED_TIMESTAMP_MS - timestamp).padStart(
+    13,
+    "0",
+  );
+  return `feed_${inverted}_${canonicalKey.slice("first_".length)}`;
+}
 
 test("KV keys are legal, stable and combination order independent", async () => {
   assert.equal(normalizePair(" 水 ", "火"), normalizePair("火", "水"));
@@ -42,6 +60,81 @@ test("dynamic combinations are created as JSON records", async () => {
     chain: null,
     hit_count: 0,
     ts: 1_700_000_000,
+  });
+});
+
+test("rememberElement never replaces an existing valid icon recipe", async () => {
+  const store = new KvStore(new FakeKV(), {
+    now: () => 1_700_000_000_000,
+  });
+  const original = {
+    base: "🫘",
+    badge: "⚙️",
+    palette: "office",
+    source: "generated",
+  };
+
+  await store.rememberElement("智能咖啡", {
+    emoji: "☕",
+    category: "ai",
+    icon: original,
+  });
+  await store.rememberElement("智能咖啡", {
+    emoji: "☕",
+    category: "ai",
+    icon: {
+      base: "☕",
+      badge: "🧠",
+      palette: "product",
+      source: "generated",
+    },
+  });
+  await store.rememberElement("智能咖啡", {
+    emoji: "☕",
+    category: "ai",
+  });
+
+  assert.deepEqual((await store.getElement("智能咖啡")).icon, original);
+});
+
+test("putCombination saves the first dynamic icon and exposes it publicly", async () => {
+  const store = new KvStore(new FakeKV(), {
+    now: () => 1_700_000_000_000,
+  });
+  const icon = {
+    base: "☕",
+    badge: "🧠",
+    palette: "product",
+    source: "generated",
+  };
+
+  const combination = await store.putCombination("AI", "咖啡", {
+    result: "智能咖啡",
+    emoji: "☕",
+    comment: "咖啡完成智能升级",
+    source: "llm",
+    chain: "ai",
+    icon,
+  });
+
+  assert.deepEqual(combination.icon, icon);
+  assert.deepEqual((await store.dynamicElements())["智能咖啡"].icon, icon);
+});
+
+test("legacy dynamic element records without icons remain readable", async () => {
+  const store = new KvStore(
+    new FakeKV({
+      snapshot_elements: JSON.stringify({
+        "旧元素": { emoji: "🕰️", category: "ai", depth: 2 },
+      }),
+    }),
+    { now: () => 1_700_000_000_000 },
+  );
+
+  assert.deepEqual((await store.dynamicElements())["旧元素"], {
+    emoji: "🕰️",
+    category: "ai",
+    depth: 2,
   });
 });
 
@@ -97,6 +190,401 @@ test("initial Makers KV list calls omit an undefined cursor", async () => {
     keys: ["record_a"],
     complete: true,
   });
+});
+
+test("KvStore rejects invalid injected firsts capacities", () => {
+  for (const firstsCapacity of [
+    0,
+    -1,
+    1.5,
+    true,
+    Number.MAX_SAFE_INTEGER + 1,
+  ]) {
+    assert.throws(
+      () => new KvStore(new FakeKV(), { firstsCapacity }),
+      /firstsCapacity must be a positive safe integer/,
+    );
+  }
+});
+
+test("KvStore rejects invalid physical first-index shard capacities", () => {
+  for (const firstIndexShardCapacity of [
+    0,
+    -1,
+    1.5,
+    true,
+    2_001,
+    Number.MAX_SAFE_INTEGER + 1,
+  ]) {
+    assert.throws(
+      () => new KvStore(new FakeKV(), { firstIndexShardCapacity }),
+      /firstIndexShardCapacity must be an integer from 1 to 2000/u,
+    );
+  }
+});
+
+test("injected firsts capacity bounds stored and returned newest discoveries", async () => {
+  const newestThree = [
+    "索引容量元素43",
+    "索引容量元素40",
+    "索引容量元素11",
+  ];
+  let now = 1_700_000_000_000;
+  const kv = new FakeKV();
+  const boundedStore = new KvStore(kv, {
+    now: () => now,
+    firstsCapacity: 3,
+  });
+  for (const result of SAME_SHARD_DISCOVERIES) {
+    await boundedStore.recordFirst(
+      result,
+      "🧪",
+      "容量鹅",
+    );
+    now += 1_000;
+  }
+
+  const stored = JSON.parse(kv.values.get("snapshot_recent"));
+  assert.deepEqual(
+    stored.items.map((item) => item.result),
+    newestThree,
+  );
+  const storedIndex = JSON.parse(kv.values.get("index_first_0"));
+  assert.deepEqual(
+    Object.values(storedIndex.items).map((item) => item.result),
+    newestThree,
+  );
+  assert.deepEqual(
+    (await boundedStore.allFirsts()).map((item) => item.result),
+    newestThree,
+  );
+
+  let expandedNow = 1_700_000_000_000;
+  const expandedStore = new KvStore(new FakeKV(), {
+    now: () => expandedNow,
+    firstsCapacity: 4,
+  });
+  for (const result of SAME_SHARD_DISCOVERIES) {
+    await expandedStore.recordFirst(result, "🧪", "容量鹅");
+    expandedNow += 1_000;
+  }
+  assert.deepEqual(
+    (await expandedStore.allFirsts()).map((item) => item.result),
+    [...SAME_SHARD_DISCOVERIES].reverse(),
+  );
+});
+
+test("shrinking and expanding firsts capacity is reversible on one KV catalog", async () => {
+  let now = 1_700_000_000_000;
+  const kv = new FakeKV();
+  const writer = new KvStore(kv, {
+    now: () => now,
+    firstsCapacity: 4,
+  });
+  for (const result of SAME_SHARD_DISCOVERIES) {
+    await writer.recordFirst(result, "🧪", "迁移鹅");
+    now += 1_000;
+  }
+  await kv.put("indexmeta_first", JSON.stringify({
+    next_shard: 0,
+    next_reconcile_at: 1_800_000_000,
+  }));
+
+  const bounded = new KvStore(kv, {
+    now: () => now,
+    firstsCapacity: 3,
+  });
+  assert.deepEqual(
+    (await bounded.allFirsts()).map((item) => item.result),
+    [
+      "索引容量元素43",
+      "索引容量元素40",
+      "索引容量元素11",
+    ],
+  );
+
+  const expanded = new KvStore(kv, {
+    now: () => now,
+    firstsCapacity: 4,
+  });
+  assert.deepEqual(
+    (await expanded.allFirsts()).map((item) => item.result),
+    [...SAME_SHARD_DISCOVERIES].reverse(),
+  );
+});
+
+test("allFirsts supplements a skewed shard from ordered feed keys", async () => {
+  const firstsCapacity = 2_001;
+  const indexItems = {};
+  const initial = {
+    indexmeta_first: JSON.stringify({
+      next_shard: 0,
+      next_reconcile_at: 1_800_000_000,
+    }),
+    snapshot_recent: JSON.stringify({
+      items: [],
+      total: firstsCapacity,
+      initialized: true,
+    }),
+  };
+  for (let index = 0; index < firstsCapacity; index += 1) {
+    const canonicalKey = `first_0${String(index).padStart(63, "0")}`;
+    const record = {
+      result: `偏斜元素${index}`,
+      emoji: "🧪",
+      discoverer: "偏斜鹅",
+      ts: 1_700_000_000 + index,
+      seq: index + 1,
+    };
+    initial[feedKeyFor(record, canonicalKey)] = JSON.stringify(record);
+    if (index > 0) {
+      indexItems[canonicalKey] = {
+        ...record,
+        storage_key: canonicalKey,
+      };
+    }
+  }
+  initial.index_first_0 = JSON.stringify({
+    items: indexItems,
+    reconciled_at: 1_700_000_000,
+  });
+  const kv = new FakeKV(initial);
+  const store = new KvStore(kv, {
+    now: () => 1_700_000_000_000,
+    firstsCapacity,
+  });
+
+  const firsts = await store.allFirsts();
+
+  assert.equal(firsts.length, 2_001);
+  assert.equal(firsts[0].result, "偏斜元素2000");
+  assert.equal(firsts.at(-1).result, "偏斜元素0");
+  assert.ok(
+    kv.getCalls <= 20,
+    `expected only the missing feed object to be read, observed ${kv.getCalls} KV reads`,
+  );
+});
+
+test("legacy canonical reconcile backfills feed before trimming a first shard", async () => {
+  const initial = {
+    snapshot_recent: JSON.stringify({
+      items: [],
+      total: 4,
+      initialized: true,
+    }),
+  };
+  for (let index = 0; index < 4; index += 1) {
+    const canonicalKey = `first_0${String(index).padStart(63, "0")}`;
+    initial[canonicalKey] = JSON.stringify({
+      result: `遗留元素${index}`,
+      emoji: "🧭",
+      discoverer: "遗留鹅",
+      ts: 1_700_000_000 + index,
+      seq: index + 1,
+    });
+  }
+  const kv = new FakeKV(initial);
+  const bounded = new KvStore(kv, {
+    now: () => 1_700_000_000_000,
+    firstsCapacity: 3,
+  });
+
+  assert.deepEqual(
+    (await bounded.allFirsts()).map((item) => item.result),
+    ["遗留元素3", "遗留元素2", "遗留元素1"],
+  );
+  assert.equal(
+    [...kv.values.keys()].filter((key) => key.startsWith("feed_")).length,
+    4,
+  );
+
+  const expanded = new KvStore(kv, {
+    now: () => 1_700_000_000_000,
+    firstsCapacity: 4,
+  });
+  assert.deepEqual(
+    (await expanded.allFirsts()).map((item) => item.result),
+    ["遗留元素3", "遗留元素2", "遗留元素1", "遗留元素0"],
+  );
+});
+
+test("reconcile repairs a post-migration first missing its feed before shard trim", async () => {
+  const firstsCapacity = 4;
+  const oldCanonicalKey = await entityKey(
+    "first",
+    SAME_SHARD_DISCOVERIES[0],
+  );
+  assert.match(oldCanonicalKey, /^first_0/u);
+  const kv = new FakeKV({
+    indexmeta_first: JSON.stringify({
+      next_shard: 0,
+      next_reconcile_at: 0,
+    }),
+    snapshot_recent: JSON.stringify({
+      items: [],
+      total: 0,
+      initialized: true,
+    }),
+    index_first_0: JSON.stringify({
+      items: {},
+      reconciled_at: 1_700_000_000,
+      first_feeds_backfilled: true,
+    }),
+  });
+  let now = 1_700_000_000_000;
+  const put = kv.put.bind(kv);
+  let failNextFeed = true;
+  let failedFeedKey;
+  let resolveIndexWritten;
+  const indexWritten = new Promise((resolve) => {
+    resolveIndexWritten = resolve;
+  });
+  kv.put = async (key, value) => {
+    if (key === "index_first_0") {
+      await put(key, value);
+      resolveIndexWritten();
+      return;
+    }
+    if (failNextFeed && key.startsWith("feed_")) {
+      failNextFeed = false;
+      failedFeedKey = key;
+      await indexWritten;
+      throw new Error("injected feed write failure");
+    }
+    await put(key, value);
+  };
+  const store = new KvStore(kv, {
+    now: () => now,
+    firstsCapacity,
+    firstIndexShardCapacity: 3,
+  });
+
+  await assert.rejects(
+    store.recordFirst(SAME_SHARD_DISCOVERIES[0], "🧯", "修复鹅"),
+    /injected feed write failure/u,
+  );
+  kv.put = put;
+  assert.equal(kv.values.has(oldCanonicalKey), true);
+  assert.equal(kv.values.has(failedFeedKey), false);
+  const failedIndex = JSON.parse(kv.values.get("index_first_0"));
+  assert.equal(failedIndex.first_feeds_backfilled, true);
+  assert.equal(Object.hasOwn(failedIndex.items, oldCanonicalKey), true);
+
+  for (const result of SAME_SHARD_DISCOVERIES.slice(1)) {
+    now += 1_000;
+    await store.recordFirst(result, "🧯", "修复鹅");
+  }
+  const trimmedIndex = JSON.parse(kv.values.get("index_first_0"));
+  assert.equal(Object.keys(trimmedIndex.items).length, 3);
+  assert.equal(Object.hasOwn(trimmedIndex.items, oldCanonicalKey), false);
+  let repairedFeedPuts = 0;
+  kv.put = async (key, value) => {
+    if (key.startsWith("feed_")) repairedFeedPuts += 1;
+    await put(key, value);
+  };
+
+  const firsts = await store.allFirsts();
+
+  assert.equal(firsts.length, firstsCapacity);
+  assert.equal(kv.values.has(failedFeedKey), true);
+  assert.equal(repairedFeedPuts, 1);
+  assert.equal(firsts[0].result, SAME_SHARD_DISCOVERIES[3]);
+  assert.equal(firsts.at(-1).result, SAME_SHARD_DISCOVERIES[0]);
+  assert.equal(
+    firsts.some((item) => item.result === SAME_SHARD_DISCOVERIES[0]),
+    true,
+  );
+  assert.equal(
+    JSON.parse(kv.values.get("index_first_0")).first_feeds_backfilled,
+    true,
+  );
+});
+
+test("first migration retries a partial feed batch before persisting marker or trim", async () => {
+  const initial = {
+    indexmeta_first: JSON.stringify({
+      next_shard: 0,
+      next_reconcile_at: 0,
+    }),
+    snapshot_recent: JSON.stringify({
+      items: [],
+      total: 3,
+      initialized: true,
+    }),
+  };
+  for (let index = 0; index < 3; index += 1) {
+    const canonicalKey = `first_0${String(index).padStart(63, "0")}`;
+    initial[canonicalKey] = JSON.stringify({
+      result: `批迁移元素${index}`,
+      emoji: "🧰",
+      discoverer: "迁移鹅",
+      ts: 1_700_000_000 + index,
+      seq: index + 1,
+    });
+  }
+  const originalIndex = JSON.stringify({
+    items: {},
+    reconciled_at: 123,
+  });
+  initial.index_first_0 = originalIndex;
+  const originalMeta = initial.indexmeta_first;
+  const kv = new FakeKV(initial);
+  const put = kv.put.bind(kv);
+  let feedPutAttempts = 0;
+  let failedFeedKey;
+  kv.put = async (key, value) => {
+    if (key.startsWith("feed_")) {
+      feedPutAttempts += 1;
+      if (feedPutAttempts === 2) {
+        failedFeedKey = key;
+        throw new Error("injected migration feed failure");
+      }
+    }
+    await put(key, value);
+  };
+  const store = new KvStore(kv, {
+    now: () => 1_700_000_000_000,
+    firstsCapacity: 2,
+  });
+
+  await assert.rejects(
+    store.allFirsts(),
+    /injected migration feed failure/u,
+  );
+
+  assert.equal(kv.values.get("index_first_0"), originalIndex);
+  assert.equal(kv.values.get("indexmeta_first"), originalMeta);
+  assert.equal(kv.values.has(failedFeedKey), false);
+  assert.equal(
+    [...kv.values.keys()].filter((key) => key.startsWith("feed_")).length,
+    2,
+  );
+
+  const firsts = await store.allFirsts();
+
+  assert.deepEqual(
+    firsts.map((item) => item.result),
+    ["批迁移元素2", "批迁移元素1"],
+  );
+  assert.equal(
+    [...kv.values.keys()].filter((key) => key.startsWith("feed_")).length,
+    3,
+  );
+  const repairedIndex = JSON.parse(kv.values.get("index_first_0"));
+  assert.equal(repairedIndex.first_feeds_backfilled, true);
+  assert.deepEqual(
+    Object.values(repairedIndex.items).map((item) => item.result).sort(),
+    ["批迁移元素1", "批迁移元素2"],
+  );
+});
+
+test("KvStore defaults firsts capacity to the generated prompt contract", () => {
+  const store = new KvStore(new FakeKV());
+
+  assert.equal(
+    store.firstsCapacity,
+    PROMPT_SPEC.capacities.recent_firsts,
+  );
 });
 
 test("first discovery keeps the earliest claimant and powers pagination", async () => {
@@ -393,6 +881,9 @@ test("ten thousand indexed firsts use bounded hot-path KV operations", async () 
   kv.getCalls = 0;
   const leaderboard = await store.leaderboard({ limit: 10 });
   assert.equal(leaderboard.total_players, 100);
-  assert.equal(kv.listCalls, 0);
+  assert.ok(
+    kv.listCalls <= 40,
+    `expected bounded feed-key pagination, observed ${kv.listCalls} list calls`,
+  );
   assert.ok(kv.getCalls <= 18);
 });

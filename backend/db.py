@@ -122,14 +122,20 @@ def put_cache_force(
         chain,
         comment=comment,
         increment_hit=False,
+        replace_existing=True,
     )
 
 
-def touch_hit(key: str) -> None:
+def touch_hit(key: str, hit: Dict) -> int:
     """缓存命中时 +1 热度（只打 archive，Redis 不需要）。"""
-    archive.upsert_combination(
-        key=key, result="", emoji="", source="",
-        chain=None, increment_hit=True,
+    return archive.upsert_combination(
+        key=key,
+        result=str(hit.get("result") or ""),
+        emoji=str(hit.get("emoji") or "❓"),
+        source=str(hit.get("source") or "seed"),
+        chain=hit.get("chain") or None,
+        comment=str(hit.get("comment") or ""),
+        increment_hit=True,
     )
 
 
@@ -239,7 +245,7 @@ def leaderboard(limit: int = 20, me: Optional[str] = None) -> Dict:
     return {"top": top, "total_players": len(ranking), "me": me_info}
 
 
-def recent_result_names(limit: int = 30) -> List[str]:
+def recent_result_names(limit: int) -> List[str]:
     """
     取最近一批首发的 result 名字，作为 avoid_words 传给 GLM。
     既避免重复，又能让模型知道已经造过哪些词。

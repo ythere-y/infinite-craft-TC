@@ -2,6 +2,13 @@
    鹅厂无限合成 ♾️ —— 像素级复刻 neal.fun 风格
    ============================================================ */
 
+:root {
+  --element-icon-sidebar: 27px;
+  --element-icon-canvas: 30px;
+  --action-icon-size: 16px;
+  --action-icon-well: 25px;
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body {
@@ -37,7 +44,22 @@ html, body {
   font-weight: 800;
   margin-left: 2px;
 }
-.topbar-actions { display: flex; gap: 8px; align-items: center; }
+.topbar-actions { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.topbar-actions .btn-ghost,
+.nick-modal-actions .btn-ghost,
+.nick-modal-actions .btn-primary,
+.recipebook-actions .btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.action-slot {
+  display: inline-flex;
+  width: var(--action-icon-well);
+  height: var(--action-icon-well);
+  flex: 0 0 var(--action-icon-well);
+}
 
 .nick-chip {
   padding: 5px 12px;
@@ -207,6 +229,430 @@ html, body {
     #FAFAFA;
 }
 
+/* ---------- 里模式 · 午夜筹码赌桌 ---------- */
+.casino-hud {
+  display: none;
+  position: absolute;
+  z-index: 6;
+  left: 50%;
+  bottom: 14px;
+  width: min(720px, calc(100% - 28px));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+body.ura-on .casino-hud {
+  display: block;
+}
+
+.casino-table {
+  position: relative;
+  display: grid;
+  grid-template-columns: 190px minmax(230px, 1fr) 126px;
+  align-items: stretch;
+  min-height: 164px;
+  padding: 14px 18px;
+  overflow: visible;
+  border: 1px solid #51427B;
+  border-radius: 80px 80px 22px 22px;
+  background:
+    radial-gradient(ellipse at 50% 118%, rgba(167,139,250,.2), transparent 54%),
+    linear-gradient(160deg, #211B40, #14142E 58%, #101024);
+  box-shadow:
+    inset 0 0 0 4px #0E0E21,
+    inset 0 0 0 6px #352B5D,
+    inset 0 13px 25px rgba(202,166,255,.05),
+    0 18px 42px rgba(0,0,0,.52),
+    0 0 28px rgba(167,139,250,.1);
+}
+
+.casino-table::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(202,166,255,.12);
+  border-radius: 70px 70px 16px 16px;
+  pointer-events: none;
+}
+
+.casino-stack-column,
+.casino-pot-column,
+.casino-penguin-column {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+}
+
+.casino-stack-column {
+  min-height: 134px;
+}
+
+.casino-streak-status {
+  position: absolute;
+  z-index: 12;
+  top: 3px;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  width: 154px;
+  padding: 5px 9px 6px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(202,166,255,.2);
+  border-radius: 10px;
+  background: rgba(18,16,38,.94);
+  box-shadow: 0 5px 14px rgba(0,0,0,.22);
+  text-align: center;
+}
+
+.casino-streak-status strong {
+  color: #E8DEFF;
+  font-size: 10px;
+  line-height: 1.15;
+}
+
+.casino-streak-status span {
+  margin-top: 2px;
+  color: #8D84AE;
+  font-size: 7px;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.casino-chip-stack {
+  position: absolute;
+  left: 50%;
+  bottom: 7px;
+  width: 84px;
+  height: 80px;
+  overflow: visible;
+  transform: translateX(-50%);
+}
+
+.casino-chip-stack:empty::after {
+  content: "等待首枚筹码";
+  position: absolute;
+  left: 50%;
+  bottom: 5px;
+  width: 88px;
+  height: 27px;
+  border: 1px dashed #484165;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  color: #6F6889;
+  font-size: 7px;
+  font-weight: 850;
+  line-height: 25px;
+  text-align: center;
+}
+
+.casino-chip {
+  position: absolute;
+  left: 4px;
+  bottom: var(--casino-chip-y, 0);
+  width: 76px;
+  height: 24px;
+  border: 4px dashed #EEE7FF;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #BB97FF 0 16%, transparent 17%), #5B3DA7;
+  box-shadow:
+    0 4px 0 #2A1C54,
+    0 6px 8px rgba(0,0,0,.28),
+    inset 0 0 0 3px #8B6AD3;
+  translate: 0 0;
+  scale: 1;
+  rotate: 0deg;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.casino-chip:nth-child(3n+2) {
+  border-color: #FFF3C7;
+  background: radial-gradient(ellipse, #FFE58B 0 16%, transparent 17%), #B97C27;
+  box-shadow:
+    0 4px 0 #624015,
+    0 6px 8px rgba(0,0,0,.26),
+    inset 0 0 0 3px #E1AC4E;
+}
+
+.casino-chip:nth-child(3n+3) {
+  border-color: #FFD7E9;
+  background: radial-gradient(ellipse, #FF9DC9 0 16%, transparent 17%), #A93670;
+  box-shadow:
+    0 4px 0 #591B3B,
+    0 6px 8px rgba(0,0,0,.26),
+    inset 0 0 0 3px #D55C98;
+}
+
+.casino-pot-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px 2px;
+}
+
+.casino-pot-label {
+  color: #9189B4;
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.casino-pot-value {
+  display: flex;
+  align-items: baseline;
+  margin: 2px 0 7px;
+  color: #FFF0BD;
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: -.05em;
+  line-height: .95;
+  text-shadow: 0 0 20px rgba(255,213,79,.22), 0 2px #4D3010;
+}
+
+.casino-pot-value small {
+  margin-left: 5px;
+  color: #978DAC;
+  font-family: inherit;
+  font-size: 9px;
+  letter-spacing: 0;
+}
+
+.casino-harvest {
+  min-width: 164px;
+  min-height: 35px;
+  padding: 7px 15px;
+  border: 1px solid #B58A33;
+  border-radius: 10px;
+  color: #281A04;
+  background: linear-gradient(#FFF0AD, #DDA735);
+  box-shadow: 0 7px 16px rgba(255,213,79,.14);
+  font-size: 10px;
+  font-weight: 950;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform .16s ease, filter .16s ease, opacity .16s ease;
+}
+
+.casino-harvest:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.casino-harvest:disabled {
+  border-color: #3D3851;
+  color: #756E86;
+  background: #1B192D;
+  box-shadow: none;
+  cursor: default;
+  opacity: .78;
+}
+
+.casino-penguin-column {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  color: #766E98;
+  font-size: 7px;
+  font-weight: 850;
+  letter-spacing: .13em;
+}
+
+.casino-penguin-seal {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  margin-bottom: 5px;
+  border: 1px solid #59478B;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(202,166,255,.17), transparent 60%),
+    linear-gradient(145deg, #242044, #121227);
+  box-shadow: inset 0 0 15px rgba(167,139,250,.12), 0 0 16px rgba(167,139,250,.1);
+}
+
+.casino-penguin-seal::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 1px dashed rgba(255,213,79,.3);
+  border-radius: 50%;
+}
+
+.casino-penguin-seal img {
+  position: relative;
+  z-index: 1;
+  width: 43px;
+  height: 43px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 7px rgba(0,0,0,.42));
+}
+
+.casino-score-lane {
+  position: absolute;
+  z-index: 35;
+  left: 50%;
+  top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  transform: translateX(-50%) translateY(5px);
+  border: 1px solid rgba(255,213,79,.25);
+  border-radius: 999px;
+  color: #EAD98D;
+  background: rgba(25,22,40,.94);
+  font-size: 7px;
+  font-weight: 900;
+  opacity: 0;
+  transition: opacity .15s ease, transform .15s ease;
+}
+
+.casino-score-lane.is-active {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.casino-chip-tick {
+  position: absolute;
+  z-index: 42;
+  left: 50%;
+  top: 50px;
+  color: #FFF0A8;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 900;
+  text-shadow: 0 0 10px rgba(255,213,79,.55);
+}
+
+.casino-wind {
+  position: absolute;
+  z-index: 40;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.casino-wind i {
+  position: absolute;
+  left: -46%;
+  width: 42%;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(221,216,255,.84), transparent);
+  box-shadow: 0 0 8px rgba(202,166,255,.45);
+  opacity: 0;
+}
+
+.casino-wind i:nth-child(1) { top: 34%; }
+.casino-wind i:nth-child(2) { top: 49%; width: 54%; }
+.casino-wind i:nth-child(3) { top: 64%; width: 36%; }
+
+.casino-loss-copy {
+  position: absolute;
+  z-index: 44;
+  left: 50%;
+  top: 50%;
+  padding: 7px 10px;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255,96,124,.24);
+  border-radius: 9px;
+  color: #FF8EA2;
+  background: rgba(34,10,25,.84);
+  font-size: 10px;
+  font-weight: 900;
+  opacity: 0;
+}
+
+.casino-score-burst {
+  position: absolute;
+  z-index: 50;
+  inset: -42px -54px;
+  display: none;
+  place-items: center;
+}
+
+.casino-score-burst.is-active {
+  display: grid;
+}
+
+.casino-award-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 270px;
+  height: 130px;
+  transform: translate(-50%, -50%);
+  border: 2px solid rgba(255,213,79,.58);
+  border-radius: 50%;
+  box-shadow: 0 0 36px rgba(255,213,79,.18), inset 0 0 28px rgba(167,139,250,.1);
+}
+
+.casino-award-copy {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  justify-items: center;
+  color: #D8BEFF;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .1em;
+  text-shadow: 0 7px 18px rgba(0,0,0,.75);
+}
+
+.casino-award-copy strong {
+  color: #FFF0AA;
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 72px;
+  letter-spacing: -.07em;
+  line-height: .92;
+  text-shadow: 0 0 26px rgba(255,213,79,.5), 0 8px 20px rgba(0,0,0,.75);
+}
+
+.casino-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--casino-spark-color, #FFD54F);
+  box-shadow: 0 0 7px var(--casino-spark-color, #FFD54F);
+}
+
+@media (max-width: 760px) {
+  .casino-hud {
+    bottom: 9px;
+    width: calc(100% - 16px);
+  }
+  .casino-table {
+    grid-template-columns: 142px minmax(170px, 1fr) 88px;
+    min-height: 150px;
+    padding: 11px 10px;
+    border-radius: 68px 68px 18px 18px;
+  }
+  .casino-stack-column { min-height: 126px; }
+  .casino-streak-status { width: 130px; }
+  .casino-pot-value { font-size: 36px; }
+  .casino-harvest { min-width: 136px; }
+  .casino-penguin-seal { width: 59px; height: 59px; }
+  .casino-penguin-seal img { width: 34px; height: 34px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .casino-chip {
+    will-change: auto;
+  }
+  .casino-harvest,
+  .casino-score-lane {
+    transition: none;
+  }
+}
+
 .hint {
   position: absolute;
   top: 50%; left: 50%;
@@ -287,10 +733,23 @@ html, body {
   gap: 8px;
 }
 
+.search-control {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 5px;
+  border: 1px solid #E6E6E6;
+  border-radius: 8px;
+  background: #FFF;
+}
+
 #search {
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #E6E6E6;
+  min-width: 0;
+  padding: 8px 8px 8px 0;
+  border: 0;
   border-radius: 8px;
   font-size: 13px;
   outline: none;
@@ -308,8 +767,9 @@ html, body {
   flex: 1;
   overflow-y: auto;
   padding: 10px;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: minmax(41px, auto);
   gap: 6px;
   align-content: flex-start;
 }
@@ -343,6 +803,30 @@ html, body {
   margin-left: 2px;
   font-size: 11px;
 }
+
+.element-list > .element {
+  width: 100%;
+  min-width: 0;
+  min-height: 41px;
+  padding: 4px 5px;
+  gap: 4px;
+  overflow: visible;
+  font-size: 12px;
+  line-height: 1.15;
+  white-space: normal;
+}
+.element-list > .element .name {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.element-list > .element .element-icon-sidebar {
+  width: 22px;
+  height: 22px;
+  flex-basis: 22px;
+}
+.element-list > .element.sidebar-span-2 { grid-column: span 2; }
+.element-list > .element.sidebar-span-3 { grid-column: 1 / -1; }
 
 /* 🌱 基础元素（starter）视觉标记
    - 整个 chip 淡绿描边 + 浅绿背景，和普通已发现元素区分
@@ -393,11 +877,123 @@ body.ura-on .element.on-canvas.is-starter {
 .element.ghost {
   opacity: 0.85;
   box-shadow: 0 6px 16px rgba(0,0,0,0.18);
-  transform: scale(1.05);
 }
 
 .element.dropping {
-  box-shadow: 0 0 0 2px #FFC107, 0 4px 10px rgba(0,0,0,0.12);
+  border-color: #2F80ED;
+  box-shadow:
+    0 0 0 2px rgba(47,128,237,.24),
+    0 0 18px rgba(47,128,237,.28),
+    0 4px 10px rgba(0,0,0,.12);
+}
+.element.combine-target {
+  z-index: 3;
+  transform: translateY(-2px) scale(1.035);
+}
+.element.combine-target::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border: 1px solid rgba(47,128,237,.72);
+  border-radius: 20px;
+  pointer-events: none;
+  animation: combine-lock 720ms ease-out infinite;
+}
+@keyframes combine-lock {
+  0% { opacity: .9; transform: scale(.92); }
+  70%, 100% { opacity: 0; transform: scale(1.16); }
+}
+
+.element.combine-source {
+  border-color: #8ABAF4;
+  animation: combine-source-pulse 1.1s ease-in-out infinite;
+}
+@keyframes combine-source-pulse {
+  0%, 100% { filter: saturate(1); }
+  50% { filter: saturate(1.28) brightness(1.04); }
+}
+
+.combine-core {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  border: 2px solid rgba(47,128,237,.68);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 4;
+  animation: combine-core-spin 1.1s linear infinite;
+}
+.combine-core::before,
+.combine-core::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+}
+.combine-core::before {
+  inset: 5px;
+  border: 1px dashed rgba(255,193,7,.9);
+}
+.combine-core::after {
+  inset: 15px;
+  background: #FFF;
+  box-shadow:
+    0 0 10px 4px rgba(47,128,237,.6),
+    0 0 24px 8px rgba(255,193,7,.25);
+}
+@keyframes combine-core-spin {
+  to { transform: rotate(360deg); }
+}
+
+.combine-impact {
+  --impact-color: #9AA6B2;
+  --impact-scale: 5.5;
+  --impact-start-opacity: .42;
+  --impact-brightness: .72;
+  --impact-saturation: .62;
+  --impact-glow: rgba(154,166,178,.14);
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border: 2px solid var(--impact-color);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 79;
+  box-shadow: 0 0 14px 3px var(--impact-glow);
+  filter:
+    brightness(var(--impact-brightness))
+    saturate(var(--impact-saturation));
+  animation: combine-impact-ring 820ms cubic-bezier(.12,.7,.2,1) forwards;
+}
+.combine-impact.is-fixed { position: fixed; }
+.combine-impact::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border: 1px solid var(--impact-color);
+  border-radius: inherit;
+  animation: combine-impact-echo 820ms 80ms cubic-bezier(.12,.7,.2,1) forwards;
+}
+@keyframes combine-impact-ring {
+  0% {
+    opacity: var(--impact-start-opacity);
+    transform: scale(.25);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(var(--impact-scale));
+  }
+}
+@keyframes combine-impact-echo {
+  0% {
+    opacity: var(--impact-start-opacity);
+    transform: scale(.82);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.08);
+  }
 }
 
 /* 合成中的 loader */
@@ -432,7 +1028,7 @@ body.ura-on .element.on-canvas.is-starter {
 }
 .shake { animation: shake .35s; }
 
-/* ---------- KPI delta 浮动提示（顶栏分数按钮下方） ---------- */
+/* ---------- 分数 delta 浮动提示（顶栏分数按钮下方） ---------- */
 .kpi-delta {
   position: fixed;
   top: 56px;
@@ -450,19 +1046,33 @@ body.ura-on .element.on-canvas.is-starter {
   transform: translateY(-4px);
 }
 
-/* 顶栏按钮内嵌的分数值 */
+/* 顶栏内嵌的等级图标 */
 #btn-score {
+  position: relative;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
+  min-width: 0;
+  max-width: min(34vw, 360px);
+  overflow: hidden;
 }
-/* 分数数字用腾讯蓝 */
-#btn-score #kpi-value { color: #1E88E5; padding: 0 2px; }
+.score-level-viewport {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  -webkit-mask-image: linear-gradient(90deg, #000 0, #000 88%, transparent 100%);
+  mask-image: linear-gradient(90deg, #000 0, #000 88%, transparent 100%);
+}
+.score-level-icons {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
 #score-panel-total { color: #42A5F5; }
 
 /* 分数 delta 浮动也改蓝色 */
 .kpi-delta { color: #1E88E5 !important; }
 
-/* ---------- KPI 复盘面板（右上角下方，双栏：加分历史 + 段位路径）---------- */
+/* ---------- 分数记录面板（右上角下方，双栏：加分历史 + 等级进度）---------- */
 /* 浅色主题，和 sidebar / recipebook 保持同一视觉语言 */
 .score-panel {
   position: fixed;
@@ -505,6 +1115,9 @@ body.ura-on .element.on-canvas.is-starter {
   color: #222;
 }
 .score-panel-rank {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   color: #1E88E5;
   font-weight: 700;
   font-size: 13px;
@@ -572,6 +1185,10 @@ body.ura-on .element.on-canvas.is-starter {
 .score-row .gain.tier-global_new { background: #FFF8E1; color: #C77800; }
 .score-row .gain.tier-global_known { background: #E0F7F5; color: #00897B; }
 .score-row .gain.tier-seen { background: #F0F0F0; color: #666; }
+.score-row .gain.tier-casino {
+  background: linear-gradient(135deg, #FFF0AD, #E8D5FF);
+  color: #6D4312;
+}
 
 .score-panel-empty {
   padding: 30px 20px;
@@ -581,88 +1198,47 @@ body.ura-on .element.on-canvas.is-starter {
 }
 .score-panel-empty.hide { display: none; }
 
-/* 右栏：段位路径 */
-.score-panel-tiers {
+.score-panel-level-detail {
+  display: flex;
   flex: 1;
-  overflow-y: auto;
-  padding: 0 12px 12px;
-  display: flex;
+  min-width: 0;
   flex-direction: column;
-  gap: 10px;
-}
-.score-panel-tiers::-webkit-scrollbar { width: 6px; }
-.score-panel-tiers::-webkit-scrollbar-thumb { background: #E0E0E0; border-radius: 3px; }
-.score-panel-tiers::-webkit-scrollbar-thumb:hover { background: #C0C0C0; }
-
-.tier-current-card {
-  display: grid;
-  grid-template-columns: 48px 1fr;
-  grid-template-rows: auto auto;
-  gap: 4px 12px;
-  padding: 14px;
-  background: linear-gradient(135deg, #E3F2FD, #FFF8E1);
-  border: 1px solid #42A5F5;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(30,136,229,0.08);
-}
-.tier-current-emoji {
-  grid-row: 1 / span 2;
-  font-size: 40px;
-  display: flex;
-  align-items: center;
   justify-content: center;
+  gap: 12px;
+  padding: 12px;
 }
-.tier-current-main { display: flex; flex-direction: column; gap: 2px; }
-.tier-current-grade { font-size: 18px; font-weight: 700; color: #0D47A1; word-break: break-all; }
-.tier-current-label { font-size: 12px; color: #555; }
-.tier-current-next {
-  grid-column: 1 / span 2;
-  font-size: 12px;
-  color: #555;
-  margin-top: 4px;
+.score-panel-full-icons {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #1E88E5;
+  font-size: 20px;
 }
-.tier-current-next b { color: #E65100; }
-.tier-stars {
-  margin-top: 6px;
-  font-size: 11px;
-  color: #777;
-}
-.tier-stars b { color: #F57C00; }
-
-/* 右栏中段位 list（浅色主题）*/
-.tier-list { display: flex; flex-direction: column; gap: 6px; }
-.score-panel-tiers .tier-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: #F6F6F6;
-  color: #333;
-  font-size: 13px;
-  border: 1px solid transparent;
-  transition: background .12s, border-color .12s;
-}
-.score-panel-tiers .tier-row.current {
+.tier-progress {
+  height: 8px;
+  overflow: hidden;
   background: #E3F2FD;
-  color: #0D47A1;
-  border-color: #42A5F5;
-  font-weight: 600;
-  box-shadow: 0 2px 6px rgba(30,136,229,0.12);
+  border-radius: 999px;
 }
-.score-panel-tiers .tier-row.reached { color: #333; background: #FAFAFA; }
-.score-panel-tiers .tier-row.locked { color: #AAA; background: #F9F9F9; }
-.score-panel-tiers .tier-row .tier-emoji { font-size: 18px; }
-.score-panel-tiers .tier-row .tier-grade { min-width: 60px; font-weight: 600; }
-.score-panel-tiers .tier-row .tier-label { flex: 1; text-align: left; font-size: 12px; opacity: .85; }
-.score-panel-tiers .tier-row .tier-floor { font-variant-numeric: tabular-nums; color: #999; font-size: 12px; }
-.score-panel-tiers .tier-row.current .tier-floor { color: #1E88E5; }
+.tier-progress-fill {
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #42A5F5, #FFD54F);
+  border-radius: inherit;
+  transition: width .2s ease-out;
+}
+.score-panel-rules {
+  color: #777;
+  font-size: 12px;
+  line-height: 1.5;
+}
 
 /* 移动端退化：单列堆叠 */
 @media (max-width: 780px) {
   .score-panel { width: calc(100vw - 24px); right: 12px; }
   .score-panel-body { flex-direction: column; }
   .score-pane.pane-history { border-right: none; border-bottom: 1px solid #F0F0F0; }
+  #btn-score { max-width: min(44vw, 210px); }
+  #btn-score .action-slot { display: none; }
 }
 
 /* ---------- 首发 toast ---------- */
@@ -702,12 +1278,52 @@ body.ura-on .element.on-canvas.is-starter {
   color: #666;
   line-height: 1.45;
 }
+.first-toast-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(23, 107, 87, 0.18);
+}
+.first-toast.show.has-actions {
+  pointer-events: auto;
+}
+.first-toast-actions button,
+.first-toast-actions a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #FFF;
+  background: #176B57;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+.first-toast-actions button:disabled {
+  cursor: wait;
+  opacity: .7;
+}
+.first-toast-published {
+  flex: 1;
+  color: #245B4F;
+}
 
 @media (max-width: 780px) {
   .first-toast {
     left: 12px;
     right: 12px;
     bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+}
+@media (max-width: 560px) {
+  .first-toast-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
 
@@ -751,7 +1367,7 @@ body.ura-on .element.on-canvas.is-starter {
 }
 body.quaking { animation: quake .5s 2; }
 
-/* ---------- 绩效结算 modal ---------- */
+/* ---------- 旧分数弹窗样式（兼容保留） ---------- */
 .modal {
   position: fixed;
   inset: 0;
@@ -781,7 +1397,7 @@ body.quaking { animation: quake .5s 2; }
 .modal-total { font-size: 14px; color: #666; margin-top: 14px; }
 .modal-comment { font-size: 15px; color: #444; margin-top: 10px; font-style: italic; }
 
-/* 结算段位进度 */
+/* 旧分数弹窗的等级进度 */
 .settle-tiers {
   margin: 16px auto 0;
   max-width: 360px;
@@ -836,7 +1452,7 @@ body.quaking { animation: quake .5s 2; }
   transition: width .5s ease-out;
 }
 
-/* 结算段位进度 */
+/* 旧分数弹窗的等级进度 */
 .settle-tiers {
   margin: 16px auto 0;
   max-width: 360px;
@@ -901,68 +1517,309 @@ body.quaking { animation: quake .5s 2; }
 }
 .element.pop-in { animation: pop-in .45s cubic-bezier(.2,.8,.3,1.4); }
 
-/* 中等档：蓝色持续发光 */
-@keyframes glow-blue-pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(78,205,196,0.55),
-                0 3px 8px rgba(0,0,0,0.10);
-  }
-  50% {
-    box-shadow: 0 0 20px 6px rgba(78,205,196,0.85),
-                0 3px 8px rgba(0,0,0,0.10);
-  }
+/* 新发现：结果本体只播放一次，不持续闪烁。 */
+.element.reveal-personal {
+  border-color: #32B8C6 !important;
+  overflow: hidden;
+  animation: reveal-personal 900ms cubic-bezier(.16,.8,.24,1) both;
 }
-.element.glow-blue {
-  animation: glow-blue-pulse 1.1s ease-in-out infinite;
-  border-color: #4ECDC4 !important;
-}
-
-/* 高级档：金色持续发光（烟花已在独立层） */
-@keyframes glow-gold-pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(255,213,79,0.65),
-                0 3px 8px rgba(0,0,0,0.10);
+@keyframes reveal-personal {
+  0% { opacity: 0; transform: scale(.58) rotate(-3deg); }
+  45% {
+    opacity: 1;
+    transform: scale(1.16) rotate(1deg);
+    box-shadow: 0 0 0 5px rgba(50,184,198,.18), 0 0 24px rgba(50,184,198,.45);
   }
-  50% {
-    box-shadow: 0 0 28px 10px rgba(255,213,79,0.95),
-                0 0 48px 18px rgba(255,107,107,0.4),
-                0 3px 8px rgba(0,0,0,0.10);
-  }
-}
-.element.glow-gold {
-  animation: glow-gold-pulse 0.9s ease-in-out infinite;
-  border-color: #FFD54F !important;
+  100% { transform: scale(1); box-shadow: 0 3px 8px rgba(0,0,0,.1); }
 }
 
-/* 烟花粒子层 */
-.firework-container {
+.element.reveal-global {
+  border-color: #E7A917 !important;
+  overflow: hidden;
+  animation: reveal-global 1.2s cubic-bezier(.12,.78,.2,1) both;
+}
+@keyframes reveal-global {
+  0% { opacity: 0; transform: scale(.42) rotate(-5deg); }
+  38% {
+    opacity: 1;
+    transform: scale(1.22) rotate(2deg);
+    box-shadow:
+      0 0 0 6px rgba(255,213,79,.22),
+      0 0 30px rgba(255,193,7,.62),
+      0 0 54px rgba(255,107,107,.24);
+  }
+  68% { transform: scale(.96) rotate(-1deg); }
+  100% { transform: scale(1); box-shadow: 0 3px 8px rgba(0,0,0,.1); }
+}
+.element.reveal-personal::after,
+.element.reveal-global::after {
+  content: "";
+  position: absolute;
+  inset: -8px auto -8px -45%;
+  width: 32%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.82), transparent);
+  pointer-events: none;
+  transform: skewX(-16deg);
+  animation: discovery-sheen 720ms 160ms ease-out forwards;
+}
+.element.reveal-global::after {
+  background: linear-gradient(90deg, transparent, rgba(255,244,180,.92), transparent);
+}
+@keyframes discovery-sheen {
+  to { left: 120%; }
+}
+
+/* 局部庆祝粒子：原生 DOM/CSS，避免为单个效果引入大依赖。 */
+.celebration-layer {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 80;
+  overflow: hidden;
+  z-index: 81;
 }
-.firework-particle {
+.celebration-particle {
   position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  display: block;
+  width: 7px;
+  height: 7px;
+  background: var(--particle-color);
+  color: var(--particle-color);
   transform: translate(-50%, -50%);
-  animation: firework-fly 1.2s cubic-bezier(.2,.7,.3,1) forwards;
-  box-shadow: 0 0 6px currentColor;
+  animation:
+    celebration-particle 1.08s var(--particle-delay)
+    cubic-bezier(.12,.72,.2,1) forwards;
+  box-shadow: 0 0 7px currentColor;
 }
-@keyframes firework-fly {
+.celebration-particle[data-shape="round"] { border-radius: 50%; }
+.celebration-particle[data-shape="sliver"] {
+  width: 4px;
+  height: 10px;
+  border-radius: 2px;
+}
+.celebration-particle[data-shape="star"] {
+  width: 10px;
+  height: 10px;
+  clip-path: polygon(
+    50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 94%,
+    50% 72%, 21% 94%, 32% 57%, 2% 35%, 39% 35%
+  );
+}
+@keyframes celebration-particle {
   0% {
     transform: translate(-50%, -50%) scale(1);
     opacity: 1;
   }
-  80% { opacity: 1; }
+  64% { opacity: 1; }
   100% {
-    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.3);
+    transform:
+      translate(
+        calc(-50% + var(--particle-x)),
+        calc(-50% + var(--particle-y) + 20px)
+      )
+      rotate(var(--particle-turn))
+      scale(.28);
     opacity: 0;
   }
 }
 
-/* ---------- 段位跃迁全屏庆祝 ---------- */
+.discovery-stamp {
+  position: fixed;
+  z-index: 82;
+  padding: 4px 9px;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  background: rgba(255,255,255,.94);
+  color: #176B87;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, -100%) rotate(-8deg) scale(1.8);
+  animation: discovery-stamp 1.35s cubic-bezier(.14,.72,.18,1) forwards;
+}
+.discovery-stamp[data-tier="global_new"] {
+  color: #A66A00;
+  border-style: double;
+  background: #FFFBE8;
+}
+@keyframes discovery-stamp {
+  0% { opacity: 0; transform: translate(-50%, -100%) rotate(-8deg) scale(1.8); }
+  22% { opacity: 1; transform: translate(-50%, -100%) rotate(-5deg) scale(.92); }
+  38%, 76% { opacity: 1; transform: translate(-50%, -100%) rotate(-5deg) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -124%) rotate(-3deg) scale(.98); }
+}
+
+.score-flight {
+  position: fixed;
+  z-index: 83;
+  color: #176B87;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 0 #FFF, 0 0 8px rgba(50,184,198,.32);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: score-flight 1.1s cubic-bezier(.18,.74,.26,1) forwards;
+}
+@keyframes score-flight {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.72); }
+  14% { opacity: 1; transform: translate(-50%, -65%) scale(1.12); }
+  52% {
+    opacity: 1;
+    transform:
+      translate(
+        calc(-50% + var(--score-mid-x)),
+        calc(-50% + var(--score-mid-y))
+      )
+      scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translate(
+        calc(-50% + var(--score-x)),
+        calc(-50% + var(--score-y))
+      )
+      scale(.66);
+  }
+}
+
+.score-gain-residue {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  z-index: 3;
+  color: #176B87;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow: 0 1px 0 #FFF, 0 0 7px rgba(50,184,198,.3);
+  animation: score-gain-residue 1.4s linear both;
+}
+@keyframes score-gain-residue {
+  0%, 64.285% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-72%) scale(.94);
+  }
+}
+
+.score-level-effect-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: block;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.level-gain-star {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  line-height: 1;
+  animation: level-star-born .72s ease-out both;
+}
+@keyframes level-star-born {
+  from {
+    opacity: 0;
+    transform: translate(14px,-50%) scale(.25) rotate(-45deg);
+  }
+  55% {
+    opacity: 1;
+    transform: translate(0,-50%) scale(1.25) rotate(8deg);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0,-50%) scale(1) rotate(0);
+  }
+}
+
+.level-fusion-source,
+.level-fusion-result {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  line-height: 1;
+}
+.level-fusion-source {
+  animation: level-fuse .62s cubic-bezier(.3,.7,.2,1) both;
+}
+.level-fusion-source:nth-child(1) {
+  --fusion-x: -28px;
+  --fusion-y: -15px;
+}
+.level-fusion-source:nth-child(2) {
+  --fusion-x: 28px;
+  --fusion-y: -15px;
+}
+.level-fusion-source:nth-child(3) {
+  --fusion-x: -28px;
+  --fusion-y: 15px;
+}
+.level-fusion-source:nth-child(4) {
+  --fusion-x: 28px;
+  --fusion-y: 15px;
+}
+@keyframes level-fuse {
+  from {
+    opacity: 1;
+    transform:
+      translate(
+        calc(-50% + var(--fusion-x)),
+        calc(-50% + var(--fusion-y))
+      )
+      scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%,-50%) scale(.2) rotate(160deg);
+  }
+}
+.level-fusion-result {
+  opacity: 0;
+  transform: translate(-50%,-50%);
+  filter: drop-shadow(0 0 5px rgba(255,193,7,.65));
+}
+.level-fusion-result.is-visible {
+  animation: level-fusion-result .58s ease-out both;
+}
+@keyframes level-fusion-result {
+  from {
+    opacity: 0;
+    transform: translate(-50%,-50%) scale(.2) rotate(-30deg);
+  }
+  58% {
+    opacity: 1;
+    transform: translate(-50%,-50%) scale(1.35) rotate(8deg);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%,-50%) scale(1);
+  }
+}
+
+#btn-score.score-receive {
+  animation: score-receive 450ms cubic-bezier(.16,.8,.24,1);
+}
+@keyframes score-receive {
+  0%, 100% { transform: scale(1); }
+  42% {
+    transform: scale(1.1);
+    border-color: #32B8C6;
+    box-shadow: 0 0 0 4px rgba(50,184,198,.16);
+  }
+}
+
+/* ---------- 等级跃迁全屏庆祝 ---------- */
 .tier-celebrate {
   position: fixed;
   inset: 0;
@@ -1065,13 +1922,13 @@ body.quaking { animation: quake .5s 2; }
   background: linear-gradient(135deg, #E0F7F5, #FFFFFF);
 }
 
-/* ---------- 配方图鉴面板（左侧抽屉，Mac 风格关闭）---------- */
+/* ---------- 配方图鉴面板（左侧抽屉）---------- */
 
 .recipebook {
   position: fixed;
   top: 52px;
-  left: -440px;
-  width: 420px;
+  left: -480px;
+  width: min(480px, 100vw);
   height: calc(100vh - 52px);
   background: #FFFFFF;
   border-right: 1px solid #E0E0E0;
@@ -1084,6 +1941,7 @@ body.quaking { animation: quake .5s 2; }
 .recipebook.show { left: 0; }
 
 .recipebook-header {
+  position: relative;
   padding: 12px 14px 14px;
   border-bottom: 1px solid #F0F0F0;
   display: flex;
@@ -1094,43 +1952,48 @@ body.quaking { animation: quake .5s 2; }
   font-size: 16px;
   font-weight: 600;
   padding-left: 4px;
+  padding-right: 38px;
 }
 
-/* Mac 风格红绿灯 */
-.mac-traffic-lights {
-  display: flex;
-  gap: 8px;
-  padding: 2px 0 6px;
+.panel-close-button {
+  width: 30px;
+  height: 30px;
+  display: inline-grid;
+  flex: 0 0 30px;
+  place-items: center;
+  border: 1px solid #E1E5EA;
+  border-radius: 8px;
+  padding: 0;
+  background: #F4F5F7;
+  color: #4E5969;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, box-shadow .15s;
 }
-.mac-light {
+.recipebook-close-button {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+}
+.panel-close-button > .action-icon {
+  /* Compensate for the button's 1px border on both sides. */
+  width: calc(100% + 2px);
+  min-width: 0;
+  height: calc(100% + 2px);
+  display: grid;
+  place-items: center;
+  transform: none;
+}
+.panel-close-button > .action-icon > img {
+  display: block;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
-  border: none;
-  padding: 0;
-  cursor: default;
-  background: #E0E0E0;
-  transition: filter .15s;
-  position: relative;
 }
-.mac-light-close {
-  background: #FF5F57;
-  cursor: pointer;
+.panel-close-button:hover { background: #E9EDF2; }
+.panel-close-button:focus-visible {
+  outline: none;
+  border-color: #2F80ED;
+  box-shadow: 0 0 0 3px rgba(47,128,237,.25);
 }
-.mac-light-close:hover { filter: brightness(0.9); }
-.mac-light-close:hover::before {
-  content: "✕";
-  position: absolute;
-  inset: 0;
-  font-size: 9px;
-  color: #7A0000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-}
-.mac-light-min { background: #FFBD2E; }
-.mac-light-zoom { background: #28C940; }
 
 .recipebook-actions {
   display: flex;
@@ -1138,11 +2001,14 @@ body.quaking { animation: quake .5s 2; }
   flex-wrap: wrap;
   align-items: center;
 }
+.recipebook-actions .search-control {
+  flex: 1 1 190px;
+}
 .recipebook-actions #recipebook-search {
-  flex: 1 1 160px;
-  min-width: 140px;
+  width: 100%;
+  min-width: 0;
   padding: 6px 10px;
-  border: 1px solid #E0E0E0;
+  border: 0;
   border-radius: 8px;
   font-size: 13px;
   outline: none;
@@ -1159,12 +2025,14 @@ body.quaking { animation: quake .5s 2; }
 .recipebook-list::-webkit-scrollbar-thumb { background: #DDD; border-radius: 3px; }
 
 .recipe-row {
+  --element-icon-canvas: 22px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 8px;
+  gap: 4px;
+  padding: 7px 4px;
   border-radius: 10px;
-  font-size: 13px;
+  font-size: 12px;
+  white-space: nowrap;
   transition: background .12s;
 }
 .recipe-row:hover { background: #F7F7F7; }
@@ -1173,16 +2041,22 @@ body.quaking { animation: quake .5s 2; }
 .recipe-chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
+  gap: 3px;
+  padding: 2px 5px;
   background: #F4F4F4;
-  border-radius: 12px;
-  font-size: 12px;
+  border-radius: 10px;
+  font-size: 11px;
   white-space: nowrap;
 }
+.recipe-plus {
+  padding-inline: 0;
+}
+.recipe-plus,
 .recipe-arrow {
-  color: #BBB;
+  color: #687381;
   font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
 }
 .recipe-result {
   background: #FFF7CC;
@@ -1195,7 +2069,6 @@ body.quaking { animation: quake .5s 2; }
 
 .recipe-plus {
   background: transparent !important;
-  color: #BBB;
 }
 
 /* 分数 badge */
@@ -1209,6 +2082,76 @@ body.quaking { animation: quake .5s 2; }
   font-size: 11px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+}
+
+.recipe-row-dense {
+  --element-icon-canvas: 18px;
+  gap: 3px;
+  padding: 7px 5px;
+}
+.recipe-row-dense .recipe-chip {
+  gap: 3px;
+  padding: 2px 5px;
+  border-radius: 9px;
+  font-size: 11px;
+}
+.recipe-row-dense .recipe-chip .name { font-size: 10px; }
+.recipe-row-dense .recipe-plus,
+.recipe-row-dense .recipe-arrow { font-size: 13px; }
+.recipe-row-dense .recipe-score {
+  padding: 1px 5px;
+  border-radius: 8px;
+  font-size: 10px;
+}
+
+.recipe-row-ultra-dense {
+  --element-icon-canvas: 14px;
+  gap: 1px;
+  padding: 4px 2px;
+}
+.recipe-row-ultra-dense .recipe-chip {
+  gap: 1px;
+  padding: 1px 3px;
+  border-radius: 6px;
+  font-size: 8px;
+}
+.recipe-row-ultra-dense .recipe-chip .name { font-size: 8px; }
+.recipe-row-ultra-dense .recipe-plus,
+.recipe-row-ultra-dense .recipe-arrow { font-size: 10px; }
+.recipe-row-ultra-dense .recipe-score {
+  padding: 0 3px;
+  border-radius: 6px;
+  font-size: 8px;
+}
+
+.recipe-row-fit {
+  --element-icon-canvas: var(--recipe-row-fit-icon-size);
+  gap: var(--recipe-row-fit-gap);
+  padding: var(--recipe-row-fit-row-padding-y) var(--recipe-row-fit-row-padding-x);
+}
+.recipe-row-fit .recipe-chip {
+  gap: var(--recipe-row-fit-gap);
+  padding: var(--recipe-row-fit-chip-padding-y) var(--recipe-row-fit-chip-padding-x);
+  border-radius: var(--recipe-row-fit-chip-radius);
+  font-size: var(--recipe-row-fit-font-size);
+}
+.recipe-row-fit .recipe-chip .name {
+  font-size: var(--recipe-row-fit-font-size);
+}
+.recipe-row-fit .recipe-plus,
+.recipe-row-fit .recipe-arrow {
+  font-size: var(--recipe-row-fit-operator-size);
+  font-weight: 700;
+}
+.recipe-row-fit .recipe-score {
+  padding: 0 var(--recipe-row-fit-score-padding-x);
+  border-radius: var(--recipe-row-fit-chip-radius);
+  font-size: var(--recipe-row-fit-font-size);
+}
+.recipe-row-dense .recipe-plus,
+.recipe-row-ultra-dense .recipe-plus,
+.recipe-row-fit .recipe-plus {
+  padding-inline: 0;
 }
 
 /* 图鉴 chip 也给拖拽手势 */
@@ -1278,6 +2221,7 @@ body.ura-on .title-inf {
 }
 
 body.ura-on .nick-chip {
+  position: relative;
   background: linear-gradient(90deg, #1E1B3A, #2A1E4A);
   color: #CAA6FF;
   border-color: #333355;
@@ -1288,6 +2232,7 @@ body.ura-on .nick-chip:hover {
 
 body.ura-on .btn-help {
   background: #1A1A3A;
+  padding-right: 38px;
   border-color: #333355;
   color: #CAA6FF;
 }
@@ -1344,6 +2289,65 @@ body.ura-on .hint .hint-credit-sub a:hover {
   border-bottom-color: #CAA6FF;
 }
 
+/* 首发浮层与午夜页面使用同一套深紫牌桌语义。 */
+body.ura-on .first-toast {
+  color: #F2EDFF;
+  border-color: #65538F;
+  background: linear-gradient(145deg, #201A3B, #111126);
+  box-shadow:
+    0 16px 36px rgba(0,0,0,.5),
+    inset 0 0 0 1px rgba(202,166,255,.08);
+}
+body.ura-on .first-toast.tier-global_new {
+  border-color: #D5AA45;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(255,213,79,.12), transparent 34%),
+    linear-gradient(145deg, #251D3F, #121126);
+}
+body.ura-on .first-toast.tier-global_known {
+  border-color: #4AAEA8;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(78,205,196,.12), transparent 34%),
+    linear-gradient(145deg, #182F3B, #111126);
+}
+body.ura-on .first-toast-title {
+  color: #D9CEFF;
+}
+body.ura-on .first-toast.tier-global_new .first-toast-title {
+  color: #FFE28A;
+}
+body.ura-on .first-toast.tier-global_known .first-toast-title {
+  color: #91E4DE;
+}
+body.ura-on .first-toast-result,
+body.ura-on .first-toast-result .name {
+  color: #F5F1FF;
+}
+body.ura-on .first-toast-comment {
+  color: #AAA2C8;
+}
+body.ura-on .first-toast-actions {
+  border-top-color: rgba(202,166,255,.2);
+}
+body.ura-on .first-toast-actions button,
+body.ura-on .first-toast-actions a {
+  color: #201604;
+  background: linear-gradient(180deg, #FFE69A, #D6AA48);
+  box-shadow: 0 5px 14px rgba(255,213,79,.12);
+}
+body.ura-on .first-toast.tier-global_known .first-toast-actions button,
+body.ura-on .first-toast.tier-global_known .first-toast-actions a {
+  color: #082523;
+  background: linear-gradient(180deg, #A7ECE7, #4ECDC4);
+  box-shadow: 0 5px 14px rgba(78,205,196,.12);
+}
+body.ura-on .first-toast-actions button:disabled {
+  opacity: .58;
+}
+body.ura-on .first-toast-published {
+  color: #A7E8C8;
+}
+
 /* 侧栏 */
 body.ura-on .sidebar {
   background: #0F0F22;
@@ -1384,7 +2388,7 @@ body.ura-on .workspace .element.on-canvas {
   box-shadow: 0 2px 8px rgba(167,139,250,0.2);
 }
 
-/* KPI 面板在夜间时也翻转 */
+/* 分数记录面板在夜间时也翻转 */
 body.ura-on .score-panel {
   background: #14142E;
   color: #E8E6FF;
@@ -1401,27 +2405,13 @@ body.ura-on .score-row { color: #E8E6FF; border-bottom-color: #1A1A3A; }
 body.ura-on .score-row .name { color: #E8E6FF; }
 body.ura-on .score-row .meta { color: #8A84B0; }
 body.ura-on .score-row .gain.tier-seen { background: #1A1A3A; color: #8A84B0; }
+body.ura-on .score-row .gain.tier-casino {
+  background: linear-gradient(135deg, #4A3520, #30264E);
+  color: #FFE69A;
+}
 body.ura-on .score-panel-empty { color: #6A6490; }
 body.ura-on #score-panel-total { color: #CAA6FF; }
-body.ura-on .score-panel-rank { color: #FFD54F; }
-body.ura-on .score-panel-tiers .tier-row {
-  background: #1A1A3A; color: #E8E6FF;
-}
-body.ura-on .score-panel-tiers .tier-row.reached { background: #24244A; }
-body.ura-on .score-panel-tiers .tier-row.locked { background: #101022; color: #4A4A6A; }
-body.ura-on .score-panel-tiers .tier-row.current {
-  background: #2A1E4A; border-color: #A78BFA; color: #FFD54F;
-}
-body.ura-on .tier-current-card {
-  background: linear-gradient(135deg, #2A1E4A, #3A2E5A);
-  border-color: #A78BFA;
-}
-body.ura-on .tier-current-grade { color: #FFD54F; }
-body.ura-on .tier-current-label { color: #CAA6FF; }
-body.ura-on .tier-current-next { color: #CAA6FF; }
-body.ura-on .tier-current-next b { color: #FFD54F; }
 body.ura-on .tier-progress { background: #1A1A3A; }
-body.ura-on .tier-stars { color: #8A84B0; }
 
 /* 配方图鉴在夜间 */
 body.ura-on .recipebook {
@@ -1474,12 +2464,12 @@ body.ura-on .recipe-chip[data-name]:hover {
 /* "+" plus chip 在夜间 */
 body.ura-on .recipe-plus {
   background: transparent !important;
-  color: #6A6490;
+  color: #B8B1D8;
   border-color: transparent !important;
 }
 
 /* 箭头 → */
-body.ura-on .recipe-arrow { color: #6A6490; }
+body.ura-on .recipe-arrow { color: #B8B1D8; }
 
 /* 结果 chip（右边的黄色块） */
 body.ura-on .recipe-result {
@@ -1506,9 +2496,19 @@ body.ura-on .recipebook-empty { color: #6A6490; }
 body.ura-on .recipebook-list::-webkit-scrollbar-thumb { background: #2A2A4A; }
 body.ura-on .recipebook-list::-webkit-scrollbar-thumb:hover { background: #3A3A5A; }
 
-/* Mac 关闭按钮保持红色识别性，但暗色下加点边 */
-body.ura-on .mac-light { background: #2A2A4A; }
-body.ura-on .mac-light-close { background: #FF5F57; }
+body.ura-on .panel-close-button {
+  background: #24243C;
+  color: #D7D4F5;
+  border-color: #3A3A5A;
+}
+body.ura-on .panel-close-button .action-icon img {
+  filter: brightness(0) invert(1) opacity(.86);
+}
+body.ura-on .panel-close-button:hover { background: #303052; }
+body.ura-on .panel-close-button:focus-visible {
+  border-color: #A78BFA;
+  box-shadow: 0 0 0 3px rgba(167,139,250,.3);
+}
 
 /* 持久装饰：画布右上角的夜间月亮（低调、纯装饰） */
 body.ura-on .workspace::after {
@@ -1784,157 +2784,56 @@ body.ura-on .workspace::after {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+  .element.combine-target::before,
+  .element.combine-source,
+  .element.reveal-personal,
+  .element.reveal-global,
+  .element.reveal-personal::after,
+  .element.reveal-global::after,
+  #btn-score.score-receive,
+  .score-gain-residue,
+  .level-gain-star,
+  .level-fusion-source,
+  .level-fusion-result.is-visible {
+    animation: none !important;
+  }
+  .score-gain-residue {
+    opacity: 1;
+    transform: translateY(-50%);
+  }
+  #btn-score.score-receive {
+    border-color: #32B8C6;
+    background-color: rgba(50,184,198,.1);
+    box-shadow: 0 0 0 4px rgba(50,184,198,.16);
+  }
+  .element.reveal-personal,
+  .element.reveal-global {
+    opacity: 1;
+    transform: none;
+  }
+  .combine-core,
+  .combine-impact,
+  .celebration-layer,
+  .discovery-stamp,
+  .score-flight,
+  .score-level-effect-layer {
+    display: none !important;
+  }
 }
 
-/* ---------- 里模式覆盖层 ----------
-   设计关键：里模式下宽度不能跳动。
-   实现：原生 .emoji/.name 保持占位（visibility:hidden），
-       ura-* 绝对定位叠在上面显示；hover 翻转可见性揭示真身。
-       ura-* 做 overflow-hidden + nowrap，过长词不会撑开。
-*/
-.ura-emoji, .ura-name { display: none; }
-
-/* 里模式开启：原生隐形但仍占位，ura 浮在上面 */
-body.ura-on .element,
-body.ura-on .recipe-chip[data-name] {
-  position: relative;
-}
-body.ura-on .element .emoji,
-body.ura-on .element .name,
-body.ura-on .recipe-chip[data-name] .emoji,
-body.ura-on .recipe-chip[data-name] .name {
-  visibility: hidden;
-}
-body.ura-on .element .ura-emoji,
-body.ura-on .element .ura-name,
-body.ura-on .recipe-chip[data-name] .ura-emoji,
-body.ura-on .recipe-chip[data-name] .ura-name {
-  display: inline-block;
-  position: absolute;
-  top: 0; bottom: 0;
-  line-height: inherit;
-  pointer-events: none;
-  overflow: hidden;
-  white-space: nowrap;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-/* ura-emoji 盖住 .emoji 的位置；ura-name 盖住 .name 的位置 */
-body.ura-on .element .emoji,
-body.ura-on .recipe-chip[data-name] .emoji {
-  position: relative;
-}
-body.ura-on .element .name,
-body.ura-on .recipe-chip[data-name] .name {
-  position: relative;
-}
-body.ura-on .element .ura-emoji,
-body.ura-on .recipe-chip[data-name] .ura-emoji {
-  /* 叠在原生 emoji 上：用 right: calc(name宽度 + gap) 不好算，
-     改用简单方式：emoji 本身是第一个子元素，ura-emoji 紧跟其后，
-     用 transform 往左偏一个 emoji 的距离即可 */
-  left: 0;
-  width: 1.3em;   /* emoji 典型宽度 */
-}
-body.ura-on .element .ura-name,
-body.ura-on .recipe-chip[data-name] .ura-name {
-  /* 盖住 name 部分：emoji 宽 1.3em + gap 大约 6px */
-  left: calc(1.3em + 6px);
-  right: 6px;     /* 到右边距留一点 padding 喘气 */
-}
-/* hover 揭示真身：ura 隐藏、原生重新可见 */
-body.ura-on .element:hover .emoji,
-body.ura-on .element:hover .name,
-body.ura-on .recipe-chip[data-name]:hover .emoji,
-body.ura-on .recipe-chip[data-name]:hover .name {
-  visibility: visible;
-}
-body.ura-on .element:hover .ura-emoji,
-body.ura-on .element:hover .ura-name,
-body.ura-on .recipe-chip[data-name]:hover .ura-emoji,
-body.ura-on .recipe-chip[data-name]:hover .ura-name {
-  display: none;
-}
-/* 里模式下整体保持字体统一（Comic Sans 不渲染中文会造成英文/中文割裂，
-   改为一个带点圆润感的字体族，中英文一致） */
-body.ura-on .element,
-body.ura-on .recipe-chip,
-body.ura-on .recipe-row,
-body.ura-on .recipe-chip[data-name],
-body.ura-on .sidebar .element,
-body.ura-on .recipebook {
-  font-family: "PingFang SC", "Microsoft YaHei", "Comic Sans MS", cursive, sans-serif;
-}
-
-/* ============================================================
-   Bug fix · 夜晚/白天切换时画布元素位移
-   ------------------------------------------------------------
-   根因：
-   1) body.ura-on 下整体 font-family 被换成另一套字族，
-      同一个字形的 metric 不同 → chip 是 inline-flex 自动宽度，
-      切换瞬间外层宽度会跳。画布元素虽然 left/top 锚定左上角不变，
-      但 hover 目标、合成碰撞判定（getBoundingClientRect）会跟着抖，
-      并且因 .name 中文撑开的宽度变化让整块 chip "看起来" 在移动。
-   2) ura-name 覆盖层虽然是 absolute 不直接撑 chip，但某些浏览器
-      在 visibility:hidden 的子元素上如果字体变化仍会触发 layout
-      微调。画布上已放置元素数量多时，整体呈现"整齐位移"。
-
-   修复策略：
-   - 画布里（.element.on-canvas）强制锁定字体为与白天一致的继承值，
-     不吃 body.ura-on 那条 font-family 覆盖规则。
-   - 同时显式复写 padding / border-width / font-size，
-     保证夜晚模式下画布元素的盒模型与白天像素级一致。
-   - 侧栏 / 配方库的 chip 不在此列，允许保持里模式的"疯狂字体"风味。
-   ============================================================ */
-body.ura-on .workspace .element.on-canvas {
-  /* 回到白天的字体栈，杜绝字形度量差导致的宽度抖动 */
-  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
-               "Helvetica Neue", Arial, sans-serif;
-  /* 盒模型锁死（与白天 .element 完全一致，防御未来其它覆盖规则） */
-  padding: 6px 12px;
-  border-width: 1px;
-  border-style: solid;
-  font-size: 14px;
-  line-height: normal;
-}
-
-/* ura-name 在画布元素里也要回归白天字体，避免 absolute 层内部
-   字宽和占位的原生 .name 差异过大，造成 hover 翻转时 chip 宽度跳变。
-   同时做 text-overflow，超长疯狂词不溢出破坏视觉。 */
-body.ura-on .workspace .element.on-canvas .ura-name,
-body.ura-on .workspace .element.on-canvas .ura-emoji {
-  font-family: inherit;
-  text-overflow: ellipsis;
-}
-/* Issue #2: explicit publication action after a verified reproduction. */
-.formula-publish {
-  position: fixed;
-  z-index: 1200;
-  left: 50%;
-  bottom: 24px;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  max-width: min(92vw, 620px);
-  padding: 12px 16px;
-  border: 1px solid #b8d7ce;
-  border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 12px 34px #163d3430;
-}
-.formula-publish button, .formula-publish a {
-  flex: none;
-  border: 0;
-  border-radius: 9px;
-  padding: 8px 12px;
-  color: white;
-  background: #176b57;
-  text-decoration: none;
-  cursor: pointer;
-}
-@media (max-width: 560px) {
-  .formula-publish { align-items: stretch; flex-direction: column; width: 92vw; }
+@media (max-width: 1080px) {
+  .topbar-actions .action-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .topbar-actions .btn-ghost {
+    padding-inline: 5px;
+  }
 }

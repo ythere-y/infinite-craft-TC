@@ -8,7 +8,9 @@
    - 右侧排行榜：顶部"我"的卡片 + Top 20；定时刷新 + 每次新首发后再拉
    ============================================================ */
 
-import { collectUnseenPrefix, mergeFirstItems } from "./polling.js";
+import { collectUnseenPrefix, mergeFirstItems } from "./polling.js?v=20260731b";
+import { firstHonorFor } from "./first-honor.js?v=20260731b";
+import { recipeCommentFor } from "./recipe-comments.js?v=20260731b";
 
 const PAGE_SIZE = 40;
 const POLL_PAGE_SIZE = 500;       // 覆盖 100 QPS 下一个轮询周期的突发量
@@ -52,31 +54,73 @@ const MY_NICK = (() => {
 // ============================================================
 // 工具
 // ============================================================
-function escapeHTML(s) {
-  return String(s).replace(/[&<>"']/g, c => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;",
-    '"': "&quot;", "'": "&#39;",
-  })[c]);
-}
-
 function escapeRegex(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-/** 在 HTML 转义后的字符串里做不区分大小写的高亮。q 必须非空小写。 */
-function highlight(escapedText, q) {
-  if (!q) return escapedText;
+function node(tag, className = "", value = null) {
+  const target = document.createElement(tag);
+  if (className) target.className = className;
+  if (value !== null) target.textContent = String(value);
+  return target;
+}
+
+/** 用纯文本节点高亮搜索词，不把 API 文本重新解析成 HTML。 */
+function appendHighlightedText(target, value, q) {
+  const source = String(value || "");
+  target.replaceChildren();
+  if (!q) {
+    target.textContent = source;
+    return;
+  }
   try {
     const re = new RegExp(escapeRegex(q), "gi");
-    return escapedText.replace(re, m => `<mark>${m}</mark>`);
+    let cursor = 0;
+    for (const match of source.matchAll(re)) {
+      target.append(document.createTextNode(source.slice(cursor, match.index)));
+      target.append(node("mark", "", match[0]));
+      cursor = match.index + match[0].length;
+    }
+    target.append(document.createTextNode(source.slice(cursor)));
   } catch (_) {
-    return escapedText;
+    target.textContent = source;
   }
+}
+
+function renderWallElement(target, item, overrides = {}) {
+  const name = overrides.name ?? item.result ?? item.name ?? "";
+  window.ICON_SYSTEM.renderElement(document, target, {
+    name,
+    emoji: overrides.emoji ?? item.emoji,
+    category: overrides.category ?? item.category,
+    icon: overrides.icon ?? item.icon,
+    state: item.is_starter ? "starter" : null,
+    isStarter: Boolean(item.is_starter),
+    size: overrides.size || "detail",
+  });
+  if (overrides.query) {
+    const nameNode = target.querySelector(".name");
+    if (nameNode) appendHighlightedText(nameNode, name, overrides.query);
+  }
+  return target;
+}
+
+function renderWallAction(target, name, label = "", tone = "default") {
+  window.ICON_SYSTEM.renderAction(document, target, {name, label, tone});
+  return target;
 }
 
 function itemMatches(item, q) {
   if (!q) return true;
-  const hay = `${item.result || ""}\n${item.emoji || ""}\n${item.discoverer || ""}`.toLowerCase();
+  const formula = item.formula || {};
+  const hay = [
+    item.result || "",
+    item.emoji || "",
+    item.discoverer || "",
+    formula.a || "",
+    formula.b || "",
+    formula.comment || "",
+  ].join("\n").toLowerCase();
   return hay.includes(q);
 }
 
@@ -100,36 +144,100 @@ function fmtTimeFull(d) {
          `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
+function buildReaction(item, reaction = {}) {
+  const myVote = Number(reaction.my_vote || 0);
+  const score = Number(reaction.net_score || 0);
+  const scoreClass = score > 0 ? " positive" : score < 0 ? " negative" : "";
+  const wrap = node("div", "first-reaction");
+  for (const [value, action, tone] of [[1, "like", "positive"], [-1, "dislike", "negative"]]) {
+    if (value === -1) wrap.append(node("span", `element-score${scoreClass}`, score));
+    const button = node(
+      "button",
+      `element-vote ${value === 1 ? "up" : "down"}${myVote === value ? " active" : ""}`,
+    );
+    button.type = "button";
+    button.dataset.vote = String(value);
+    button.setAttribute("aria-label", value === 1 ? "支持这个元素" : "反对这个元素");
+    renderWallAction(button, action, "", tone);
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      voteElement(item, value, button);
+    });
+    wrap.append(button);
+  }
+  return wrap;
+}
+
+function updateReactionDom(card, item, reaction) {
+  if (!card) return;
+  const current = card.querySelector(".first-reaction");
+  if (!current) return;
+  current.replaceWith(buildReaction(item, reaction));
+}
+
 // ============================================================
 // feed 渲染
 // ============================================================
 function buildCard(item, { pop = false, q = "" } = {}) {
-  const card = document.createElement("div");
+  const card = node("div");
   card.className = "first-card" + (pop ? " pop" : "");
   card.dataset.result = item.result;
 
   const ts = item.ts ? new Date(item.ts * 1000) : new Date();
-  const nameHtml = highlight(escapeHTML(item.result || ""), q);
-  const emojiHtml = highlight(escapeHTML(item.emoji || "✨"), q);
-  const nickHtml = highlight(escapeHTML(item.discoverer || "匿名鹅"), q);
   const seqStr = item.seq != null ? `#${padSeq(item.seq)}` : "";
 
-  card.innerHTML = `
-    <div class="first-corner" title="${fmtTimeFull(ts)}">
-      ${seqStr ? `<span class="first-seq">${seqStr}</span>` : ""}
-      <span class="first-time">${fmtTime(ts)}</span>
-    </div>
-    <div class="first-emoji">${emojiHtml}</div>
-    <div class="first-name">${nameHtml}</div>
-    <div class="first-meta">
-      <span class="first-meta-nick">首发 · <b>${nickHtml}</b></span>
-    </div>
-  `;
+  const corner = node("div", "first-corner");
+  corner.title = fmtTimeFull(ts);
+  if (seqStr) corner.append(node("span", "first-seq", seqStr));
+  corner.append(node("span", "first-time", fmtTime(ts)));
+
+  const element = node("button", "first-element element first-name-button");
+  element.type = "button";
+  renderWallElement(element, item, {name: item.result, query: q});
+  element.addEventListener("click", () => {
+    openRecipeModal(item.result, item.result, item.emoji, item.formula, item);
+  });
+
+  const meta = node("div", "first-meta");
+  const nick = node("span", "first-meta-nick");
+  nick.append(document.createTextNode("首发 · "));
+  const nickName = node("b");
+  appendHighlightedText(nickName, item.discoverer || "匿名鹅", q);
+  nick.append(nickName);
+  meta.append(nick);
+
+  card.append(corner, element, meta, buildReaction(item, item.reaction));
   return card;
 }
 
+async function voteElement(item, value, button) {
+  const resultName = item?.result;
+  if (!resultName || !button) return;
+  button.disabled = true;
+  try {
+    const response = await fetch(`/api/wall/elements/${encodeURIComponent(resultName)}/vote`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ value }),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.detail || "投票失败");
+    for (const item of state.items) {
+      if (item.result === resultName) {
+        item.reaction = payload;
+      }
+    }
+    updateReactionDom(button.closest(".first-card"), item, payload);
+  } catch (error) {
+    console.warn("element vote failed", error);
+    button.disabled = false;
+    button.classList.add("failed");
+    setTimeout(() => button.classList.remove("failed"), 900);
+  }
+}
+
 function renderFeed() {
-  feed.innerHTML = "";
+  feed.replaceChildren();
   const q = state.query;
   let shown = 0;
   for (const item of state.items) {
@@ -158,7 +266,7 @@ function updateStatusLine() {
 
   if (state.loadingPage) {
     statusLine.className = "feed-status";
-    statusLine.innerHTML = `<span class="spinner"></span>加载中……`;
+    statusLine.replaceChildren(node("span", "spinner"), document.createTextNode("加载中……"));
     statusLine.style.display = "block";
   } else if (state.exhausted && state.items.length > 0) {
     statusLine.className = "feed-status end";
@@ -325,13 +433,33 @@ function startWallPolling() {
 // ============================================================
 // 排行榜
 // ============================================================
+function buildHonorLevel(rawFirsts, className = "") {
+  const honor = firstHonorFor(rawFirsts);
+  const level = node("div", `lb-honor${className ? ` ${className}` : ""}`);
+  level.setAttribute("aria-label", honor.ariaLabel);
+  level.classList.toggle("aggregated", honor.aggregated);
+  for (const item of honor.displayItems) {
+    const icon = node(
+      "span",
+      `lb-honor-item tier-${item.tier}${honor.aggregated ? " aggregated" : ""}`,
+      item.text,
+    );
+    icon.setAttribute("aria-hidden", "true");
+    level.append(icon);
+  }
+  if (!honor.displayItems.length) {
+    level.append(node("span", "lb-honor-empty", "尚未获得首发星星"));
+  }
+  return level;
+}
+
 function renderMeCard(data) {
   const { total_players = 0, me = null } = data || {};
 
   if (!MY_NICK) {
     lbMeCard.classList.add("no-rank");
     lbMeNick.textContent = "未登录昵称";
-    lbMeRow.innerHTML = `回主页点击顶部昵称领一个花名，就能出现在这里了`;
+    lbMeRow.textContent = "回主页点击顶部昵称领一个花名，就能出现在这里了";
     return;
   }
 
@@ -339,46 +467,70 @@ function renderMeCard(data) {
 
   if (me && me.rank) {
     lbMeCard.classList.remove("no-rank");
-    lbMeRow.innerHTML =
-      `您的排名：<b>第 ${me.rank} 名</b> · ` +
-      `首发 <b>${me.firsts}</b> 个 · ` +
-      `共 <b>${total_players}</b> 位打工人`;
+    const summary = node("div", "lb-me-summary");
+    summary.append(
+      document.createTextNode("您的排名："),
+      node("b", "", `第 ${me.rank} 名`),
+      document.createTextNode(" · "),
+      node("span", "lb-firsts", `${firstHonorFor(me.firsts).firsts} 个首发`),
+      document.createTextNode(` · 共 ${total_players} 位打工人`),
+    );
+    lbMeRow.replaceChildren(summary, buildHonorLevel(me.firsts, "lb-me-honor"));
   } else {
     lbMeCard.classList.add("no-rank");
-    lbMeRow.innerHTML =
-      `您还未上榜 · 共 <b>${total_players}</b> 位打工人 · ` +
-      `去合成一个没见过的元素吧！`;
+    const summary = node("div", "lb-me-summary");
+    summary.append(
+      document.createTextNode("您还未上榜 · "),
+      node("span", "lb-firsts", `${firstHonorFor(0).firsts} 个首发`),
+      document.createTextNode(" · 共 "),
+      node("b", "", total_players),
+      document.createTextNode(" 位打工人 · 去合成一个没见过的元素吧！"),
+    );
+    lbMeRow.replaceChildren(
+      summary,
+      buildHonorLevel(0, "lb-me-honor"),
+    );
   }
+}
+
+function buildRankingEntry(row) {
+  const rank = Number(row?.rank) || 0;
+  const discoverer = row?.discoverer || "匿名鹅";
+  const firsts = firstHonorFor(row?.firsts).firsts;
+  const entry = node("li", `lb-row rank-${rank}`);
+  entry.dataset.rank = String(rank);
+  if (MY_NICK && discoverer === MY_NICK) entry.classList.add("me");
+
+  const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : String(rank);
+  const rankNode = node("span", "lb-rank", medal);
+  rankNode.setAttribute("aria-label", `第 ${rank} 名`);
+  const name = node("span", "lb-name", discoverer);
+  name.title = discoverer;
+  const count = node("span", "lb-firsts", `${firsts} 个首发`);
+  const honor = buildHonorLevel(firsts);
+
+  entry.append(rankNode, name, count, honor);
+  return entry;
 }
 
 function renderTop(data) {
   const { top = [] } = data || {};
-  lbListEl.innerHTML = "";
+  lbListEl.replaceChildren();
   if (top.length === 0) {
-    lbListEl.innerHTML = `<div class="lb-empty">还没有首发，快去合成吧～</div>`;
+    lbListEl.append(node("div", "lb-empty", "还没有首发，快去合成吧～"));
     return;
   }
+
+  const ranking = node("ol", "lb-ranking-list");
+  ranking.setAttribute("aria-label", "首发排行榜前 20 名");
   for (const row of top) {
-    const rank = row.rank;
-    const div = document.createElement("div");
-    const classes = ["lb-row"];
-    if (rank === 1) classes.push("top1");
-    else if (rank === 2) classes.push("top2");
-    else if (rank === 3) classes.push("top3");
-    if (MY_NICK && row.discoverer === MY_NICK) classes.push("me");
-    div.className = classes.join(" ");
-    const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
-    div.innerHTML = `
-      <span class="lb-rank">${medal}</span>
-      <span class="lb-name" title="${escapeHTML(row.discoverer)}">${escapeHTML(row.discoverer)}</span>
-      <span class="lb-score">${row.firsts}<span class="lb-score-suffix">个</span></span>
-    `;
-    lbListEl.appendChild(div);
+    ranking.append(buildRankingEntry(row));
   }
+  lbListEl.append(ranking);
 }
 
 function renderLeaderboardError(msg) {
-  lbListEl.innerHTML = `<div class="lb-empty">榜单加载失败：${escapeHTML(msg)}</div>`;
+  lbListEl.replaceChildren(node("div", "lb-empty", `榜单加载失败：${msg}`));
 }
 
 async function fetchLeaderboard() {
@@ -440,7 +592,7 @@ function persistCollapsed() {
 
 // 同 .first-card 的版式
 function buildCatChip(item) {
-  const chip = document.createElement("div");
+  const chip = node("div");
   const classes = ["cat-chip"];
   if (item.is_starter) classes.push("starter");
   else if (item.discovered) classes.push("discovered");
@@ -453,42 +605,43 @@ function buildCatChip(item) {
   const seqStr = item.seq != null ? `#${padSeq(item.seq)}` : "";
   const ts = item.ts ? new Date(item.ts * 1000) : null;
 
-  let meta = "尚未发现";
+  if (seqStr || ts) {
+    const corner = node("div", "cat-chip-corner");
+    if (ts) corner.title = fmtTimeFull(ts);
+    if (seqStr) corner.append(node("span", "seq", seqStr));
+    if (ts) corner.append(node("span", "time", fmtTime(ts)));
+    chip.append(corner);
+  }
+
+  const element = node("div", "cat-chip-element element");
+  renderWallElement(element, item, {name: item.name});
+  const renderedName = element.querySelector(".name");
+  if (isFounder && renderedName) {
+    renderedName.replaceChildren(
+      document.createTextNode(item.real || ""),
+      node("span", "cat-chip-alias", item.alias || ""),
+    );
+  }
+  chip.append(element);
+
+  if (isFounder && item.title) {
+    const title = node("div", "cat-chip-title", item.title);
+    title.title = item.title;
+    chip.append(title);
+  }
+
+  const meta = node("div", "cat-chip-meta");
   if (item.is_starter) {
-    meta = `🌱 基础元素`;
+    meta.textContent = "基础元素";
   } else if (item.discovered) {
-    const who = item.discoverer || "匿名鹅";
-    meta = `首发 · <b>${escapeHTML(who)}</b>`;
-  }
-
-  const cornerHtml = (seqStr || ts) ? `
-    <div class="cat-chip-corner" ${ts ? `title="${fmtTimeFull(ts)}"` : ""}>
-      ${seqStr ? `<span class="seq">${seqStr}</span>` : ""}
-      ${ts ? `<span class="time">${fmtTime(ts)}</span>` : ""}
-    </div>
-  ` : "";
-
-  if (isFounder) {
-    // 名人堂版式：大字真名 + 英文花名 + 职务
-    const titleLine = item.title ? `<div class="cat-chip-title" title="${escapeHTML(item.title)}">${escapeHTML(item.title)}</div>` : "";
-    chip.innerHTML = `
-      ${cornerHtml}
-      <div class="cat-chip-emoji">${escapeHTML(item.emoji || "❓")}</div>
-      <div class="cat-chip-name" title="${escapeHTML(item.name)}">
-        ${escapeHTML(item.real)}
-        <span class="cat-chip-alias">${escapeHTML(item.alias)}</span>
-      </div>
-      ${titleLine}
-      <div class="cat-chip-meta">${meta}</div>
-    `;
+    meta.append(
+      document.createTextNode("首发 · "),
+      node("b", "", item.discoverer || "匿名鹅"),
+    );
   } else {
-    chip.innerHTML = `
-      ${cornerHtml}
-      <div class="cat-chip-emoji">${escapeHTML(item.emoji || "❓")}</div>
-      <div class="cat-chip-name" title="${escapeHTML(item.name)}">${escapeHTML(item.name)}</div>
-      <div class="cat-chip-meta">${meta}</div>
-    `;
+    meta.textContent = "尚未发现";
   }
+  chip.append(meta);
 
   // 已发现（含 starter）→ 可点击查看合成配方
   // 名人堂要用 hit_as（首发时的花名/真名）才能查到记录，否则用 name
@@ -500,11 +653,11 @@ function buildCatChip(item) {
     const queryName = item.hit_as || (isFounder ? item.real : item.name);
     const displayEmoji = item.emoji || "✨";
     const displayName = isFounder ? `${item.real} · ${item.alias}` : item.name;
-    chip.addEventListener("click", () => openRecipeModal(queryName, displayName, displayEmoji));
+    chip.addEventListener("click", () => openRecipeModal(queryName, displayName, displayEmoji, null, item));
     chip.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        openRecipeModal(queryName, displayName, displayEmoji);
+        openRecipeModal(queryName, displayName, displayEmoji, null, item);
       }
     });
   }
@@ -535,14 +688,20 @@ function buildGroupBlock(group) {
   header.className = "bounty-group-header";
   header.setAttribute("aria-expanded", collapsed ? "false" : "true");
   const progressCls = (group.found >= group.total && group.total > 0) ? "all-found" : "";
-  header.innerHTML = `
-    <span class="chevron">▾</span>
-    <span class="g-emoji">${escapeHTML(group.emoji || "🏷️")}</span>
-    <span class="g-label">${escapeHTML(group.label)}</span>
-    <span class="g-progress ${progressCls}">
-      <b>${group.found}</b>/<b>${group.total}</b>
-    </span>
-  `;
+  const chevron = node("span", "chevron");
+  renderWallAction(chevron, "next");
+  const progress = node("span", `g-progress ${progressCls}`.trim());
+  progress.append(
+    node("b", "", group.found),
+    document.createTextNode("/"),
+    node("b", "", group.total),
+  );
+  header.append(
+    chevron,
+    node("span", "g-emoji", group.emoji || "🏷️"),
+    node("span", "g-label", group.label),
+    progress,
+  );
 
   const body = document.createElement("div");
   body.className = "bounty-group-body" + (collapsed ? " collapsed" : "");
@@ -550,7 +709,7 @@ function buildGroupBlock(group) {
   const grid = document.createElement("div");
   grid.className = "category-grid";
   if (!group.items.length) {
-    grid.innerHTML = `<div class="category-loading">（这个分类还没有元素）</div>`;
+    grid.append(node("div", "category-loading", "（这个分类还没有元素）"));
   } else {
     for (const it of sortChipItems(group.items)) {
       grid.appendChild(buildCatChip(it));
@@ -587,7 +746,7 @@ function buildGroupBlock(group) {
 }
 
 function renderBountyTabs() {
-  bountyTabsEl.innerHTML = "";
+  bountyTabsEl.replaceChildren();
   bountyState.nameToTab.clear();
   // 只剩一个 tab 时，隐藏切换栏（避免无意义的单按钮）
   if (bountyState.tabs.length <= 1) {
@@ -602,11 +761,11 @@ function renderBountyTabs() {
     if (t.key === bountyState.activeTab) classes.push("active");
     if (t.total > 0 && t.found >= t.total) classes.push("all-found");
     btn.className = classes.join(" ");
-    btn.innerHTML = `
-      <span class="t-emoji">${escapeHTML(t.emoji || "🏷️")}</span>
-      <span>${escapeHTML(t.label)}</span>
-      <span class="t-count">${t.found}/${t.total}</span>
-    `;
+    btn.append(
+      node("span", "t-emoji", t.emoji || "🏷️"),
+      node("span", "", t.label),
+      node("span", "t-count", `${t.found}/${t.total}`),
+    );
     btn.addEventListener("click", () => {
       if (bountyState.activeTab === t.key) return;
       bountyState.activeTab = t.key;
@@ -619,11 +778,11 @@ function renderBountyTabs() {
 }
 
 function renderBountyGroups() {
-  bountyGroupsEl.innerHTML = "";
+  bountyGroupsEl.replaceChildren();
   const active = bountyState.activeTab;
   const groups = bountyState.groups.filter(g => g.tab === active);
   if (!groups.length) {
-    bountyGroupsEl.innerHTML = `<div class="category-loading">这个分组还没有元素</div>`;
+    bountyGroupsEl.append(node("div", "category-loading", "这个分组还没有元素"));
     return;
   }
   for (const g of groups) bountyGroupsEl.appendChild(buildGroupBlock(g));
@@ -654,15 +813,16 @@ async function fetchBounty() {
   try {
     const r = await fetch("/api/wall/bounty");
     if (!r.ok) {
-      bountyGroupsEl.innerHTML = `<div class="category-loading">加载失败：HTTP ${r.status}</div>`;
+      bountyGroupsEl.replaceChildren(node("div", "category-loading", `加载失败：HTTP ${r.status}`));
       return;
     }
     const data = await r.json();
     renderBounty(data);
   } catch (e) {
     console.error("fetchBounty failed", e);
-    bountyGroupsEl.innerHTML =
-      `<div class="category-loading">加载失败：${escapeHTML(String(e.message || e))}</div>`;
+    bountyGroupsEl.replaceChildren(
+      node("div", "category-loading", `加载失败：${String(e.message || e)}`),
+    );
   }
 }
 
@@ -680,20 +840,31 @@ function scheduleCategoryRefresh(resultName) {
 // ============================================================
 const COLLAPSE_KEY_PREFIX = "ic_wall_collapse_";
 
-function bindCollapsible(toggleId, bodyId, storageKey) {
+function bindCollapsible(
+  toggleId,
+  bodyId,
+  storageKey,
+  defaultCollapsed = false,
+) {
   const btn = document.getElementById(toggleId);
   const body = document.getElementById(bodyId);
   if (!btn || !body) return;
+
+  if (!body.id) body.id = `${toggleId}-panel`;
+  btn.setAttribute("aria-controls", body.id);
 
   const saved = (() => {
     try { return localStorage.getItem(COLLAPSE_KEY_PREFIX + storageKey); }
     catch (_) { return null; }
   })();
-  const startCollapsed = saved === "1";
+  const startCollapsed =
+    saved === null ? Boolean(defaultCollapsed) : saved === "1";
 
   // 设置初始态：用固定 max-height 让动画有基线
   const applyState = (collapsed, animate = true) => {
     if (collapsed) {
+      if (body.contains(document.activeElement)) btn.focus();
+      body.inert = true;
       // 先固定 scrollHeight，再改 0，触发动画
       body.style.maxHeight = body.scrollHeight + "px";
       // force reflow
@@ -701,6 +872,7 @@ function bindCollapsible(toggleId, bodyId, storageKey) {
       body.classList.add("collapsed");
       btn.setAttribute("aria-expanded", "false");
     } else {
+      body.inert = false;
       body.classList.remove("collapsed");
       body.style.maxHeight = body.scrollHeight + "px";
       btn.setAttribute("aria-expanded", "true");
@@ -713,11 +885,15 @@ function bindCollapsible(toggleId, bodyId, storageKey) {
 
   // 初始无动画地应用
   if (startCollapsed) {
+    body.inert = true;
     body.classList.add("collapsed");
     btn.setAttribute("aria-expanded", "false");
     body.style.maxHeight = "0";
   } else {
+    body.inert = false;
+    body.classList.remove("collapsed");
     btn.setAttribute("aria-expanded", "true");
+    body.style.maxHeight = "";
   }
 
   btn.addEventListener("click", () => {
@@ -741,17 +917,29 @@ const recipeModal     = document.getElementById("recipe-modal");
 const recipeBackdrop  = document.getElementById("recipe-modal-backdrop");
 const recipeCloseBtn  = document.getElementById("recipe-modal-close");
 const recipeNameEl    = document.getElementById("recipe-modal-name");
-const recipeEmojiEl   = document.getElementById("recipe-modal-emoji");
 const recipeBodyEl    = document.getElementById("recipe-modal-body");
 
 let _recipeOpenForName = null;    // 去重：同 name 连续点不重复请求
+let _recipeOpenFormula = null;
+let _recipeOpenDisplayInfo = null;
 
-function openRecipeModal(queryName, displayName, displayEmoji) {
+function renderRecipeResult(info, displayName) {
+  renderWallElement(recipeNameEl, info, {name: info.name || displayName});
+  const nameNode = recipeNameEl.querySelector(".name");
+  if (nameNode) nameNode.textContent = displayName || info.name || "";
+}
+
+function openRecipeModal(queryName, displayName, displayEmoji, formula = null, displayInfo = null) {
   if (!recipeModal) return;
   _recipeOpenForName = queryName;
-  recipeNameEl.textContent = displayName || queryName;
-  recipeEmojiEl.textContent = displayEmoji || "✨";
-  recipeBodyEl.innerHTML = `<div class="recipe-loading">加载中…</div>`;
+  _recipeOpenFormula = formula || null;
+  _recipeOpenDisplayInfo = {
+    ...(displayInfo || {}),
+    name: queryName,
+    emoji: displayInfo?.emoji || displayEmoji || "✨",
+  };
+  renderRecipeResult(_recipeOpenDisplayInfo, displayName || queryName);
+  recipeBodyEl.replaceChildren(node("div", "recipe-loading", "加载中…"));
   recipeModal.classList.add("show");
   recipeModal.setAttribute("aria-hidden", "false");
   document.body.style.overflow = "hidden";
@@ -764,6 +952,8 @@ function closeRecipeModal() {
   recipeModal.setAttribute("aria-hidden", "true");
   document.body.style.overflow = "";
   _recipeOpenForName = null;
+  _recipeOpenFormula = null;
+  _recipeOpenDisplayInfo = null;
 }
 
 async function fetchRecipes(name) {
@@ -786,12 +976,24 @@ async function fetchRecipes(name) {
 
 function renderRecipes(data) {
   const recipes = Array.isArray(data.recipes) ? data.recipes : [];
+  if (_recipeOpenDisplayInfo) {
+    _recipeOpenDisplayInfo = {
+      ..._recipeOpenDisplayInfo,
+      emoji: data.result_emoji || _recipeOpenDisplayInfo.emoji,
+      icon: data.result_icon || _recipeOpenDisplayInfo.icon,
+      category: data.result_category || _recipeOpenDisplayInfo.category,
+    };
+    const displayName = recipeNameEl.querySelector(".name")?.textContent || data.result;
+    renderRecipeResult(_recipeOpenDisplayInfo, displayName);
+  }
   if (recipes.length === 0) {
-    recipeBodyEl.innerHTML = `
-      <div class="recipe-empty">
-        还没有已知配方。<br>
-        可能是首发时由 AI 自由生成 —— 去画布尝试把几个元素拖到一起看看？
-      </div>`;
+    const empty = node("div", "recipe-empty");
+    empty.append(
+      document.createTextNode("还没有已知配方。"),
+      document.createElement("br"),
+      document.createTextNode("可能是首发时由 AI 自由生成 —— 去画布尝试把几个元素拖到一起看看？"),
+    );
+    recipeBodyEl.replaceChildren(empty);
     return;
   }
 
@@ -801,31 +1003,57 @@ function renderRecipes(data) {
     return s || "—";
   };
 
-  let html = `<div class="recipe-count-line">共 <b>${recipes.length}</b> 种配方</div>`;
-  html += `<div class="recipe-list">`;
+  const count = node("div", "recipe-count-line");
+  count.append(
+    document.createTextNode("共 "),
+    node("b", "", recipes.length),
+    document.createTextNode(" 种配方"),
+  );
+  const list = node("div", "recipe-list");
   for (const r of recipes) {
     const src = r.source || "";
-    html += `
-      <div class="recipe-row">
-        <span class="recipe-pill" title="${escapeHTML(r.a)}">
-          <span class="e">${escapeHTML(r.a_emoji || "❓")}</span>
-          <span class="n">${escapeHTML(r.a)}</span>
-        </span>
-        <span class="recipe-plus">+</span>
-        <span class="recipe-pill" title="${escapeHTML(r.b)}">
-          <span class="e">${escapeHTML(r.b_emoji || "❓")}</span>
-          <span class="n">${escapeHTML(r.b)}</span>
-        </span>
-        <span class="recipe-source-tag ${escapeHTML(src)}">${escapeHTML(sourceLabel(src))}</span>
-      </div>
-    `;
+    const comment = recipeCommentFor(r, _recipeOpenFormula);
+    const entry = node("div", "recipe-entry");
+    const row = node("div", "recipe-row");
+    const source = node(
+      "span",
+      `recipe-source-tag${["seed", "llm"].includes(src) ? ` ${src}` : ""}`,
+      sourceLabel(src),
+    );
+    row.append(
+      buildRecipePill({
+        name: r.a,
+        emoji: r.a_emoji,
+        icon: r.a_icon,
+        category: r.a_category,
+      }),
+      node("span", "recipe-plus", "+"),
+      buildRecipePill({
+        name: r.b,
+        emoji: r.b_emoji,
+        icon: r.b_icon,
+        category: r.b_category,
+      }),
+      source,
+    );
+    entry.append(row);
+    if (comment !== null) {
+      entry.classList.add("has-comment");
+      entry.append(node("div", "recipe-comment", comment));
+    }
+    list.append(entry);
   }
-  html += `</div>`;
-  recipeBodyEl.innerHTML = html;
+  recipeBodyEl.replaceChildren(count, list);
+}
+
+function buildRecipePill(item) {
+  const pill = node("span", "recipe-pill element");
+  pill.title = item.name || "";
+  return renderWallElement(pill, item, {name: item.name});
 }
 
 function renderRecipesError(msg) {
-  recipeBodyEl.innerHTML = `<div class="recipe-error">加载失败：${escapeHTML(msg)}</div>`;
+  recipeBodyEl.replaceChildren(node("div", "recipe-error", `加载失败：${msg}`));
 }
 
 // 绑定关闭事件（全局只绑一次）
@@ -843,10 +1071,12 @@ if (recipeModal) {
 // 启动
 // ============================================================
 async function init() {
+  await window.ICON_SYSTEM.ready;
+  window.ICON_SYSTEM.hydrateActions(document);
   feedScroll.addEventListener("scroll", onScroll, { passive: true });
   // 折叠面板
-  bindCollapsible("bounty-toggle", "bounty-body", "bounty");
-  bindCollapsible("feed-toggle", "feed-body", "feed");
+  bindCollapsible("bounty-toggle", "bounty-body", "bounty", true);
+  bindCollapsible("feed-toggle", "feed-body", "feed", false);
   // 先把"我的卡片"渲染成骨架，避免观感空白
   renderMeCard({ total_players: 0, me: null });
   await loadNextPage();     // 首屏 40 条

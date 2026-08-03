@@ -5,6 +5,10 @@ import { fileURLToPath } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ELEMENTS_PATH = resolve(ROOT, "backend/seed_elements.json");
 const COMBINATIONS_PATH = resolve(ROOT, "backend/seed_combinations.json");
+const ICONS_PATH = resolve(
+  ROOT,
+  "frontend/assets/icons/generated/element-icon-map.json",
+);
 const OUTPUT_PATH = resolve(
   ROOT,
   "edge-functions/_generated/seed-data.js",
@@ -50,14 +54,25 @@ function calculateDepths(starters, recipes) {
 }
 
 export async function generateMakersData() {
-  const [elementSource, combinationSource] = await Promise.all([
+  const [elementSource, combinationSource, iconSource] = await Promise.all([
     readFile(ELEMENTS_PATH, "utf8").then(JSON.parse),
     readFile(COMBINATIONS_PATH, "utf8").then(JSON.parse),
+    readFile(ICONS_PATH, "utf8").then(JSON.parse),
   ]);
 
   const combinations = {};
   const recipesByResult = {};
   const recipes = [];
+  const elements = Object.fromEntries(
+    Object.entries(elementSource.elements ?? {}).map(([name, info]) => {
+      if (!Object.hasOwn(iconSource, name)) {
+        throw new Error(
+          `Missing generated icon recipe for seed element: ${name}`,
+        );
+      }
+      return [name, { ...info, icon: iconSource[name].icon }];
+    }),
+  );
 
   for (const [rawKey, rawInfo] of Object.entries(
     combinationSource.combinations ?? {},
@@ -81,7 +96,7 @@ export async function generateMakersData() {
 
   const payload = {
     STARTERS: elementSource.starters ?? [],
-    ELEMENTS: elementSource.elements ?? {},
+    ELEMENTS: elements,
     COMBINATIONS: combinations,
     RECIPES_BY_RESULT: recipesByResult,
     DEPTHS: calculateDepths(elementSource.starters ?? [], recipes),

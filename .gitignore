@@ -119,4 +119,6 @@ package-lock.json
 *.orig
 
 .runtime/
-.worktrees/
+/.worktrees/
+/.superpowers/
+CLAUDE.md

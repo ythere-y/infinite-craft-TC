@@ -1,25 +1,9 @@
 import { normalizeComment } from "./comments.js";
+import { PROMPT_SPEC } from "../_generated/prompt-data.js";
+import { buildPromptMessagesFromSpec } from "./prompt.js";
 
 const DEFAULT_BASE_URL = "https://ai-gateway.edgeone.link/v1";
 const DEFAULT_MODEL = "@makers/deepseek-v4-flash";
-
-const SYSTEM_PROMPT = `你是《鹅厂无限合成 ♾️》的合成裁判。
-用户给你两个元素，请给出一个“意料之外、情理之中”的合成结果。
-优先考虑鹅厂/互联网职场文化、打工人日常、中文互联网梗、自造词、具体场景词和中英混搭。
-除非一方在语义上明显会吞噬另一方，否则不要原样返回输入。
-输出必须遵循内容安全策略；不确定时使用中性的场景词。
-comment 必须与输入或结果相关，只有一句话、不换行、不超过 30 个字符。
-只返回 JSON，格式严格为 {"name":"2-8字元素名","emoji":"单个emoji","comment":"简短有趣的点评"}，不要解释或 Markdown。`;
-
-const EXAMPLES = [
-  ["咖啡", "夜宵券", "续命二连", "☕", "白天靠咖啡，晚上靠预算续命。"],
-  ["会议", "会议", "会议套娃", "🪆", "为了对齐上个会，再开一个会。"],
-  ["工位", "折叠椅", "工位床位", "🛏️", "离职手续齐了，只差一床被子。"],
-  ["周报", "ChatGPT", "AI代笔", "🤖", "产出没变，措辞先完成了智能升级。"],
-  ["厕所", "手机", "带薪冥想", "🧘", "隔间虽小，容得下完整的精神世界。"],
-  ["周五", "下班", "GG时刻", "🎉", "本周闭环完成，消息免打扰已上线。"],
-  ["虚空", "加班", "虚空", "🕳️", "加班落进去，连调休都没有回声。"],
-];
 
 export function llmConfiguration(env = {}) {
   const apiKey =
@@ -47,38 +31,6 @@ function completionUrl(baseUrl) {
   return baseUrl.endsWith("/chat/completions")
     ? baseUrl
     : `${baseUrl}/chat/completions`;
-}
-
-function promptFor(a, b, avoidWords = [], bountyCandidates = [], communityExamples = []) {
-  const lines = [SYSTEM_PROMPT, "", "示例："];
-  for (const [left, right, name, emoji, comment] of EXAMPLES) {
-    lines.push(
-      `${JSON.stringify({ a: left, b: right })} -> ${JSON.stringify({ name, emoji, comment })}`,
-    );
-  }
-  if (communityExamples.length) {
-    lines.push("", "社区高质量示例（只参考风格，不要照抄）：");
-    for (const item of communityExamples.slice(0, 8)) {
-      lines.push(`${JSON.stringify({ a: item.a, b: item.b })} -> ${JSON.stringify({
-        name: item.name, emoji: item.emoji, comment: item.comment,
-      })}`);
-    }
-  }
-  if (avoidWords.length) {
-    lines.push("", `禁用最近结果：${avoidWords.slice(0, 30).join("、")}`);
-  }
-  if (bountyCandidates.length) {
-    lines.push(
-      "",
-      "若语义自然，可优先命中以下尚未解锁的悬赏词：",
-      bountyCandidates
-        .slice(0, 12)
-        .map((item) => `${item.name}${item.emoji || ""}`)
-        .join("、"),
-    );
-  }
-  lines.push("", `本次输入：${JSON.stringify({ a, b })}`, "输出：");
-  return lines.join("\n");
 }
 
 export function parseModelCombination(text) {
@@ -122,6 +74,8 @@ export async function requestModelCombination({
   communityExamples = [],
   env = {},
   fetchImpl = globalThis.fetch,
+  random = Math.random,
+  promptLimits = PROMPT_SPEC.limits,
 }) {
   const config = llmConfiguration(env);
   if (!config.configured || typeof fetchImpl !== "function") return null;
@@ -135,6 +89,17 @@ export async function requestModelCombination({
         )
       : null;
   try {
+    const messages = buildPromptMessagesFromSpec({
+      ...PROMPT_SPEC,
+      limits: promptLimits,
+    }, {
+      a,
+      b,
+      avoid_words: avoidWords,
+      bounty_candidates: bountyCandidates,
+      community_examples: communityExamples,
+      style_value: random(),
+    });
     const response = await fetchImpl(completionUrl(config.baseUrl), {
       method: "POST",
       headers: {
@@ -143,13 +108,10 @@ export async function requestModelCombination({
       },
       body: JSON.stringify({
         model: config.model,
-        temperature: 0.85,
+        temperature: messages.temperature,
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: promptFor(a, b, avoidWords, bountyCandidates, communityExamples),
-          },
+          { role: "system", content: messages.system },
+          { role: "user", content: messages.user },
         ],
       }),
       signal: controller.signal,

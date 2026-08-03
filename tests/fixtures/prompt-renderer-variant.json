@@ -1,0 +1,56 @@
+{
+  "spec": {
+    "schema_version": 1,
+    "temperature": 0.5,
+    "system_modules": [
+      {"id":"later","enabled":true,"order":9007199254740991,"content":"系统乙"},
+      {"id":"disabled","enabled":false,"order":0,"content":"禁用系统"},
+      {"id":"earlier","enabled":true,"order":-9007199254740991,"content":"系统甲"}
+    ],
+    "examples": [
+      {
+        "id":"first-enabled",
+        "enabled":true,
+        "input":{"a":"甲","b":"乙","0":"额外输入字段"},
+        "output":{"name":"甲乙","emoji":"✨","comment":"第一条","0":"额外输出字段"}
+      },
+      {
+        "id":"disabled-example",
+        "enabled":false,
+        "input":{"a":"禁用甲","b":"禁用乙"},
+        "output":{"name":"禁用结果","emoji":"❌","comment":"不应渲染"}
+      },
+      {
+        "id":"second-enabled",
+        "enabled":true,
+        "input":{"a":"丙","b":"丁"},
+        "output":{"name":"丙丁","emoji":"🧩","comment":"第二条"}
+      }
+    ],
+    "styles": [
+      {"id":"first-style","enabled":true,"label":"首个样式","guidance":"首个指引","weight":0.4},
+      {"id":"disabled-style","enabled":false,"label":"禁用样式","guidance":"禁用指引","weight":0.9},
+      {"id":"selected-style","enabled":true,"label":"选中样式","guidance":"选中指引","weight":0.6}
+    ],
+    "capacities": {
+      "community_formula_catalog": 500,
+      "recent_firsts": 10000
+    },
+    "limits": {
+      "avoid_words": 10000,
+      "community_examples": 500,
+      "bounty_candidates": 9007199254740991
+    }
+  },
+  "input": {
+    "a": "输入甲",
+    "b": "输入乙",
+    "style_value": 0.4
+  },
+  "expected": {
+    "system": "系统甲\n\n系统乙",
+    "user": "【示例】\n输入：{\"a\":\"甲\",\"b\":\"乙\"}\n输出：{\"name\":\"甲乙\",\"emoji\":\"✨\",\"comment\":\"第一条\"}\n输入：{\"a\":\"丙\",\"b\":\"丁\"}\n输出：{\"name\":\"丙丁\",\"emoji\":\"🧩\",\"comment\":\"第二条\"}\n\n【本次偏好】选中样式\n选中指引\n\n【本次输入】\n输入：{\"a\":\"输入甲\",\"b\":\"输入乙\"}\n输出：",
+    "temperature": 0.5,
+    "style_id": "selected-style"
+  }
+}

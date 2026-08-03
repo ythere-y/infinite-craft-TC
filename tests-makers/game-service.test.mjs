@@ -11,6 +11,8 @@ import {
 } from "../edge-functions/_lib/comments.js";
 import { createGameService } from "../edge-functions/_lib/game-service.js";
 import { KvStore } from "../edge-functions/_lib/kv-store.js";
+import { CommunityStore } from "../edge-functions/_lib/community.js";
+import { COMBINATIONS } from "../edge-functions/_generated/seed-data.js";
 import {
   entityKey,
   normalizePair,
@@ -30,6 +32,30 @@ function makeService({ env = {}, fetchImpl } = {}) {
       now: () => 1_700_000_000_000,
       random: () => 0,
     }),
+  };
+}
+
+async function recordElementWrites(kv, elementName, operation) {
+  const canonicalKey = await entityKey("element", elementName);
+  const writes = [];
+  const put = kv.put.bind(kv);
+  kv.put = async (key, value) => {
+    writes.push({ key, value });
+    return put(key, value);
+  };
+  try {
+    await operation();
+  } finally {
+    kv.put = put;
+  }
+  return {
+    canonical: writes.filter(({ key }) => key === canonicalKey).length,
+    index: writes.filter(({ key, value }) => {
+      if (!key.startsWith("index_element_") || typeof value !== "string") {
+        return false;
+      }
+      return Object.hasOwn(JSON.parse(value)?.items || {}, canonicalKey);
+    }).length,
   };
 }
 
@@ -82,10 +108,27 @@ test("Makers comments use the same safe degradation policy as FastAPI", () => {
 
 test("model request uses Makers environment variables and OpenAI endpoint", async () => {
   let captured;
+  let randomCalls = 0;
   const result = await requestModelCombination({
     a: "AI",
     b: "水",
     avoidWords: ["旧结果"],
+    bountyCandidates: [
+      { name: "CSIG", emoji: "☁️", category: "bg" },
+    ],
+    communityExamples: [
+      {
+        a: "需求",
+        b: "会议",
+        name: "排期",
+        emoji: "🗓️",
+        comment: "需求一进会议室，就有了截止日期。",
+      },
+    ],
+    random: () => {
+      randomCalls += 1;
+      return randomCalls === 1 ? 0 : 0.30;
+    },
     env: {
       MAKERS_MODELS_KEY: "secret",
       LLM_BASE_URL: "https://example.test/v1/",
@@ -118,8 +161,47 @@ test("model request uses Makers environment variables and OpenAI endpoint", asyn
   assert.equal(captured.init.headers.authorization, "Bearer secret");
   const body = JSON.parse(captured.init.body);
   assert.equal(body.model, "demo-model");
+  assert.equal(body.temperature, 0.85);
+  assert.equal(body.messages.length, 2);
   assert.match(body.messages[1].content, /旧结果/);
-  assert.match(body.messages[0].content, /"comment"/);
+  assert.match(body.messages[0].content, /【多样性硬要求】/);
+  assert.match(body.messages[1].content, /社区高质量示例/);
+  assert.match(body.messages[1].content, /本次偏好】偏自造词/);
+  assert.match(body.messages[1].content, /优先组合常见字/);
+  assert.match(body.messages[1].content, /悬赏候选/);
+  assert.equal(randomCalls, 1);
+});
+
+test("model request selects weighted style hints at fixed boundaries", async () => {
+  async function promptAt(value) {
+    let captured;
+    await requestModelCombination({
+      a: "需求",
+      b: "咖啡",
+      random: () => value,
+      env: { MAKERS_MODELS_KEY: "secret" },
+      fetchImpl: async (_url, init) => {
+        captured = JSON.parse(init.body);
+        return new Response(
+          JSON.stringify({
+            choices: [
+              {
+                message: {
+                  content:
+                    '{"name":"需求续杯","emoji":"☕","comment":"需求没闭环，咖啡先续上。"}',
+                },
+              },
+            ],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      },
+    });
+    return captured.messages[1].content;
+  }
+
+  assert.match(await promptAt(0.30), /本次偏好】偏具体场景/);
+  assert.match(await promptAt(0.99), /本次偏好】偏古今对照/);
 });
 
 test("seed combinations keep the existing response contract and persist firsts", async () => {
@@ -144,9 +226,29 @@ test("seed combinations keep the existing response contract and persist firsts",
   assert.equal(first.depth, 1);
   assert.equal(first.full_score, 10);
   assert.equal(first.comment, DEFAULT_COMMENT);
+  assert.deepEqual(first.icon, {
+    base: "♨️",
+    palette: "nature",
+    source: "fallback",
+  });
   assert.equal(repeat.is_first, false);
   assert.equal(repeat.discoverer, "勇敢鹅");
   assert.equal((await store.firstPage()).total, 1);
+});
+
+test("seeded combination hits do not rewrite canonical or indexed elements", async () => {
+  const { service, kv } = makeService();
+
+  const writes = await recordElementWrites(kv, "蒸汽", () =>
+    service.combine({
+      a: "水",
+      b: "火",
+      discoverer: "种子鹅",
+      session_id: "seed-write-count",
+    }),
+  );
+
+  assert.deepEqual(writes, { canonical: 0, index: 0 });
 });
 
 test("authoritative seed combinations cannot be shadowed by KV", async () => {
@@ -171,6 +273,66 @@ test("authoritative seed combinations cannot be shadowed by KV", async () => {
   });
   assert.equal(result.result, "蒸汽");
   assert.equal(result.source, "seed");
+});
+
+test("authoritative seed reconciliation supersedes stale cache and conflicting active formula", async () => {
+  const kv = new FakeKV();
+  const store = new KvStore(kv, { now: () => 1_700_000_000_000 });
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const old = await community.ensureFormula({
+    a: "水", b: "水", result: "错误水", emoji: "❌",
+    comment: "冲突的旧公式。", source: "llm", discoverer: "旧鹅", playerId: "seed-player",
+  });
+  await community.publish(old.id, "seed-player");
+  await store.putCombination("水", "水", {
+    result: "缓存错误", emoji: "❌", comment: "缓存覆盖。", source: "llm", chain: null,
+  });
+  for (let count = 0; count < 3; count += 1) {
+    await store.incrementCombinationHit("水", "水");
+  }
+  const service = createGameService({ store, env: {}, now: () => 1_700_000_000_000 });
+
+  const result = await service.combine({
+    a: "水", b: "水", discoverer: "种子鹅", session_id: "seed-session", player_id: "seed-player",
+  });
+
+  assert.equal(result.result, COMBINATIONS[normalizePair("水", "水")].result);
+  assert.equal(result.emoji, COMBINATIONS[normalizePair("水", "水")].emoji);
+  assert.equal(result.comment, normalizeComment(COMBINATIONS[normalizePair("水", "水")].comment));
+  assert.equal(result.source, "seed");
+  const cached = await store.getCombination("水", "水");
+  assert.equal(cached.result, result.result);
+  assert.equal(cached.emoji, result.emoji);
+  assert.equal(cached.comment, result.comment);
+  assert.equal(cached.source, "seed");
+  assert.equal(cached.hit_count, 4);
+  const formula = await community.get(`community_formula_${result.formula_id}`);
+  assert.equal(formula.emoji, result.emoji);
+  assert.equal(formula.comment, result.comment);
+  assert.equal(formula.source, "seed");
+  assert.equal((await community.combinationState("水", "水")).version, 2);
+});
+
+test("authoritative cache overwrite preserves hit count while dynamic callers remain first-write", async () => {
+  const { store } = makeService();
+  await store.putCombination("水", "水", {
+    result: "缓存错误", emoji: "❌", comment: "缓存覆盖。", source: "llm", chain: null,
+  });
+  for (let count = 0; count < 3; count += 1) {
+    await store.incrementCombinationHit("水", "水");
+  }
+
+  const dynamic = await store.putCombination("水", "水", {
+    result: "仍然错误", emoji: "❌", comment: "动态不能覆盖。", source: "llm", chain: null,
+  }, { overwrite: true });
+  const seed = await store.putCombination("水", "水", {
+    result: "水塘", emoji: "💧", comment: DEFAULT_COMMENT, source: "seed", chain: "geo",
+  }, { rememberElement: false, overwrite: true });
+
+  assert.equal(dynamic.result, "缓存错误");
+  assert.equal(seed.result, "水塘");
+  assert.equal(seed.hit_count, 3);
+  assert.equal((await store.getCombination("水", "水")).hit_count, 3);
 });
 
 test("LLM misses are cached in KV and reused without another model request", async () => {
@@ -208,8 +370,174 @@ test("LLM misses are cached in KV and reused without another model request", asy
   assert.equal(first.comment, DEFAULT_COMMENT);
   assert.equal(repeat.result, "智能咖啡");
   assert.equal(repeat.comment, DEFAULT_COMMENT);
+  assert.deepEqual(first.icon, {
+    base: "☕",
+    palette: "product",
+    source: "generated",
+    badge: "🧠",
+  });
+  assert.deepEqual(repeat.icon, first.icon);
   assert.equal(calls, 1);
-  assert.equal((await store.getCombination("AI", "咖啡")).result, "智能咖啡");
+  assert.deepEqual(
+    (await store.getCombination("AI", "咖啡")).icon,
+    first.icon,
+  );
+  assert.deepEqual((await store.getElement("智能咖啡")).icon, first.icon);
+});
+
+test("legacy cached combinations reuse a valid persisted element icon", async () => {
+  const { service, store, kv } = makeService();
+  const persisted = {
+    base: "🫘",
+    badge: "⚙️",
+    palette: "office",
+    source: "generated",
+  };
+  await store.rememberElement("缓存咖啡", {
+    emoji: "☕",
+    category: "ai",
+    icon: persisted,
+  });
+  const key = await entityKey("combo", normalizePair("缓存甲", "缓存乙"));
+  await kv.put(
+    key,
+    JSON.stringify({
+      a: "缓存甲",
+      b: "缓存乙",
+      result: "缓存咖啡",
+      emoji: "☕",
+      comment: DEFAULT_COMMENT,
+      source: "llm",
+      chain: "ai",
+      hit_count: 0,
+      ts: 1_700_000_000,
+    }),
+  );
+
+  const result = await service.combine({
+    a: "缓存甲",
+    b: "缓存乙",
+    discoverer: "缓存鹅",
+    session_id: "cached-icon",
+  });
+
+  assert.deepEqual(result.icon, persisted);
+  assert.deepEqual((await store.getElement("缓存咖啡")).icon, persisted);
+});
+
+test("cached combinations with valid element metadata stay read-only", async () => {
+  const { service, store, kv } = makeService();
+  const icon = {
+    base: "🫘",
+    badge: "⚙️",
+    palette: "office",
+    source: "generated",
+  };
+  await store.rememberElement("只读缓存", {
+    emoji: "☕",
+    category: "ai",
+    depth: 2,
+    icon,
+  });
+  await kv.put(
+    await entityKey("combo", normalizePair("缓存左", "缓存右")),
+    JSON.stringify({
+      a: "缓存右",
+      b: "缓存左",
+      result: "只读缓存",
+      emoji: "☕",
+      comment: DEFAULT_COMMENT,
+      source: "llm",
+      chain: "ai",
+      icon,
+      hit_count: 0,
+      ts: 1_700_000_000,
+    }),
+  );
+
+  const writes = await recordElementWrites(kv, "只读缓存", () =>
+    service.combine({
+      a: "缓存左",
+      b: "缓存右",
+      discoverer: "缓存鹅",
+      session_id: "cache-write-count",
+    }),
+  );
+
+  assert.deepEqual(writes, { canonical: 0, index: 0 });
+});
+
+test("new dynamic combinations persist icon and depth in one element write", async () => {
+  const { service, kv } = makeService({
+    env: { MAKERS_MODELS_KEY: "secret" },
+    fetchImpl: async () =>
+      new Response(
+        JSON.stringify({
+          choices: [
+            { message: { content: '{"name":"一次写入","emoji":"☕"}' } },
+          ],
+        }),
+        { status: 200 },
+      ),
+  });
+
+  const writes = await recordElementWrites(kv, "一次写入", () =>
+    service.combine({
+      a: "AI",
+      b: "咖啡豆",
+      discoverer: "模型鹅",
+      session_id: "dynamic-write-count",
+    }),
+  );
+
+  assert.deepEqual(writes, { canonical: 1, index: 1 });
+});
+
+test("legacy elements repair missing icons with one merged element write", async () => {
+  const { service, kv } = makeService();
+  const elementKey = await entityKey("element", "待修复缓存");
+  await kv.put(
+    elementKey,
+    JSON.stringify({
+      name: "待修复缓存",
+      emoji: "☕",
+      category: "ai",
+      depth: 2,
+      updated_at: 1_700_000_000,
+      storage_key: elementKey,
+    }),
+  );
+  await kv.put(
+    await entityKey("combo", normalizePair("旧左", "旧右")),
+    JSON.stringify({
+      a: "旧右",
+      b: "旧左",
+      result: "待修复缓存",
+      emoji: "☕",
+      comment: DEFAULT_COMMENT,
+      source: "llm",
+      chain: "ai",
+      hit_count: 0,
+      ts: 1_700_000_000,
+    }),
+  );
+
+  const writes = await recordElementWrites(kv, "待修复缓存", () =>
+    service.combine({
+      a: "旧左",
+      b: "旧右",
+      discoverer: "修复鹅",
+      session_id: "repair-write-count",
+    }),
+  );
+
+  assert.deepEqual(writes, { canonical: 1, index: 1 });
+  assert.deepEqual((await new KvStore(kv).getElement("待修复缓存")).icon, {
+    base: "☕",
+    badge: "🧠",
+    palette: "product",
+    source: "generated",
+  });
 });
 
 test("LLM comments are persisted in KV and reused with the cached result", async () => {
@@ -251,6 +579,10 @@ test("LLM comments are persisted in KV and reused with the cached result", async
   assert.equal(repeat.comment, first.comment);
   assert.equal(
     (await store.getCombination("需求甲", "会议乙")).comment,
+    first.comment,
+  );
+  assert.equal(
+    (await store.firstPage({ offset: 0, limit: 1 })).items[0].comment,
     first.comment,
   );
   assert.equal(calls, 1);
@@ -312,4 +644,5 @@ test("missing model configuration degrades to the established fallback", async (
   assert.equal(result.is_first, false);
   assert.equal(result.kpi_delta, 0);
   assert.equal(result.comment, DEFAULT_COMMENT);
+  assert.equal(result.icon, undefined);
 });

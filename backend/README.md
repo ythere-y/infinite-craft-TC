@@ -8,7 +8,8 @@
 | ------------------------ | ------------------------------------------------------ | ----------------------------------------- |
 | `seed_elements.json`     | 元素字典：name → {emoji, category}，含 8 个 starter    | 前端渲染右侧栏；后端校验；LLM prompt 注入 |
 | `seed_combinations.json` | 合成规则：`"a + b"` → {result, emoji, chain}，按字典序 | 后端 /api/combine 首先查表，命中即返回    |
-| `prompt.py`              | GLM few-shot prompt 模板 + 解析                        | 后端 miss 后调用 LLM                      |
+| `shared/combine-prompt.json` | 合成 prompt 的 canonical 共享规范、策略与 few-shot 示例 | Python 后端与 Makers 构建生成器            |
+| `prompt.py`              | LLM 调用编排、共享 prompt 加载与 JSON 解析             | 后端 miss 后调用 LLM                      |
 
 ## 数据流
 
@@ -23,7 +24,7 @@
     ↓ miss
 查 seed_combinations.json ──命中──→ 写缓存，返回
     ↓ miss
-调 GLM-5.1-64K (prompt.py 构造 prompt)
+调 GLM-5.1-64K（prompt.py 按共享规范装配请求）
     ↓
 解析 JSON → 落库缓存 → 若是首次创造，写 first_discovery → 返回
 ```
@@ -43,14 +44,14 @@
 **新增元素的清单**：
 1. 在 `seed_elements.elements` 加一行
 2. 在 `seed_combinations.combinations` 至少加 1 条"怎么合成出来"和 1 条"它和别的合成什么"
-3. 如果是高频梗，在 `prompt.py` 的 `FEW_SHOT_EXAMPLES` 里加一条
+3. 如果是高频梗，在 `shared/combine-prompt.json` 的 `examples` 里加一条
 4. 热梗类建议打版本号（如 `meme_2026w16`），便于一周后盘点哪些还火、哪些过气
 
 ## 当前词库规模（v1.0, 2026-04-22）
 
 - 元素：**140+**（8 starter + 130+ 可合成产物）
 - 合成规则：**140+** 条
-- Few-shot 示例：20 条
+- Few-shot 示例：由共享 prompt 规范统一维护
 
 ## 下一步
 

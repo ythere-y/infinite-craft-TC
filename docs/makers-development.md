@@ -87,6 +87,14 @@ Compose 固定向 Web 容器注入 `APP_ENV=dev` 和
 `REDIS_URL=redis://redis:6379/1`，本机 `.env` 不能把它们改为生产值或远端
 Redis。后端与前端源码以只读方式挂载，Uvicorn 会在代码修改后自动重载。
 
+### 组合提示词
+
+组合提示词只编辑 `shared/combine-prompt.json`。本地 Web 容器以只读方式挂载
+该目录，Python 后端直接加载这份 canonical JSON。执行 `npm run build` 会从它
+重新生成 Makers 的 `edge-functions/_generated/prompt-data.js`；提示词测试会拒绝
+canonical JSON 与已提交 Makers artifact 之间的漂移，构建测试也会在只含已提交
+文件的夹具中重新生成并加载该 artifact。
+
 ### 日常命令
 
 ```bash
@@ -96,7 +104,8 @@ docker compose ps            # 查看容器健康状态
 npm run dev:down             # 停止服务，保留数据
 ```
 
-现有 `run.sh` 仍可用于特殊的 Conda 环境，但不是成员和 Agent 的默认入口。
+`scripts/local/run-conda.sh` 仍可用于特殊的 Conda 环境，但不是成员和 Agent
+的默认入口。
 
 ## 二、修改与 PR
 
@@ -133,7 +142,8 @@ npm run makers:build
 ```
 
 Edge Function 将 `test` 当作整个数据库使用，并在运行时自动创建组合、元素、
-首发、昵称、KPI、排行榜和索引所需的 key。
+首发、昵称、分数、排行榜和索引所需的 key。现有分数记录仍使用字面量
+`kpi_*` KV key，以兼容已持久化的数据。
 
 控制台中已有的 `test_dev → infinite_craft_dev` 可以保留备用，但当前源代码
 不会读取它。本地开发也不会连接它。
@@ -189,7 +199,7 @@ Makers 控制台意外出现 `APP_ENV=dev`，代码也不会切换到开发 KV�
 
 ### 端口 8000 或 16739 被占用
 
-检查是否有本项目的旧容器或 `run.sh` 进程：
+检查是否有本项目的旧容器或 `scripts/local/run-conda.sh` 进程：
 
 ```bash
 docker compose ps
@@ -249,5 +259,5 @@ docker compose logs web
 - 带临时授权参数的预览地址；
 - Redis AOF、SQLite、KV 导出和玩家数据。
 
-Render 目前暂停，历史配置只保存在 `deploy/legacy/render.yaml`。Makers 是
-唯一主动维护、在 `main` 更新后自动发布的线上平台。
+Render 目前暂停，历史配置可通过 Git 记录追溯。Makers 是唯一主动维护、
+在 `main` 更新后自动发布的线上平台。

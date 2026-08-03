@@ -26,3 +26,14 @@ Run `npm test`,
 also runs `npm run makers:build`.
 
 Do not touch or stage another developer's unrelated working-tree files.
+
+## AI-generated documents
+
+- Put AI-created designs, implementation plans, research notes, improvement
+  proposals and process documents in `.agent/docs/`.
+- Name each document `YYYY-MM-DD-<topic>-<type>.md`.
+- Use `-design.md`, `-implementation-plan.md` or `-improvement.md` as the
+  document type.
+- Keep user and developer documentation in `docs/`. Do not put AI process
+  documents there or in `docs/superpowers/`.
+- Read `.agent/README.md` before creating or moving an AI process document.

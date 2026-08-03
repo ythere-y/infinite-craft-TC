@@ -1,0 +1,777 @@
+{
+  "palettes": [
+    "nature",
+    "product",
+    "office",
+    "studio",
+    "people",
+    "place"
+  ],
+  "category_palettes": {
+    "classic": "nature",
+    "tencent": "product",
+    "worker": "office",
+    "meme_2026w16": "people",
+    "meme_classic": "people",
+    "bizspeak": "office",
+    "physical": "nature",
+    "life": "people",
+    "abstract": "place",
+    "social": "people",
+    "geo": "place",
+    "product": "product",
+    "studio": "studio",
+    "building": "place",
+    "level": "office",
+    "boss": "people",
+    "invest": "product",
+    "ai": "product"
+  },
+  "keyword_badges": [
+    {
+      "keywords": [
+        "AI",
+        "智能",
+        "GPT",
+        "大模型",
+        "copilot"
+      ],
+      "badge": "🧠",
+      "reason": "人工智能语义",
+      "categories": [
+        "ai"
+      ]
+    },
+    {
+      "keywords": [
+        "Martin"
+      ],
+      "badge": "🌐",
+      "reason": "国际业务管理",
+      "categories": [
+        "boss"
+      ]
+    },
+    {
+      "keywords": [
+        "刘炽平"
+      ],
+      "badge": "📈",
+      "reason": "公司经营与投资",
+      "categories": [
+        "boss"
+      ]
+    },
+    {
+      "keywords": [
+        "总裁"
+      ],
+      "badge": "👑",
+      "reason": "公司最高管理职位",
+      "categories": [
+        "boss"
+      ]
+    },
+    {
+      "keywords": [
+        "TIM"
+      ],
+      "badge": "💬",
+      "reason": "办公即时通讯产品",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "企业微信"
+      ],
+      "badge": "🏢",
+      "reason": "企业协作产品",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "办公"
+      ],
+      "badge": "🗂️",
+      "reason": "办公文件与事务",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "微云"
+      ],
+      "badge": "📁",
+      "reason": "云端文件存储",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "腾讯云"
+      ],
+      "badge": "🖥️",
+      "reason": "云计算基础设施",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "腾讯体育"
+      ],
+      "badge": "🐧",
+      "reason": "腾讯体育内容产品",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "足球"
+      ],
+      "badge": "🥅",
+      "reason": "球门限定足球运动",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "滨海"
+      ],
+      "badge": "🌊",
+      "reason": "临海地理语义",
+      "categories": [
+        "geo"
+      ]
+    },
+    {
+      "keywords": [
+        "朝阳"
+      ],
+      "badge": "☀️",
+      "reason": "朝阳区名称与日出语义",
+      "categories": [
+        "geo"
+      ]
+    },
+    {
+      "keywords": [
+        "上海"
+      ],
+      "badge": "🗼",
+      "reason": "国际都市地标",
+      "categories": [
+        "geo"
+      ]
+    },
+    {
+      "keywords": [
+        "武汉"
+      ],
+      "badge": "🌸",
+      "reason": "武汉城市与樱花意象",
+      "categories": [
+        "geo"
+      ]
+    },
+    {
+      "keywords": [
+        "食堂"
+      ],
+      "badge": "🍽️",
+      "reason": "员工就餐场所",
+      "categories": [
+        "tencent"
+      ]
+    },
+    {
+      "keywords": [
+        "免费午餐"
+      ],
+      "badge": "🎁",
+      "reason": "免费福利餐",
+      "categories": [
+        "tencent"
+      ]
+    },
+    {
+      "keywords": [
+        "邻居"
+      ],
+      "badge": "👤",
+      "reason": "相邻居住的个人",
+      "categories": [
+        "social"
+      ]
+    },
+    {
+      "keywords": [
+        "小区"
+      ],
+      "badge": "🏢",
+      "reason": "住宅建筑群",
+      "categories": [
+        "social"
+      ]
+    },
+    {
+      "keywords": [
+        "社区"
+      ],
+      "badge": "🏘️",
+      "reason": "居民社区结构",
+      "categories": [
+        "social"
+      ]
+    },
+    {
+      "keywords": [
+        "城市"
+      ],
+      "badge": "🏢",
+      "reason": "城市建筑密度",
+      "categories": [
+        "social"
+      ]
+    },
+    {
+      "keywords": [
+        "河流"
+      ],
+      "badge": "🌊",
+      "reason": "流动水体",
+      "categories": [
+        "geo"
+      ]
+    },
+    {
+      "keywords": [
+        "湖泊"
+      ],
+      "badge": "💧",
+      "reason": "静态淡水水体",
+      "categories": [
+        "geo"
+      ]
+    },
+    {
+      "keywords": [
+        "纺织机械厂"
+      ],
+      "badge": "🧵",
+      "reason": "纺织工业旧址",
+      "categories": [
+        "building"
+      ]
+    },
+    {
+      "keywords": [
+        "LOFT工业风"
+      ],
+      "badge": "🧱",
+      "reason": "砖墙工业建筑风格",
+      "categories": [
+        "building"
+      ]
+    },
+    {
+      "keywords": [
+        "地下城"
+      ],
+      "badge": "⛏️",
+      "reason": "地下探索场景",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "部落冲突"
+      ],
+      "badge": "⚔️",
+      "reason": "部落战争游戏",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "微信"
+      ],
+      "badge": "📱",
+      "reason": "移动社交产品",
+      "categories": [
+        "tencent"
+      ]
+    },
+    {
+      "keywords": [
+        "爆料"
+      ],
+      "badge": "📢",
+      "reason": "公开传播消息",
+      "categories": [
+        "tencent"
+      ]
+    },
+    {
+      "keywords": [
+        "弹幕"
+      ],
+      "badge": "🎬",
+      "reason": "视频画面上的实时评论",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "聊天"
+      ],
+      "badge": "👥",
+      "reason": "人与人交谈",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "CODING"
+      ],
+      "badge": "🧑‍💻",
+      "reason": "软件研发协作平台",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "电脑"
+      ],
+      "badge": "🖥️",
+      "reason": "桌面计算设备",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "阅文集团"
+      ],
+      "badge": "🏢",
+      "reason": "网络文学企业",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "ima.copilot"
+      ],
+      "badge": "🤖",
+      "reason": "AI 知识助手",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "穿越火线"
+      ],
+      "badge": "🎮",
+      "reason": "射击游戏产品",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "枪"
+      ],
+      "badge": "🎯",
+      "reason": "射击器械与目标",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "续命鹅"
+      ],
+      "badge": "❤️",
+      "reason": "咖啡续命的打工鹅",
+      "categories": [
+        "tencent"
+      ]
+    },
+    {
+      "keywords": [
+        "美式"
+      ],
+      "badge": "🇺🇸",
+      "reason": "美式咖啡",
+      "categories": [
+        "worker"
+      ]
+    },
+    {
+      "keywords": [
+        "金铲铲"
+      ],
+      "badge": "⛏️",
+      "reason": "以铲子为核心识别的自走棋产品",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "多人编辑打架"
+      ],
+      "badge": "📝",
+      "reason": "文档多人编辑冲突",
+      "categories": [
+        "tencent"
+      ]
+    },
+    {
+      "keywords": [
+        "DNF"
+      ],
+      "badge": "🎮",
+      "reason": "动作游戏产品缩写",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "冰晶"
+      ],
+      "badge": "💎",
+      "reason": "晶体形态的冰",
+      "categories": [
+        "physical"
+      ]
+    },
+    {
+      "keywords": [
+        "欢乐麻将"
+      ],
+      "badge": "🎮",
+      "reason": "数字麻将游戏产品",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "欢乐斗地主"
+      ],
+      "badge": "🎮",
+      "reason": "数字扑克游戏产品",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "晨会"
+      ],
+      "badge": "📝",
+      "reason": "晨间工作会议",
+      "categories": [
+        "tencent"
+      ]
+    },
+    {
+      "keywords": [
+        "前海"
+      ],
+      "badge": "🏙️",
+      "reason": "深圳前海城区",
+      "categories": [
+        "geo"
+      ]
+    },
+    {
+      "keywords": [
+        "银河系"
+      ],
+      "badge": "⭐",
+      "reason": "由恒星组成的银河",
+      "categories": [
+        "social"
+      ]
+    },
+    {
+      "keywords": [
+        "QQ浏览器"
+      ],
+      "badge": "🐧",
+      "reason": "QQ 品牌浏览器",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "深夜食堂"
+      ],
+      "badge": "🍜",
+      "reason": "深夜餐食场景",
+      "categories": [
+        "tencent"
+      ]
+    },
+    {
+      "keywords": [
+        "部门团宠"
+      ],
+      "badge": "❤️",
+      "reason": "受到部门成员喜爱",
+      "categories": [
+        "meme_classic"
+      ]
+    },
+    {
+      "keywords": [
+        "周五"
+      ],
+      "badge": "🗓️",
+      "reason": "一周中的星期五",
+      "categories": [
+        "life"
+      ]
+    },
+    {
+      "keywords": [
+        "派对大战"
+      ],
+      "badge": "⚔️",
+      "reason": "派对竞技游戏",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "T11"
+      ],
+      "badge": "🧑‍💻",
+      "reason": "腾讯专业职级",
+      "categories": [
+        "level"
+      ]
+    },
+    {
+      "keywords": [
+        "全民K歌"
+      ],
+      "badge": "🎵",
+      "reason": "在线卡拉 OK 音乐产品",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": [
+        "CDC"
+      ],
+      "badge": "🏢",
+      "reason": "腾讯用户研究与体验设计组织",
+      "categories": [
+        "product"
+      ]
+    },
+    {
+      "keywords": ["北京"],
+      "badge": "🏙️",
+      "reason": "北京城市",
+      "categories": ["geo"]
+    },
+    {
+      "keywords": ["北京总部"],
+      "badge": "🏢",
+      "reason": "北京办公总部",
+      "categories": ["building"]
+    },
+    {
+      "keywords": ["老板"],
+      "badge": "👤",
+      "reason": "管理者个人角色",
+      "categories": ["worker"]
+    },
+    {
+      "keywords": ["甲方"],
+      "badge": "🤝",
+      "reason": "商业委托关系",
+      "categories": ["worker"]
+    },
+    {
+      "keywords": ["人类丰容"],
+      "badge": "🐒",
+      "reason": "借动物丰容讨论人类处境",
+      "categories": ["meme_2026w16"]
+    },
+    {
+      "keywords": ["绿植"],
+      "badge": "🌿",
+      "reason": "绿色叶片植物",
+      "categories": ["life"]
+    },
+    {
+      "keywords": ["滨海大厦"],
+      "badge": "🌊",
+      "reason": "滨海办公建筑",
+      "categories": ["building"]
+    },
+    {
+      "keywords": ["硅谷"],
+      "badge": "💻",
+      "reason": "科技产业地区",
+      "categories": ["geo"]
+    },
+    {
+      "keywords": ["不做人"],
+      "badge": "🙈",
+      "reason": "拒绝做人热梗",
+      "categories": ["meme_2026w16"]
+    },
+    {
+      "keywords": ["乐享"],
+      "badge": "🐧",
+      "reason": "腾讯内部内容平台",
+      "categories": ["tencent"]
+    },
+    {
+      "keywords": ["健身房"],
+      "badge": "🏢",
+      "reason": "室内健身场所",
+      "categories": ["tencent"]
+    },
+    {
+      "keywords": ["钢架"],
+      "badge": "🔩",
+      "reason": "金属连接构件",
+      "categories": ["building"]
+    },
+    {
+      "keywords": ["国家"],
+      "badge": "🗺️",
+      "reason": "国家疆域",
+      "categories": ["social"]
+    },
+    {
+      "keywords": ["首都"],
+      "badge": "👑",
+      "reason": "国家政治中心",
+      "categories": ["geo"]
+    },
+    {
+      "keywords": ["琶洲"],
+      "badge": "🏙️",
+      "reason": "广州琶洲城区",
+      "categories": ["geo"]
+    },
+    {
+      "keywords": ["园中园"],
+      "badge": "🌳",
+      "reason": "园区嵌套绿化空间",
+      "categories": ["building"]
+    },
+    {
+      "keywords": ["开放办公区"],
+      "badge": "👥",
+      "reason": "多人共享办公空间",
+      "categories": ["social"]
+    },
+    {
+      "keywords": ["腾讯大厦"],
+      "badge": "🐧",
+      "reason": "腾讯办公建筑",
+      "categories": ["building"]
+    },
+    {
+      "keywords": ["鹅厂"],
+      "badge": "🐧",
+      "reason": "腾讯公司昵称",
+      "categories": ["tencent"]
+    },
+    {
+      "keywords": ["漕河泾"],
+      "badge": "🏙️",
+      "reason": "上海产业城区",
+      "categories": ["geo"]
+    },
+    {
+      "keywords": ["小马哥"],
+      "badge": "👔",
+      "reason": "马化腾人物昵称",
+      "categories": ["tencent"]
+    },
+    {
+      "keywords": ["成都办公楼"],
+      "badge": "🏢",
+      "reason": "成都办公建筑",
+      "categories": ["building"]
+    },
+    {
+      "keywords": ["实名认证爆料"],
+      "badge": "🪪",
+      "reason": "实名身份认证",
+      "categories": ["worker"]
+    },
+    {
+      "keywords": ["三口之家"],
+      "badge": "3️⃣",
+      "reason": "三名家庭成员",
+      "categories": ["social"]
+    },
+    {
+      "keywords": ["对抗路姨甥"],
+      "badge": "⚔️",
+      "reason": "对抗关系热梗",
+      "categories": ["meme_2026w16"]
+    },
+    {
+      "keywords": ["带薪养生"],
+      "badge": "💼",
+      "reason": "工作时间内养生",
+      "categories": ["tencent"]
+    },
+    {
+      "keywords": ["删库跑路"],
+      "badge": "🏃",
+      "reason": "删库后逃离",
+      "categories": ["worker"]
+    },
+    {
+      "keywords": ["鹅式小憩"],
+      "badge": "🐧",
+      "reason": "腾讯员工小憩",
+      "categories": ["tencent"]
+    },
+    {
+      "keywords": ["太湖"],
+      "badge": "🏞️",
+      "reason": "大型湖泊地理语义",
+      "categories": ["geo"]
+    }
+  ],
+  "category_badges": {},
+  "allowed_sources": [
+    "curated",
+    "entity",
+    "generated",
+    "fallback"
+  ]
+}

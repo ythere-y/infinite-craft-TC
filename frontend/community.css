@@ -5,19 +5,32 @@ body { margin: 0; }
 .community-header strong { font-size: 1.2rem; }
 .community-header small { display: block; opacity: .75; margin-top: 3px; }
 a { color: inherit; }
-nav { display: flex; gap: 16px; }
+.community-header a, nav { display: flex; align-items: center; }
+nav { gap: 16px; }
+.community-header a { gap: 4px; }
 main { width: min(1100px, 92vw); margin: 38px auto 80px; }
 .intro h1 { margin-bottom: 6px; font-size: clamp(1.8rem, 4vw, 3.2rem); }
 .intro p { color: #60736e; }
 .formula-grid { margin-top: 28px; display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 16px; }
 .formula-card, .admin-login { padding: 20px; border: 1px solid #d8ddd9; border-radius: 16px; background: #fff; box-shadow: 0 8px 24px #24443b12; }
 .formula-card h2 { margin: 0 0 10px; }
+.formula-title { display: flex; align-items: center; }
+.formula-element { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.formula-result { font-size: 1.2rem; }
+.formula-recipe { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+.formula-input { font-size: .95rem; }
+.formula-operator { color: #71817c; font-size: 1.2rem; }
+.formula-element .name { overflow-wrap: anywhere; }
 .recipe { color: #176b57; font-weight: 700; }
 .comment { min-height: 44px; color: #596763; }
 .vote-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 button, select, input { border: 1px solid #b8c4c0; border-radius: 9px; background: white; padding: 9px 12px; font: inherit; }
 button { cursor: pointer; }
 button:hover { border-color: #176b57; }
+.vote-actions button .action-icon,
+.admin-login button .action-icon { width: auto; min-width: 25px; }
+.moderation-score { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; color: #596763; }
+.moderation-score .action-icon { width: auto; min-width: 25px; }
 .score { margin-left: auto; font-weight: 700; }
 .admin-login label { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .empty { text-align: center; color: #71817c; padding: 60px 0; }

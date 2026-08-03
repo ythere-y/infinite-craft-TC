@@ -5,20 +5,24 @@ import {
   sha256Hex,
 } from "./keys.js";
 import { normalizeComment } from "./comments.js";
+import { normalizeIcon } from "./icon-recipes.js";
+import { PROMPT_SPEC } from "../_generated/prompt-data.js";
 
 const RECENT_KEY = "snapshot_recent";
 const ELEMENTS_KEY = "snapshot_elements";
 const STATS_KEY = "snapshot_stats";
-const MAX_FIRSTS = 10_000;
-const MAX_RECENT_FIRSTS = 500;
+// This is a KV value-size boundary for the hot snapshot, not a catalogue cap.
+const MAX_RECENT_SNAPSHOT_ITEMS = 500;
 const MAX_INDEX_RECORDS_PER_SHARD = 2_000;
 const MAX_RECIPES_PER_RESULT = 100;
+// Legacy kpi_* compatibility records retain their existing key and constant names.
 const MAX_KPI_LOG = 100;
 const KPI_SHARD_COUNT = 32;
 const RECORD_READ_BATCH = 20;
 const INDEX_RECONCILE_SECONDS = 60;
 const INDEX_SHARDS = "0123456789abcdef".split("");
 const MAX_FEED_TIMESTAMP_MS = 9_999_999_999_999;
+const FIRST_FEED_KEY_PATTERN = /^feed_\d{13}_([a-f0-9]{64})$/u;
 
 function finiteInteger(value, fallback = 0) {
   const parsed = Number(value);
@@ -52,13 +56,45 @@ function listOptions(prefix, limit, cursor) {
   return cursor ? { prefix, limit, cursor } : { prefix, limit };
 }
 
+function canonicalFirstKeyFromFeedKey(key) {
+  const match = FIRST_FEED_KEY_PATTERN.exec(String(key));
+  return match ? `first_${match[1]}` : null;
+}
+
 export class KvStore {
-  constructor(kv, { now = () => Date.now() } = {}) {
+  constructor(
+    kv,
+    {
+      now = () => Date.now(),
+      firstsCapacity = PROMPT_SPEC.capacities.recent_firsts,
+      firstIndexShardCapacity = MAX_INDEX_RECORDS_PER_SHARD,
+    } = {},
+  ) {
     if (!kv || typeof kv.get !== "function" || typeof kv.put !== "function") {
       throw new TypeError("A bound EdgeOne Makers KV namespace is required");
     }
+    if (!Number.isSafeInteger(firstsCapacity) || firstsCapacity <= 0) {
+      throw new TypeError(
+        "firstsCapacity must be a positive safe integer",
+      );
+    }
+    if (
+      !Number.isSafeInteger(firstIndexShardCapacity) ||
+      firstIndexShardCapacity <= 0 ||
+      firstIndexShardCapacity > MAX_INDEX_RECORDS_PER_SHARD
+    ) {
+      throw new TypeError(
+        "firstIndexShardCapacity must be an integer from 1 to 2000",
+      );
+    }
     this.kv = kv;
     this.now = now;
+    this.firstsCapacity = firstsCapacity;
+    this.firstIndexShardCapacity = firstIndexShardCapacity;
+    this.recentSnapshotCapacity = Math.min(
+      firstsCapacity,
+      MAX_RECENT_SNAPSHOT_ITEMS,
+    );
     this.uniqueSequence = 0;
   }
 
@@ -131,22 +167,29 @@ export class KvStore {
   }
 
   normalizeIndexSnapshot(value) {
-    return {
+    const snapshot = {
       items:
         value?.items && typeof value.items === "object"
           ? value.items
           : {},
       reconciled_at: Number(value?.reconciled_at) || 0,
     };
+    if (value?.first_feeds_backfilled === true) {
+      snapshot.first_feeds_backfilled = true;
+    }
+    return snapshot;
   }
 
-  trimIndexItems(items) {
+  trimIndexItems(kind, items) {
     const entries = Object.entries(items);
-    if (entries.length <= MAX_INDEX_RECORDS_PER_SHARD) return items;
+    const capacity = kind === "first"
+      ? Math.min(this.firstsCapacity, this.firstIndexShardCapacity)
+      : MAX_INDEX_RECORDS_PER_SHARD;
+    if (entries.length <= capacity) return items;
     return Object.fromEntries(
       entries
         .sort((left, right) => newestFirst(left[1], right[1]))
-        .slice(0, MAX_INDEX_RECORDS_PER_SHARD),
+        .slice(0, capacity),
     );
   }
 
@@ -168,10 +211,24 @@ export class KvStore {
     const missingKeys = canonicalKeys.filter(
       (key) => !Object.hasOwn(snapshot.items, key),
     );
-    for (const { key, value } of await this.readRecords(missingKeys)) {
+    const missingRecords = await this.readRecords(missingKeys);
+    for (const { key, value } of missingRecords) {
       snapshot.items[key] = { ...value, storage_key: key };
     }
-    snapshot.items = this.trimIndexItems(snapshot.items);
+    if (kind === "first") {
+      const needsFullFeedBackfill =
+        snapshot.first_feeds_backfilled !== true;
+      const feedRecords = needsFullFeedBackfill
+        ? canonicalKeys
+          .map((key) => ({ key, value: snapshot.items[key] }))
+          .filter((item) => item.value)
+        : missingRecords;
+      await this.writeFirstFeeds(feedRecords);
+      if (needsFullFeedBackfill) {
+        snapshot.first_feeds_backfilled = true;
+      }
+    }
+    snapshot.items = this.trimIndexItems(kind, snapshot.items);
     snapshot.reconciled_at = this.timestamp();
     await this.putJson(storageKey, snapshot);
     return snapshot;
@@ -224,7 +281,7 @@ export class KvStore {
       ...record,
       storage_key: canonicalKey,
     };
-    snapshot.items = this.trimIndexItems(snapshot.items);
+    snapshot.items = this.trimIndexItems(kind, snapshot.items);
     await this.putJson(storageKey, snapshot);
   }
 
@@ -241,6 +298,24 @@ export class KvStore {
       "0",
     );
     return `feed_${inverted}_${canonicalKey.slice("first_".length)}`;
+  }
+
+  async writeFirstFeeds(records) {
+    for (
+      let index = 0;
+      index < records.length;
+      index += RECORD_READ_BATCH
+    ) {
+      await Promise.all(
+        records
+          .slice(index, index + RECORD_READ_BATCH)
+          .map(({ key, value }) =>
+            this.putJson(
+              this.firstFeedKey(value, key),
+              this.publicFirst(value),
+            )),
+      );
+    }
   }
 
   async listKeyWindow(prefix, offset, limit) {
@@ -269,12 +344,19 @@ export class KvStore {
     return this.getJson(await entityKey("combo", normalizePair(a, b)));
   }
 
-  async putCombination(a, b, rawRecord) {
+  async putCombination(
+    a,
+    b,
+    rawRecord,
+    { rememberElement = true, overwrite = false } = {},
+  ) {
     const [left, right] = [cleanText(a), cleanText(b)].sort();
     const key = await entityKey("combo", normalizePair(left, right));
     const existing = await this.getJson(key);
-    if (existing?.result) return existing;
+    const authorizedOverwrite = overwrite && cleanText(rawRecord?.source) === "seed";
+    if (existing?.result && !authorizedOverwrite) return existing;
 
+    const icon = normalizeIcon(rawRecord.icon);
     const record = {
       a: left,
       b: right,
@@ -283,17 +365,22 @@ export class KvStore {
       comment: normalizeComment(rawRecord.comment),
       source: cleanText(rawRecord.source) || "llm",
       chain: cleanText(rawRecord.chain) || null,
-      hit_count: 0,
+      ...(icon ? { icon } : {}),
+      hit_count: authorizedOverwrite ? finiteInteger(existing?.hit_count) : 0,
       ts: this.timestamp(),
     };
     await this.putJson(key, record);
-    await Promise.all([
-      this.rememberElement(record.result, {
+    const writes = [
+      this.rememberRecipe(record),
+    ];
+    if (rememberElement) {
+      writes.push(this.rememberElement(record.result, {
         emoji: record.emoji,
         category: record.chain || "ai",
-      }),
-      this.rememberRecipe(record),
-    ]);
+        ...(icon ? { icon } : {}),
+      }));
+    }
+    await Promise.all(writes);
     return record;
   }
 
@@ -312,14 +399,22 @@ export class KvStore {
 
     const key = await entityKey("element", cleanName);
     const existing = await this.getJson(key, {});
+    const {
+      icon: existingIconValue,
+      ...existingFields
+    } = existing || {};
+    const icon =
+      normalizeIcon(existingIconValue) ||
+      normalizeIcon(info?.icon);
     const record = {
-      ...existing,
+      ...existingFields,
       name: cleanName,
       emoji: cleanText(info?.emoji) || "❓",
       category: cleanText(info?.category) || "ai",
       ...(Number.isFinite(Number(info?.depth))
         ? { depth: Math.max(0, finiteInteger(info.depth)) }
         : {}),
+      ...(icon ? { icon } : {}),
       updated_at: this.timestamp(),
       storage_key: key,
     };
@@ -338,16 +433,26 @@ export class KvStore {
       if (name) elements[name] = record;
     }
     return Object.fromEntries(
-      Object.entries(elements).map(([name, value]) => {
-        const {
-          name: _name,
-          storage_key: _storageKey,
-          updated_at: _updatedAt,
-          ...publicValue
-        } = value || {};
-        return [name, publicValue];
-      }),
+      Object.entries(elements).map(([name, value]) => [
+        name,
+        this.publicElement(value),
+      ]),
     );
+  }
+
+  publicElement(value) {
+    const {
+      name: _name,
+      storage_key: _storageKey,
+      updated_at: _updatedAt,
+      icon: rawIcon,
+      ...publicValue
+    } = value || {};
+    const icon = normalizeIcon(rawIcon);
+    return {
+      ...publicValue,
+      ...(icon ? { icon } : {}),
+    };
   }
 
   async getElement(name) {
@@ -355,13 +460,7 @@ export class KvStore {
     if (!cleanName) return null;
     const value = await this.getJson(await entityKey("element", cleanName));
     if (!value) return null;
-    const {
-      name: _name,
-      storage_key: _storageKey,
-      updated_at: _updatedAt,
-      ...publicValue
-    } = value;
-    return publicValue;
+    return this.publicElement(value);
   }
 
   async rememberRecipe(record) {
@@ -436,7 +535,7 @@ export class KvStore {
     }
     return [...byResult.values()]
       .sort(newestFirst)
-      .slice(0, MAX_RECENT_FIRSTS);
+      .slice(0, this.recentSnapshotCapacity);
   }
 
   async repairRecentSnapshot(snapshot) {
@@ -453,7 +552,7 @@ export class KvStore {
     return next;
   }
 
-  async recordFirst(result, emoji, discoverer) {
+  async recordFirst(result, emoji, discoverer, comment = "") {
     const name = cleanText(result);
     const key = await entityKey("first", name);
     const existing = await this.getJson(key);
@@ -473,6 +572,7 @@ export class KvStore {
       result: name,
       emoji: cleanText(emoji) || "❓",
       discoverer: cleanText(discoverer) || "匿名鹅",
+      comment: normalizeComment(comment),
       ts: this.timestamp(),
       seq: maxSeq + 1,
       claim_token: this.uniqueSuffix(),
@@ -512,10 +612,10 @@ export class KvStore {
       const feedWindow = await this.listKeyWindow(
         "feed_",
         0,
-        MAX_RECENT_FIRSTS + 1,
+        this.recentSnapshotCapacity + 1,
       );
       const feedRecords = await this.readRecords(
-        feedWindow.keys.slice(0, MAX_RECENT_FIRSTS),
+        feedWindow.keys.slice(0, this.recentSnapshotCapacity),
       );
       const feedItems = feedRecords.map(({ value }) => value);
       if (feedItems.length) {
@@ -523,7 +623,7 @@ export class KvStore {
           items: this.mergeRecent([], feedItems),
           total:
             feedItems.length +
-            (feedWindow.keys.length > MAX_RECENT_FIRSTS ||
+            (feedWindow.keys.length > this.recentSnapshotCapacity ||
             !feedWindow.complete
               ? 1
               : 0),
@@ -606,9 +706,26 @@ export class KvStore {
     const recent = this.normalizeRecentSnapshot(
       await this.getJson(RECENT_KEY, { items: [] }),
     );
+    const indexed = await this.loadIndexRecords("first");
+    const indexedCanonicalKeys = new Set(
+      indexed
+        .map((item) => item?.storage_key)
+        .filter((key) => typeof key === "string"),
+    );
+    const feedWindow = await this.listKeyWindow(
+      "feed_",
+      0,
+      this.firstsCapacity,
+    );
+    const missingFeedKeys = feedWindow.keys.filter((key) => {
+      const canonicalKey = canonicalFirstKeyFromFeedKey(key);
+      return canonicalKey && !indexedCanonicalKeys.has(canonicalKey);
+    });
+    const feedRecords = await this.readRecords(missingFeedKeys);
     const recordsByResult = new Map();
     for (const item of [
-      ...(await this.loadIndexRecords("first")),
+      ...indexed,
+      ...feedRecords.map(({ value }) => value),
       ...recent.items,
     ]) {
       const result = cleanText(item?.result);
@@ -622,11 +739,11 @@ export class KvStore {
         if (byTime) return byTime;
         return cleanText(left?.result).localeCompare(cleanText(right?.result));
       })
-      .slice(-MAX_FIRSTS)
+      .slice(-this.firstsCapacity)
       .map((item, index) => ({ ...item, seq: index + 1 }));
     const items = chronological.reverse();
     const nextRecent = {
-      items: items.slice(0, MAX_RECENT_FIRSTS).map((item) =>
+      items: items.slice(0, this.recentSnapshotCapacity).map((item) =>
         this.publicFirst(item),
       ),
       total: items.length,
@@ -795,6 +912,7 @@ export class KvStore {
   }
 
   async addKpi(sessionId, delta, reason) {
+    // Keep the literal legacy kpi_* shard key so existing score records remain readable.
     const cleanSessionId = cleanText(sessionId) || "default";
     const sessionHash = await sha256Hex(cleanSessionId);
     const amount = finiteInteger(delta);
@@ -826,6 +944,7 @@ export class KvStore {
   }
 
   async kpiTotal(sessionId) {
+    // Read the same legacy kpi_* records used by prior score sessions.
     const cleanSessionId = cleanText(sessionId) || "default";
     const prefix = `kpi_${await sha256Hex(cleanSessionId)}_`;
     const keys = await this.listAllKeys(prefix);

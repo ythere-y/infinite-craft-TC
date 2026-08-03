@@ -1,239 +1,126 @@
+<div align="center">
+
 # 🐧 Infinity Craft · 鹅厂打工人版
 
-以 [neal.fun/infinite-craft](https://neal.fun/infinite-craft/) 为蓝本，把合成
-词库换成鹅厂打工人文化、社交平台热梗和互联网黑话。
+### 一个由大模型驱动、融合互联网职场文化的无限合成游戏
 
-项目包含：
+把「人」和「工位」合成「打工人」，再从一只企鹅出发，创造属于你的职场宇宙。
 
-- 大屏投屏首发墙、搜索、分页和排行榜；
-- 打工人 KPI、绩效评级与结算卡；
-- P0 故障爆炸模式；
-- 昵称占用、首发记录、悬赏和分析面板；
-- FastAPI 本地后端与 EdgeOne Makers 线上后端。
+`AI 内容生成` · `游戏化产品设计` · `FastAPI` · `EdgeOne Makers` · `双运行时架构`
 
-## 本地开发：一条命令启动
+[产品亮点](#product-highlights) · [AI 工作流](#ai-workflow) · [系统架构](#system-architecture) · [快速开始](#quick-start)
 
-普通成员本地开发不需要 EdgeOne 账号或平台项目权限。需要安装：
+</div>
 
-- Node.js 20 或更高版本；
-- Docker Desktop，或带 Compose 插件的 Docker Engine。
+![Infinity Craft 游戏主页：元素工作区、配方库、等级与首发墙入口](docs/imgs/游戏主页.png)
 
-首次启动：
+## ✨ 项目概览
 
-```bash
-git clone git@github.com:ythere-y/infinite-craft-TC.git
-cd infinite-craft-TC
-cp .env.example .env
-# 编辑 .env，把成员私发的 DeepSeek Key 填入 LLM_API_KEY
-npm run dev
-```
+Infinity Craft 以 [neal.fun/infinite-craft](https://neal.fun/infinite-craft/) 的无限合成玩法为灵感，将内容主题重新设计为鹅厂打工人文化、社交平台热梗和互联网黑话。
 
-访问：
-
-- 游戏：<http://127.0.0.1:8000/>
-- 首发墙：<http://127.0.0.1:8000/wall>
-- 健康检查：<http://127.0.0.1:8000/api/health>
-
-停止服务：
-
-```bash
-npm run dev:down
-```
-
-`npm run dev` 会用 Docker Compose 启动 FastAPI 和 Redis，SQLite 写入被 Git
-忽略的 `data/dev.db`。后端和前端源码会挂载进容器，Uvicorn 自动重载。
-
-本地模型使用 DeepSeek OpenAI-compatible API：
-
-```dotenv
-LLM_API_KEY=成员私发的密钥
-LLM_BASE_URL=https://api.deepseek.com
-LLM_MODEL=deepseek-v4-flash
-```
-
-密钥只能写入 `.env`，不能提交到 Git。没有 Key 时服务仍可启动，预设配方和
-缓存可用；生成未知配方时会使用既有 fallback。完整说明见
-[开发与 Makers 发布指南](docs/makers-development.md)。
-
-## 两套完全分离的运行环境
-
-| 场景 | API 运行时 | 存储 | 模型 |
-| --- | --- | --- | --- |
-| 成员本地开发 | FastAPI | 本机 Redis + SQLite | DeepSeek API |
-| `main` 线上发布 | Makers Edge Functions | `test → infinite_craft` KV | Makers Models |
-
-本地数据与 Makers 线上数据不自动同步。本地合成、首发、昵称和 KPI 不会写入
-线上 KV，线上玩家数据也不会被下载到成员电脑。
-
-## Makers 生产发布
-
-Makers 是当前唯一主动维护的线上平台。项目已经配置 Git 集成，PR 合并到
-`main` 后会自动发布，并按 `edgeone.json` 执行：
-
-```json
-{
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist"
-}
-```
-
-Makers 控制台应保持：
-
-1. KV 全局变量 `test` 绑定命名空间 `infinite_craft`；
-2. 环境变量 `MAKERS_MODELS_KEY` 或 `AI_GATEWAY_API_KEY`；
-3. 默认网关模型 `@makers/deepseek-v4-flash`；
-4. 随机长字符串 `ADMIN_TOKEN`，用于保护 `/admin` 和分析接口；
-5. `POST /api/combine` 的平台精准限频。
-
-`test` 是整个 KV 命名空间的运行时对象，不是单条变量。代码通过
-`test.get()`、`test.put()`、`test.delete()` 和 `test.list()` 自动管理业务
-键，无需在控制台逐条创建记录。
-
-线上 Edge Function 只读取 `test`。它不根据本地 `APP_ENV` 选择其他 KV；
-如果有人误用 Makers Edge Function 的本机模式，请求会被拒绝并提示改用
-`npm run dev`。
-
-Makers KV 为最终一致存储：写入节点立即可读，其他边缘节点最长约 60 秒后
-看到更新。因此跨地域的成就墙、排行、首发和昵称占用可能短暂滞后。KV 没有
-事务或原子 `put-if-absent`，极端跨节点并发时唯一性为尽力保证。
-
-固定元素和全部预设配方随构建发布。首发墙热区保留最近 500 条，深层历史
-通过 `feed_*` key 分页；索引、KPI 和统计使用固定数量的小分片，避免热路径
-全表扫描。
-
-## 修改与验证
-
-日常开发：
-
-```bash
-git pull --ff-only
-npm run dev
-```
-
-提交或创建 PR 前：
-
-```bash
-npm test
-python3 -m pytest tests --ignore=tests/test_combine_feedback.py -q
-npm run build
-```
-
-安装了 EdgeOne CLI 的发布维护者还应运行：
-
-```bash
-npm run makers:build
-```
-
-该命令只验证 Makers 构建和 Edge Function 编译；普通本地启动不需要它，也
-不需要 EdgeOne 登录。合并到 `main` 后，既有 Git 集成负责自动发布。
-
-## 架构
+它不只是一个调用 LLM 的 Demo，而是一套完整的 AI 原生产品闭环：
 
 ```text
-本地开发
-浏览器 → FastAPI → Redis + SQLite
-                  ↘ DeepSeek API（LLM_API_KEY）
-
-线上生产
-浏览器 → Makers 静态站点 + Edge Functions
-                         ├→ test → infinite_craft KV
-                         └→ Makers Models
+获得随机职场身份
+        ↓
+拖拽两个元素进行合成
+        ↓
+预设 / 缓存命中 ──→ 即时返回
+        │
+        └─ 未知组合 ──→ LLM 生成元素、Emoji 与一句话点评
+                               ↓
+                    首发判定、积分成长、持久化
+                               ↓
+                    首发墙、排行榜与社区互动
 ```
 
-## 目录结构
+项目覆盖了从创意验证、AI 内容生成、交互设计，到前后端实现、数据持久化、测试与生产部署的完整过程。
+
+<a id="product-highlights"></a>
+
+## 🚀 产品亮点
+
+| 能力 | 产品体验 |
+| --- | --- |
+| **无限内容生成** | 未知元素组合由 LLM 动态生成，让有限种子词库持续生长 |
+| **可解释的 AI 反馈** | 每次合成同时返回名称、Emoji 和一句话点评，而不是只给出孤立结果 |
+| **发现与成长体系** | 区分全球首发、我的新发现与再次合成，并将稀有配方转化为积分和等级 |
+| **社区竞争闭环** | 首发墙、排行榜、点赞点踩、评论和悬赏让单机合成变成多人异步探索 |
+| **稳定的降级策略** | 预设配方、缓存复用、结构化校验与 fallback 共同保证模型不可用时仍可游玩 |
+| **面向生产部署** | 本地开发与边缘生产环境完全隔离，分别适配关系型数据和全球边缘 KV |
+
+## 🎮 从一次合成到全球首发
+
+玩家进入游戏时会获得随机且不可编辑的职场花名；拖拽元素发起合成后，系统展示生成状态，并在新结果首次出现时触发全球首发反馈。
+
+<table>
+  <tr>
+    <td width="34%" align="center"><strong>1. 获得职场身份</strong></td>
+    <td width="28%" align="center"><strong>2. 发起元素合成</strong></td>
+    <td width="38%" align="center"><strong>3. 解锁全球首发</strong></td>
+  </tr>
+  <tr>
+    <td><img src="docs/imgs/游戏入场选名字.png" alt="进入游戏时随机分配职场花名" /></td>
+    <td><img src="docs/imgs/合成中.png" alt="两个元素正在进行 AI 合成" /></td>
+    <td><img src="docs/imgs/全球首发.png" alt="新元素触发全球首发庆祝效果" /></td>
+  </tr>
+</table>
+
+所有玩家的探索会汇聚到首发墙。这里不仅记录新元素，还提供全文搜索、发现进度、互动数据、个人排名与 TOP 20 排行榜。
+
+![Infinity Craft 首发墙：发现记录、搜索、排行榜与玩家等级](docs/imgs/首发墙.png)
+
+### 不止是合成
+
+- **配方库**：收藏已经发现的元素，支持搜索、拖拽和快速复用。
+- **首发墙**：按时间展示全球发现，支持搜索、分页、点赞、点踩和评论。
+- **积分等级**：根据配方类型和发现状态累计分数，以 `🌟 → 🌙 → 🌞 → 👑` 呈现成长。
+- **排行榜**：按首发数量展示玩家排名，让探索过程具有持续目标。
+- **悬赏机制**：社区可以围绕尚未发现的目标发起协作挑战。
+- **P0 爆炸模式**：特定组合触发具有职场语境的视觉彩蛋。
+- **隐藏玩法**：输入 `↑↑↓↓←→←→BA` 可切换老板黑话模式。
+- **运营能力**：提供受令牌保护的管理与分析接口，便于观察和治理社区内容。
+
+<a id="ai-workflow"></a>
+
+## 🤖 AI 如何参与合成
+
+模型只负责最适合生成式 AI 的未知内容，确定性逻辑仍由应用控制。
 
 ```text
-infinite-craft-TC/
-├── AGENTS.md                  Agent 快速开发说明
-├── Dockerfile
-├── docker-compose.yml         默认本地运行环境
-├── edgeone.json               Makers 自动构建配置
-├── package.json               本地启动、测试与构建命令
-├── .env.example               本地 DeepSeek 安全模板
-├── backend/                   FastAPI、Redis、SQLite 与 DeepSeek 逻辑
-├── frontend/                  游戏、首发墙与管理页面
-├── edge-functions/            Makers 线上 API、KV 和 Models 逻辑
-├── scripts/                   Makers 数据生成与静态构建
-├── tests/                     Python 测试
-├── tests-makers/              Node/Makers 测试
-├── docs/
-│   └── makers-development.md  开发与发布完整指南
-└── deploy/legacy/
-    └── render.yaml            已暂停的 Render 历史配置
+POST /api/combine
+        │
+        ├─ 规范化输入，查询预设配方与历史缓存
+        │       └─ 命中：直接复用结果和点评，不重复消耗 Token
+        │
+        └─ 未命中：调用 OpenAI-compatible 模型
+                ├─ 生成元素名称
+                ├─ 选择语义 Emoji
+                └─ 生成一句话职场点评
+                        ↓
+                服务端校验与安全降级
+                        ↓
+                持久化结果、判定发现状态、更新积分
 ```
 
-## 环境变量
+### 关键设计决策
 
-### 本地 `.env`
+1. **Seed / Cache First**
+   预设配方和历史结果优先于模型调用，降低延迟与 Token 成本，也让经典组合保持一致。
 
-| 变量 | 默认值 | 说明 |
-| --- | --- | --- |
-| `APP_ENV` | `dev` | 本地 SQLite 环境；Compose 会固定为 `dev` |
-| `LLM_API_KEY` | 空 | 成员私发的 DeepSeek API Key |
-| `LLM_BASE_URL` | `https://api.deepseek.com` | DeepSeek API 根地址 |
-| `LLM_MODEL` | `deepseek-v4-flash` | DeepSeek 模型 |
-| `LLM_TIMEOUT` | `20` | 单次请求超时秒数 |
-| `LLM_MAX_RETRIES` | `0` | Provider 重试次数 |
-| `REDIS_URL` | `redis://127.0.0.1:16739/1` | 手动启动 FastAPI 时的本机 Redis |
+2. **结构化输出与边界校验**
+   服务端验证模型返回的名称、Emoji 和点评；点评为空、含换行或超过长度限制时自动使用默认文案。
 
-### Makers 控制台
+3. **同一配方结果复用**
+   合成结果与点评一起持久化。后续玩家命中相同组合时读取已有结果，避免内容漂移和重复调用。
 
-| 变量 | 默认值 | 说明 |
-| --- | --- | --- |
-| `MAKERS_MODELS_KEY` | 空 | Makers Models API Key |
-| `AI_GATEWAY_API_KEY` | 空 | 可兼容的网关密钥 |
-| `AI_GATEWAY_BASE_URL` | EdgeOne AI Gateway | Edge Function 模型网关 |
-| `AI_GATEWAY_MODEL` | `@makers/deepseek-v4-flash` | Makers 模型标识 |
-| `MODEL_CALLS_PER_MINUTE` | `20` | 每访客每分钟未知组合模型调用上限 |
-| `ADMIN_TOKEN` | 空 | 管理与分析接口令牌；空值时接口关闭 |
-| `DASHBOARD_PUBLIC` | `0` | 只有明确接受风险时才设为 `1` |
+4. **故障可降级**
+   没有 API Key、模型超时或输出不合规时，系统仍能使用预设、缓存或 fallback 返回有效元素。
 
-`/api/health` 只报告依赖和模型配置状态，不会调用模型或产生 Token 费用。
+5. **提示词与业务规则分离**
+   Few-shot 示例负责塑造职场语义，首发、积分、排行、限频和存储一致性由确定性代码处理。
 
-## 玩法说明
-
-| 操作 | 效果 |
-| --- | --- |
-| 从侧栏拖到工作区 | 复制一个元素 |
-| 将工作区元素拖到另一个元素 | 合成新元素 |
-| 双击工作区元素 | 移除元素 |
-| 点击“📊 结算本次分享” | 显示绩效评级 |
-| 输入 `↑↑↓↓←→←→BA` | 切换老板黑话模式 |
-
-KPI 按配方 chain 计分：
-
-| chain | 分值 |
-| --- | --- |
-| `easter_egg` | +40 |
-| `tencent` | +30 |
-| `meme_2026w16` | +25 |
-| `meme_classic` / `worker` | +20 |
-| `bizspeak` | +15 |
-| `abstract` / `life` | +8～10 |
-| `classic` / `physical` | +5 |
-| 全球首发 | 额外 +50 |
-
-绩效等级：
-
-- `< 500`：3-
-- `500～1499`：3.25
-- `1500～3499`：3.5
-- `3500～7999`：3.75
-- `≥ 8000`：瑞雪
-
-## 扩展词库
-
-所有固定词条在 `backend/seed_*.json`：
-
-1. 向 `seed_elements.json` 的 `elements` 添加元素；
-2. 向 `seed_combinations.json` 的 `combinations` 添加配方；
-3. 必要时向 `backend/prompt.py::FEW_SHOT_EXAMPLES` 添加典型组合。
-
-详见 [backend/README.md](backend/README.md)。
-
-## 合成点评与发现状态
-
-`POST /api/combine` 的响应包含模型点评：
+一次合成的典型响应：
 
 ```json
 {
@@ -244,23 +131,162 @@ KPI 按配方 chain 计分：
 }
 ```
 
-FastAPI 将点评随合成结果写入本机 Redis 和 SQLite，Makers 将其写入生产 KV。
-相同组合命中缓存时复用原点评，不会再次调用模型。旧缓存或模型返回的点评
-缺失、为空、含换行或超过 30 个字符时，API 仍返回有效元素并使用默认点评。
+## 🛠️ 工程化亮点
 
-浏览器显示三种 Toast：
+### 双运行时，而不是“一套配置跑所有环境”
 
-- `全球首发`：该结果第一次被任何玩家发现；
-- `我的新发现`：全局已有，但当前玩家第一次发现；
-- `再次合成`：当前玩家已经发现过该结果。
+本地开发和线上生产共享业务语义，但针对运行环境采用不同的后端与存储：
 
-模型控制的名称、Emoji 和点评只通过 `textContent` 写入页面。SQLite 启动时
-自动补齐历史数据库的 `comment` 列，旧 Redis Hash 和 Makers KV 记录保持
-兼容。
+| 场景 | API 运行时 | 存储 | 模型 |
+| --- | --- | --- | --- |
+| 本地开发 | FastAPI | Redis + SQLite | DeepSeek OpenAI-compatible API |
+| 线上生产 | Makers Edge Functions | `test → infinite_craft` KV | Makers Models |
 
-## Render（暂停）
+- 本地环境一条命令启动，支持 Uvicorn 热重载，不需要 EdgeOne 账号。
+- PR 合并到 `main` 后由 Git 集成自动发布，静态页面和 API 运行在边缘节点。
+- 本地与线上数据完全隔离，避免开发数据污染生产 KV。
+- KV 热区、历史分页、分片统计和最终一致性按边缘存储约束设计。
 
-Render 当前完全不用，Makers 是唯一主动维护的线上部署目标。历史 Blueprint
-位于 `deploy/legacy/render.yaml`，不再作为默认部署入口。仓库变更无法暂停
-Render 控制台中已有服务，项目所有者仍需在 Render 控制台暂停旧服务或关闭
-自动部署。
+### 可控的模型成本与风险
+
+- 历史组合缓存避免重复生成。
+- 未知组合模型调用支持超时、重试和每访客限频。
+- 模型文本统一以安全的文本节点渲染，避免把生成内容直接注入 HTML。
+- 管理与分析接口由 `ADMIN_TOKEN` 保护，未配置时默认关闭。
+
+### 离线可用的图标系统
+
+591 个预设元素拥有构建期生成并提交到仓库的图标映射。运行时按照“持久化 Icon 配方 → 预设映射 → 本地 Emoji PNG → 原生 Emoji → `❓`”逐级回退，不依赖第三方 Icon CDN。
+
+### 自动化验证
+
+仓库同时包含：
+
+- Node.js 测试：覆盖 Makers 路由、KV、种子数据、配置、前端行为和构建产物。
+- Python 测试：覆盖本地 FastAPI 业务、LLM、社区、积分、悬赏与数据兼容。
+- 构建期资产检查：验证生成数据、图标素材和静态站点输出。
+
+<a id="system-architecture"></a>
+
+## 🏗️ 系统架构
+
+```text
+本地开发
+
+┌─────────┐      ┌──────────────┐      ┌──────────────┐
+│ Browser │ ───→ │ FastAPI      │ ───→ │ Redis        │
+└─────────┘      │ Local API    │      │ Hot Cache    │
+                 └──────┬───────┘      └──────────────┘
+                        ├─────────────→ SQLite
+                        └─────────────→ DeepSeek API
+
+
+线上生产
+
+┌─────────┐      ┌──────────────────────┐
+│ Browser │ ───→ │ EdgeOne Makers      │
+└─────────┘      │ Static Site          │
+                 │ + Edge Functions     │
+                 └──────────┬───────────┘
+                            ├──────────→ EdgeOne KV
+                            └──────────→ Makers Models
+```
+
+### 技术栈
+
+| 分层 | 技术 |
+| --- | --- |
+| 交互与页面 | HTML、CSS、Vanilla JavaScript |
+| 本地 API | Python、FastAPI、Uvicorn |
+| 生产 API | EdgeOne Makers Edge Functions |
+| AI | OpenAI-compatible API、DeepSeek、Makers Models、Prompt Engineering |
+| 数据 | Redis、SQLite、EdgeOne KV |
+| 工程 | Docker Compose、Node.js 构建脚本、Python / Node.js 测试 |
+
+<a id="quick-start"></a>
+
+## 🚦 快速开始
+
+### 环境要求
+
+- Node.js 20 或更高版本
+- Docker Desktop，或带 Compose 插件的 Docker Engine
+
+### 启动项目
+
+```bash
+git clone https://github.com/ythere-y/infinite-craft-TC.git
+cd infinite-craft-TC
+
+cp .env.example .env
+# 可选：在 .env 的 LLM_API_KEY 中填写自己的 DeepSeek API Key
+npm run dev
+```
+
+打开：
+
+- 游戏：<http://127.0.0.1:8000/>
+- 首发墙：<http://127.0.0.1:8000/wall>
+- 健康检查：<http://127.0.0.1:8000/api/health>
+
+没有 API Key 时服务仍可启动，预设配方和缓存正常可用；未知组合会走既有 fallback。密钥只能写入 `.env`，请勿提交到 Git。
+
+停止服务：
+
+```bash
+npm run dev:down
+```
+
+## 🧪 验证与构建
+
+```bash
+# Makers / Node.js 测试
+npm test
+
+# FastAPI / Python 测试
+python3 -m pytest tests --ignore=tests/test_combine_feedback.py -q
+
+# 生成生产静态站点
+npm run build
+```
+
+安装 EdgeOne CLI 的发布维护者还可以运行 `npm run makers:build`，验证 Makers 构建与 Edge Function 编译。
+
+## 📁 项目结构
+
+```text
+infinite-craft-TC/
+├── backend/             FastAPI、本地存储、LLM 与领域逻辑
+├── frontend/            游戏、首发墙与管理页面
+├── edge-functions/      Makers 生产 API、KV 与 Models 适配
+├── scripts/             静态构建、种子数据与图标生成
+├── tests/               Python / FastAPI 测试
+├── tests-makers/        Node.js / Makers 测试
+├── docs/                架构、开发与改进文档
+├── docker-compose.yml   本地 FastAPI + Redis 环境
+├── edgeone.json         Makers 自动构建配置
+└── package.json         启动、测试与构建命令
+```
+
+## 🔧 扩展与深入开发
+
+- [开发与 Makers 发布指南](docs/makers-development.md)：环境隔离、配置、部署和故障排查。
+- [后端词库说明](backend/README.md)：种子元素、固定配方与 Few-shot 示例。
+- [Icon 系统审计](docs/icon-system-audit.md)：图标映射、语义规则与资产完整性。
+
+固定词条位于 `backend/seed_elements.json` 和 `backend/seed_combinations.json`。扩展词库时，应同步考虑语义图标映射与典型 Prompt 示例，并运行完整测试和构建检查。
+
+> **部署说明：** EdgeOne Makers 是当前唯一主动维护的生产平台；历史 Render 部署已暂停，相关配置可通过 Git 记录追溯。
+
+## 💡 项目价值
+
+这个项目重点探索了一个 AI 应用开发中的核心问题：
+
+> 如何让大模型成为产品体验的一部分，而不是停留在一个输入框和一次 API 调用？
+
+Infinity Craft 将生成式 AI 放入可重复游玩的内容循环，并通过缓存、持久化、成长体系、社区互动、可观测接口和双环境部署，把不确定的模型能力包装成一套可持续运行的产品。
+
+## 🙏 灵感与致谢
+
+- 核心合成玩法灵感来自 [neal.fun/infinite-craft](https://neal.fun/infinite-craft/)。
+- 项目内容主题、AI 生成链路、成长系统、首发墙、社区机制与双运行时工程实现均围绕本项目场景重新设计。

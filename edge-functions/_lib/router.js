@@ -14,7 +14,13 @@ import {
   optionsResponse,
   readJson,
 } from "./http.js";
-import { TIERS, rankFor } from "./kpi.js";
+import {
+  BASE_STAR_COST,
+  LEVEL_ICONS,
+  MERGE_BASE,
+  rankFor,
+  STAR_COST_STEP,
+} from "./kpi.js";
 import { cleanText, normalizePair } from "./keys.js";
 import { KvStore } from "./kv-store.js";
 import { llmConfiguration } from "./llm.js";
@@ -25,10 +31,17 @@ import {
 } from "./nickname.js";
 import {
   adminSessionCookie,
+  clearAdminSessionCookie,
   CommunityStore,
   hasAdminSession,
+  normalizePublicPagination,
   playerIdentity,
 } from "./community.js";
+import {
+  attachIcon,
+  normalizeIcon,
+  resolveIconRecipe,
+} from "./icon-recipes.js";
 
 const MAX_VERIFY_RECIPES = 500;
 const MAX_RECIPE_FIELD_LENGTH = 80;
@@ -40,6 +53,11 @@ function intParam(searchParams, name, fallback, minimum, maximum) {
   const value = Number(raw);
   if (!Number.isFinite(value)) return fallback;
   return Math.max(minimum, Math.min(maximum, Math.trunc(value)));
+}
+
+function lastQueryValue(searchParams, name) {
+  const values = searchParams.getAll(name);
+  return values.length ? values[values.length - 1] : null;
 }
 
 function decoded(value, label) {
@@ -57,7 +75,16 @@ function requireMethod(request, expected) {
 }
 
 function dynamicAndSeedElements(dynamic) {
-  return { ...(dynamic || {}), ...ELEMENTS };
+  const output = { ...(dynamic || {}) };
+  for (const [name, seed] of Object.entries(ELEMENTS)) {
+    const persisted = normalizeIcon(output[name]?.icon);
+    output[name] = {
+      ...(output[name] || {}),
+      ...seed,
+      ...(persisted ? { icon: persisted } : {}),
+    };
+  }
+  return output;
 }
 
 async function mapInBatches(items, batchSize, worker) {
@@ -78,9 +105,17 @@ export function createRouter({
   fetchImpl = globalThis.fetch,
   now = () => Date.now(),
   random = Math.random,
+  promptLimits,
 } = {}) {
   const store = new KvStore(kv, { now });
-  const game = createGameService({ store, env, fetchImpl, now, random });
+  const game = createGameService({
+    store,
+    env,
+    fetchImpl,
+    now,
+    random,
+    promptLimits,
+  });
   const community = new CommunityStore(kv, { now });
 
   async function candidateNickname() {
@@ -103,7 +138,60 @@ export function createRouter({
   }
 
   async function combinedElements() {
-    return dynamicAndSeedElements(await store.dynamicElements());
+    const elements = dynamicAndSeedElements(await store.dynamicElements());
+    return Object.fromEntries(
+      Object.entries(elements).map(([name, info]) => [
+        name,
+        attachIcon(name, info),
+      ]),
+    );
+  }
+
+  async function combinedStarters() {
+    const elements = await combinedElements();
+    return STARTERS.map((starter) => ({
+      ...starter,
+      ...(normalizeIcon(elements[starter.name]?.icon)
+        ? { icon: elements[starter.name].icon }
+        : {}),
+    }));
+  }
+
+  function elementIcon(elements, name, emoji = "❓") {
+    const info = elements[name] || {};
+    return resolveIconRecipe({
+      name,
+      emoji: info.emoji || emoji,
+      category: info.category,
+      chain: info.chain || null,
+      comment: info.comment || "",
+      persisted: info.icon,
+    });
+  }
+
+  function withFirstIcons(items, elements) {
+    return (items || []).map((item) => ({
+      ...item,
+      icon: elementIcon(
+        elements,
+        item?.result || "",
+        item?.emoji || "❓",
+      ),
+    }));
+  }
+
+  function withFormulaIcons(formula, elements) {
+    if (!formula) return formula;
+    return {
+      ...formula,
+      result_icon: elementIcon(
+        elements,
+        formula.result || "",
+        formula.emoji || "❓",
+      ),
+      a_icon: elementIcon(elements, formula.a || ""),
+      b_icon: elementIcon(elements, formula.b || ""),
+    };
   }
 
   async function getKnownCombination(a, b) {
@@ -129,8 +217,14 @@ export function createRouter({
         b: recipe.b,
         a_emoji: elements[recipe.a]?.emoji || "❓",
         b_emoji: elements[recipe.b]?.emoji || "❓",
+        a_icon: elementIcon(elements, recipe.a),
+        b_icon: elementIcon(elements, recipe.b),
         source: recipe.source || null,
         chain: recipe.chain || null,
+        comment:
+          typeof recipe.comment === "string"
+            ? recipe.comment.trim()
+            : "",
         hit_count: Number(recipe.hit_count) || 0,
       });
       if (recipes.length >= 100) break;
@@ -138,16 +232,18 @@ export function createRouter({
     return {
       result: target,
       result_emoji: elements[target]?.emoji || "❓",
+      result_icon: elementIcon(elements, target),
       count: recipes.length,
       recipes,
     };
   }
 
   async function adminPayload() {
-    const [base, firsts, nickCount] = await Promise.all([
+    const [base, firsts, nickCount, elements] = await Promise.all([
       store.adminStats(),
       store.allFirsts(),
       store.nicknameCount(),
+      combinedElements(),
     ]);
     const leaderboard = await store.leaderboard({
       limit: 10,
@@ -159,7 +255,7 @@ export function createRouter({
       nick_count: nickCount,
       firsts_total: firsts.length,
       top_discoverers: leaderboard.top,
-      recent_firsts: firsts.slice(0, 15),
+      recent_firsts: withFirstIcons(firsts.slice(0, 15), elements),
     };
   }
 
@@ -209,11 +305,19 @@ export function createRouter({
 
     if (path === "/api/tiers") {
       requireMethod(request, "GET");
-      return jsonResponse({ tiers: TIERS });
+      return jsonResponse({
+        tiers: [],
+        level_rules: {
+          base_star_cost: BASE_STAR_COST,
+          star_cost_step: STAR_COST_STEP,
+          merge_base: MERGE_BASE,
+          icons: LEVEL_ICONS,
+        },
+      });
     }
     if (path === "/api/starters") {
       requireMethod(request, "GET");
-      return jsonResponse({ starters: STARTERS });
+      return jsonResponse({ starters: await combinedStarters() });
     }
     if (path === "/api/elements") {
       requireMethod(request, "GET");
@@ -312,7 +416,16 @@ export function createRouter({
     }
     if (path === "/api/community/formulas") {
       requireMethod(request, "GET");
-      return jsonResponse({ items: await community.listPublic() });
+      const [items, elements] = await Promise.all([
+        community.listPublic(normalizePublicPagination({
+          limit: lastQueryValue(url.searchParams, "limit"),
+          offset: lastQueryValue(url.searchParams, "offset"),
+        })),
+        combinedElements(),
+      ]);
+      return jsonResponse({
+        items: items.map((item) => withFormulaIcons(item, elements)),
+      });
     }
     const publishMatch = path.match(/^\/api\/community\/formulas\/([^/]+)\/publish$/);
     if (publishMatch) {
@@ -320,7 +433,10 @@ export function createRouter({
       const identity = await playerIdentity(request, env);
       await requireCommunityRate(identity.id, "publish", 10);
       const formula = await community.publish(publishMatch[1], identity.id);
-      return jsonResponse({ formula: community.publicView(formula) }, {
+      const elements = await combinedElements();
+      return jsonResponse({
+        formula: withFormulaIcons(community.publicView(formula), elements),
+      }, {
         headers: identity.setCookie ? { "set-cookie": identity.setCookie } : {},
       });
     }
@@ -335,6 +451,23 @@ export function createRouter({
       const formula = await community.vote(voteMatch[1], identity.id, value);
       return jsonResponse(formula, {
         headers: identity.setCookie ? { "set-cookie": identity.setCookie } : {},
+      });
+    }
+    const detailMatch = path.match(/^\/api\/community\/formulas\/([^/]+)$/);
+    if (detailMatch) {
+      requireMethod(request, "GET");
+      const identity = await playerIdentity(request, env);
+      const formula = await community.publicFormula(detailMatch[1], identity.id);
+      if (!formula) throw new HttpError(404, "公开公式不存在");
+      return jsonResponse(withFormulaIcons(formula, await combinedElements()), {
+        headers: identity.setCookie ? { "set-cookie": identity.setCookie } : {},
+      });
+    }
+    if (path === "/api/community/admin/logout") {
+      requireMethod(request, "POST");
+      requireSameOrigin(request);
+      return jsonResponse({ ok: true }, {
+        headers: { "set-cookie": clearAdminSessionCookie() },
       });
     }
     if (path === "/api/community/admin/login") {
@@ -352,7 +485,13 @@ export function createRouter({
       requireMethod(request, "GET");
       requireSameOrigin(request);
       if (!(await hasAdminSession(request, env, now()))) throw new HttpError(401, "管理员会话无效");
-      return jsonResponse({ items: await community.queue(env) });
+      const [items, elements] = await Promise.all([
+        community.queue(env),
+        combinedElements(),
+      ]);
+      return jsonResponse({
+        items: items.map((item) => withFormulaIcons(item, elements)),
+      });
     }
     const moderateMatch = path.match(/^\/api\/community\/admin\/formulas\/([^/]+)\/moderate$/);
     if (moderateMatch) {
@@ -360,14 +499,15 @@ export function createRouter({
       requireSameOrigin(request);
       if (!(await hasAdminSession(request, env, now()))) throw new HttpError(401, "管理员会话无效");
       const body = await readJson(request);
+      const formula = await community.moderate(
+        moderateMatch[1], cleanText(body?.action),
+        cleanText(body?.reason_code), cleanText(body?.note),
+      );
       return jsonResponse({
-        formula: await community.moderate(
-          moderateMatch[1], cleanText(body?.action),
-          cleanText(body?.reason_code), cleanText(body?.note),
-        ),
+        formula: withFormulaIcons(formula, await combinedElements()),
       });
     }
-    if (path === "/api/session/kpi") {
+    if (path === "/api/session/score" || path === "/api/session/kpi") {
       requireMethod(request, "POST");
       const body = await readJson(request);
       const sessionId = cleanText(body?.session_id);
@@ -476,16 +616,57 @@ export function createRouter({
     if (path === "/api/wall/recent") {
       requireMethod(request, "GET");
       const limit = intParam(url.searchParams, "limit", 50, 1, 500);
-      return jsonResponse({ items: await store.recentFirsts(limit) });
+      const [items, elements] = await Promise.all([
+        store.recentFirsts(limit),
+        combinedElements(),
+      ]);
+      return jsonResponse({ items: withFirstIcons(items, elements) });
     }
     if (path === "/api/wall/page") {
       requireMethod(request, "GET");
-      return jsonResponse(
-        await store.firstPage({
+      const identity = await playerIdentity(request, env);
+      const page = await store.firstPage({
           offset: intParam(url.searchParams, "offset", 0, 0, 10_000_000),
           limit: intParam(url.searchParams, "limit", 100, 1, 500),
-        }),
+        });
+      const elements = await combinedElements();
+      const formulas = await community.publicByResults(
+        page.items.map((item) => item.result),
+        identity.id,
       );
+      const reactions = await community.reactionsByResults(
+        page.items.map((item) => item.result),
+        identity.id,
+      );
+      const items = withFirstIcons(page.items, elements).map((item) => (
+        {
+          ...item,
+          reaction: reactions[item.result] || community.emptyReaction(),
+          ...(formulas[item.result]
+            ? {
+                formula: withFormulaIcons(
+                  formulas[item.result],
+                  elements,
+                ),
+              }
+            : {}),
+        }
+      ));
+      return jsonResponse({ ...page, items }, {
+        headers: identity.setCookie ? { "set-cookie": identity.setCookie } : {},
+      });
+    }
+    const elementVoteMatch = path.match(/^\/api\/wall\/elements\/([^/]+)\/vote$/);
+    if (elementVoteMatch) {
+      requireMethod(request, "PUT");
+      const identity = await playerIdentity(request, env);
+      await requireCommunityRate(identity.id, "element-vote", 60);
+      const body = await readJson(request);
+      const value = Number(body?.value);
+      const result = cleanText(decoded(elementVoteMatch[1], "name"));
+      return jsonResponse(await community.voteResult(result, identity.id, value), {
+        headers: identity.setCookie ? { "set-cookie": identity.setCookie } : {},
+      });
     }
     if (path === "/api/wall/leaderboard") {
       requireMethod(request, "GET");

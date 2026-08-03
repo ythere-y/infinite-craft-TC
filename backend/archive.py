@@ -11,11 +11,14 @@ SQLite 归档层 —— 作为 Redis 的冷副本 + 数据真相源。
 from __future__ import annotations
 
 import os
+import json
 import sqlite3
 import threading
 import time
 from pathlib import Path
 from typing import Optional, Dict, List
+
+from .icon_recipes import normalize_icon
 
 _DATA_DIR = Path(__file__).parent.parent / "data"
 _lock = threading.Lock()
@@ -59,7 +62,8 @@ def init_archive() -> None:
                     emoji      TEXT NOT NULL,
                     category   TEXT,
                     is_starter INTEGER NOT NULL DEFAULT 0,
-                    created_at REAL NOT NULL
+                    created_at REAL NOT NULL,
+                    icon_json  TEXT
                 );
 
                 CREATE TABLE IF NOT EXISTS first_discoveries (
@@ -98,6 +102,14 @@ def init_archive() -> None:
                     "ALTER TABLE combinations "
                     "ADD COLUMN comment TEXT NOT NULL DEFAULT ''"
                 )
+            element_columns = {
+                row["name"]
+                for row in con.execute(
+                    "PRAGMA table_info(elements)"
+                ).fetchall()
+            }
+            if "icon_json" not in element_columns:
+                con.execute("ALTER TABLE elements ADD COLUMN icon_json TEXT")
             con.commit()
             print(f"[sqlite] archive ready: {_db_path()}")
         finally:
@@ -111,23 +123,39 @@ def init_archive() -> None:
 def upsert_combination(
     key: str, result: str, emoji: str, source: str,
     chain: Optional[str], comment: str = "", increment_hit: bool = False,
-) -> None:
+    replace_existing: bool = False,
+) -> int:
     """
     插入或更新一条合成规则。
     首次写入：source/chain/created_at 定型
     重复命中：增加 hit_count（可选）
+    权威同步：替换公式字段，但保留 created_at / hit_count
     """
     with _lock:
         con = _conn()
         try:
-            con.execute(
+            if replace_existing:
+                conflict_update = """
+                    result = excluded.result,
+                    emoji = excluded.emoji,
+                    source = excluded.source,
+                    chain = excluded.chain,
+                    comment = excluded.comment,
+                    hit_count = combinations.hit_count
+                        + CASE WHEN ? THEN 1 ELSE 0 END
                 """
+            else:
+                conflict_update = """
+                    hit_count = combinations.hit_count
+                        + CASE WHEN ? THEN 1 ELSE 0 END
+                """
+            con.execute(
+                f"""
                 INSERT INTO combinations(
                     key, result, emoji, source, chain, comment, created_at, hit_count
                 )
                 VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-                ON CONFLICT(key) DO UPDATE SET
-                    hit_count = hit_count + CASE WHEN ? THEN 1 ELSE 0 END
+                ON CONFLICT(key) DO UPDATE SET {conflict_update}
                 """,
                 (
                     key,
@@ -141,21 +169,65 @@ def upsert_combination(
                 ),
             )
             con.commit()
+            row = con.execute(
+                "SELECT hit_count FROM combinations WHERE key = ?",
+                (key,),
+            ).fetchone()
+            return max(1, int(row["hit_count"])) if row else 1
         finally:
             con.close()
 
 
-def upsert_element(name: str, emoji: str, category: Optional[str], is_starter: bool = False) -> None:
+def upsert_element(
+    name: str,
+    emoji: str,
+    category: Optional[str],
+    is_starter: bool = False,
+    icon: Optional[dict] = None,
+) -> None:
+    normalized_icon = normalize_icon(icon)
+    icon_json = (
+        json.dumps(normalized_icon, ensure_ascii=False, separators=(",", ":"))
+        if normalized_icon is not None
+        else None
+    )
     with _lock:
         con = _conn()
         try:
+            existing = con.execute(
+                "SELECT icon_json FROM elements WHERE name = ?",
+                (name,),
+            ).fetchone()
+            replace_invalid = bool(
+                icon_json is not None
+                and existing is not None
+                and existing["icon_json"]
+                and normalize_icon(existing["icon_json"]) is None
+            )
             con.execute(
                 """
-                INSERT INTO elements(name, emoji, category, is_starter, created_at)
-                VALUES (?, ?, ?, ?, ?)
-                ON CONFLICT(name) DO NOTHING
+                INSERT INTO elements(
+                    name, emoji, category, is_starter, created_at, icon_json
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(name) DO UPDATE SET
+                    icon_json = CASE
+                        WHEN elements.icon_json IS NULL
+                             OR TRIM(elements.icon_json) = ''
+                             OR ?
+                        THEN excluded.icon_json
+                        ELSE elements.icon_json
+                    END
                 """,
-                (name, emoji, category or "", 1 if is_starter else 0, time.time()),
+                (
+                    name,
+                    emoji,
+                    category or "",
+                    1 if is_starter else 0,
+                    time.time(),
+                    icon_json,
+                    1 if replace_invalid else 0,
+                ),
             )
             con.commit()
         finally:
@@ -221,9 +293,19 @@ def all_elements() -> List[Dict]:
     con = _conn()
     try:
         rows = con.execute(
-            "SELECT name, emoji, category, is_starter FROM elements"
+            "SELECT name, emoji, category, is_starter, icon_json FROM elements"
         ).fetchall()
-        return [dict(r) for r in rows]
+        out: List[Dict] = []
+        for row in rows:
+            item = dict(row)
+            raw_icon = item.pop("icon_json", None)
+            try:
+                decoded = json.loads(raw_icon) if raw_icon else None
+            except (json.JSONDecodeError, TypeError):
+                decoded = None
+            item["icon"] = normalize_icon(decoded)
+            out.append(item)
+        return out
     finally:
         con.close()
 
@@ -303,7 +385,7 @@ def recipes_for(result: str, limit: int = 50) -> List[Dict]:
     con = _conn()
     try:
         rows = con.execute(
-            """SELECT key, source, chain, hit_count
+            """SELECT key, source, chain, comment, hit_count
                FROM combinations WHERE result = ?
                ORDER BY source ASC, hit_count DESC LIMIT ?""",
             (result, limit),
@@ -320,6 +402,7 @@ def recipes_for(result: str, limit: int = 50) -> List[Dict]:
                 "b": b,
                 "source": r["source"],
                 "chain": r["chain"] or None,
+                "comment": r["comment"] or "",
                 "hit_count": r["hit_count"],
             })
         return out

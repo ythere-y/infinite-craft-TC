@@ -2,12 +2,75 @@
    effects.js —— 创新玩法特效
    暴露到 window.EFFECTS：
      - explode(resultName)          P0 故障爆炸
-     - firstToast(name, emoji, opt) 首发 / 新发现 toast
-     - initBossMode(reRenderFn)     Konami → 老板视角
+     - firstToast(info, opt)        首发 / 新发现 toast
+     - animateScoreGain(job)        分数飞行与等级融合队列
+     - initBossMode()              Konami → 老板视角
    ============================================================ */
 
 (function () {
   const EFFECTS = {};
+
+  function prefersReducedMotion() {
+    return !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  const IMPACT_RARITIES = Object.freeze([
+    Object.freeze({
+      maxDepth: 2,
+      name: "common",
+      color: "#9AA6B2",
+      scale: 5.5,
+      glowNew: "rgba(154,166,178,.72)",
+      glowRepeat: "rgba(154,166,178,.14)",
+    }),
+    Object.freeze({
+      maxDepth: 4,
+      name: "uncommon",
+      color: "#35C978",
+      scale: 6.5,
+      glowNew: "rgba(53,201,120,.72)",
+      glowRepeat: "rgba(53,201,120,.14)",
+    }),
+    Object.freeze({
+      maxDepth: 6,
+      name: "rare",
+      color: "#3B82F6",
+      scale: 7.6,
+      glowNew: "rgba(59,130,246,.76)",
+      glowRepeat: "rgba(59,130,246,.15)",
+    }),
+    Object.freeze({
+      maxDepth: 9,
+      name: "epic",
+      color: "#A855F7",
+      scale: 8.9,
+      glowNew: "rgba(168,85,247,.8)",
+      glowRepeat: "rgba(168,85,247,.16)",
+    }),
+    Object.freeze({
+      maxDepth: Infinity,
+      name: "legendary",
+      color: "#F2B84B",
+      scale: 10.5,
+      glowNew: "rgba(242,184,75,.86)",
+      glowRepeat: "rgba(242,184,75,.17)",
+    }),
+  ]);
+
+  function impactRarity(depth) {
+    const normalized = Number.isFinite(Number(depth))
+      ? Math.max(1, Math.trunc(Number(depth)))
+      : 1;
+    return IMPACT_RARITIES.find((rarity) => normalized <= rarity.maxDepth);
+  }
+
+  function centerOf(target) {
+    const rect = target.getBoundingClientRect();
+    return {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+    };
+  }
 
   // -------------------- P0 爆炸 --------------------
   let audioCtx = null;
@@ -44,216 +107,450 @@
     }, 1500);
   };
 
-  // -------------------- 合成结果三档特效 --------------------
-  // tier: "seen" | "global_known" | "global_new"
-  EFFECTS.onCombineResult = function (el, name, emoji, tier, meta = {}) {
-    if (!el) return;
-    switch (tier) {
-      case "global_new":
-        fireworks(el);
-        el.classList.add("glow-gold");
-        setTimeout(() => el.classList.remove("glow-gold"), 4000);
-        EFFECTS.firstToast(name, emoji, { tier: "global_new", ...meta });
-        break;
-      case "global_known":
-        el.classList.add("glow-blue");
-        setTimeout(() => el.classList.remove("glow-blue"), 3000);
-        EFFECTS.firstToast(name, emoji, { tier: "global_known", ...meta });
-        break;
-      default:
-        el.classList.add("pop-in");
-        setTimeout(() => el.classList.remove("pop-in"), 500);
-        EFFECTS.firstToast(name, emoji, { tier: "seen", ...meta });
-        break;
-    }
+  // -------------------- 拖拽锁定与合成生命周期 --------------------
+  EFFECTS.setCombineTarget = function (target, active) {
+    if (!target) return;
+    target.classList.toggle("combine-target", !!active);
   };
 
-  // 烟花：在目标元素位置放粒子
-  function fireworks(target) {
-    const rect = target.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    spawnFireworkBurst(cx, cy, 28, 80, 60);
+  function spawnImpact(host, x, y, meta = {}, fixed = false) {
+    if (prefersReducedMotion()) return null;
+    const rarity = impactRarity(meta.depth);
+    const discovered = meta.discovered === true;
+    const impact = document.createElement("div");
+    impact.className = "combine-impact" + (fixed ? " is-fixed" : "");
+    impact.dataset.rarity = rarity.name;
+    impact.dataset.discovery = discovered ? "new" : "repeat";
+    impact.setAttribute("aria-hidden", "true");
+    impact.style.left = x + "px";
+    impact.style.top = y + "px";
+    impact.style.setProperty("--impact-color", rarity.color);
+    impact.style.setProperty("--impact-scale", String(rarity.scale));
+    impact.style.setProperty(
+      "--impact-start-opacity", discovered ? "0.98" : "0.42"
+    );
+    impact.style.setProperty(
+      "--impact-brightness", discovered ? "1.18" : "0.72"
+    );
+    impact.style.setProperty(
+      "--impact-saturation", discovered ? "1.12" : "0.62"
+    );
+    impact.style.setProperty(
+      "--impact-glow", discovered ? rarity.glowNew : rarity.glowRepeat
+    );
+    host.appendChild(impact);
+    setTimeout(() => impact.remove(), 900);
+    return impact;
   }
 
-  function spawnFireworkBurst(cx, cy, count = 28, baseDist = 80, jitter = 60) {
-    const colors = ["#FFD54F", "#FF6B6B", "#4ECDC4", "#A78BFA", "#F472B6", "#34D399"];
-    const container = document.createElement("div");
-    container.className = "firework-container";
-    document.body.appendChild(container);
-    for (let i = 0; i < count; i++) {
-      const p = document.createElement("div");
-      p.className = "firework-particle";
-      const angle = (Math.PI * 2 * i) / count + Math.random() * 0.2;
-      const dist = baseDist + Math.random() * jitter;
-      p.style.setProperty("--dx", (Math.cos(angle) * dist) + "px");
-      p.style.setProperty("--dy", (Math.sin(angle) * dist) + "px");
-      p.style.background = colors[i % colors.length];
-      p.style.left = cx + "px";
-      p.style.top = cy + "px";
-      container.appendChild(p);
+  EFFECTS.beginCombine = function (workspace, source, target, x, y) {
+    EFFECTS.setCombineTarget(target, true);
+    source?.classList.add("combine-source");
+    target?.classList.add("combine-source");
+
+    let core = null;
+    if (workspace && !prefersReducedMotion()) {
+      core = document.createElement("div");
+      core.className = "combine-core";
+      core.setAttribute("aria-hidden", "true");
+      core.style.left = x + "px";
+      core.style.top = y + "px";
+      workspace.appendChild(core);
     }
-    setTimeout(() => container.remove(), 1400);
+
+    let settled = false;
+    function cleanup() {
+      if (settled) return false;
+      settled = true;
+      EFFECTS.setCombineTarget(target, false);
+      source?.classList.remove("combine-source");
+      target?.classList.remove("combine-source");
+      core?.remove();
+      return true;
+    }
+
+    return {
+      finish(meta = {}) {
+        if (!cleanup()) return;
+        spawnImpact(workspace || document.body, x, y, meta);
+      },
+      cancel() {
+        cleanup();
+      },
+    };
+  };
+
+  // -------------------- 合成结果三档特效 --------------------
+  const PERSONAL_COLORS = ["#32B8C6", "#6EDCE7", "#176B87", "#A7F3D0"];
+  const GLOBAL_COLORS = ["#FFD54F", "#FF6B6B", "#34D399", "#4C8DFF", "#F472B6"];
+
+  function spawnCelebration(target, tier, count) {
+    if (prefersReducedMotion()) return;
+    const { x, y } = centerOf(target);
+    const colors = tier === "global_new" ? GLOBAL_COLORS : PERSONAL_COLORS;
+    const layer = document.createElement("div");
+    layer.className = "celebration-layer";
+    layer.setAttribute("aria-hidden", "true");
+    document.body.appendChild(layer);
+
+    for (let i = 0; i < count; i++) {
+      const particle = document.createElement("i");
+      const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.22;
+      const distance = tier === "global_new"
+        ? 78 + Math.random() * 74
+        : 52 + Math.random() * 40;
+      particle.className = "celebration-particle";
+      particle.dataset.tier = tier;
+      particle.dataset.shape = i % 5 === 0 ? "star" : i % 2 === 0 ? "round" : "sliver";
+      particle.style.left = x + "px";
+      particle.style.top = y + "px";
+      particle.style.setProperty("--particle-color", colors[i % colors.length]);
+      particle.style.setProperty("--particle-x", Math.cos(angle) * distance + "px");
+      particle.style.setProperty("--particle-y", Math.sin(angle) * distance + "px");
+      particle.style.setProperty("--particle-turn", (120 + Math.random() * 300) + "deg");
+      particle.style.setProperty("--particle-delay", (Math.random() * 90) + "ms");
+      layer.appendChild(particle);
+    }
+    setTimeout(() => layer.remove(), 1250);
   }
 
-  // 段位跃迁庆祝：已删除（用户反馈特效有 bug，且频繁打断体验）
+  function spawnDiscoveryStamp(target, tier) {
+    if (prefersReducedMotion()) return;
+    const rect = target.getBoundingClientRect();
+    const stamp = document.createElement("div");
+    stamp.className = "discovery-stamp";
+    stamp.dataset.tier = tier;
+    stamp.textContent = tier === "global_new" ? "全球首发" : "我的新发现";
+    stamp.style.left = (rect.left + rect.width / 2) + "px";
+    stamp.style.top = Math.max(12, rect.top - 9) + "px";
+    document.body.appendChild(stamp);
+    setTimeout(() => stamp.remove(), 1500);
+  }
+
+  // tier: "seen" | "global_known" | "global_new"
+  EFFECTS.onCombineResult = function (el, info, tier, meta = {}) {
+    if (!el) return;
+    if (tier === "global_new") {
+      el.classList.add("reveal-global");
+      if (!prefersReducedMotion()) {
+        spawnCelebration(el, tier, window.innerWidth <= 560 ? 18 : 28);
+        spawnDiscoveryStamp(el, tier);
+      }
+      setTimeout(() => el.classList.remove("reveal-global"), 1500);
+    } else if (tier === "global_known") {
+      el.classList.add("reveal-personal");
+      if (!prefersReducedMotion()) {
+        spawnCelebration(el, tier, window.innerWidth <= 560 ? 7 : 10);
+        spawnDiscoveryStamp(el, tier);
+      }
+      setTimeout(() => el.classList.remove("reveal-personal"), 1100);
+    } else {
+      el.classList.add("pop-in");
+      setTimeout(() => el.classList.remove("pop-in"), 500);
+    }
+    EFFECTS.firstToast(info, { tier, ...meta });
+  };
+
+  // -------------------- 分数飞行与等级融合 --------------------
+  const SCORE_FLIGHT_MS = 1100;
+  const SCORE_RESIDUE_MS = 1400;
+  const SCORE_RECEIVE_MS = 450;
+  const SCORE_JOB_CAP_MS = 4500;
+  const scoreAnimationQueue = [];
+  let scoreAnimationRunning = false;
+
+  function wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, Math.max(0, ms)));
+  }
+
+  function scoreText(delta) {
+    return "+" + String(delta) + " 分";
+  }
+
+  function showScoreResidue(target, delta) {
+    if (!target?.isConnected) return null;
+    const residue = document.createElement("span");
+    residue.className = "score-gain-residue";
+    residue.textContent = scoreText(delta);
+    residue.setAttribute("aria-hidden", "true");
+    target.appendChild(residue);
+    setTimeout(() => residue.remove(), SCORE_RESIDUE_MS);
+    return residue;
+  }
+
+  async function flyScore(source, target, delta) {
+    if (!source || !target) return null;
+    if (prefersReducedMotion()) {
+      return showScoreResidue(target, delta);
+    }
+    if (!source.isConnected || !target.isConnected) return null;
+
+    const from = centerOf(source);
+    const to = centerOf(target);
+    const flight = document.createElement("div");
+    flight.className = "score-flight";
+    flight.textContent = scoreText(delta);
+    flight.setAttribute("aria-hidden", "true");
+    flight.style.left = from.x + "px";
+    flight.style.top = from.y + "px";
+    flight.style.setProperty("--score-x", (to.x - from.x) + "px");
+    flight.style.setProperty("--score-y", (to.y - from.y) + "px");
+    flight.style.setProperty("--score-mid-x", ((to.x - from.x) * 0.48) + "px");
+    flight.style.setProperty("--score-mid-y", ((to.y - from.y) * 0.48 - 44) + "px");
+    document.body.appendChild(flight);
+
+    try {
+      await wait(SCORE_FLIGHT_MS);
+      return showScoreResidue(target, delta);
+    } finally {
+      flight.remove();
+    }
+  }
+
+  async function playScoreReceive(target) {
+    if (!target?.isConnected) return;
+    target.classList.add("score-receive");
+    try {
+      await wait(SCORE_RECEIVE_MS);
+    } finally {
+      target.classList.remove("score-receive");
+    }
+  }
+
+  async function playGainStage(layer, step, duration) {
+    const star = document.createElement("span");
+    star.className = "level-gain-star";
+    star.textContent = String(step.icon ?? "🌟");
+    star.setAttribute("aria-hidden", "true");
+    layer.appendChild(star);
+    try {
+      await wait(duration);
+    } finally {
+      star.remove();
+    }
+  }
+
+  async function playMergeStage(layer, step, duration) {
+    const stageNodes = [];
+    for (let i = 0; i < 4; i++) {
+      const source = document.createElement("span");
+      source.className = "level-fusion-source";
+      source.textContent = String(step.from ?? "");
+      source.setAttribute("aria-hidden", "true");
+      layer.appendChild(source);
+      stageNodes.push(source);
+    }
+    const result = document.createElement("span");
+    result.className = "level-fusion-result";
+    result.textContent = String(step.to ?? "");
+    result.setAttribute("aria-hidden", "true");
+    layer.appendChild(result);
+    stageNodes.push(result);
+
+    try {
+      const fuseDuration = Math.round(duration * 0.54);
+      await wait(fuseDuration);
+      if (layer.isConnected) result.classList.add("is-visible");
+      await wait(duration - fuseDuration);
+    } finally {
+      stageNodes.forEach((node) => node.remove());
+    }
+  }
+
+  async function runScoreAnimation(job) {
+    const startedAt = performance.now();
+    const target = job.target;
+    await flyScore(job.source, target, job.delta);
+
+    if (prefersReducedMotion()) {
+      await playScoreReceive(target);
+      return;
+    }
+
+    const steps = Array.isArray(job.steps) ? job.steps : [];
+    if (!steps.length) {
+      await playScoreReceive(target);
+      return;
+    }
+    if (!target?.isConnected) return;
+
+    const layer = document.createElement("span");
+    layer.className = "score-level-effect-layer";
+    layer.setAttribute("aria-hidden", "true");
+    target.appendChild(layer);
+
+    try {
+      for (let index = 0; index < steps.length; index++) {
+        if (!layer.isConnected) break;
+        const remaining = SCORE_JOB_CAP_MS - (performance.now() - startedAt);
+        if (remaining <= 0) break;
+
+        const step = steps[index] || {};
+        const shortened = steps.length > 4 && index >= 2;
+        const duration = Math.min(
+          remaining,
+          shortened ? 420 : step.type === "gain" ? 720 : 760
+        );
+        if (step.type === "gain") {
+          await playGainStage(layer, step, duration);
+        } else if (step.type === "merge") {
+          await playMergeStage(layer, step, duration);
+        }
+      }
+    } finally {
+      layer.remove();
+      target.classList.remove("score-receive");
+    }
+  }
+
+  async function drainScoreAnimations() {
+    scoreAnimationRunning = true;
+    while (scoreAnimationQueue.length) {
+      const entry = scoreAnimationQueue.shift();
+      try {
+        await runScoreAnimation(entry.job);
+      } catch (_) {
+        // 单个目标消失或动画失败不能阻塞后续分数结算。
+      } finally {
+        try {
+          entry.job.renderFinal?.();
+        } catch (_) {
+          // 最终渲染回调失败也必须释放队列。
+        }
+        entry.resolve();
+      }
+    }
+    scoreAnimationRunning = false;
+  }
+
+  function enqueueScoreAnimation(job) {
+    return new Promise((resolve) => {
+      scoreAnimationQueue.push({ job, resolve });
+      if (!scoreAnimationRunning) void drainScoreAnimations();
+    });
+  }
+
+  EFFECTS.flyScore = function (source, target, delta) {
+    return flyScore(source, target, delta);
+  };
+
+  EFFECTS.animateScoreGain = function (job = {}) {
+    return enqueueScoreAnimation(job);
+  };
+
+  // 等级跃迁庆祝：已删除（用户反馈特效有 bug，且频繁打断体验）
 
   // -------------------- 首发 toast --------------------
-  EFFECTS.firstToast = function (name, emoji, opt = {}) {
+  EFFECTS.firstToast = function (info, opt = {}) {
     const el = document.getElementById("first-toast");
     if (!el) return;
     const tier = opt.tier || (opt.small ? "global_known" : "global_new");
     const depthStr = opt.depth != null ? ` · 难度 ${opt.depth}` : "";
     const scoreStr = opt.gained != null ? ` · +${opt.gained}分` : "";
     window.COMBINE_FEEDBACK.renderToast(document, el, {
+      ...info,
       tier,
-      name,
-      emoji,
       comment: opt.comment,
     });
     const title = el.querySelector(".first-toast-title");
     if (title) title.textContent += depthStr + scoreStr;
     el.className = "first-toast show tier-" + tier;
     clearTimeout(EFFECTS.firstToast._t);
-    EFFECTS.firstToast._t = setTimeout(() => el.classList.remove("show"), 4200);
+    EFFECTS.firstToast._t = setTimeout(() => el.classList.remove("show"), 8000);
   };
 
-  // -------------------- 里模式（ura mode · 疯狂的可视化覆盖）--------------------
-  // 设计：
-  //   - 每个 .element / .recipe-chip 内部注入一个 .ura-emoji 和 .ura-name 兄弟 span
-  //   - 平时这俩 span display:none（CSS 控制）
-  //   - body.ura-on 时 ura-* 出现、原生 emoji/name 隐藏
-  //   - hover 元素时翻转（CSS :hover），揭示真身
-  //   - MutationObserver 监听整个 document，新节点出现时自动注入
-  //   - 每个节点独立随机，同一元素跨次 ura 结果可以不同
-  //   - 触发仍是 Konami Code
+  // -------------------- 里模式（ura mode · sticker 暗色主题切换）--------------------
   const KONAMI = [
     "ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown",
     "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight",
     "b", "a",
   ];
-  // 疯狂中文词池
-  const URA_POOL = [
-    "闭环", "抓手", "颗粒度", "对齐", "赋能", "链路", "心智",
-    "穿透", "下沉", "拉通", "协同", "赛道", "生态", "复盘",
-    "抽象", "解构", "重构", "沉淀", "分润", "聚合", "放大",
-    "方法论", "最小闭环", "颠颠", "发疯", "发癫", "破防",
-    "松弛感", "紧绷感", "显眼包", "死者人格", "班味",
-    "吗喽", "摆烂", "躺平", "内卷", "emo",
-    "画饼", "讲故事", "拉齐预期", "赛马机制",
-    "中台化", "用户心智", "高维打低维", "降本增效",
-    "正反馈", "飞轮", "护城河", "第二曲线", "OKR拉通",
-    "颠覆式创新", "破圈", "种草", "拔草", "长尾",
-  ];
-  // 疯狂 emoji 池（偏抽象 / 发疯 / 无厘头）
-  const URA_EMOJI = [
-    "🤪", "💀", "🌀", "🔥", "🤡", "👻", "🧠", "💥",
-    "🫠", "🗿", "🥴", "🤯", "😵‍💫", "🫥", "🙃", "🥹",
-    "⚡", "🌪️", "🎭", "🪩", "🕳️", "🔮", "🎲", "🎰",
-    "💊", "🧨", "🦑", "🐙", "🫨", "🥶", "🥵", "👾",
-  ];
   let uraOn = false;
-  let observer = null;
+  let bossModeInitialized = false;
+  let konamiBuffer = [];
 
-  function randFrom(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
+  function announceUraMode(initial) {
+    window.dispatchEvent(new CustomEvent("ura-mode-change", {
+      detail: {
+        active: uraOn,
+        initial: initial === true,
+      },
+    }));
   }
 
-  /** 给一个 .element 或 .recipe-chip 注入（或更新）ura-emoji / ura-name 两个兄弟 span。 */
-  function paintElement(el) {
-    // chip 必须至少有 .emoji 和 .name，否则跳过
-    const emojiSpan = el.querySelector(":scope > .emoji");
-    const nameSpan = el.querySelector(":scope > .name");
-    if (!emojiSpan || !nameSpan) return;
-
-    let uraEmoji = el.querySelector(":scope > .ura-emoji");
-    if (!uraEmoji) {
-      uraEmoji = document.createElement("span");
-      uraEmoji.className = "ura-emoji";
-      emojiSpan.after(uraEmoji);
+  function applyUraStableState(initial) {
+    uraOn = true;
+    const banner = document.getElementById("boss-banner");
+    if (banner) {
+      banner.textContent = "🤪 里模式·彻底疯狂 · ↑↑↓↓←→←→BA 再按可关闭";
+      banner.classList.add("show");
     }
-    let uraName = el.querySelector(":scope > .ura-name");
-    if (!uraName) {
-      uraName = document.createElement("span");
-      uraName.className = "ura-name";
-      nameSpan.after(uraName);
-    }
-    uraEmoji.textContent = randFrom(URA_EMOJI);
-    uraName.textContent = randFrom(URA_POOL);
+    document.body.classList.add("ura-on");
+    announceUraMode(initial);
   }
 
-  function scanAndPaint(root = document) {
-    // .element 覆盖 侧栏/画布/ghost/合成结果；.recipe-chip[data-name] 覆盖图鉴里非 "+" 的 chip
-    const nodes = root.querySelectorAll?.(".element, .recipe-chip[data-name]") || [];
-    nodes.forEach(paintElement);
-  }
-
-  function startObserver() {
-    if (observer) return;
-    observer = new MutationObserver((muts) => {
+  function enterUra() {
+    if (uraOn) return;
+    uraOn = true;
+    // 后续手动进入仍保留当前动画，方便以后单独重做这一段。
+    playUraEnterTransition();
+    setTimeout(() => {
       if (!uraOn) return;
-      for (const m of muts) {
-        m.addedNodes.forEach((node) => {
-          if (node.nodeType !== 1) return;
-          // 新节点本身可能是 .element，也可能是容器（比如合成结果套层）
-          if (node.matches?.(".element, .recipe-chip[data-name]")) {
-            paintElement(node);
-          }
-          scanAndPaint(node);
-        });
-      }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
+      applyUraStableState(false);
+    }, 600);
   }
 
-  function stopObserver() {
-    observer?.disconnect();
-    observer = null;
+  function exitUra() {
+    if (!uraOn) return;
+    uraOn = false;
+    const banner = document.getElementById("boss-banner");
+    if (banner) banner.classList.remove("show");
+    document.body.classList.remove("ura-on");
+    announceUraMode(false);
+    playUraExitTransition();
   }
-
-  EFFECTS.initBossMode = function (_reRenderFn) {
-    let buf = [];
-    window.addEventListener("keydown", (e) => {
-      const tag = (e.target?.tagName || "").toLowerCase();
-      if (tag === "input" || tag === "textarea" || e.target?.isContentEditable) {
-        buf = [];
-        return;
-      }
-      buf.push(e.key);
-      if (buf.length > KONAMI.length) buf = buf.slice(-KONAMI.length);
-      if (buf.length === KONAMI.length
-        && buf.every((k, i) => k.toLowerCase() === KONAMI[i].toLowerCase())) {
-        toggleUra();
-        buf = [];
-      }
-    });
-  };
 
   function toggleUra() {
-    uraOn = !uraOn;
-    const banner = document.getElementById("boss-banner");
-    if (uraOn) {
-      // 顺序：先播月亮/闪电等装饰，延迟 600ms 再降夜幕
-      // 让月亮先"从天而降"，画布才开始变暗
-      playUraEnterTransition();
-      setTimeout(() => {
-        if (banner) {
-          banner.textContent = "🤪 里模式·彻底疯狂 · ↑↑↓↓←→←→BA 再按可关闭";
-          banner.classList.add("show");
-        }
-        document.body.classList.add("ura-on");
-        scanAndPaint(document);
-        startObserver();
-      }, 600);
-    } else {
-      // 退场：先升幕布（body.ura-on 去掉），再播日出装饰
-      if (banner) banner.classList.remove("show");
-      document.body.classList.remove("ura-on");
-      stopObserver();
-      playUraExitTransition();
-      // 不删除已注入的 ura-* span，下次开启直接重用 + 重新 randomize
-    }
+    if (uraOn) exitUra();
+    else enterUra();
   }
+
+  EFFECTS.isUraMode = function () {
+    return uraOn;
+  };
+
+  EFFECTS.initBossMode = function ({ defaultOn = true } = {}) {
+    if (!bossModeInitialized) {
+      window.addEventListener("keydown", (event) => {
+        const tag = (event.target?.tagName || "").toLowerCase();
+        if (
+          tag === "input"
+          || tag === "textarea"
+          || event.target?.isContentEditable
+        ) {
+          konamiBuffer = [];
+          return;
+        }
+        konamiBuffer.push(event.key);
+        if (konamiBuffer.length > KONAMI.length) {
+          konamiBuffer = konamiBuffer.slice(-KONAMI.length);
+        }
+        if (
+          konamiBuffer.length === KONAMI.length
+          && konamiBuffer.every(
+            (key, index) => key.toLowerCase() === KONAMI[index].toLowerCase(),
+          )
+        ) {
+          toggleUra();
+          konamiBuffer = [];
+        }
+      });
+      bossModeInitialized = true;
+    }
+    if (defaultOn && !uraOn) {
+      applyUraStableState(true);
+    }
+  };
 
   // ---------- 里模式进场装饰层（不含背景，背景由 .workspace::before 做） ----------
   function playUraEnterTransition() {
@@ -365,12 +662,6 @@
       });
     } catch (_) { /* 忽略 */ }
   }
-
-  /** 供外部（app.js）在重渲染后调用，强制重新 paint 一轮（也顺便随机出新词）。 */
-  EFFECTS.reapplyUra = function () {
-    if (!uraOn) return;
-    scanAndPaint(document);
-  };
 
   function escapeHTML(s) {
     return String(s).replace(/[&<>"']/g, c => ({

@@ -1,0 +1,28 @@
+[
+  {
+    "name": "Riot",
+    "emoji": "⚡",
+    "category": "studio",
+    "parents": [],
+    "comment": "",
+    "expected": {
+      "base": "👊",
+      "badge": "🎮",
+      "palette": "studio",
+      "source": "curated"
+    }
+  },
+  {
+    "name": "智能咖啡",
+    "emoji": "☕",
+    "category": "ai",
+    "parents": ["AI", "咖啡"],
+    "comment": "咖啡完成智能升级",
+    "expected": {
+      "base": "☕",
+      "badge": "🧠",
+      "palette": "product",
+      "source": "generated"
+    }
+  }
+]
