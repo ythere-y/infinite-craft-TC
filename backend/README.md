@@ -8,7 +8,8 @@
 | ------------------------ | ------------------------------------------------------ | ----------------------------------------- |
 | `seed_elements.json`     | 元素字典：name → {emoji, category}，含 8 个 starter    | 前端渲染右侧栏；后端校验；LLM prompt 注入 |
 | `seed_combinations.json` | 合成规则：`"a + b"` → {result, emoji, chain}，按字典序 | 后端 /api/combine 首先查表，命中即返回    |
-| `prompt.py`              | GLM few-shot prompt 模板 + 解析                        | 后端 miss 后调用 LLM                      |
+| `shared/combine-prompt.json` | 合成 prompt 的 canonical 共享规范、策略与 few-shot 示例 | Python 后端与 Makers 构建生成器            |
+| `prompt.py`              | LLM 调用编排、共享 prompt 加载与 JSON 解析             | 后端 miss 后调用 LLM                      |
 
 ## 数据流
 
@@ -23,7 +24,7 @@
     ↓ miss
 查 seed_combinations.json ──命中──→ 写缓存，返回
     ↓ miss
-调 GLM-5.1-64K (prompt.py 构造 prompt)
+调 GLM-5.1-64K（prompt.py 按共享规范装配请求）
     ↓
 解析 JSON → 落库缓存 → 若是首次创造，写 first_discovery → 返回
 ```

@@ -200,19 +200,22 @@ export class KvStore {
     const missingKeys = canonicalKeys.filter(
       (key) => !Object.hasOwn(snapshot.items, key),
     );
-    for (const { key, value } of await this.readRecords(missingKeys)) {
+    const missingRecords = await this.readRecords(missingKeys);
+    for (const { key, value } of missingRecords) {
       snapshot.items[key] = { ...value, storage_key: key };
     }
-    if (
-      kind === "first" &&
-      snapshot.first_feeds_backfilled !== true
-    ) {
-      await this.writeFirstFeeds(
-        canonicalKeys
+    if (kind === "first") {
+      const needsFullFeedBackfill =
+        snapshot.first_feeds_backfilled !== true;
+      const feedRecords = needsFullFeedBackfill
+        ? canonicalKeys
           .map((key) => ({ key, value: snapshot.items[key] }))
-          .filter((item) => item.value),
-      );
-      snapshot.first_feeds_backfilled = true;
+          .filter((item) => item.value)
+        : missingRecords;
+      await this.writeFirstFeeds(feedRecords);
+      if (needsFullFeedBackfill) {
+        snapshot.first_feeds_backfilled = true;
+      }
     }
     snapshot.items = this.trimIndexItems(kind, snapshot.items);
     snapshot.reconciled_at = this.timestamp();

@@ -392,6 +392,114 @@ test("legacy canonical reconcile backfills feed before trimming a first shard", 
   );
 });
 
+test("reconcile repairs a post-migration first missing its feed before shard trim", async () => {
+  const firstsCapacity = 2_001;
+  const oldCanonicalKey = await entityKey(
+    "first",
+    SAME_SHARD_DISCOVERIES[0],
+  );
+  assert.match(oldCanonicalKey, /^first_0/u);
+  const kv = new FakeKV({
+    indexmeta_first: JSON.stringify({
+      next_shard: 0,
+      next_reconcile_at: 0,
+    }),
+    snapshot_recent: JSON.stringify({
+      items: [],
+      total: firstsCapacity,
+      initialized: true,
+    }),
+    index_first_0: JSON.stringify({
+      items: {},
+      reconciled_at: 1_700_000_000,
+      first_feeds_backfilled: true,
+    }),
+  });
+  const put = kv.put.bind(kv);
+  let failNextFeed = true;
+  let failedFeedKey;
+  let resolveIndexWritten;
+  const indexWritten = new Promise((resolve) => {
+    resolveIndexWritten = resolve;
+  });
+  kv.put = async (key, value) => {
+    if (key === "index_first_0") {
+      await put(key, value);
+      resolveIndexWritten();
+      return;
+    }
+    if (failNextFeed && key.startsWith("feed_")) {
+      failNextFeed = false;
+      failedFeedKey = key;
+      await indexWritten;
+      throw new Error("injected feed write failure");
+    }
+    await put(key, value);
+  };
+  const store = new KvStore(kv, {
+    now: () => 1_700_000_000_000,
+    firstsCapacity,
+  });
+
+  await assert.rejects(
+    store.recordFirst(SAME_SHARD_DISCOVERIES[0], "🧯", "修复鹅"),
+    /injected feed write failure/u,
+  );
+  kv.put = put;
+  assert.equal(kv.values.has(oldCanonicalKey), true);
+  assert.equal(kv.values.has(failedFeedKey), false);
+  const failedIndex = JSON.parse(kv.values.get("index_first_0"));
+  assert.equal(failedIndex.first_feeds_backfilled, true);
+  assert.equal(Object.hasOwn(failedIndex.items, oldCanonicalKey), true);
+
+  const indexItems = {};
+  for (let index = 1; index < firstsCapacity; index += 1) {
+    const canonicalKey = `first_0${String(index).padStart(63, "0")}`;
+    const record = {
+      result: `较新元素${index}`,
+      emoji: "🧯",
+      discoverer: "修复鹅",
+      ts: 1_700_000_000 + index,
+      seq: index + 1,
+    };
+    kv.values.set(canonicalKey, JSON.stringify(record));
+    kv.values.set(
+      feedKeyFor(record, canonicalKey),
+      JSON.stringify(record),
+    );
+    indexItems[canonicalKey] = {
+      ...record,
+      storage_key: canonicalKey,
+    };
+  }
+  kv.values.set("index_first_0", JSON.stringify({
+    items: indexItems,
+    reconciled_at: 1_700_000_000,
+    first_feeds_backfilled: true,
+  }));
+  let repairedFeedPuts = 0;
+  kv.put = async (key, value) => {
+    if (key.startsWith("feed_")) repairedFeedPuts += 1;
+    await put(key, value);
+  };
+
+  const firsts = await store.allFirsts();
+
+  assert.equal(firsts.length, firstsCapacity);
+  assert.equal(kv.values.has(failedFeedKey), true);
+  assert.equal(repairedFeedPuts, 1);
+  assert.equal(firsts[0].result, "较新元素2000");
+  assert.equal(firsts.at(-1).result, SAME_SHARD_DISCOVERIES[0]);
+  assert.equal(
+    firsts.some((item) => item.result === SAME_SHARD_DISCOVERIES[0]),
+    true,
+  );
+  assert.equal(
+    JSON.parse(kv.values.get("index_first_0")).first_feeds_backfilled,
+    true,
+  );
+});
+
 test("KvStore defaults firsts capacity to the generated prompt contract", () => {
   const store = new KvStore(new FakeKV());
 
