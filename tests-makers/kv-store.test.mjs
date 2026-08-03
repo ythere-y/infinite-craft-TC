@@ -207,6 +207,22 @@ test("KvStore rejects invalid injected firsts capacities", () => {
   }
 });
 
+test("KvStore rejects invalid physical first-index shard capacities", () => {
+  for (const firstIndexShardCapacity of [
+    0,
+    -1,
+    1.5,
+    true,
+    2_001,
+    Number.MAX_SAFE_INTEGER + 1,
+  ]) {
+    assert.throws(
+      () => new KvStore(new FakeKV(), { firstIndexShardCapacity }),
+      /firstIndexShardCapacity must be an integer from 1 to 2000/u,
+    );
+  }
+});
+
 test("injected firsts capacity bounds stored and returned newest discoveries", async () => {
   const newestThree = [
     "索引容量元素43",
@@ -393,7 +409,7 @@ test("legacy canonical reconcile backfills feed before trimming a first shard", 
 });
 
 test("reconcile repairs a post-migration first missing its feed before shard trim", async () => {
-  const firstsCapacity = 2_001;
+  const firstsCapacity = 4;
   const oldCanonicalKey = await entityKey(
     "first",
     SAME_SHARD_DISCOVERIES[0],
@@ -406,7 +422,7 @@ test("reconcile repairs a post-migration first missing its feed before shard tri
     }),
     snapshot_recent: JSON.stringify({
       items: [],
-      total: firstsCapacity,
+      total: 0,
       initialized: true,
     }),
     index_first_0: JSON.stringify({
@@ -415,6 +431,7 @@ test("reconcile repairs a post-migration first missing its feed before shard tri
       first_feeds_backfilled: true,
     }),
   });
+  let now = 1_700_000_000_000;
   const put = kv.put.bind(kv);
   let failNextFeed = true;
   let failedFeedKey;
@@ -437,8 +454,9 @@ test("reconcile repairs a post-migration first missing its feed before shard tri
     await put(key, value);
   };
   const store = new KvStore(kv, {
-    now: () => 1_700_000_000_000,
+    now: () => now,
     firstsCapacity,
+    firstIndexShardCapacity: 3,
   });
 
   await assert.rejects(
@@ -452,31 +470,13 @@ test("reconcile repairs a post-migration first missing its feed before shard tri
   assert.equal(failedIndex.first_feeds_backfilled, true);
   assert.equal(Object.hasOwn(failedIndex.items, oldCanonicalKey), true);
 
-  const indexItems = {};
-  for (let index = 1; index < firstsCapacity; index += 1) {
-    const canonicalKey = `first_0${String(index).padStart(63, "0")}`;
-    const record = {
-      result: `较新元素${index}`,
-      emoji: "🧯",
-      discoverer: "修复鹅",
-      ts: 1_700_000_000 + index,
-      seq: index + 1,
-    };
-    kv.values.set(canonicalKey, JSON.stringify(record));
-    kv.values.set(
-      feedKeyFor(record, canonicalKey),
-      JSON.stringify(record),
-    );
-    indexItems[canonicalKey] = {
-      ...record,
-      storage_key: canonicalKey,
-    };
+  for (const result of SAME_SHARD_DISCOVERIES.slice(1)) {
+    now += 1_000;
+    await store.recordFirst(result, "🧯", "修复鹅");
   }
-  kv.values.set("index_first_0", JSON.stringify({
-    items: indexItems,
-    reconciled_at: 1_700_000_000,
-    first_feeds_backfilled: true,
-  }));
+  const trimmedIndex = JSON.parse(kv.values.get("index_first_0"));
+  assert.equal(Object.keys(trimmedIndex.items).length, 3);
+  assert.equal(Object.hasOwn(trimmedIndex.items, oldCanonicalKey), false);
   let repairedFeedPuts = 0;
   kv.put = async (key, value) => {
     if (key.startsWith("feed_")) repairedFeedPuts += 1;
@@ -488,7 +488,7 @@ test("reconcile repairs a post-migration first missing its feed before shard tri
   assert.equal(firsts.length, firstsCapacity);
   assert.equal(kv.values.has(failedFeedKey), true);
   assert.equal(repairedFeedPuts, 1);
-  assert.equal(firsts[0].result, "较新元素2000");
+  assert.equal(firsts[0].result, SAME_SHARD_DISCOVERIES[3]);
   assert.equal(firsts.at(-1).result, SAME_SHARD_DISCOVERIES[0]);
   assert.equal(
     firsts.some((item) => item.result === SAME_SHARD_DISCOVERIES[0]),
@@ -497,6 +497,84 @@ test("reconcile repairs a post-migration first missing its feed before shard tri
   assert.equal(
     JSON.parse(kv.values.get("index_first_0")).first_feeds_backfilled,
     true,
+  );
+});
+
+test("first migration retries a partial feed batch before persisting marker or trim", async () => {
+  const initial = {
+    indexmeta_first: JSON.stringify({
+      next_shard: 0,
+      next_reconcile_at: 0,
+    }),
+    snapshot_recent: JSON.stringify({
+      items: [],
+      total: 3,
+      initialized: true,
+    }),
+  };
+  for (let index = 0; index < 3; index += 1) {
+    const canonicalKey = `first_0${String(index).padStart(63, "0")}`;
+    initial[canonicalKey] = JSON.stringify({
+      result: `批迁移元素${index}`,
+      emoji: "🧰",
+      discoverer: "迁移鹅",
+      ts: 1_700_000_000 + index,
+      seq: index + 1,
+    });
+  }
+  const originalIndex = JSON.stringify({
+    items: {},
+    reconciled_at: 123,
+  });
+  initial.index_first_0 = originalIndex;
+  const originalMeta = initial.indexmeta_first;
+  const kv = new FakeKV(initial);
+  const put = kv.put.bind(kv);
+  let feedPutAttempts = 0;
+  let failedFeedKey;
+  kv.put = async (key, value) => {
+    if (key.startsWith("feed_")) {
+      feedPutAttempts += 1;
+      if (feedPutAttempts === 2) {
+        failedFeedKey = key;
+        throw new Error("injected migration feed failure");
+      }
+    }
+    await put(key, value);
+  };
+  const store = new KvStore(kv, {
+    now: () => 1_700_000_000_000,
+    firstsCapacity: 2,
+  });
+
+  await assert.rejects(
+    store.allFirsts(),
+    /injected migration feed failure/u,
+  );
+
+  assert.equal(kv.values.get("index_first_0"), originalIndex);
+  assert.equal(kv.values.get("indexmeta_first"), originalMeta);
+  assert.equal(kv.values.has(failedFeedKey), false);
+  assert.equal(
+    [...kv.values.keys()].filter((key) => key.startsWith("feed_")).length,
+    2,
+  );
+
+  const firsts = await store.allFirsts();
+
+  assert.deepEqual(
+    firsts.map((item) => item.result),
+    ["批迁移元素2", "批迁移元素1"],
+  );
+  assert.equal(
+    [...kv.values.keys()].filter((key) => key.startsWith("feed_")).length,
+    3,
+  );
+  const repairedIndex = JSON.parse(kv.values.get("index_first_0"));
+  assert.equal(repairedIndex.first_feeds_backfilled, true);
+  assert.deepEqual(
+    Object.values(repairedIndex.items).map((item) => item.result).sort(),
+    ["批迁移元素1", "批迁移元素2"],
   );
 });
 

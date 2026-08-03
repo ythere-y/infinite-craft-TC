@@ -67,6 +67,7 @@ export class KvStore {
     {
       now = () => Date.now(),
       firstsCapacity = PROMPT_SPEC.capacities.recent_firsts,
+      firstIndexShardCapacity = MAX_INDEX_RECORDS_PER_SHARD,
     } = {},
   ) {
     if (!kv || typeof kv.get !== "function" || typeof kv.put !== "function") {
@@ -77,9 +78,19 @@ export class KvStore {
         "firstsCapacity must be a positive safe integer",
       );
     }
+    if (
+      !Number.isSafeInteger(firstIndexShardCapacity) ||
+      firstIndexShardCapacity <= 0 ||
+      firstIndexShardCapacity > MAX_INDEX_RECORDS_PER_SHARD
+    ) {
+      throw new TypeError(
+        "firstIndexShardCapacity must be an integer from 1 to 2000",
+      );
+    }
     this.kv = kv;
     this.now = now;
     this.firstsCapacity = firstsCapacity;
+    this.firstIndexShardCapacity = firstIndexShardCapacity;
     this.recentSnapshotCapacity = Math.min(
       firstsCapacity,
       MAX_RECENT_SNAPSHOT_ITEMS,
@@ -172,7 +183,7 @@ export class KvStore {
   trimIndexItems(kind, items) {
     const entries = Object.entries(items);
     const capacity = kind === "first"
-      ? Math.min(this.firstsCapacity, MAX_INDEX_RECORDS_PER_SHARD)
+      ? Math.min(this.firstsCapacity, this.firstIndexShardCapacity)
       : MAX_INDEX_RECORDS_PER_SHARD;
     if (entries.length <= capacity) return items;
     return Object.fromEntries(
