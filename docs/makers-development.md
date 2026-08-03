@@ -96,7 +96,8 @@ docker compose ps            # 查看容器健康状态
 npm run dev:down             # 停止服务，保留数据
 ```
 
-现有 `run.sh` 仍可用于特殊的 Conda 环境，但不是成员和 Agent 的默认入口。
+`scripts/local/run-conda.sh` 仍可用于特殊的 Conda 环境，但不是成员和 Agent
+的默认入口。
 
 ## 二、修改与 PR
 
@@ -190,7 +191,7 @@ Makers 控制台意外出现 `APP_ENV=dev`，代码也不会切换到开发 KV�
 
 ### 端口 8000 或 16739 被占用
 
-检查是否有本项目的旧容器或 `run.sh` 进程：
+检查是否有本项目的旧容器或 `scripts/local/run-conda.sh` 进程：
 
 ```bash
 docker compose ps
@@ -250,5 +251,5 @@ docker compose logs web
 - 带临时授权参数的预览地址；
 - Redis AOF、SQLite、KV 导出和玩家数据。
 
-Render 目前暂停，历史配置只保存在 `deploy/legacy/render.yaml`。Makers 是
-唯一主动维护、在 `main` 更新后自动发布的线上平台。
+Render 目前暂停，历史配置可通过 Git 记录追溯。Makers 是唯一主动维护、
+在 `main` 更新后自动发布的线上平台。

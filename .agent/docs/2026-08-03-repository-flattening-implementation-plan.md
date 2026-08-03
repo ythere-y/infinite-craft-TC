@@ -1,5 +1,7 @@
 # Repository Flattening Implementation Plan
 
+> Document date: 2026-08-03
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make `/data/workspace/06.infinity_craft` the Git repository root while preserving all Git history, branches, configuration, and the existing GitHub remote.

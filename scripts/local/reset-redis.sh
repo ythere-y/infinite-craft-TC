@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # ============================================================
-# Infinity Craft · reset.sh
+# Infinity Craft · scripts/local/reset-redis.sh
 # 一键管理环境：清空 / 导出 / 导入 Redis 数据。
 #
 # 用法：
-#   ./reset.sh              清空 dev 环境（默认，DB 1）
-#   ./reset.sh dev          清空 dev 环境（DB 1）
-#   ./reset.sh prod         清空 prod 环境（DB 0，二次确认）
-#   ./reset.sh test         清空 test 环境（DB 2）
-#   ./reset.sh all          清空全部环境（强确认）
-#   ./reset.sh dump prod    导出 prod 数据到 data/backup/prod-YYYYmmdd-HHMMSS.json
-#   ./reset.sh restore <file> <env>  把 JSON 导回某环境
+#   scripts/local/reset-redis.sh              清空 dev 环境（默认，DB 1）
+#   scripts/local/reset-redis.sh dev          清空 dev 环境（DB 1）
+#   scripts/local/reset-redis.sh prod         清空 prod 环境（DB 0，二次确认）
+#   scripts/local/reset-redis.sh test         清空 test 环境（DB 2）
+#   scripts/local/reset-redis.sh all          清空全部环境（强确认）
+#   scripts/local/reset-redis.sh dump prod    导出 prod 数据到 data/backup/prod-YYYYmmdd-HHMMSS.json
+#   scripts/local/reset-redis.sh restore <file> <env>  把 JSON 导回某环境
 # ============================================================
 set -euo pipefail
 
-cd "$(dirname "$0")"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+cd "$PROJECT_ROOT"
 
 REDIS_CONTAINER="${REDIS_CONTAINER:-ic-redis}"
 REDIS_PORT="${REDIS_PORT:-16739}"
@@ -37,7 +39,7 @@ redis_exec() {
 
 require_running() {
   if ! docker ps --format '{{.Names}}' | grep -q "^${REDIS_CONTAINER}$"; then
-    echo "❌ Redis 容器 ${REDIS_CONTAINER} 未运行，请先 ./run.sh 或 docker start ${REDIS_CONTAINER}"
+    echo "❌ Redis 容器 ${REDIS_CONTAINER} 未运行，请先 scripts/local/run-conda.sh 或 docker start ${REDIS_CONTAINER}"
     exit 1
   fi
 }

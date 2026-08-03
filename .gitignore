@@ -120,5 +120,4 @@ package-lock.json
 .runtime/
 /.worktrees/
 /.superpowers/
-/docs/superpowers/
 CLAUDE.md

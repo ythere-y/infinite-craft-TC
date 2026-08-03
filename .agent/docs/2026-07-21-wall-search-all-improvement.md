@@ -1,5 +1,6 @@
 # 首发墙 · 全量搜索走后端
 
+> 文档日期：2026-07-21
 > 状态：**保留待实现**
 > 来源：v1 首发墙已支持分页加载（100/页 + 无限滚动），但搜索仅在**已加载到前端的数据**内生效。
 > 目标：让搜索覆盖数据库里所有首发（未滚动加载的长尾也能被搜到）。
@@ -55,7 +56,7 @@ USING fts5(result, emoji, discoverer, content='first_discoveries');
 ### 3.3 emoji 匹配的坑
 
 - emoji 的 Unicode 变体（肤色 / ZWJ）让 `LIKE '%🎉%'` 未必稳。
-- 简单做法：保留原样 LIKE，长尾后续再接入 `docs/improvements/emoji-matching.md` 里的**词语 → emoji 匹配方案**，支持"生日→🎉🎂"这类语义搜索。
+- 简单做法：保留原样 LIKE，长尾后续再接入 `.agent/docs/2026-07-21-emoji-matching-improvement.md` 里的**词语 → emoji 匹配方案**，支持"生日→🎉🎂"这类语义搜索。
 
 ---
 
@@ -75,7 +76,7 @@ USING fts5(result, emoji, discoverer, content='first_discoveries');
 
 ## 5. 与 emoji 匹配方案的衔接
 
-- 如果 `docs/improvements/emoji-matching.md` 落地了词语 ↔ emoji 的 embedding 方案，
+- 如果 `.agent/docs/2026-07-21-emoji-matching-improvement.md` 落地了词语 ↔ emoji 的 embedding 方案，
   搜索行为可以升级成："输入'开心' → 自动匹配 😊😄🥳 → 一起搜"。
 - 这会把当前方案的"三字段 LIKE"升级成"语义搜索 + LIKE 兜底"。
 

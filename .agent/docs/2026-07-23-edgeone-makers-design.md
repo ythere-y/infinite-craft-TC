@@ -1,6 +1,6 @@
 # Infinity Craft → EdgeOne Makers 迁移设计
 
-日期：2026-07-23
+文档日期：2026-07-23
 
 ## 目标与约束
 

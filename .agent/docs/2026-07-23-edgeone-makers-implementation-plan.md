@@ -1,5 +1,7 @@
 # EdgeOne Makers 迁移实施计划
 
+> 文档日期：2026-07-23
+
 > 本计划在当前 `main` 分支原地执行。完成所有验证后一次性推送，由仓库现有自动发布触发 Makers 部署。
 
 **目标：** 在不移除 FastAPI/Docker 版本的前提下，为 Infinity Craft 增加可直接部署到 EdgeOne Makers 的静态构建、Edge Functions API、KV 持久化和 Makers Models 调用。

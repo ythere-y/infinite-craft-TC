@@ -276,7 +276,7 @@ infinite-craft-TC/
 
 固定词条位于 `backend/seed_elements.json` 和 `backend/seed_combinations.json`。扩展词库时，应同步考虑语义图标映射与典型 Prompt 示例，并运行完整测试和构建检查。
 
-> **部署说明：** EdgeOne Makers 是当前唯一主动维护的生产平台；历史 Render 部署已暂停，其配置仅保留在 `deploy/legacy/` 供追溯。
+> **部署说明：** EdgeOne Makers 是当前唯一主动维护的生产平台；历史 Render 部署已暂停，相关配置可通过 Git 记录追溯。
 
 ## 💡 项目价值
 

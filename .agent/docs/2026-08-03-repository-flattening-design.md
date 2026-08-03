@@ -1,5 +1,7 @@
 # Repository Flattening Design
 
+> Document date: 2026-08-03
+
 ## Goal
 
 Make `/data/workspace/06.infinity_craft` the project and Git repository root,
