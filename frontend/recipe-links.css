@@ -65,6 +65,10 @@ body.ura-on .recipe-links {
 @media (prefers-reduced-motion: reduce) {
   .recipe-link-emphasis,
   .recipe-link-draw {
-    transition: none;
+    transition-duration: 120ms;
+  }
+
+  .recipe-link-draw {
+    display: none;
   }
 }

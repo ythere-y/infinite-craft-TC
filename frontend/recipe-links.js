@@ -236,6 +236,10 @@
       edge.animation = null;
     }
 
+    function cancelAllDraws() {
+      edges.forEach(cancelDraw);
+    }
+
     function startDraw(edge, hoveredId) {
       cancelDraw(edge);
       if (reducedMotion) return;
@@ -363,8 +367,8 @@
       if (destroyed) return;
       activeElementId = null;
       svg.classList.remove("has-active-link");
+      cancelAllDraws();
       edges.forEach((edge) => {
-        cancelDraw(edge);
         edge.group.remove();
       });
       edges.clear();
@@ -379,7 +383,9 @@
       if (!resizeObserver) global.removeEventListener?.("resize", schedule);
       workspace.removeEventListener("pointerover", onPointerOver);
       workspace.removeEventListener("pointerout", onPointerOut);
-      edges.forEach(cancelDraw);
+      activeElementId = null;
+      svg.classList.remove("has-active-link");
+      cancelAllDraws();
       edges.clear();
       svg.remove();
     }
