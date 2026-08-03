@@ -25,21 +25,62 @@ def fixture():
     }
 
 
-def test_python_and_makers_render_identical_messages():
-    expected = build_prompt_messages(**fixture())
+def render_makers(data):
     node_source = """
 import { buildPromptMessages } from "./edge-functions/_lib/prompt.js";
 const input = JSON.parse(process.argv[1]);
 process.stdout.write(JSON.stringify(buildPromptMessages(input)));
 """.strip()
     completed = subprocess.run(
-        ["node", "--input-type=module", "--eval", node_source, json.dumps(fixture(), ensure_ascii=False)],
+        ["node", "--input-type=module", "--eval", node_source, json.dumps(data, ensure_ascii=False)],
         cwd=ROOT,
         check=True,
         capture_output=True,
         text=True,
     )
-    assert json.loads(completed.stdout) == expected
+    return json.loads(completed.stdout)
+
+
+def test_python_and_makers_render_identical_messages():
+    expected = build_prompt_messages(**fixture())
+    assert render_makers(fixture()) == expected
     assert expected["style_id"] == "concrete-scene"
     assert "【本次偏好】偏具体场景" in expected["user"]
     assert "优先落到一个能直接想象的具体画面。" in expected["user"]
+
+
+def test_cross_runtime_limits_dynamic_sections_and_preserves_section_order():
+    data = {
+        "a": "需求",
+        "b": "咖啡",
+        "style_value": 0,
+        "community_examples": [
+            {"a": f"社区输入{index}", "b": "会议", "name": f"社区保留{index}", "emoji": "🗓️", "comment": "有效示例"}
+            for index in range(8)
+        ] + [{"a": "社区截断输入", "b": "会议", "name": "社区截断", "emoji": "❌", "comment": "不应出现"}],
+        "avoid_words": [f"禁词{index}" for index in range(31)],
+        "bounty_candidates": [
+            {"name": f"候选{index}", "emoji": "☁️", "category": "bg"}
+            for index in range(12)
+        ] + [{"name": "候选截断", "emoji": "❌", "category": "bg"}],
+    }
+
+    expected = build_prompt_messages(**data)
+    assert render_makers(data) == expected
+    user = expected["user"]
+    assert "社区保留7" in user
+    assert "社区截断" not in user
+    assert "禁词29" in user
+    assert "禁词30" not in user
+    assert "候选11" in user
+    assert "候选截断" not in user
+
+    section_positions = [
+        user.index("【示例】"),
+        user.index("【社区高质量示例"),
+        user.index("【avoid_words"),
+        user.index("【悬赏候选"),
+        user.index("【本次偏好】"),
+        user.index("【本次输入】"),
+    ]
+    assert section_positions == sorted(section_positions)

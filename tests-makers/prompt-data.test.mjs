@@ -133,6 +133,18 @@ test("renderer selects styles using half-open weight boundaries", () => {
     buildPromptMessages({ a: "甲", b: "乙", style_value: 0.99 }).style_id,
     "past-present",
   );
+  assert.equal(
+    buildPromptMessages({ a: "甲", b: "乙", style_value: -0.01 }).style_id,
+    "invented-word",
+  );
+  assert.equal(
+    buildPromptMessages({ a: "甲", b: "乙", style_value: 1 }).style_id,
+    "past-present",
+  );
+  assert.equal(
+    buildPromptMessages({ a: "甲", b: "乙", style_value: 2 }).style_id,
+    "past-present",
+  );
 });
 
 test("renderer uses injected random once when style value is absent", () => {

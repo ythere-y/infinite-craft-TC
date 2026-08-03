@@ -43,7 +43,7 @@
 **新增元素的清单**：
 1. 在 `seed_elements.elements` 加一行
 2. 在 `seed_combinations.combinations` 至少加 1 条"怎么合成出来"和 1 条"它和别的合成什么"
-3. 如果是高频梗，在 `prompt.py` 的 `FEW_SHOT_EXAMPLES` 里加一条
+3. 如果是高频梗，在 `shared/combine-prompt.json` 的 `examples` 里加一条
 4. 热梗类建议打版本号（如 `meme_2026w16`），便于一周后盘点哪些还火、哪些过气
 
 ## 当前词库规模（v1.0, 2026-04-22）
