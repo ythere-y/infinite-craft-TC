@@ -281,45 +281,125 @@ test("nickname, combine, wall, bounty and admin routes share KV state", async ()
   assert.deepEqual(admin.body.recent_firsts[0].icon, combine.body.icon);
 });
 
-test("community list, detail and logout expose the public HTTP contract", async () => {
+test("non-seed community flow keeps formula, player, pagination and admin contracts", async () => {
   const router = makeRouter();
   const combined = await json(router, "/api/combine", {
     method: "POST",
     body: {
-      a: "水",
+      a: "火",
       b: "火",
       discoverer: "测试鹅",
-      session_id: "community-detail-session",
+      session_id: "community-contract-session",
     },
   });
+  assert.equal(combined.response.status, 200);
+  assert.equal(combined.body.result, "边缘咖啡");
+  assert.equal(typeof combined.body.formula_id, "string");
   const playerCookie = combined.response.headers.get("set-cookie");
+  assert.match(playerCookie, /^craft_player=/);
   const formulaId = combined.body.formula_id;
 
   const published = await json(router, `/api/community/formulas/${formulaId}/publish`, {
     method: "POST",
-    headers: playerCookie ? { cookie: playerCookie } : {},
+    headers: { cookie: playerCookie },
   });
   assert.equal(published.response.status, 200);
+  assert.deepEqual(
+    {
+      id: published.body.formula.id,
+      result: published.body.formula.result,
+      version: published.body.formula.version,
+      net_score: published.body.formula.net_score,
+      my_vote: published.body.formula.my_vote,
+    },
+    {
+      id: formulaId,
+      result: "边缘咖啡",
+      version: 1,
+      net_score: 0,
+      my_vote: null,
+    },
+  );
 
   const vote = await json(router, `/api/community/formulas/${formulaId}/vote`, {
     method: "PUT",
-    headers: playerCookie ? { cookie: playerCookie } : {},
+    headers: { cookie: playerCookie },
     body: { value: 1 },
   });
-  assert.equal(vote.body.my_vote, 1);
+  assert.equal(vote.response.status, 200);
+  assert.deepEqual(
+    {
+      id: vote.body.id,
+      result: vote.body.result,
+      version: vote.body.version,
+      net_score: vote.body.net_score,
+      my_vote: vote.body.my_vote,
+    },
+    {
+      id: formulaId,
+      result: "边缘咖啡",
+      version: 1,
+      net_score: 1,
+      my_vote: 1,
+    },
+  );
 
-  const page = await json(router, "/api/community/formulas?limit=7&offset=2");
+  const page = await json(router, "/api/community/formulas?limit=7&offset=0", {
+    headers: { cookie: playerCookie },
+  });
   assert.equal(page.response.status, 200);
-  assert.ok(page.body.items.length <= 7);
+  const listed = page.body.items.find((item) => item.id === formulaId);
+  assert.deepEqual(
+    {
+      id: listed?.id,
+      result: listed?.result,
+      version: listed?.version,
+      net_score: listed?.net_score,
+      my_vote: listed?.my_vote,
+    },
+    {
+      id: formulaId,
+      result: "边缘咖啡",
+      version: 1,
+      net_score: 1,
+      my_vote: null,
+    },
+  );
 
   const detail = await json(router, `/api/community/formulas/${formulaId}`, {
-    headers: playerCookie ? { cookie: playerCookie } : {},
+    headers: { cookie: playerCookie },
   });
   assert.equal(detail.response.status, 200);
-  assert.equal(detail.body.id, formulaId);
-  assert.equal(detail.body.my_vote, 1);
+  assert.deepEqual(
+    {
+      id: detail.body.id,
+      result: detail.body.result,
+      version: detail.body.version,
+      net_score: detail.body.net_score,
+      my_vote: detail.body.my_vote,
+    },
+    {
+      id: formulaId,
+      result: "边缘咖啡",
+      version: 1,
+      net_score: 1,
+      my_vote: 1,
+    },
+  );
 
-  const logout = await json(router, "/api/community/admin/logout", { method: "POST" });
+  const login = await json(router, "/api/community/admin/login", {
+    method: "POST",
+    body: { key: "test-admin" },
+  });
+  assert.equal(login.response.status, 200);
+  assert.equal(login.body.ok, true);
+  const adminCookie = login.response.headers.get("set-cookie");
+  assert.match(adminCookie, /^craft_admin=/);
+
+  const logout = await json(router, "/api/community/admin/logout", {
+    method: "POST",
+    headers: { cookie: adminCookie },
+  });
   assert.equal(logout.response.status, 200);
   assert.equal(logout.body.ok, true);
   assert.match(logout.response.headers.get("set-cookie"), /craft_admin=;/);
