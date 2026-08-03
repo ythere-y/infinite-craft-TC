@@ -149,9 +149,11 @@ Implementation changes stay inside:
   grouped Anime.js breathing, and cleanup;
 - `tests/test_combine_feedback.py` for browser-observable lifecycle coverage.
 
-No backend, recipe schema, CSS color, asset version, or dependency change is
-required. `frontend/recipe-links.css` changes only if a small defensive reset
-rule is needed after browser verification.
+No backend, recipe schema, CSS color, or dependency change is required.
+Because the browser asset bytes change, the eight cache-coupled main-page
+assets advance together from `v=20260803c` to `v=20260803d`.
+`frontend/recipe-links.css` changes only if a small defensive reset rule is
+needed after browser verification.
 
 ## Verification
 
