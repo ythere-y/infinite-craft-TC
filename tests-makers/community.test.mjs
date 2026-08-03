@@ -710,3 +710,190 @@ test("Makers reconciliation returns its authoritative seed when pointer readback
   assert.equal(active.source, "seed");
   assert.equal(active.result, "水塘");
 });
+
+async function activePointerKey(a, b) {
+  return `community_active_${await sha256Hex(`${a} + ${b}`)}`;
+}
+
+test("Makers reconciliation advances a validated v32 pointer to seed v33", async () => {
+  const kv = new FakeKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const old = await community.createFormula({
+    a: "水", b: "水", result: "错误水", emoji: "❌",
+    comment: "冲突的旧公式。", source: "llm", discoverer: "旧鹅",
+  }, 32);
+  await community.put(`community_formula_${old.id}`, old);
+  await community.put(await activePointerKey("水", "水"), { id: old.id, version: 32 });
+
+  const active = await community.reconcileAuthoritativeFormula({
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "seed", playerId: "seed-player",
+  });
+
+  assert.equal(active.version, 33);
+  assert.equal(active.source, "seed");
+  assert.equal((await community.get(`community_formula_${old.id}`)).status, "retired");
+});
+
+test("Makers reconciliation globally inventories an unmarked orphan seed v33 before recreating a missing pointer", async () => {
+  const kv = new FakeKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const orphan = await community.createFormula({
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "seed", discoverer: null,
+  }, 33);
+  await community.put(`community_formula_${orphan.id}`, orphan);
+
+  const active = await community.reconcileAuthoritativeFormula({
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "seed", playerId: "seed-player",
+  });
+
+  assert.equal(active.id, orphan.id);
+  assert.equal(active.version, 33);
+  const activeRecords = [...kv.values.values()]
+    .map((value) => JSON.parse(value))
+    .filter((value) => value?.combo_key === "水 + 水" && value.status === "active");
+  assert.deepEqual(activeRecords.map((value) => value.version), [33]);
+});
+
+test("Makers reconciliation creates v1 for a brand-new authoritative pair after a complete inventory", async () => {
+  const community = new CommunityStore(new FakeKV(), { now: () => 1_700_000_000_000 });
+
+  const active = await community.reconcileAuthoritativeFormula({
+    a: "全新甲", b: "全新乙", result: "全新种子", emoji: "✨",
+    comment: "全新权威公式。", source: "seed", playerId: "seed-player",
+  });
+
+  assert.equal(active.version, 1);
+  assert.equal(active.source, "seed");
+});
+
+test("Makers reconciliation fails closed with zero writes when a pointed record misses twice", async () => {
+  class DoubleMissKV extends FakeKV {
+    constructor() {
+      super();
+      this.hiddenKey = null;
+      this.puts = [];
+    }
+
+    async get(key, options) {
+      if (key === this.hiddenKey) return null;
+      return super.get(key, options);
+    }
+
+    async put(key, value) {
+      this.puts.push({ key, value });
+      return super.put(key, value);
+    }
+  }
+
+  const kv = new DoubleMissKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const old = await community.ensureFormula({
+    a: "水", b: "水", result: "错误水", emoji: "❌",
+    comment: "冲突的旧公式。", source: "llm", discoverer: "旧鹅", playerId: "seed-player",
+  });
+  kv.puts = [];
+  kv.hiddenKey = `community_formula_${old.id}`;
+
+  await assert.rejects(
+    () => community.reconcileAuthoritativeFormula({
+      a: "水", b: "水", result: "水塘", emoji: "💧",
+      comment: "两滴水先汇成池塘。", source: "seed", playerId: "seed-player",
+    }),
+    (error) => error?.status === 503 && error?.retryable === true,
+  );
+  assert.deepEqual(kv.puts, []);
+});
+
+test("Makers reconciliation returns its seed when both pointer readbacks are stale", async () => {
+  class DoubleStalePointerKV extends FakeKV {
+    constructor() {
+      super();
+      this.stalePointer = null;
+      this.staleReads = 0;
+    }
+
+    async put(key, value) {
+      if (key.startsWith("community_active_") && this.values.has(key)) {
+        this.stalePointer = this.values.get(key);
+        this.staleReads = 2;
+      }
+      return super.put(key, value);
+    }
+
+    async get(key, options) {
+      if (key.startsWith("community_active_") && this.staleReads > 0) {
+        this.staleReads -= 1;
+        return this.stalePointer;
+      }
+      return super.get(key, options);
+    }
+  }
+
+  const kv = new DoubleStalePointerKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  await community.ensureFormula({
+    a: "水", b: "水", result: "错误水", emoji: "❌",
+    comment: "冲突的旧公式。", source: "llm", discoverer: "旧鹅", playerId: "seed-player",
+  });
+
+  const active = await community.reconcileAuthoritativeFormula({
+    a: "水", b: "水", result: "水塘", emoji: "💧",
+    comment: "两滴水先汇成池塘。", source: "seed", playerId: "seed-player",
+  });
+
+  assert.equal(active.version, 2);
+  assert.equal(active.source, "seed");
+});
+
+test("Makers reconciliation never overwrites an observed mismatched target version", async () => {
+  const kv = new FakeKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const old = await community.ensureFormula({
+    a: "水", b: "水", result: "错误水", emoji: "❌",
+    comment: "冲突的旧公式。", source: "llm", discoverer: "旧鹅", playerId: "seed-player",
+  });
+  await community.put(await community.formulaInventoryKey("水 + 水"), {
+    schema_version: 1,
+    pair: "水 + 水",
+    complete: true,
+  });
+  const conflictingTarget = await community.createFormula({
+    a: "水", b: "水", result: "抢占目标", emoji: "⚠️",
+    comment: "冲突的目标版本。", source: "llm", discoverer: "旧鹅",
+  }, 2);
+  await community.put(`community_formula_${conflictingTarget.id}`, conflictingTarget);
+
+  await assert.rejects(
+    () => community.reconcileAuthoritativeFormula({
+      a: "水", b: "水", result: "水塘", emoji: "💧",
+      comment: "两滴水先汇成池塘。", source: "seed", playerId: "seed-player",
+    }),
+    (error) => error?.status === 503 && /目标版本/.test(error.message),
+  );
+
+  assert.equal((await community.get(`community_formula_${old.id}`)).status, "active");
+  assert.equal((await community.get(`community_formula_${conflictingTarget.id}`)).result, "抢占目标");
+});
+
+test("Makers formula markers enumerate every paginated version without a discovery window", async () => {
+  const kv = new FakeKV();
+  const community = new CommunityStore(kv, { now: () => 1_700_000_000_000 });
+  const pair = "水 + 水";
+  for (let version = 1; version <= 257; version += 1) {
+    await community.put(await community.formulaMarkerKey(pair, version), {
+      schema_version: 1,
+      pair,
+      version,
+      id: await community.formulaId(pair, version),
+    });
+  }
+
+  const markers = await community.listFormulaMarkers(pair);
+
+  assert.equal(markers.length, 257);
+  assert.deepEqual([markers[0].version, markers.at(-1).version], [1, 257]);
+  assert.ok(kv.listCalls >= 2);
+});

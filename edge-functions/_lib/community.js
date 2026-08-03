@@ -8,7 +8,10 @@ const MAX_PUBLIC_INDEX = 500;
 const MAX_PUBLIC_PAGE = 100;
 // This is a retirement catalogue capacity, independent from prompt limits.
 const MAX_RETIRED_FORMULA_INDEX = 500;
-const MAX_FORMULA_DISCOVERY_VERSION = 32;
+const FORMULA_MARKER_PREFIX = "community_formula_marker_";
+const FORMULA_INVENTORY_PREFIX = "community_formula_inventory_";
+const FORMULA_MARKER_PAGE_SIZE = 256;
+const FORMULA_RECORD_KEY = /^community_formula_[a-f0-9]{32}$/u;
 // The public formula catalogue is intentionally bounded for KV read cost.
 // Prompt limits select within this catalogue and do not impose another cap.
 const PUBLIC_FORMULA_CATALOG_CAPACITY =
@@ -120,6 +123,18 @@ export class CommunityStore {
   async formulaId(pair, version) {
     return (await sha256Hex(`${pair}:v${version}`)).slice(0, 32);
   }
+  async formulaPairHash(pair) {
+    return sha256Hex(pair);
+  }
+  async formulaMarkerPrefix(pair) {
+    return `${FORMULA_MARKER_PREFIX}${await this.formulaPairHash(pair)}_`;
+  }
+  async formulaMarkerKey(pair, version) {
+    return `${await this.formulaMarkerPrefix(pair)}${String(version).padStart(16, "0")}`;
+  }
+  async formulaInventoryKey(pair) {
+    return `${FORMULA_INVENTORY_PREFIX}${await this.formulaPairHash(pair)}`;
+  }
   async readConsistently(key, fallback = null) {
     // KV may briefly return an older replica. A finite immediate reread avoids
     // destructive work based on a single absent or stale value without sleep.
@@ -130,6 +145,139 @@ export class CommunityStore {
   validFormulaVersion(value) {
     const version = Number(value);
     return Number.isSafeInteger(version) && version > 0 ? version : null;
+  }
+  async listCompleteKeys(prefix) {
+    const keys = new Set();
+    const cursors = new Set();
+    let cursor;
+    while (true) {
+      let page;
+      try {
+        page = await this.kv.list(cursor
+          ? { prefix, limit: FORMULA_MARKER_PAGE_SIZE, cursor }
+          : { prefix, limit: FORMULA_MARKER_PAGE_SIZE });
+      } catch {
+        throw retryableConsistencyError("社区公式目录暂不可读，请重试");
+      }
+      if (!page || !Array.isArray(page.keys)) {
+        throw retryableConsistencyError("社区公式目录不完整，请重试");
+      }
+      const knownCount = keys.size;
+      for (const item of page.keys) {
+        const key = item?.key || item?.name;
+        if (!key || !key.startsWith(prefix)) {
+          throw retryableConsistencyError("社区公式目录不一致，请重试");
+        }
+        keys.add(key);
+      }
+      if (page.complete === true) return [...keys].sort();
+      if (keys.size === knownCount) {
+        throw retryableConsistencyError("社区公式目录分页不完整，请重试");
+      }
+      if (!page.cursor || cursors.has(page.cursor)) {
+        throw retryableConsistencyError("社区公式目录分页不完整，请重试");
+      }
+      cursors.add(page.cursor);
+      cursor = page.cursor;
+    }
+  }
+  async readFormulaMarker(pair, version) {
+    const key = await this.formulaMarkerKey(pair, version);
+    const marker = await this.readConsistently(key);
+    if (!marker) return null;
+    const id = await this.formulaId(pair, version);
+    if (
+      marker.schema_version !== 1 ||
+      marker.pair !== pair ||
+      this.validFormulaVersion(marker.version) !== version ||
+      marker.id !== id
+    ) {
+      throw retryableConsistencyError("社区公式版本标记不一致，请重试");
+    }
+    return marker;
+  }
+  async rememberFormulaMarker(pair, version) {
+    const existing = await this.readFormulaMarker(pair, version);
+    if (existing) return existing;
+    const marker = {
+      schema_version: 1,
+      pair,
+      version,
+      id: await this.formulaId(pair, version),
+    };
+    await this.put(await this.formulaMarkerKey(pair, version), marker);
+    const readback = await this.readFormulaMarker(pair, version);
+    if (!readback) {
+      throw retryableConsistencyError("社区公式版本标记暂不可读，请重试");
+    }
+    return readback;
+  }
+  async listFormulaMarkers(pair) {
+    const prefix = await this.formulaMarkerPrefix(pair);
+    const keys = await this.listCompleteKeys(prefix);
+    const markers = [];
+    for (const key of keys) {
+      const suffix = key.slice(prefix.length);
+      if (!/^\d{16}$/u.test(suffix)) {
+        throw retryableConsistencyError("社区公式版本标记不一致，请重试");
+      }
+      const version = this.validFormulaVersion(Number(suffix));
+      if (!version || key !== await this.formulaMarkerKey(pair, version)) {
+        throw retryableConsistencyError("社区公式版本标记不一致，请重试");
+      }
+      const marker = await this.readFormulaMarker(pair, version);
+      if (!marker) {
+        throw retryableConsistencyError("社区公式版本标记暂不可读，请重试");
+      }
+      markers.push(marker);
+    }
+    return markers.sort((left, right) => left.version - right.version);
+  }
+  async legacyFormulaInventory(pair) {
+    const formulas = [];
+    for (const key of await this.listCompleteKeys("community_formula_")) {
+      if (!FORMULA_RECORD_KEY.test(key)) continue;
+      const formula = await this.readConsistently(key);
+      if (!formula) {
+        throw retryableConsistencyError("社区公式历史暂不可读，请重试");
+      }
+      if (formula.combo_key !== pair) continue;
+      const version = this.validFormulaVersion(formula.version);
+      if (!version || formula.id !== await this.formulaId(pair, version)) {
+        throw retryableConsistencyError("社区公式历史不一致，请重试");
+      }
+      formulas.push(formula);
+    }
+    return formulas;
+  }
+  async formulaInventoryComplete(pair) {
+    const inventory = await this.readConsistently(await this.formulaInventoryKey(pair));
+    if (!inventory) return false;
+    if (inventory.schema_version !== 1 || inventory.pair !== pair || inventory.complete !== true) {
+      throw retryableConsistencyError("社区公式目录不一致，请重试");
+    }
+    return true;
+  }
+  async discoverFormulaVersions(pair) {
+    if (!await this.formulaInventoryComplete(pair)) {
+      for (const formula of await this.legacyFormulaInventory(pair)) {
+        await this.rememberFormulaMarker(pair, formula.version);
+      }
+      await this.put(await this.formulaInventoryKey(pair), {
+        schema_version: 1,
+        pair,
+        complete: true,
+      });
+    }
+    const formulas = [];
+    for (const marker of await this.listFormulaMarkers(pair)) {
+      const formula = await this.readVersionedFormula(pair, marker.version);
+      if (!formula) {
+        throw retryableConsistencyError("社区公式版本记录暂不可读，请重试");
+      }
+      formulas.push(formula);
+    }
+    return formulas;
   }
   async readVersionedFormula(pair, version) {
     const id = await this.formulaId(pair, version);
@@ -143,14 +291,6 @@ export class CommunityStore {
       throw retryableConsistencyError("社区公式版本记录不一致，请重试");
     }
     return formula;
-  }
-  async discoverFormulaVersions(pair) {
-    const formulas = [];
-    for (let version = 1; version <= MAX_FORMULA_DISCOVERY_VERSION; version += 1) {
-      const formula = await this.readVersionedFormula(pair, version);
-      if (formula) formulas.push(formula);
-    }
-    return formulas;
   }
   async createFormula(
     { a, b, result, emoji, comment, source, discoverer },
@@ -192,10 +332,9 @@ export class CommunityStore {
       formula = await this.createFormula({
         a, b, result, emoji, comment, source, discoverer,
       }, version);
-      await Promise.all([
-        this.put(`community_formula_${formula.id}`, formula),
-        this.put(pointerKey, { id: formula.id, version }),
-      ]);
+      await this.rememberFormulaMarker(pair, version);
+      await this.put(`community_formula_${formula.id}`, formula);
+      await this.put(pointerKey, { id: formula.id, version });
     }
     await this.rememberReproduction(formula, playerId);
     return formula;
@@ -233,8 +372,11 @@ export class CommunityStore {
         0,
       );
       const version = highestVersion + 1;
-      if (version > MAX_FORMULA_DISCOVERY_VERSION) {
-        throw retryableConsistencyError("社区公式版本超过安全发现上限，请重试");
+      if (!Number.isSafeInteger(version)) {
+        throw retryableConsistencyError("社区公式版本超出安全范围，请重试");
+      }
+      if (await this.readFormulaMarker(pair, version)) {
+        throw retryableConsistencyError("社区公式目标版本已变化，请重试");
       }
       const existing = await this.readVersionedFormula(pair, version);
       if (existing) {
@@ -276,8 +418,16 @@ export class CommunityStore {
     }
 
     if (needsCreate) {
+      if (await this.readFormulaMarker(pair, formula.version)) {
+        throw retryableConsistencyError("社区公式目标版本已变化，请重试");
+      }
       const existing = await this.readVersionedFormula(pair, formula.version);
       if (existing) {
+        throw retryableConsistencyError("社区公式目标版本已变化，请重试");
+      }
+      await this.rememberFormulaMarker(pair, formula.version);
+      const afterMarker = await this.readVersionedFormula(pair, formula.version);
+      if (afterMarker) {
         throw retryableConsistencyError("社区公式目标版本已变化，请重试");
       }
       await this.put(`community_formula_${formula.id}`, formula);
