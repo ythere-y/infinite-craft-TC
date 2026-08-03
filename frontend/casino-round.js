@@ -6,12 +6,16 @@
 
   function normalizePositiveInteger(value, fallback) {
     const number = Math.trunc(Number(value));
-    return Number.isFinite(number) && number > 0 ? number : fallback;
+    return Number.isFinite(number) && number > 0
+      ? Math.min(Number.MAX_SAFE_INTEGER, number)
+      : fallback;
   }
 
   function normalizeCount(value) {
     const number = Math.trunc(Number(value));
-    return Number.isFinite(number) && number > 0 ? number : 0;
+    return Number.isFinite(number) && number > 0
+      ? Math.min(Number.MAX_SAFE_INTEGER, number)
+      : 0;
   }
 
   function createRound(baseScore = 100) {
@@ -35,8 +39,10 @@
     if (event === "success") {
       return {
         ...current,
-        pot: current.chips === 0 ? current.baseScore : current.pot * 2,
-        chips: current.chips + 1,
+        pot: current.chips === 0
+          ? current.baseScore
+          : Math.min(Number.MAX_SAFE_INTEGER, current.pot * 2),
+        chips: Math.min(Number.MAX_SAFE_INTEGER, current.chips + 1),
       };
     }
     if (event === "harvest" || event === "failure") {

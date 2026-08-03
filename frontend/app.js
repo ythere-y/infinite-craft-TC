@@ -265,7 +265,7 @@ function setDragTarget(record, active) {
 // ============================================================
 async function init() {
   await window.ICON_SYSTEM.ready;
-  window.CASINO_MODE?.init?.();
+  window.CASINO_MODE?.init?.({ awardScore: awardCasinoScore });
   window.EFFECTS?.initBossMode?.({ defaultOn: true });
   await loadElements();
   window.ICON_SYSTEM.hydrateActions(document);
@@ -690,16 +690,26 @@ async function combine(srcId, dstId, x, y) {
     persistDiscovered();
     renderSidebar(searchInput.value);
 
-    // 加分系统（depth-based）：未知全分 / 已知 1/10
+    // 表模式按稀有度直接计分；里模式只更新待收获筹码。
     const fullScore = resp.full_score || 0;
     const gained = isNewToPlayer ? fullScore : Math.max(1, Math.floor(fullScore / 10));
-    if (fullScore > 0) {
+    const casinoActive = window.EFFECTS?.isUraMode?.() === true;
+    if (casinoActive) {
+      window.CASINO_MODE?.onCombineResult?.({
+        isGlobalFirst: resp.is_first === true,
+        sourceEl: newRec.el,
+      });
+    } else if (fullScore > 0) {
       animateScore(gained, newRec.el);
       recordScoreEvent(resultInfo, gained, resp.depth, tier);
     }
     if (resp.explode) window.EFFECTS?.explode?.(resp.result);
     window.EFFECTS?.onCombineResult?.(newRec.el, resultInfo, tier, {
-      depth: resp.depth, gained, fullScore, isNewToPlayer, comment: resp.comment,
+      depth: resp.depth,
+      gained: casinoActive ? null : gained,
+      fullScore,
+      isNewToPlayer,
+      comment: resp.comment,
     });
     if (resp.formula_id) showPublishAction(resp.formula_id);
   } catch (err) {
@@ -800,6 +810,18 @@ function animateScore(delta, sourceEl) {
     () => scoreDeltaEl.classList.remove("show"),
     1_800
   );
+}
+
+function awardCasinoScore({ amount, sourceEl, streak } = {}) {
+  const gained = window.SCORE_LEVEL.normalizeScore(amount);
+  if (gained <= 0) return;
+  animateScore(gained, sourceEl);
+  recordScoreEvent({
+    name: "里模式收获",
+    emoji: "🎰",
+    category: "ura",
+    is_starter: false,
+  }, gained, streak, "casino");
 }
 
 // ============================================================

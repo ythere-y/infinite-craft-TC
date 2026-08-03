@@ -3,6 +3,7 @@ import { execFile } from "node:child_process";
 import {
   access,
   appendFile,
+  cp,
   mkdir,
   mkdtemp,
   readFile,
@@ -22,6 +23,8 @@ const REQUIRED_FILES = [
   "dist/THIRD_PARTY_NOTICES.md",
   "dist/index.html",
   "dist/app.js",
+  "dist/casino-mode.js",
+  "dist/casino-round.js",
   "dist/combine-feedback.js",
   "dist/effects.js",
   "dist/icon-system.css",
@@ -30,6 +33,7 @@ const REQUIRED_FILES = [
   "dist/recipe-links.css",
   "dist/recipe-links.js",
   "dist/style.css",
+  "dist/vendor/anime.iife.min.js",
   "dist/assets/icons/generated/emoji-icon-manifest.json",
   "dist/assets/icons/generated/element-icon-map.json",
   "dist/assets/icons/actions/trash.svg",
@@ -135,6 +139,12 @@ async function runFixtureBuild(root) {
       stdout: error.stdout ?? "",
       stderr: error.stderr ?? "",
     };
+  }
+}
+
+async function copyWorkingBuildFixture(root) {
+  for (const input of COMMITTED_BUILD_INPUTS) {
+    await cp(resolve(input), resolve(root, input), { recursive: true });
   }
 }
 
@@ -409,6 +419,36 @@ test("normal build needs no words checkout and ships only local icon assets", as
     }
   } finally {
     await rm(root, { force: true, recursive: true });
+  }
+});
+
+test("normal build rejects each missing casino runtime asset", async () => {
+  const assets = [
+    "frontend/vendor/anime.iife.min.js",
+    "frontend/casino-round.js",
+    "frontend/casino-mode.js",
+  ];
+
+  for (const asset of assets) {
+    const root = await mkdtemp(join(tmpdir(), "casino-build-required-"));
+    try {
+      await copyWorkingBuildFixture(root);
+      await rm(join(root, asset), { force: true });
+
+      const result = await runFixtureBuild(root);
+
+      assert.notEqual(
+        result.code,
+        0,
+        `build must reject a missing ${asset}`,
+      );
+      assert.match(
+        `${result.stdout}\n${result.stderr}`,
+        new RegExp(asset.split("/").at(-1).replaceAll(".", "\\.")),
+      );
+    } finally {
+      await rm(root, { force: true, recursive: true });
+    }
   }
 });
 

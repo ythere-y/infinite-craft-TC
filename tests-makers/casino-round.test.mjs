@@ -54,6 +54,13 @@ test("unlimited chip offsets rise while harvest stagger stays bounded", async ()
   assert.equal(round.chipOffset(0), 0);
   assert.equal(round.chipOffset(25), 175);
 
+  let state = round.createRound(100);
+  for (let index = 0; index < 2_000; index += 1) {
+    state = round.applyRoundEvent(state, "success");
+  }
+  assert.equal(state.chips, 2_000);
+  assert.equal(state.pot, Number.MAX_SAFE_INTEGER);
+
   const sequence = plain(round.createHarvestSequence(100));
   assert.equal(sequence.length, 100);
   assert.equal(sequence[0].chipIndex, 99);

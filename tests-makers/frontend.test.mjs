@@ -14,6 +14,26 @@ test("score-level helper loads before consumers", async () => {
   assert.ok(html.indexOf("icon-system.js") < html.indexOf("score-level.js"));
   assert.ok(html.indexOf("score-level.js") < html.indexOf("effects.js"));
   assert.ok(html.indexOf("score-level.js") < html.indexOf("app.js"));
+  assert.ok(html.indexOf("anime.iife.min.js") < html.indexOf("casino-mode.js"));
+  assert.ok(html.indexOf("casino-round.js") < html.indexOf("casino-mode.js"));
+  assert.ok(html.indexOf("effects.js") < html.indexOf("casino-mode.js"));
+  assert.ok(html.indexOf("casino-mode.js") < html.indexOf("app.js"));
+});
+
+test("vendored casino animation runtime keeps its license and adds no npm dependency", async () => {
+  const [vendor, notices, packageJson] = await Promise.all([
+    readFile("frontend/vendor/anime.iife.min.js", "utf8"),
+    readFile("THIRD_PARTY_NOTICES.md", "utf8"),
+    readFile("package.json", "utf8").then(JSON.parse),
+  ]);
+
+  assert.match(vendor.slice(0, 220), /Anime\.js - UMD minified bundle/);
+  assert.match(vendor.slice(0, 220), /@version v4\.5\.0/);
+  assert.match(vendor.slice(0, 220), /@license MIT/);
+  assert.match(notices, /## Anime\.js/);
+  assert.match(notices, /Copyright \(c\) 2026 Julian Garnier/);
+  assert.equal(packageJson.dependencies?.animejs, undefined);
+  assert.equal(packageJson.devDependencies?.animejs, undefined);
 });
 
 test("recipe comments prefer API rows and safely fall back to an open formula", () => {

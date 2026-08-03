@@ -17,6 +17,7 @@
   let busy = false;
   let initialized = false;
   let elements = null;
+  const pendingResults = [];
 
   function formatScore(value) {
     return Number(value).toLocaleString("zh-CN");
@@ -203,6 +204,17 @@
     }
   }
 
+  function drainPendingResults() {
+    while (!busy && pendingResults.length > 0) {
+      const next = pendingResults.shift();
+      if (next.isGlobalFirst === true) {
+        succeed(next.sourceEl);
+      } else if (state.chips > 0) {
+        void fail();
+      }
+    }
+  }
+
   async function harvest() {
     if (busy || state.pot <= 0 || state.chips <= 0) return;
     busy = true;
@@ -257,6 +269,7 @@
       elements.burst.classList.remove("is-active");
       busy = false;
       render();
+      drainPendingResults();
     }
   }
 
@@ -299,6 +312,7 @@
       elements.stack.replaceChildren();
       busy = false;
       render();
+      drainPendingResults();
     }
   }
 
@@ -334,7 +348,11 @@
   }
 
   function onCombineResult({ isGlobalFirst, sourceEl } = {}) {
-    if (!initialized || busy) return;
+    if (!initialized) return;
+    if (busy) {
+      pendingResults.push({ isGlobalFirst, sourceEl });
+      return;
+    }
     if (isGlobalFirst === true) {
       succeed(sourceEl);
     } else {

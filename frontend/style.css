@@ -1185,6 +1185,10 @@ body.ura-on .element.on-canvas.is-starter {
 .score-row .gain.tier-global_new { background: #FFF8E1; color: #C77800; }
 .score-row .gain.tier-global_known { background: #E0F7F5; color: #00897B; }
 .score-row .gain.tier-seen { background: #F0F0F0; color: #666; }
+.score-row .gain.tier-casino {
+  background: linear-gradient(135deg, #FFF0AD, #E8D5FF);
+  color: #6D4312;
+}
 
 .score-panel-empty {
   padding: 30px 20px;
@@ -2371,6 +2375,10 @@ body.ura-on .score-row { color: #E8E6FF; border-bottom-color: #1A1A3A; }
 body.ura-on .score-row .name { color: #E8E6FF; }
 body.ura-on .score-row .meta { color: #8A84B0; }
 body.ura-on .score-row .gain.tier-seen { background: #1A1A3A; color: #8A84B0; }
+body.ura-on .score-row .gain.tier-casino {
+  background: linear-gradient(135deg, #4A3520, #30264E);
+  color: #FFE69A;
+}
 body.ura-on .score-panel-empty { color: #6A6490; }
 body.ura-on #score-panel-total { color: #CAA6FF; }
 body.ura-on .tier-progress { background: #1A1A3A; }

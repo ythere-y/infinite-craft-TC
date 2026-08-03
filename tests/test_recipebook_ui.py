@@ -84,6 +84,11 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
     <script>
     setTimeout(function () {
       try {
+        ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown",
+         "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"]
+          .forEach(function (key) {
+            window.dispatchEvent(new KeyboardEvent("keydown", { key: key, bubbles: true }));
+          });
         var drawer = document.getElementById("recipebook");
         var close = document.getElementById("recipebook-close");
         drawer.style.transition = "none";

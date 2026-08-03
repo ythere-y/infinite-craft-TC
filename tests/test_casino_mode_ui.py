@@ -44,7 +44,7 @@ def _chrome() -> Path:
     raise AssertionError("Casino UI tests require a Chromium-family browser.")
 
 
-def _production_controller_page() -> str:
+def _production_controller_page(*, reduced_motion: bool = True) -> str:
     for source in (ROUND_SOURCE, CONTROLLER_SOURCE, ANIME_SOURCE):
         assert source.is_file(), f"missing production asset: {source.relative_to(ROOT)}"
 
@@ -56,9 +56,10 @@ def _production_controller_page() -> str:
         "<body>",
         """<body class="ura-on">
         <script>
+        window.__casinoReducedMotion = __CASINO_REDUCED_MOTION__;
         window.matchMedia = function () {
           return {
-            matches: true,
+            matches: window.__casinoReducedMotion,
             addEventListener: function () {},
             removeEventListener: function () {}
           };
@@ -110,6 +111,29 @@ def _production_controller_page() -> str:
         ).length;
         document.getElementById("casino-harvest").click();
         await new Promise(function (resolve) { setTimeout(resolve, 60); });
+        var duringHarvest = {
+          chips: document.querySelectorAll(
+            "#casino-chip-stack .casino-chip"
+          ).length,
+          pot: document.getElementById("casino-pot-value").textContent,
+          total: localStorage.getItem("ic_kpi"),
+          busy: window.CASINO_MODE.isBusy(),
+          activeAnimations: document.getAnimations().filter(function (animation) {
+            return animation.playState === "running";
+          }).length
+        };
+        var afterHarvest = {
+          chips: document.querySelectorAll(
+            "#casino-chip-stack .casino-chip"
+          ).length,
+          pot: document.getElementById("casino-pot-value").textContent,
+          total: localStorage.getItem("ic_kpi"),
+          busy: window.CASINO_MODE.isBusy()
+        };
+        window.CASINO_MODE.onCombineResult({ isGlobalFirst: true });
+        window.CASINO_MODE.onCombineResult({ isGlobalFirst: false });
+        window.CASINO_MODE.onCombineResult({ isGlobalFirst: true });
+        await new Promise(function (resolve) { setTimeout(resolve, 60); });
 
         var result = {
           anime: {
@@ -122,14 +146,9 @@ def _production_controller_page() -> str:
           table_width: tableRect.width,
           table_height: tableRect.height,
           technical_labels: technicalLabels,
-          after_harvest: {
-            chips: document.querySelectorAll(
-              "#casino-chip-stack .casino-chip"
-            ).length,
-            pot: document.getElementById("casino-pot-value").textContent,
-            total: localStorage.getItem("ic_kpi"),
-            busy: window.CASINO_MODE.isBusy()
-          }
+          during_harvest: duringHarvest,
+          after_harvest: afterHarvest,
+          after_queued_combine: window.CASINO_MODE.getState()
         };
         document.getElementById("casino-test-result").textContent =
           JSON.stringify({ ok: true, value: result });
@@ -147,13 +166,24 @@ def _production_controller_page() -> str:
         "</head>",
         f"<style>{STYLE_SOURCE.read_text(encoding='utf-8')}</style></head>",
         1,
+    ).replace(
+        "__CASINO_REDUCED_MOTION__",
+        "true" if reduced_motion else "false",
+        1,
     ).replace("</body>", f"{scripts}{probe}</body>", 1)
 
 
-def _run_controller_page(tmp_path: Path) -> dict[str, object]:
+def _run_controller_page(
+    tmp_path: Path,
+    *,
+    reduced_motion: bool = True,
+) -> dict[str, object]:
     page = tmp_path / "casino-controller.html"
     profile = tmp_path / "chrome-profile"
-    page.write_text(_production_controller_page(), encoding="utf-8")
+    page.write_text(
+        _production_controller_page(reduced_motion=reduced_motion),
+        encoding="utf-8",
+    )
     command = [
         str(_chrome()),
         "--headless=new",
@@ -162,7 +192,7 @@ def _run_controller_page(tmp_path: Path) -> dict[str, object]:
         "--disable-background-networking",
         "--no-first-run",
         "--no-default-browser-check",
-        "--virtual-time-budget=1500",
+        "--virtual-time-budget=5000",
         "--window-size=1280,900",
         f"--user-data-dir={profile}",
         "--dump-dom",
@@ -208,17 +238,64 @@ def _production_app_page() -> str:
         localStorage.setItem("ic_nick", "测试鹅");
         localStorage.setItem("ic_nick_id", "ic-test");
         window.__uraEvents = [];
+        window.__combineQueue = [
+          {
+            result: "午夜蒸汽",
+            emoji: "💨",
+            chain: "test",
+            icon: null,
+            is_first: true,
+            depth: 2,
+            full_score: 40,
+            hit_count: 1,
+            comment: "测试点评",
+            source: "seed",
+            explode: false
+          },
+          {
+            result: "白昼泥浆",
+            emoji: "🟤",
+            chain: "test",
+            icon: null,
+            is_first: true,
+            depth: 2,
+            full_score: 50,
+            hit_count: 1,
+            comment: "测试点评",
+            source: "seed",
+            explode: false
+          }
+        ];
         window.addEventListener("ura-mode-change", function (event) {
           window.__uraEvents.push(event.detail);
         });
         window.alert = function () {};
+        window.matchMedia = function (query) {
+          return {
+            matches: String(query).indexOf("prefers-reduced-motion") >= 0,
+            addEventListener: function () {},
+            removeEventListener: function () {}
+          };
+        };
         window.fetch = function (url) {
           var path = String(url);
           var payload =
             path.indexOf("emoji-icon-manifest") >= 0 ? {}
             : path.indexOf("element-icon-map") >= 0 ? {}
-            : path.indexOf("/api/starters") >= 0 ? { starters: [] }
-            : path.indexOf("/api/elements") >= 0 ? { elements: {} }
+            : path.indexOf("/api/starters") >= 0 ? {
+                starters: [
+                  { name: "水", emoji: "💧", category: "classic" },
+                  { name: "火", emoji: "🔥", category: "classic" }
+                ]
+              }
+            : path.indexOf("/api/elements") >= 0 ? {
+                elements: {
+                  "水": { emoji: "💧", category: "classic", is_starter: true },
+                  "火": { emoji: "🔥", category: "classic", is_starter: true }
+                }
+              }
+            : path.indexOf("/api/combine") >= 0
+              ? window.__combineQueue.shift()
             : { ok: true };
           return Promise.resolve({
             ok: true,
@@ -278,6 +355,110 @@ def _production_app_page() -> str:
           entranceTransitionCount: entranceTransitionCount,
           chips: window.CASINO_MODE.getState().chips
         };
+        window.CASINO_MODE.onCombineResult({ isGlobalFirst: false });
+        await new Promise(function (resolve) { setTimeout(resolve, 20); });
+
+        function pointer(type, target, x, y, pointerId, buttons) {
+          target.dispatchEvent(new PointerEvent(type, {
+            bubbles: true,
+            cancelable: true,
+            pointerId: pointerId,
+            pointerType: "mouse",
+            button: 0,
+            buttons: buttons,
+            clientX: x,
+            clientY: y
+          }));
+        }
+
+        async function placeStarter(name, x, y, pointerId) {
+          var source = document.querySelector(
+            '#element-list .element[data-name="' + name + '"]'
+          );
+          var sourceRect = source.getBoundingClientRect();
+          pointer(
+            "pointerdown",
+            source,
+            sourceRect.left + sourceRect.width / 2,
+            sourceRect.top + sourceRect.height / 2,
+            pointerId,
+            1
+          );
+          pointer("pointermove", window, x, y, pointerId, 1);
+          pointer("pointerup", window, x, y, pointerId, 0);
+          await new Promise(function (resolve) { setTimeout(resolve, 20); });
+        }
+
+        async function combineCanvasPair(leftName, rightName, pointerId) {
+          var source = document.querySelector(
+            '#workspace .element.on-canvas[data-name="' + leftName + '"]'
+          );
+          var target = document.querySelector(
+            '#workspace .element.on-canvas[data-name="' + rightName + '"]'
+          );
+          var sourceRect = source.getBoundingClientRect();
+          var targetRect = target.getBoundingClientRect();
+          var sourceX = sourceRect.left + sourceRect.width / 2;
+          var sourceY = sourceRect.top + sourceRect.height / 2;
+          var targetX = targetRect.left + targetRect.width / 2;
+          var targetY = targetRect.top + targetRect.height / 2;
+          pointer("pointerdown", source, sourceX, sourceY, pointerId, 1);
+          pointer("pointermove", window, targetX, targetY, pointerId, 1);
+          pointer("pointerup", window, targetX, targetY, pointerId, 0);
+          await new Promise(function (resolve) { setTimeout(resolve, 90); });
+        }
+
+        var workspaceRect = document.getElementById("workspace").getBoundingClientRect();
+        await placeStarter(
+          "水",
+          workspaceRect.left + 210,
+          workspaceRect.top + 210,
+          31
+        );
+        await placeStarter(
+          "火",
+          workspaceRect.left + 430,
+          workspaceRect.top + 210,
+          32
+        );
+        await combineCanvasPair("水", "火", 33);
+        var beforeHarvest = {
+          total: localStorage.getItem("ic_kpi"),
+          state: window.CASINO_MODE.getState()
+        };
+        document.getElementById("casino-harvest").click();
+        await new Promise(function (resolve) { setTimeout(resolve, 30); });
+        var afterHarvest = {
+          total: localStorage.getItem("ic_kpi"),
+          state: window.CASINO_MODE.getState(),
+          tiers: JSON.parse(localStorage.getItem("ic_scores") || "[]")
+            .map(function (event) { return event.tier; })
+        };
+
+        code.forEach(function (key) {
+          window.dispatchEvent(new KeyboardEvent("keydown", { key: key }));
+        });
+        await new Promise(function (resolve) { setTimeout(resolve, 30); });
+        document.getElementById("btn-reset").click();
+        await placeStarter(
+          "水",
+          workspaceRect.left + 210,
+          workspaceRect.top + 210,
+          41
+        );
+        await placeStarter(
+          "火",
+          workspaceRect.left + 430,
+          workspaceRect.top + 210,
+          42
+        );
+        await combineCanvasPair("水", "火", 43);
+        var afterNormalCombine = {
+          total: localStorage.getItem("ic_kpi"),
+          state: window.CASINO_MODE.getState(),
+          tiers: JSON.parse(localStorage.getItem("ic_scores") || "[]")
+            .map(function (event) { return event.tier; })
+        };
 
         document.getElementById("casino-app-result").textContent =
           JSON.stringify({
@@ -286,7 +467,12 @@ def _production_app_page() -> str:
               initial: initial,
               after_first_code: afterFirstCode,
               after_second_code: afterSecondCode,
-              events: window.__uraEvents
+              events: window.__uraEvents,
+              scoring: {
+                before_harvest: beforeHarvest,
+                after_harvest: afterHarvest,
+                after_normal_combine: afterNormalCombine
+              }
             }
           });
       } catch (error) {
@@ -368,6 +554,21 @@ def test_compact_casino_controller_scores_six_chips_and_harvests(tmp_path):
         "total": "3200",
         "busy": False,
     }
+    assert actual["after_queued_combine"] == {
+        "baseScore": 100,
+        "pot": 100,
+        "chips": 1,
+    }
+
+
+def test_anime_harvest_runs_composited_motion_before_settling_score(tmp_path):
+    actual = _run_controller_page(tmp_path, reduced_motion=False)
+
+    assert actual["during_harvest"]["chips"] == 6
+    assert actual["during_harvest"]["pot"] == "3,200"
+    assert actual["during_harvest"]["total"] is None
+    assert actual["during_harvest"]["busy"] is True
+    assert actual["during_harvest"]["activeAnimations"] > 0
 
 
 def test_game_starts_silently_in_inner_mode_and_preserves_reentry_animation(
@@ -394,3 +595,24 @@ def test_game_starts_silently_in_inner_mode_and_preserves_reentry_animation(
         {"active": False, "initial": False},
         {"active": True, "initial": False},
     ]
+
+
+def test_inner_mode_routes_score_to_harvest_and_normal_mode_keeps_direct_score(
+    tmp_path,
+):
+    actual = _run_app_page(tmp_path)["scoring"]
+
+    assert actual["before_harvest"] == {
+        "total": None,
+        "state": {"baseScore": 100, "pot": 100, "chips": 1},
+    }
+    assert actual["after_harvest"] == {
+        "total": "100",
+        "state": {"baseScore": 100, "pot": 0, "chips": 0},
+        "tiers": ["casino"],
+    }
+    assert actual["after_normal_combine"] == {
+        "total": "150",
+        "state": {"baseScore": 100, "pot": 0, "chips": 0},
+        "tiers": ["casino", "global_new"],
+    }
