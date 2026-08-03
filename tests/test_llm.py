@@ -83,6 +83,22 @@ def test_generic_key_precedence_and_request_mapping(monkeypatch):
     }
 
 
+def test_optional_system_prompt_uses_two_message_shape(monkeypatch):
+    configure(monkeypatch, generic_key="generic-test-key")
+    factory, captured = fake_factory()
+
+    assert llm.query(
+        {"system_prompt": "系统规则", "question": "用户输入"},
+        temperature=0.85,
+        _client_factory=factory,
+    )
+
+    assert captured["create"]["messages"] == [
+        {"role": "system", "content": "系统规则"},
+        {"role": "user", "content": "用户输入"},
+    ]
+
+
 def test_makers_key_fallback_and_optional_temperature(monkeypatch):
     configure(monkeypatch)
     factory, captured = fake_factory()

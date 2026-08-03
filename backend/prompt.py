@@ -144,11 +144,21 @@ def combine_via_llm(
     except Exception:
         bounty_candidates = []
 
-    prompt = build_prompt(
-        a, b, avoid_words=avoid_words, bounty_candidates=bounty_candidates,
-        community_examples=community_examples,
+    messages = build_prompt_messages(
+        a=a,
+        b=b,
+        avoid_words=avoid_words or [],
+        bounty_candidates=bounty_candidates,
+        community_examples=community_examples or [],
     )
-    raw = query({"question": prompt, "request_id": request_id}, temperature=0.85)
+    raw = query(
+        {
+            "system_prompt": messages["system"],
+            "question": messages["user"],
+            "request_id": request_id,
+        },
+        temperature=messages["temperature"],
+    )
     text = ""
     if isinstance(raw, dict):
         data = raw.get("data") if isinstance(raw.get("data"), dict) else {}

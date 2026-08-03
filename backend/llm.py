@@ -82,9 +82,14 @@ def query(
         print(f"[llm] event=not_configured request_id={request_id}", flush=True)
         return None
 
+    messages = []
+    system_prompt = payload.get("system_prompt")
+    if isinstance(system_prompt, str) and system_prompt.strip():
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": question})
     request: dict[str, Any] = {
         "model": settings.model,
-        "messages": [{"role": "user", "content": question}],
+        "messages": messages,
     }
     if temperature is not None:
         request["temperature"] = float(temperature)

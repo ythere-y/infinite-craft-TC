@@ -106,10 +106,27 @@ test("Makers comments use the same safe degradation policy as FastAPI", () => {
 
 test("model request uses Makers environment variables and OpenAI endpoint", async () => {
   let captured;
+  let randomCalls = 0;
   const result = await requestModelCombination({
     a: "AI",
     b: "水",
     avoidWords: ["旧结果"],
+    bountyCandidates: [
+      { name: "CSIG", emoji: "☁️", category: "bg" },
+    ],
+    communityExamples: [
+      {
+        a: "需求",
+        b: "会议",
+        name: "排期",
+        emoji: "🗓️",
+        comment: "需求一进会议室，就有了截止日期。",
+      },
+    ],
+    random: () => {
+      randomCalls += 1;
+      return randomCalls === 1 ? 0 : 0.30;
+    },
     env: {
       MAKERS_MODELS_KEY: "secret",
       LLM_BASE_URL: "https://example.test/v1/",
@@ -142,8 +159,47 @@ test("model request uses Makers environment variables and OpenAI endpoint", asyn
   assert.equal(captured.init.headers.authorization, "Bearer secret");
   const body = JSON.parse(captured.init.body);
   assert.equal(body.model, "demo-model");
+  assert.equal(body.temperature, 0.85);
+  assert.equal(body.messages.length, 2);
   assert.match(body.messages[1].content, /旧结果/);
-  assert.match(body.messages[0].content, /"comment"/);
+  assert.match(body.messages[0].content, /【多样性硬要求】/);
+  assert.match(body.messages[1].content, /社区高质量示例/);
+  assert.match(body.messages[1].content, /本次偏好】偏自造词/);
+  assert.match(body.messages[1].content, /优先组合常见字/);
+  assert.match(body.messages[1].content, /悬赏候选/);
+  assert.equal(randomCalls, 1);
+});
+
+test("model request selects weighted style hints at fixed boundaries", async () => {
+  async function promptAt(value) {
+    let captured;
+    await requestModelCombination({
+      a: "需求",
+      b: "咖啡",
+      random: () => value,
+      env: { MAKERS_MODELS_KEY: "secret" },
+      fetchImpl: async (_url, init) => {
+        captured = JSON.parse(init.body);
+        return new Response(
+          JSON.stringify({
+            choices: [
+              {
+                message: {
+                  content:
+                    '{"name":"需求续杯","emoji":"☕","comment":"需求没闭环，咖啡先续上。"}',
+                },
+              },
+            ],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      },
+    });
+    return captured.messages[1].content;
+  }
+
+  assert.match(await promptAt(0.30), /本次偏好】偏具体场景/);
+  assert.match(await promptAt(0.99), /本次偏好】偏古今对照/);
 });
 
 test("seed combinations keep the existing response contract and persist firsts", async () => {
