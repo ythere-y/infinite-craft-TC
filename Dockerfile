@@ -9,6 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 再拷代码
 COPY backend ./backend
 COPY frontend ./frontend
+COPY shared ./shared
 
 # SQLite 数据目录（可挂卷持久化）
 RUN mkdir -p /app/data

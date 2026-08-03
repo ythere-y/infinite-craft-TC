@@ -87,6 +87,14 @@ Compose 固定向 Web 容器注入 `APP_ENV=dev` 和
 `REDIS_URL=redis://redis:6379/1`，本机 `.env` 不能把它们改为生产值或远端
 Redis。后端与前端源码以只读方式挂载，Uvicorn 会在代码修改后自动重载。
 
+### 组合提示词
+
+组合提示词只编辑 `shared/combine-prompt.json`。本地 Web 容器以只读方式挂载
+该目录，Python 后端直接加载这份 canonical JSON。执行 `npm run build` 会从它
+重新生成 Makers 的 `edge-functions/_generated/prompt-data.js`；提示词测试会拒绝
+canonical JSON 与已提交 Makers artifact 之间的漂移，构建测试也会在只含已提交
+文件的夹具中重新生成并加载该 artifact。
+
 ### 日常命令
 
 ```bash
