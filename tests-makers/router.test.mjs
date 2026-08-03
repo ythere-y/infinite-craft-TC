@@ -903,6 +903,32 @@ test("Makers recipe validation rejects unsafe entries before KV reads", async ()
   }
 });
 
+test("Makers recipe validation treats non-string fields as missing before KV reads", async () => {
+  const nonStrings = [7, true, ["数组"], { 对象: "值" }];
+  for (const field of ["a", "b", "result"]) {
+    for (const value of nonStrings) {
+      const kv = new FakeKV();
+      const router = createRouter({ kv, env: {} });
+      const recipe = { a: "甲", b: "乙", result: "结果" };
+      recipe[field] = value;
+
+      const response = await json(router, "/api/recipes/verify", {
+        method: "POST",
+        body: { recipes: [recipe] },
+      });
+
+      assert.equal(response.response.status, 200);
+      assert.deepEqual(response.body.invalid, [{
+        a: typeof recipe.a === "string" ? recipe.a : "",
+        b: typeof recipe.b === "string" ? recipe.b : "",
+        reason: "缺少必填字段",
+      }], `${field}: ${JSON.stringify(value)}`);
+      assert.deepEqual(response.body.unknown, []);
+      assert.equal(kv.getCalls, 0, `${field}: ${JSON.stringify(value)}`);
+    }
+  }
+});
+
 test("Makers recipe and session score accept exact astral boundaries", async () => {
   const kv = new FakeKV();
   const router = createRouter({ kv, env: {} });

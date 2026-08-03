@@ -543,10 +543,12 @@ export function createRouter({
       const invalid = [];
       const unknown = [];
       const candidates = [];
+      const recipeText = (value) =>
+        typeof value === "string" ? cleanText(value) : "";
       for (const recipe of input) {
-        const a = cleanText(recipe?.a);
-        const b = cleanText(recipe?.b);
-        const result = cleanText(recipe?.result);
+        const a = recipeText(recipe?.a);
+        const b = recipeText(recipe?.b);
+        const result = recipeText(recipe?.result);
         if (!a || !b || !result) {
           invalid.push({ a, b, reason: "缺少必填字段" });
           continue;

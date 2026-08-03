@@ -1,0 +1,99 @@
+[
+  {
+    "name": "canonical integers",
+    "valid": true,
+    "source": "{\"schema_version\":1,\"max_combine_element_length\":80,\"max_discoverer_length\":80,\"max_session_id_length\":128,\"max_verify_recipes\":500,\"max_recipe_field_length\":80}",
+    "expected": {
+      "schema_version": 1,
+      "max_combine_element_length": 80,
+      "max_discoverer_length": 80,
+      "max_session_id_length": 128,
+      "max_verify_recipes": 500,
+      "max_recipe_field_length": 80
+    }
+  },
+  {
+    "name": "integral decimal notation",
+    "valid": true,
+    "source": "{\"schema_version\":1.0,\"max_combine_element_length\":80.0,\"max_discoverer_length\":80.0,\"max_session_id_length\":128.0,\"max_verify_recipes\":500.0,\"max_recipe_field_length\":80.0}",
+    "expected": {
+      "schema_version": 1,
+      "max_combine_element_length": 80,
+      "max_discoverer_length": 80,
+      "max_session_id_length": 128,
+      "max_verify_recipes": 500,
+      "max_recipe_field_length": 80
+    }
+  },
+  {
+    "name": "integral exponent notation",
+    "valid": true,
+    "source": "{\"schema_version\":1e0,\"max_combine_element_length\":8e1,\"max_discoverer_length\":8e1,\"max_session_id_length\":1.28e2,\"max_verify_recipes\":5e2,\"max_recipe_field_length\":8e1}",
+    "expected": {
+      "schema_version": 1,
+      "max_combine_element_length": 80,
+      "max_discoverer_length": 80,
+      "max_session_id_length": 128,
+      "max_verify_recipes": 500,
+      "max_recipe_field_length": 80
+    }
+  },
+  {
+    "name": "safe integer maximum",
+    "valid": true,
+    "source": "{\"schema_version\":1.0,\"max_combine_element_length\":9007199254740991.0,\"max_discoverer_length\":80,\"max_session_id_length\":128,\"max_verify_recipes\":500,\"max_recipe_field_length\":80}",
+    "expected": {
+      "schema_version": 1,
+      "max_combine_element_length": 9007199254740991,
+      "max_discoverer_length": 80,
+      "max_session_id_length": 128,
+      "max_verify_recipes": 500,
+      "max_recipe_field_length": 80
+    }
+  },
+  {
+    "name": "boolean schema",
+    "valid": false,
+    "source": "{\"schema_version\":true,\"max_combine_element_length\":80,\"max_discoverer_length\":80,\"max_session_id_length\":128,\"max_verify_recipes\":500,\"max_recipe_field_length\":80}"
+  },
+  {
+    "name": "boolean limit",
+    "valid": false,
+    "source": "{\"schema_version\":1,\"max_combine_element_length\":true,\"max_discoverer_length\":80,\"max_session_id_length\":128,\"max_verify_recipes\":500,\"max_recipe_field_length\":80}"
+  },
+  {
+    "name": "fractional schema",
+    "valid": false,
+    "source": "{\"schema_version\":1.5,\"max_combine_element_length\":80,\"max_discoverer_length\":80,\"max_session_id_length\":128,\"max_verify_recipes\":500,\"max_recipe_field_length\":80}"
+  },
+  {
+    "name": "fractional limit",
+    "valid": false,
+    "source": "{\"schema_version\":1,\"max_combine_element_length\":80.5,\"max_discoverer_length\":80,\"max_session_id_length\":128,\"max_verify_recipes\":500,\"max_recipe_field_length\":80}"
+  },
+  {
+    "name": "zero limit",
+    "valid": false,
+    "source": "{\"schema_version\":1,\"max_combine_element_length\":0.0,\"max_discoverer_length\":80,\"max_session_id_length\":128,\"max_verify_recipes\":500,\"max_recipe_field_length\":80}"
+  },
+  {
+    "name": "unsafe integer limit",
+    "valid": false,
+    "source": "{\"schema_version\":1,\"max_combine_element_length\":9007199254740992,\"max_discoverer_length\":80,\"max_session_id_length\":128,\"max_verify_recipes\":500,\"max_recipe_field_length\":80}"
+  },
+  {
+    "name": "overflowing exponent limit",
+    "valid": false,
+    "source": "{\"schema_version\":1,\"max_combine_element_length\":1e400,\"max_discoverer_length\":80,\"max_session_id_length\":128,\"max_verify_recipes\":500,\"max_recipe_field_length\":80}"
+  },
+  {
+    "name": "NaN limit",
+    "valid": false,
+    "source": "{\"schema_version\":1,\"max_combine_element_length\":NaN,\"max_discoverer_length\":80,\"max_session_id_length\":128,\"max_verify_recipes\":500,\"max_recipe_field_length\":80}"
+  },
+  {
+    "name": "Infinity limit",
+    "valid": false,
+    "source": "{\"schema_version\":1,\"max_combine_element_length\":Infinity,\"max_discoverer_length\":80,\"max_session_id_length\":128,\"max_verify_recipes\":500,\"max_recipe_field_length\":80}"
+  }
+]

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -26,6 +27,31 @@ def _reject_json_constant(value: str) -> None:
     raise ValueError(f"invalid JSON constant: {value}")
 
 
+def _normalize_safe_integer(
+    value: Any,
+    label: str,
+    *,
+    positive: bool = False,
+) -> int:
+    requirement = "positive safe integer" if positive else "safe integer"
+    if type(value) is int:
+        normalized = value
+    elif (
+        type(value) is float
+        and math.isfinite(value)
+        and value.is_integer()
+    ):
+        normalized = int(value)
+    else:
+        raise ValueError(f"{label} must be a {requirement}")
+    if (
+        abs(normalized) > _MAX_SAFE_INTEGER
+        or (positive and normalized <= 0)
+    ):
+        raise ValueError(f"{label} must be a {requirement}")
+    return normalized
+
+
 def validate_runtime_contract(value: Any) -> dict[str, int]:
     if not isinstance(value, dict):
         raise ValueError("runtime contract must be an object")
@@ -33,19 +59,21 @@ def validate_runtime_contract(value: Any) -> dict[str, int]:
         raise ValueError(
             "runtime contract must contain exactly the supported fields"
         )
-    if type(value["schema_version"]) is not int or value["schema_version"] != 1:
+    schema_version = _normalize_safe_integer(
+        value["schema_version"],
+        "runtime contract schema version",
+    )
+    if schema_version != 1:
         raise ValueError("unsupported runtime contract schema version")
+    normalized = {"schema_version": schema_version}
     for field in _LIMIT_FIELDS:
-        limit = value[field]
-        if (
-            type(limit) is not int
-            or limit <= 0
-            or limit > _MAX_SAFE_INTEGER
-        ):
-            raise ValueError(
-                f"runtime contract {field} must be a positive safe integer"
-            )
-    return dict(value)
+        limit = _normalize_safe_integer(
+            value[field],
+            f"runtime contract {field}",
+            positive=True,
+        )
+        normalized[field] = limit
+    return normalized
 
 
 @lru_cache(maxsize=1)

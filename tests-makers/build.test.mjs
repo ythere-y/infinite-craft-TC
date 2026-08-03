@@ -806,6 +806,31 @@ test("runtime contract generator validates shape and emits named exports", async
   }
 });
 
+test("runtime contract validator matches the shared JSON number domain", async () => {
+  const cases = JSON.parse(
+    await readFile(
+      "tests/fixtures/runtime-contract-number-cases.json",
+      "utf8",
+    ),
+  );
+
+  for (const fixture of cases) {
+    if (fixture.valid) {
+      assert.deepEqual(
+        validateRuntimeContract(JSON.parse(fixture.source)),
+        fixture.expected,
+        fixture.name,
+      );
+    } else {
+      assert.throws(
+        () => validateRuntimeContract(JSON.parse(fixture.source)),
+        undefined,
+        fixture.name,
+      );
+    }
+  }
+});
+
 test("tracked-only build regenerates the Makers runtime contract", async () => {
   const root = await mkdtemp(join(tmpdir(), "runtime-contract-build-"));
   try {

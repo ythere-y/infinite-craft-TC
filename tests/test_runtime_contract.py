@@ -1,4 +1,6 @@
 import asyncio
+import json
+from pathlib import Path
 
 import pytest
 from fastapi import HTTPException
@@ -12,6 +14,20 @@ from backend.runtime_contract import (
     MAX_VERIFY_RECIPES,
     validate_runtime_contract,
 )
+
+_NUMBER_CASES = json.loads(
+    (
+        Path(__file__).parent
+        / "fixtures"
+        / "runtime-contract-number-cases.json"
+    ).read_text(encoding="utf-8")
+)
+_VALID_NUMBER_CASES = [
+    case for case in _NUMBER_CASES if case["valid"]
+]
+_INVALID_NUMBER_CASES = [
+    case for case in _NUMBER_CASES if not case["valid"]
+]
 
 
 class _MetricsRedis:
@@ -80,6 +96,28 @@ def test_python_runtime_contract_rejects_values_outside_js_safe_integer_domain()
                 "max_verify_recipes": 9_007_199_254_740_992,
             }
         )
+
+
+@pytest.mark.parametrize(
+    "case",
+    _VALID_NUMBER_CASES,
+    ids=lambda case: case["name"],
+)
+def test_python_runtime_contract_accepts_shared_json_integer_domain(case):
+    normalized = validate_runtime_contract(json.loads(case["source"]))
+
+    assert normalized == case["expected"]
+    assert all(type(value) is int for value in normalized.values())
+
+
+@pytest.mark.parametrize(
+    "case",
+    _INVALID_NUMBER_CASES,
+    ids=lambda case: case["name"],
+)
+def test_python_runtime_contract_rejects_shared_invalid_number_domain(case):
+    with pytest.raises((ValueError, json.JSONDecodeError)):
+        validate_runtime_contract(json.loads(case["source"]))
 
 
 def test_combine_accepts_exact_astral_code_point_boundaries(monkeypatch):
@@ -237,6 +275,41 @@ def test_recipe_verify_handles_non_object_items_as_missing_fields(monkeypatch):
         {"a": "", "b": "", "reason": "缺少必填字段"},
     ]
     assert result["total_input"] == 3
+
+
+@pytest.mark.parametrize("field", ["a", "b", "result"])
+@pytest.mark.parametrize(
+    ("_label", "value"),
+    [
+        ("number", 7),
+        ("boolean", True),
+        ("array", ["数组"]),
+        ("object", {"对象": "值"}),
+    ],
+)
+def test_recipe_verify_treats_non_string_fields_as_missing_before_datastore(
+    monkeypatch, field, _label, value
+):
+    def forbidden_lookup(*_args, **_kwargs):
+        raise AssertionError("non-string fields must not reach the datastore")
+
+    monkeypatch.setattr(main.db, "normalize_key", forbidden_lookup)
+    monkeypatch.setattr(main.db, "get_cached", forbidden_lookup)
+    recipe = {"a": "甲", "b": "乙", "result": "结果"}
+    recipe[field] = value
+
+    response = asyncio.run(
+        main.api_recipes_verify(main.VerifyReq(recipes=[recipe]))
+    )
+
+    assert response["invalid"] == [
+        {
+            "a": recipe["a"] if isinstance(recipe["a"], str) else "",
+            "b": recipe["b"] if isinstance(recipe["b"], str) else "",
+            "reason": "缺少必填字段",
+        }
+    ]
+    assert response["unknown"] == []
 
 
 @pytest.mark.parametrize("field", ["a", "b", "result"])
