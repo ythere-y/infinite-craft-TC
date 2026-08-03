@@ -9,6 +9,7 @@ import {
   loadPromptSpec,
   validatePromptSpec,
 } from "../scripts/prompt-data-lib.mjs";
+import { buildPromptMessages } from "../edge-functions/_lib/prompt.js";
 
 test("canonical prompt has stable modules examples styles and limits", async () => {
   const spec = await loadPromptSpec("shared/combine-prompt.json");
@@ -117,4 +118,34 @@ test("committed generated prompt data is current", async () => {
     await readFile(outputPath, "utf8"),
     await readFile("edge-functions/_generated/prompt-data.js", "utf8"),
   );
+});
+
+test("renderer selects styles using half-open weight boundaries", () => {
+  assert.equal(
+    buildPromptMessages({ a: "甲", b: "乙", style_value: 0 }).style_id,
+    "invented-word",
+  );
+  assert.equal(
+    buildPromptMessages({ a: "甲", b: "乙", style_value: 0.30 }).style_id,
+    "concrete-scene",
+  );
+  assert.equal(
+    buildPromptMessages({ a: "甲", b: "乙", style_value: 0.99 }).style_id,
+    "past-present",
+  );
+});
+
+test("renderer uses injected random once when style value is absent", () => {
+  let calls = 0;
+  const messages = buildPromptMessages({
+    a: "甲",
+    b: "乙",
+    random: () => {
+      calls += 1;
+      return 0.30;
+    },
+  });
+
+  assert.equal(calls, 1);
+  assert.equal(messages.style_id, "concrete-scene");
 });
