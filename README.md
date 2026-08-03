@@ -149,7 +149,7 @@ POST /api/combine
 
 ### 共享业务契约
 
-需要同时影响 FastAPI 与 Makers 的内容只在 `shared/` 下维护：
+本次统一的三类共享业务契约在 `shared/` 下维护：
 `combine-prompt.json` 是组合提示词的唯一编辑源，`nickname-data.json` 是正常运行与
 构建使用的已提交花名语料，`runtime-contract.json` 是五项应用层请求限制的唯一编辑
 源。`npm run build` 会据此重新生成 `edge-functions/_generated/` 下的 Makers 模块；
