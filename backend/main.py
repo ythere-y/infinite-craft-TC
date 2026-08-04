@@ -20,12 +20,13 @@ from functools import partial
 import json
 import os
 import random
+import secrets
 import time
 import uuid
 from pathlib import Path
 from typing import Optional, List
 
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -148,6 +149,10 @@ class VoteReq(BaseModel):
     value: int
 
 
+class PromptDraftReq(BaseModel):
+    config: dict
+
+
 # ============================================================
 # API
 # ============================================================
@@ -209,9 +214,40 @@ async def api_analytics_combinations(limit: int = 20):
 
 
 # ============================================================
-# Admin 监控（无鉴权，只监听 localhost / 内网。生产可加 token）
+# Admin
 # ============================================================
-@app.get("/api/admin/stats")
+def require_admin_token(request: Request) -> None:
+    expected = os.environ.get("ADMIN_TOKEN", "").strip()
+    supplied = request.headers.get("authorization", "")
+    token = supplied[7:].strip() if supplied.lower().startswith("bearer ") else ""
+    if not expected or not secrets.compare_digest(token, expected):
+        raise HTTPException(status_code=401, detail="管理员密钥无效")
+
+
+def _prompt_version_response(version: dict, active_version_id: str) -> dict:
+    return {**version, "active": version["id"] == active_version_id}
+
+
+def _prompt_version_summary(version: dict, active_version_id: str) -> dict:
+    return {
+        key: value
+        for key, value in _prompt_version_response(
+            version,
+            active_version_id,
+        ).items()
+        if key not in {"snapshot", "effective_spec", "preview"}
+    }
+
+
+def _prompt_version_not_found(exc: KeyError) -> HTTPException:
+    detail = str(exc.args[0]) if exc.args else "prompt version not found"
+    return HTTPException(status_code=404, detail=detail)
+
+
+@app.get(
+    "/api/admin/stats",
+    dependencies=[Depends(require_admin_token)],
+)
 async def api_admin_stats():
     """后台监控：实时活跃、累计合成、Top 榜单、最近首发。"""
     c = db.get_client()
@@ -305,6 +341,77 @@ async def api_admin_stats():
         "top_chains": top_chains,
         "recent_firsts": recent_firsts,
     }
+
+
+@app.get(
+    "/api/admin/prompt/config",
+    dependencies=[Depends(require_admin_token)],
+)
+async def api_admin_prompt_config():
+    active = prompt_store.get_active_version()
+    versions = prompt_store.list_versions()
+    return {
+        "config": prompt_store.get_draft(),
+        "active_version": _prompt_version_summary(active, active["id"]),
+        "versions": [
+            _prompt_version_summary(version, active["id"])
+            for version in versions
+        ],
+    }
+
+
+@app.put(
+    "/api/admin/prompt/config",
+    dependencies=[Depends(require_admin_token)],
+)
+async def api_admin_prompt_save(req: PromptDraftReq):
+    try:
+        config = prompt_store.save_draft(req.config)
+    except prompt_store.PromptValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return {"config": config}
+
+
+@app.post(
+    "/api/admin/prompt/aggregate",
+    dependencies=[Depends(require_admin_token)],
+)
+async def api_admin_prompt_aggregate():
+    try:
+        version = prompt_store.aggregate_draft()
+    except prompt_store.PromptValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    active_id = prompt_store.get_active_version()["id"]
+    return _prompt_version_response(version, active_id)
+
+
+@app.get(
+    "/api/admin/prompt/versions/{version_id}",
+    dependencies=[Depends(require_admin_token)],
+)
+async def api_admin_prompt_version(version_id: str):
+    try:
+        version = prompt_store.get_version(version_id)
+    except KeyError as exc:
+        raise _prompt_version_not_found(exc) from exc
+    except prompt_store.PromptValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    active_id = prompt_store.get_active_version()["id"]
+    return _prompt_version_response(version, active_id)
+
+
+@app.post(
+    "/api/admin/prompt/versions/{version_id}/activate",
+    dependencies=[Depends(require_admin_token)],
+)
+async def api_admin_prompt_activate(version_id: str):
+    try:
+        version = prompt_store.activate_version(version_id)
+    except KeyError as exc:
+        raise _prompt_version_not_found(exc) from exc
+    except prompt_store.PromptValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return _prompt_version_response(version, version["id"])
 
 
 @app.get("/admin")
