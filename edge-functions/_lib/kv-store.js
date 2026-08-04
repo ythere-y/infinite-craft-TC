@@ -354,6 +354,13 @@ export class KvStore {
     return this.getJson(await entityKey("combo", normalizePair(a, b)));
   }
 
+  async getRecipe(a, b, result) {
+    const pair = normalizePair(a, b);
+    const key =
+      `recipe_${await sha256Hex(cleanText(result))}_${await sha256Hex(pair)}`;
+    return this.getJson(key);
+  }
+
   async putCombination(
     a,
     b,
@@ -424,24 +431,37 @@ export class KvStore {
     const existing = await this.getJson(key, {});
     const {
       icon: existingIconValue,
+      source: existingSourceValue,
+      content_epoch: existingContentEpoch,
+      catalog_digest: existingCatalogDigest,
       ...existingFields
     } = existing || {};
     const icon =
       normalizeIcon(existingIconValue) ||
       normalizeIcon(info?.icon);
+    const existingSource = cleanText(existingSourceValue);
+    const incomingSource = cleanText(info?.source);
+    const source = incomingSource && incomingSource !== "seed"
+      ? incomingSource
+      : existingSource && existingSource !== "seed"
+        ? existingSource
+        : incomingSource || existingSource;
+    const contentEpoch = info?.content_epoch ?? existingContentEpoch;
+    const catalogDigest =
+      cleanText(info?.catalog_digest) || cleanText(existingCatalogDigest);
     const record = {
       ...existingFields,
       name: cleanName,
       emoji: cleanText(info?.emoji) || "❓",
       category: cleanText(info?.category) || "ai",
-      ...(cleanText(info?.source)
-        ? { source: cleanText(info.source) }
+      ...(source
+        ? { source }
         : {}),
-      ...(info?.content_epoch != null
-        ? { content_epoch: finiteInteger(info.content_epoch) }
+      ...(contentEpoch != null
+        ? { content_epoch: finiteInteger(contentEpoch) }
         : {}),
-      ...(cleanText(info?.catalog_digest)
-        ? { catalog_digest: cleanText(info.catalog_digest) }
+      ...(catalogDigest
+        ? { catalog_digest: catalogDigest }
         : {}),
       ...(Number.isFinite(Number(info?.depth))
         ? { depth: Math.max(0, finiteInteger(info.depth)) }
@@ -495,12 +515,21 @@ export class KvStore {
     return this.publicElement(value);
   }
 
+  async getElementIndexRecord(name) {
+    const cleanName = cleanText(name);
+    if (!cleanName) return null;
+    const key = await entityKey("element", cleanName);
+    const shard = this.shardForCanonicalKey("element", key);
+    const snapshot = await this.loadIndexShard("element", shard);
+    return snapshot.items[key] || null;
+  }
+
   async deleteElement(name) {
     const cleanName = cleanText(name);
     if (!cleanName) return;
     const key = await entityKey("element", cleanName);
-    await this.kv.delete(key);
     await this.deleteIndexRecord("element", key);
+    await this.kv.delete(key);
   }
 
   async rememberRecipe(record) {
@@ -534,10 +563,8 @@ export class KvStore {
     const comboKey = await entityKey("combo", pair);
     const recipeKey =
       `recipe_${await sha256Hex(cleanText(result))}_${await sha256Hex(pair)}`;
-    await Promise.all([
-      this.kv.delete(comboKey),
-      this.kv.delete(recipeKey),
-    ]);
+    await this.kv.delete(recipeKey);
+    await this.kv.delete(comboKey);
   }
 
   async dynamicRecipes(result) {

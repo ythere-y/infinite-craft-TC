@@ -5,6 +5,7 @@ import {
   CATALOG_DIGEST,
   CONTENT_EPOCH,
 } from "../_generated/bounty-content.js";
+import { normalizeComment } from "./comments.js";
 import { cleanText, normalizePair } from "./keys.js";
 import { KvStore } from "./kv-store.js";
 
@@ -25,11 +26,35 @@ const SCAN_RANK = new Map([
   ["elements", 1],
   ["done", 2],
 ]);
+const INITIALIZATION_COORDINATORS = new WeakMap();
+const EPOCH_RESET_PHASES = new Set([
+  "detect",
+  "purge_runtime_data",
+  "seed_starters",
+  "seed_elements",
+  "seed_recipes",
+  "rebuild_indexes",
+  "verify_catalog",
+]);
+const DIFFERENTIAL_PHASES = new Set([
+  "detect",
+  "seed_starters",
+  "seed_elements",
+  "seed_recipes",
+  "rebuild_indexes",
+  "verify_catalog",
+]);
 
 const OWNERSHIP = Object.freeze({
   source: "seed",
   content_epoch: CONTENT_EPOCH,
   catalog_digest: CATALOG_DIGEST,
+});
+const CATALOG_VERSION = cleanText(BOUNTY_CONTENT.catalog?.meta?.version);
+const CURRENT_TARGET = Object.freeze({
+  epoch: CONTENT_EPOCH,
+  catalog_digest: CATALOG_DIGEST,
+  catalog_version: CATALOG_VERSION,
 });
 
 function positiveInteger(value, fallback, label, maximum = Infinity) {
@@ -120,14 +145,23 @@ function initialState(previous, now) {
   const sameEpoch = Number(previous?.epoch) === CONTENT_EPOCH;
   const resumesEpochReset = (
     previous?.status === "migrating" &&
-    previous?.mode === "epoch_reset"
+    (
+      previous?.mode === "epoch_reset" ||
+      (!previous?.mode && previous?.phase === "purge_runtime_data")
+    )
   );
-  const mode = resumesEpochReset || !previous || !sameEpoch
+  const mode = (
+    resumesEpochReset ||
+    !previous ||
+    previous?.malformed === true ||
+    !sameEpoch
+  )
     ? "epoch_reset"
     : "differential";
   return {
     epoch: CONTENT_EPOCH,
     catalog_digest: CATALOG_DIGEST,
+    catalog_version: CATALOG_VERSION,
     status: "migrating",
     mode,
     phase: mode === "epoch_reset"
@@ -136,6 +170,11 @@ function initialState(previous, now) {
     cursor: null,
     index: 0,
     scan: null,
+    purge_pass: 0,
+    purge_deleted: 0,
+    scan_pass: 0,
+    scan_deleted: 0,
+    purge_completed: false,
     started_at: resumesEpochReset
       ? Number(previous.started_at) || now()
       : now(),
@@ -144,20 +183,46 @@ function initialState(previous, now) {
   };
 }
 
-function validMigratingState(state) {
+function validReadyState(state) {
   return (
+    state?.status === "ready" &&
+    state?.mode === "ready" &&
+    state?.phase === "ready" &&
+    Number(state.epoch) === CONTENT_EPOCH &&
+    state.catalog_digest === CATALOG_DIGEST
+  );
+}
+
+function validMigratingState(state) {
+  const common = (
     state?.status === "migrating" &&
     Number(state.epoch) === CONTENT_EPOCH &&
-    state.catalog_digest === CATALOG_DIGEST &&
-    ["epoch_reset", "differential"].includes(state.mode) &&
-    PHASE_RANK.has(state.phase)
+    state.catalog_digest === CATALOG_DIGEST
+  );
+  if (!common) return false;
+  if (state.mode === "differential") {
+    return DIFFERENTIAL_PHASES.has(state.phase);
+  }
+  if (state.mode !== "epoch_reset" || !EPOCH_RESET_PHASES.has(state.phase)) {
+    return false;
+  }
+  return (
+    state.phase === "detect" ||
+    state.phase === "purge_runtime_data" ||
+    state.purge_completed === true
   );
 }
 
 function progressTuple(state) {
+  const pass = state?.phase === "purge_runtime_data"
+    ? Number(state?.purge_pass) || 0
+    : state?.phase === "rebuild_indexes"
+      ? Number(state?.scan_pass) || 0
+      : 0;
   return [
     PHASE_RANK.get(state?.phase) ?? -1,
     SCAN_RANK.get(state?.scan) ?? -1,
+    pass,
     Number.isSafeInteger(Number(state?.index))
       ? Number(state.index)
       : 0,
@@ -182,10 +247,67 @@ function sameTarget(left, right) {
   );
 }
 
+function semanticVersionParts(value) {
+  const match = /^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/u.exec(cleanText(value));
+  if (!match) return null;
+  const parts = match.slice(1).map(Number);
+  return parts.every(Number.isSafeInteger) ? parts : null;
+}
+
+function compareSemanticVersions(left, right) {
+  const leftParts = semanticVersionParts(left);
+  const rightParts = semanticVersionParts(right);
+  if (!leftParts || !rightParts) return 0;
+  for (let index = 0; index < leftParts.length; index += 1) {
+    if (leftParts[index] !== rightParts[index]) {
+      return leftParts[index] - rightParts[index];
+    }
+  }
+  return 0;
+}
+
+function compareTargets(left, right) {
+  const leftEpoch = Number(left?.epoch);
+  const rightEpoch = Number(right?.epoch);
+  if (
+    Number.isSafeInteger(leftEpoch) &&
+    Number.isSafeInteger(rightEpoch) &&
+    leftEpoch !== rightEpoch
+  ) {
+    return leftEpoch - rightEpoch;
+  }
+  if (
+    leftEpoch === rightEpoch &&
+    left?.catalog_digest !== right?.catalog_digest
+  ) {
+    return compareSemanticVersions(
+      left?.catalog_version,
+      right?.catalog_version,
+    );
+  }
+  return 0;
+}
+
+function hasNewerTarget(state) {
+  return compareTargets(state, CURRENT_TARGET) > 0;
+}
+
 function aheadState(current, candidate) {
+  const targetOrder = compareTargets(current, candidate);
+  if (targetOrder > 0) return current;
+  if (targetOrder < 0) return candidate;
   if (!sameTarget(current, candidate)) return candidate;
-  if (current?.status === "ready") return current;
-  if (candidate?.status === "ready") return candidate;
+  if (validReadyState(current)) return current;
+  if (validReadyState(candidate)) return candidate;
+  const currentMigrating = validMigratingState(current);
+  const candidateMigrating = validMigratingState(candidate);
+  if (!currentMigrating) return candidate;
+  if (
+    candidateMigrating &&
+    current.mode !== candidate.mode
+  ) {
+    return current.mode === "epoch_reset" ? current : candidate;
+  }
   return compareProgress(current, candidate) > 0 ? current : candidate;
 }
 
@@ -193,6 +315,14 @@ function stateResult(status) {
   return {
     ready: status?.status === "ready",
     status,
+  };
+}
+
+function newerTargetResult(status) {
+  return {
+    ready: false,
+    status,
+    blocked_by_newer_target: true,
   };
 }
 
@@ -206,6 +336,81 @@ function nextPhase(state, phase, extras = {}) {
     error: "",
     ...extras,
   };
+}
+
+function coordinateInitialization(kv, task) {
+  const previous = INITIALIZATION_COORDINATORS.get(kv) || Promise.resolve();
+  const run = previous.catch(() => undefined).then(task);
+  const settled = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  INITIALIZATION_COORDINATORS.set(kv, settled);
+  return run.finally(() => {
+    if (INITIALIZATION_COORDINATORS.get(kv) === settled) {
+      INITIALIZATION_COORDINATORS.delete(kv);
+    }
+  });
+}
+
+function parseStoredJson(raw) {
+  if (raw == null || raw === "") return null;
+  if (typeof raw !== "string") {
+    return raw && typeof raw === "object" ? raw : null;
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function isCurrentSeedRecord(raw) {
+  const record = parseStoredJson(raw);
+  return (
+    cleanText(record?.source) === "seed" &&
+    Number(record?.content_epoch) === CONTENT_EPOCH &&
+    record?.catalog_digest === CATALOG_DIGEST
+  );
+}
+
+function hasCurrentCatalogMetadata(record) {
+  return (
+    Boolean(cleanText(record?.source)) &&
+    Number(record?.content_epoch) === CONTENT_EPOCH &&
+    record?.catalog_digest === CATALOG_DIGEST
+  );
+}
+
+function elementFieldsMatch(record, expected) {
+  return (
+    hasCurrentCatalogMetadata(record) &&
+    cleanText(record?.emoji) === expected.emoji &&
+    cleanText(record?.category) === expected.category &&
+    (
+      !Object.hasOwn(expected, "depth") ||
+      Number(record?.depth) === Number(expected.depth)
+    ) &&
+    (
+      !Object.hasOwn(expected, "icon") ||
+      JSON.stringify(record?.icon) === JSON.stringify(expected.icon)
+    )
+  );
+}
+
+function combinationFieldsMatch(record, expected) {
+  return (
+    hasCurrentCatalogMetadata(record) &&
+    cleanText(record?.source) === "seed" &&
+    normalizePair(record?.a, record?.b) ===
+      normalizePair(expected.a, expected.b) &&
+    cleanText(record?.result) === expected.result &&
+    cleanText(record?.emoji) === expected.emoji &&
+    normalizeComment(record?.comment) ===
+      normalizeComment(expected.comment) &&
+    (cleanText(record?.chain) || null) === expected.chain
+  );
 }
 
 export function createContentInitializer({
@@ -239,7 +444,8 @@ export function createContentInitializer({
   async function readStatus() {
     const raw = await kv.get(STATE_KEY);
     if (raw == null || raw === "") return null;
-    return typeof raw === "string" ? JSON.parse(raw) : raw;
+    const parsed = parseStoredJson(raw);
+    return parsed || { status: "invalid", malformed: true };
   }
 
   async function putState(candidate) {
@@ -251,36 +457,74 @@ export function createContentInitializer({
     // A second read prevents a slower initializer from silently regressing
     // progress written by another instance between our read and write.
     const observed = await readStatus();
-    if (sameTarget(observed, selected) && compareProgress(observed, selected) < 0) {
+    const preferred = aheadState(observed, selected);
+    if (
+      preferred === selected &&
+      JSON.stringify(observed) !== JSON.stringify(selected)
+    ) {
       await kv.put(STATE_KEY, JSON.stringify(selected));
       return selected;
     }
-    return observed || selected;
+    return preferred || observed || selected;
+  }
+
+  async function purgePage(state) {
+    const page = await kv.list(
+      listOptions(
+        "",
+        Math.min(256, safeBatchSize + 1),
+        state.cursor,
+      ),
+    );
+    const keys = (page?.keys || [])
+      .map((item) => item?.key || item?.name)
+      .filter((key) => key && key !== STATE_KEY)
+      .slice(0, safeBatchSize);
+    let deleted = 0;
+    for (const key of keys) {
+      const raw = await kv.get(key);
+      if (isCurrentSeedRecord(raw)) continue;
+      await kv.delete(key);
+      deleted += 1;
+    }
+    const passDeleted = Math.max(0, Number(state.purge_deleted) || 0) +
+      deleted;
+    if (!page?.complete && page?.cursor) {
+      return {
+        state: {
+          ...state,
+          cursor: page.cursor,
+          index: Math.max(0, Number(state.index) || 0) + keys.length,
+          purge_deleted: passDeleted,
+          error: "",
+        },
+        restart: false,
+      };
+    }
+    if (passDeleted === 0) {
+      return {
+        state: nextPhase(state, "seed_starters", {
+          purge_completed: true,
+          purge_deleted: 0,
+        }),
+        restart: false,
+      };
+    }
+    return {
+      state: {
+        ...state,
+        cursor: null,
+        index: 0,
+        purge_pass: Math.max(0, Number(state.purge_pass) || 0) + 1,
+        purge_deleted: 0,
+        error: "",
+      },
+      restart: true,
+    };
   }
 
   async function purgeBatch(state) {
-    const page = await kv.list(
-      listOptions("", Math.min(256, safeBatchSize + 1)),
-    );
-    const candidates = (page?.keys || [])
-      .map((item) => item?.key || item?.name)
-      .filter((key) => key && key !== STATE_KEY);
-    const keys = candidates.slice(0, safeBatchSize);
-    for (const key of keys) {
-      await kv.delete(key);
-    }
-    const hasMore = !page?.complete || candidates.length > keys.length;
-    if (!hasMore) {
-      return nextPhase(state, "seed_starters");
-    }
-    return {
-      ...state,
-      // Deleting from a listed namespace can invalidate offset-like opaque
-      // cursors. Rescan from the beginning and bound work by batch size.
-      cursor: null,
-      index: Number(state.index || 0) + keys.length,
-      error: "",
-    };
+    return (await purgePage(state)).state;
   }
 
   async function seedBatch(state, records, phase, followingPhase, writer) {
@@ -310,39 +554,75 @@ export function createContentInitializer({
     const keys = (page?.keys || [])
       .map((item) => item?.key || item?.name)
       .filter(Boolean);
+    let deleted = 0;
     for (const key of keys) {
       const raw = await kv.get(key);
       if (raw == null || raw === "") continue;
-      const record = typeof raw === "string" ? JSON.parse(raw) : raw;
-      const owned = (
-        cleanText(record?.source) === "seed" &&
-        Number(record?.content_epoch) === CONTENT_EPOCH
-      );
+      const record = parseStoredJson(raw);
+      if (!record) {
+        if (kind === "elements") {
+          await store.deleteIndexRecord("element", key);
+        }
+        await kv.delete(key);
+        deleted += 1;
+        continue;
+      }
+      const owned = cleanText(record?.source) === "seed";
       if (!owned) continue;
       if (kind === "combinations") {
         const pair = normalizePair(record?.a, record?.b);
         if (!FIXED_PAIRS.has(pair)) {
-          await store.deleteCombination(
-            record?.a,
-            record?.b,
-            record?.result,
-          );
+          if (
+            cleanText(record?.a) &&
+            cleanText(record?.b) &&
+            cleanText(record?.result)
+          ) {
+            await store.deleteCombination(
+              record.a,
+              record.b,
+              record.result,
+            );
+          }
+          await kv.delete(key);
+          deleted += 1;
         }
       } else {
         const name = cleanText(record?.name);
         if (name && !FIXED_ELEMENTS.has(name)) {
           await store.deleteElement(name);
+          await store.deleteIndexRecord("element", key);
+          await kv.delete(key);
+          deleted += 1;
+        } else if (!name) {
+          await store.deleteIndexRecord("element", key);
+          await kv.delete(key);
+          deleted += 1;
         }
       }
     }
 
+    const passDeleted = Math.max(0, Number(state.scan_deleted) || 0) +
+      deleted;
     if (page?.complete || !page?.cursor) {
+      if (passDeleted > 0) {
+        return {
+          ...state,
+          cursor: null,
+          index: 0,
+          scan: kind,
+          scan_pass: Math.max(0, Number(state.scan_pass) || 0) + 1,
+          scan_deleted: 0,
+          error: "",
+        };
+      }
       if (kind === "combinations") {
         return {
           ...state,
           cursor: null,
           index: 0,
           scan: "elements",
+          scan_pass: 0,
+          scan_deleted: 0,
           error: "",
         };
       }
@@ -353,6 +633,7 @@ export function createContentInitializer({
       cursor: page.cursor,
       index: Number(state.index || 0) + keys.length,
       scan: kind,
+      scan_deleted: passDeleted,
       error: "",
     };
   }
@@ -372,16 +653,24 @@ export function createContentInitializer({
       const record = item.kind === "element"
         ? await store.getElement(item.name)
         : await store.getCombination(item.record.a, item.record.b);
-      if (
-        !record ||
-        cleanText(record.source) !== "seed" ||
-        Number(record.content_epoch) !== CONTENT_EPOCH ||
-        record.catalog_digest !== CATALOG_DIGEST ||
-        (
-          item.kind === "combination" &&
-          cleanText(record.result) !== item.record.result
+      const fieldsMatch = item.kind === "element"
+        ? elementFieldsMatch(record, item.info)
+        : combinationFieldsMatch(record, item.record);
+      const subordinate = item.kind === "element"
+        ? await store.getElementIndexRecord(item.name)
+        : await store.getRecipe(
+          item.record.a,
+          item.record.b,
+          item.record.result,
+        );
+      const subordinateMatches = item.kind === "element"
+        ? (
+          elementFieldsMatch(subordinate, item.info) &&
+          cleanText(subordinate?.name) === item.name &&
+          cleanText(subordinate?.source) === cleanText(record?.source)
         )
-      ) {
+        : combinationFieldsMatch(subordinate, item.record);
+      if (!record || !fieldsMatch || !subordinateMatches) {
         throw new Error(
           `catalog verification failed for ${item.kind}:${item.name || item.pair}`,
         );
@@ -462,13 +751,12 @@ export function createContentInitializer({
     throw new Error(`unknown content initialization phase: ${state.phase}`);
   }
 
-  async function ensureInitialized() {
+  async function ensureInitializedOnce() {
     let state = await readStatus();
-    if (
-      state?.status === "ready" &&
-      Number(state.epoch) === CONTENT_EPOCH &&
-      state.catalog_digest === CATALOG_DIGEST
-    ) {
+    if (hasNewerTarget(state)) {
+      return newerTargetResult(state);
+    }
+    if (validReadyState(state)) {
       return stateResult(state);
     }
 
@@ -479,7 +767,10 @@ export function createContentInitializer({
     try {
       for (let work = 0; work < safeWorkBudget; work += 1) {
         const persisted = await readStatus();
-        if (persisted?.status === "ready") return stateResult(persisted);
+        if (hasNewerTarget(persisted)) {
+          return newerTargetResult(persisted);
+        }
+        if (validReadyState(persisted)) return stateResult(persisted);
         if (!validMigratingState(persisted)) {
           state = await putState(initialState(persisted, now));
         } else {
@@ -487,7 +778,7 @@ export function createContentInitializer({
         }
         const next = await processBatch(state);
         state = await putState(next);
-        if (state?.status === "ready") break;
+        if (validReadyState(state)) break;
       }
       return stateResult(state);
     } catch (error) {
@@ -500,6 +791,10 @@ export function createContentInitializer({
       }
       throw error;
     }
+  }
+
+  async function ensureInitialized() {
+    return coordinateInitialization(kv, ensureInitializedOnce);
   }
 
   return {

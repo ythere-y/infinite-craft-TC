@@ -106,6 +106,74 @@ test("seed ownership is stored on combinations and remembered result elements", 
   );
 });
 
+test("seed writes preserve explicit non-seed ownership for a shared result element", async () => {
+  const kv = new FakeKV();
+  const store = new KvStore(kv, { now: () => 1_700_000_000_000 });
+  await store.rememberElement("共享结果", {
+    emoji: "✨",
+    category: "ai",
+    source: "llm",
+  });
+
+  await store.putCombination("固定甲", "固定乙", {
+    result: "共享结果",
+    emoji: "🧹",
+    source: "seed",
+    chain: "legacy",
+    content_epoch: 2,
+    catalog_digest: "sha256:catalog",
+  });
+
+  const elementKey = await entityKey("element", "共享结果");
+  const indexKey = store.indexKey(
+    "element",
+    store.shardForCanonicalKey("element", elementKey),
+  );
+  assert.deepEqual(
+    await store.getElement("共享结果"),
+    {
+      emoji: "🧹",
+      category: "legacy",
+      source: "llm",
+      content_epoch: 2,
+      catalog_digest: "sha256:catalog",
+    },
+  );
+  const indexed = JSON.parse(await kv.get(indexKey)).items[elementKey];
+  assert.equal(indexed.source, "llm");
+  assert.equal(indexed.content_epoch, 2);
+  assert.equal(indexed.catalog_digest, "sha256:catalog");
+});
+
+test("explicit non-seed ownership supersedes earlier seed ownership", async () => {
+  const kv = new FakeKV();
+  const store = new KvStore(kv, { now: () => 1_700_000_000_000 });
+  await store.rememberElement("反向共享结果", {
+    emoji: "🧹",
+    category: "legacy",
+    source: "seed",
+    content_epoch: 2,
+    catalog_digest: "sha256:catalog",
+  });
+
+  await store.rememberElement("反向共享结果", {
+    emoji: "✨",
+    category: "ai",
+    source: "llm",
+  });
+
+  assert.deepEqual(
+    await store.getElement("反向共享结果"),
+    {
+      emoji: "✨",
+      category: "ai",
+      source: "llm",
+      content_epoch: 2,
+      catalog_digest: "sha256:catalog",
+    },
+  );
+});
+
 test("exact deletion removes canonical records, recipe, and element index only", async () => {
   const kv = new FakeKV();
   const store = new KvStore(kv, { now: () => 1_700_000_000_000 });
