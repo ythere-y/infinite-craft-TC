@@ -920,11 +920,15 @@ function bindButtons() {
     await rerollNickname();
   });
 
-  // 操作引导 ❓ toggle（仅控制显示，不清除）
-  $("#btn-help")?.addEventListener("click", () => {
-    const hint = document.getElementById("hint");
-    if (!hint) return;
-    hint.classList.toggle("hide");
+  // 操作引导 ❓ toggle（基础提示常驻，仅展开/收起进阶内容）
+  $("#btn-help")?.addEventListener("click", (event) => {
+    const guidance = document.getElementById("advanced-guidance");
+    if (!guidance) return;
+    guidance.hidden = !guidance.hidden;
+    event.currentTarget.setAttribute(
+      "aria-expanded",
+      String(!guidance.hidden),
+    );
   });
 
   // 配方图鉴

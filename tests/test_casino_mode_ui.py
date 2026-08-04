@@ -367,7 +367,21 @@ def _production_app_page() -> str:
           { publish: async function () { return { ok: true }; } }
         );
         var lightToast = captureToastStyles();
-        var hintText = document.getElementById("hint").textContent;
+        function captureGuidance() {
+          var hint = document.getElementById("hint");
+          var advanced = document.getElementById("advanced-guidance");
+          var button = document.getElementById("btn-help");
+          return {
+            visible_text: hint.innerText,
+            advanced_hidden: advanced.hidden,
+            expanded: button.getAttribute("aria-expanded")
+          };
+        }
+        var initialGuidance = captureGuidance();
+        document.getElementById("btn-help").click();
+        var expandedGuidance = captureGuidance();
+        document.getElementById("btn-help").click();
+        var collapsedGuidance = captureGuidance();
         var initial = {
           active: window.EFFECTS.isUraMode(),
           transitionCount: document.querySelectorAll(".ura-transition").length,
@@ -545,7 +559,9 @@ def _production_app_page() -> str:
               ui: {
                 midnight_toast: midnightToast,
                 light_toast: lightToast,
-                hint_text: hintText,
+                initial_guidance: initialGuidance,
+                expanded_guidance: expandedGuidance,
+                collapsed_guidance: collapsedGuidance,
                 double_click_retained: doubleClickRetained
               },
               scoring: {
@@ -706,15 +722,31 @@ def test_game_starts_in_normal_mode_and_button_and_code_toggle_inner_mode(
     ]
 
 
-def test_midnight_toast_is_dark_and_desktop_guidance_retains_case_and_double_click(
+def test_midnight_toast_is_dark_and_advanced_guidance_toggles(
     tmp_path,
 ):
     actual = _run_app_page(tmp_path)["ui"]
     midnight = actual["midnight_toast"]
     light = actual["light_toast"]
 
-    assert "案例展示" in actual["hint_text"]
-    assert "双击" in actual["hint_text"]
+    assert "拖" in actual["initial_guidance"]["visible_text"]
+    assert "合成" in actual["initial_guidance"]["visible_text"]
+    assert "双击" not in actual["initial_guidance"]["visible_text"]
+    assert "案例展示" not in actual["initial_guidance"]["visible_text"]
+    assert actual["initial_guidance"]["advanced_hidden"] is True
+    assert actual["initial_guidance"]["expanded"] == "false"
+
+    assert "双击" in actual["expanded_guidance"]["visible_text"]
+    assert "案例展示" in actual["expanded_guidance"]["visible_text"]
+    assert "滨海大厦" in actual["expanded_guidance"]["visible_text"]
+    assert actual["expanded_guidance"]["advanced_hidden"] is False
+    assert actual["expanded_guidance"]["expanded"] == "true"
+
+    assert actual["collapsed_guidance"] == {
+        "advanced_hidden": True,
+        "expanded": "false",
+        "visible_text": actual["initial_guidance"]["visible_text"],
+    }
     assert actual["double_click_retained"] is True
     assert midnight["backgroundImage"] != light["backgroundImage"]
     assert midnight["color"] != light["color"]

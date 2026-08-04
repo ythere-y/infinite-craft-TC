@@ -20,16 +20,20 @@ test("score-level helper loads before consumers", async () => {
   assert.ok(html.indexOf("casino-mode.js") < html.indexOf("app.js"));
 });
 
-test("homepage guidance preserves the case study and desktop double-click copy", async () => {
+test("homepage keeps basic guidance visible and advanced guidance collapsed", async () => {
   const html = await readFile("frontend/index.html", "utf8");
   const hint = html.match(/<div id="hint" class="hint">([\s\S]*?)<\/div>\s*<section id="casino-hud"/);
+  const basic = html.match(/<div class="basic-guidance">([\s\S]*?)<\/div>\s*<div id="advanced-guidance"/);
 
   assert.ok(hint, "homepage hint should remain present before the casino table");
-  assert.match(hint[1], /案例展示/);
-  assert.match(hint[1], /desktop-only-help[^>]*>[^<]*👆👆\s*<b>双击<\/b>/);
-  assert.match(hint[1], /mobile-only-help[^>]*>👆 把下方的元素/);
-  assert.match(hint[1], /拖/);
-  assert.match(hint[1], /↑↑↓↓←→←→BA/);
+  assert.ok(basic, "homepage should separate basic and advanced guidance");
+  assert.match(html, /id="btn-help"[^>]*aria-expanded="false"[^>]*aria-controls="advanced-guidance"/);
+  assert.match(hint[1], /id="advanced-guidance"[^>]*hidden/);
+  assert.match(hint[1], /id="advanced-guidance"[\s\S]*双击[\s\S]*案例展示[\s\S]*滨海大厦/);
+  assert.match(basic[1], /desktop-only-help[^>]*>[^<]*👆 把右边的元素<b>拖<\/b>/);
+  assert.match(basic[1], /mobile-only-help[^>]*>👆 把下方的元素<b>拖<\/b>/);
+  assert.match(basic[1], /合成/);
+  assert.doesNotMatch(basic[1], /双击|案例展示|↑↑↓↓←→←→BA/);
 });
 
 test("vendored casino animation runtime keeps its license and adds no npm dependency", async () => {
@@ -408,7 +412,7 @@ test("phone layout keeps the workspace and element collection in vertical flow",
   ]);
 
   assert.match(html, /class="hint-line mobile-only-help">👆 把下方的元素/);
-  assert.match(html, /class="hint-line desktop-only-help">👆👆 <b>双击<\/b>/);
+  assert.match(html, /id="advanced-guidance"[\s\S]*class="hint-line desktop-only-help">👆👆 <b>双击<\/b>/);
   assert.match(html, /id="search"[^>]+aria-label="搜索已发现元素"/);
   assert.match(html, /class="topbar-controls">[\s\S]*id="nick-display"[\s\S]*class="topbar-actions"/);
   assert.match(html, /id="btn-help"[^>]*>[\s\S]*class="action-slot"[^>]*data-icon-action="help"[\s\S]*class="action-label">帮助<\/span>/);

@@ -12,6 +12,9 @@ Local development uses FastAPI, Redis and SQLite. Do not use EdgeOne account
 authentication, project association or an Edge Function dev server for local
 development.
 
+Develop directly in the current workspace. Do not create an isolated Git
+worktree for this project.
+
 ## Production workflow
 
 Makers automatically builds and deploys after a PR is merged to `main`. Production
