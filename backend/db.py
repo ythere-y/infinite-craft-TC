@@ -300,8 +300,21 @@ def reset_runtime_data() -> None:
 def delete_combo_keys(pair_keys: set[str]) -> None:
     if not pair_keys:
         return
-    pipe = get_client().pipeline()
-    pipe.delete(*(_combo_key(key) for key in sorted(pair_keys)))
+    client = get_client()
+    seed_keys = []
+    for pair_key in sorted(pair_keys):
+        redis_key = _combo_key(pair_key)
+        data = client.hgetall(redis_key)
+        if not data:
+            continue
+        # Pre-ownership seed hashes may have no source. Retired pair keys are
+        # catalog-owned, so blank legacy ownership is treated as seed.
+        if data.get("source") in {None, "", "seed"}:
+            seed_keys.append(redis_key)
+    if not seed_keys:
+        return
+    pipe = client.pipeline()
+    pipe.delete(*seed_keys)
     pipe.execute()
 
 

@@ -71,6 +71,10 @@ class FakeRedis:
                 deleted += 1
         return deleted
 
+    def hgetall(self, key: str) -> dict[str, object]:
+        value = self.values.get(key)
+        return dict(value) if isinstance(value, dict) else {}
+
     def pipeline(self) -> FakePipeline:
         return FakePipeline(self)
 
@@ -103,7 +107,7 @@ def test_legacy_data_is_hard_reset_once(tmp_path, monkeypatch):
     archive.upsert_combination(
         "打工鹅 + 时间", "美团", "🛵", "seed", "invest"
     )
-    archive.upsert_element("美团", "🛵", "invest")
+    archive.upsert_element("美团", "🛵", "invest", source="seed")
     fake = FakeRedis()
     fake.values["combo:打工鹅 + 时间"] = {"result": "美团"}
     monkeypatch.setattr(db, "get_client", lambda: fake)
@@ -124,7 +128,9 @@ def test_legacy_data_is_hard_reset_once(tmp_path, monkeypatch):
     assert fake.flush_count == 1
 
 
-def test_matching_epoch_and_digest_is_noop(tmp_path, monkeypatch):
+def test_matching_epoch_and_digest_starts_nondestructive_reconciliation(
+    tmp_path, monkeypatch
+):
     use_temp_archive(tmp_path, monkeypatch)
     archive.init_archive()
     community.init()
@@ -141,6 +147,10 @@ def test_matching_epoch_and_digest_is_noop(tmp_path, monkeypatch):
     assert archive.all_combinations()[0]["result"] == "动态结果"
     assert fake.values["combo:甲 + 乙"] == {"result": "动态结果"}
     assert fake.flush_count == 0
+    state = archive.content_state()
+    assert state["status"] == "migrating"
+    assert state["phase"] == "reconcile"
+    assert state["error"] == ""
 
 
 def test_empty_legacy_store_bootstraps_and_resets_redis(tmp_path, monkeypatch):
@@ -223,6 +233,126 @@ def test_failed_seed_load_leaves_migration_resumable(tmp_path, monkeypatch):
     assert state["catalog_digest"] == digest
 
 
+def test_migrating_older_target_forces_current_epoch_reset(
+    tmp_path, monkeypatch
+):
+    use_temp_archive(tmp_path, monkeypatch)
+    archive.init_archive()
+    community.init()
+    epoch, digest = current_catalog_state()
+    archive.begin_content_migration(
+        epoch - 1,
+        "sha256:" + "1" * 64,
+        "differential",
+    )
+    archive.upsert_combination("甲 + 乙", "旧数据", "📦", "llm", "ai")
+    fake = FakeRedis()
+    fake.values["combo:甲 + 乙"] = {
+        "result": "旧数据",
+        "source": "llm",
+    }
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+
+    decision = content_epoch.prepare_local()
+
+    assert decision.mode == "epoch_reset"
+    assert archive.all_combinations() == []
+    assert fake.values == {}
+    assert fake.flush_count == 1
+    state = archive.content_state()
+    assert state["epoch"] == epoch
+    assert state["catalog_digest"] == digest
+    assert state["phase"] == "epoch_reset"
+
+
+@pytest.mark.parametrize("phase", ["epoch_reset", "bootstrap"])
+def test_migrating_stale_digest_keeps_destructive_phase(
+    tmp_path, monkeypatch, phase
+):
+    use_temp_archive(tmp_path, monkeypatch)
+    archive.init_archive()
+    community.init()
+    compiled = content_catalog.load_compiled_content()
+    epoch = compiled["content_epoch"]
+    digest = compiled["catalog_digest"]
+    retired_pair = compiled["retired_pairs"][0]
+    archive.begin_content_migration(
+        epoch,
+        "sha256:" + "2" * 64,
+        phase,
+    )
+    archive.upsert_combination(
+        retired_pair, "旧固定结果", "🧹", "seed", "generated"
+    )
+    archive.upsert_combination("甲 + 乙", "玩家结果", "🧑", "llm", "ai")
+    fake = FakeRedis()
+    fake.values[f"combo:{retired_pair}"] = {
+        "result": "旧固定结果",
+        "source": "seed",
+    }
+    fake.values["combo:甲 + 乙"] = {
+        "result": "玩家结果",
+        "source": "llm",
+    }
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+
+    decision = content_epoch.prepare_local()
+
+    assert decision.mode == phase
+    assert fake.flush_count == 1
+    assert fake.values == {}
+    assert archive.all_combinations() == []
+    state = archive.content_state()
+    assert state["epoch"] == epoch
+    assert state["catalog_digest"] == digest
+    assert state["phase"] == phase
+
+
+def test_migrating_stale_differential_restarts_for_current_digest(
+    tmp_path, monkeypatch
+):
+    use_temp_archive(tmp_path, monkeypatch)
+    archive.init_archive()
+    community.init()
+    compiled = content_catalog.load_compiled_content()
+    epoch = compiled["content_epoch"]
+    digest = compiled["catalog_digest"]
+    retired_pair = compiled["retired_pairs"][0]
+    archive.begin_content_migration(
+        epoch,
+        "sha256:" + "2" * 64,
+        "differential",
+    )
+    archive.upsert_combination(
+        retired_pair, "旧固定结果", "🧹", "seed", "generated"
+    )
+    archive.upsert_combination("甲 + 乙", "玩家结果", "🧑", "llm", "ai")
+    fake = FakeRedis()
+    fake.values[f"combo:{retired_pair}"] = {
+        "result": "旧固定结果",
+        "source": "seed",
+    }
+    fake.values["combo:甲 + 乙"] = {
+        "result": "玩家结果",
+        "source": "llm",
+    }
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+
+    decision = content_epoch.prepare_local()
+
+    assert decision.mode == "differential"
+    assert fake.flush_count == 0
+    assert f"combo:{retired_pair}" not in fake.values
+    assert fake.values["combo:甲 + 乙"]["result"] == "玩家结果"
+    combinations = {row["key"]: row for row in archive.all_combinations()}
+    assert retired_pair not in combinations
+    assert combinations["甲 + 乙"]["source"] == "llm"
+    state = archive.content_state()
+    assert state["epoch"] == epoch
+    assert state["catalog_digest"] == digest
+    assert state["phase"] == "differential"
+
+
 def test_same_epoch_digest_change_retires_only_fixed_content(
     tmp_path, monkeypatch
 ):
@@ -232,7 +362,9 @@ def test_same_epoch_digest_change_retires_only_fixed_content(
     compiled = content_catalog.load_compiled_content()
     epoch = compiled["content_epoch"]
     retired_seed_pair, retired_dynamic_pair = compiled["retired_pairs"][:2]
-    retired_element = compiled["retired_elements"][0]
+    retired_seed_element, retired_dynamic_element = compiled[
+        "retired_elements"
+    ][:2]
     archive.complete_content_migration(epoch, "sha256:" + "0" * 64)
 
     archive.upsert_combination(
@@ -244,8 +376,19 @@ def test_same_epoch_digest_change_retires_only_fixed_content(
     archive.upsert_combination(
         "甲 + 乙", "保留结果", "📦", "seed", "base"
     )
-    archive.upsert_element(retired_element, "🧹", "generated")
-    archive.upsert_element("玩家元素", "🧑", "dynamic")
+    archive.upsert_element(
+        retired_seed_element,
+        "🧹",
+        "generated",
+        source="seed",
+    )
+    archive.upsert_element(
+        retired_dynamic_element,
+        "🧑",
+        "dynamic",
+        source="llm",
+    )
+    archive.upsert_element("玩家元素", "🧑", "dynamic", source="llm")
     formula = community.ensure_formula(
         "玩家左 + 玩家右",
         "玩家左",
@@ -258,8 +401,18 @@ def test_same_epoch_digest_change_retires_only_fixed_content(
     )
 
     fake = FakeRedis()
-    for pair in (retired_seed_pair, retired_dynamic_pair, "甲 + 乙"):
-        fake.values[f"combo:{pair}"] = {"result": pair}
+    fake.values[f"combo:{retired_seed_pair}"] = {
+        "result": "旧固定结果",
+        "source": "seed",
+    }
+    fake.values[f"combo:{retired_dynamic_pair}"] = {
+        "result": "玩家结果",
+        "source": "llm",
+    }
+    fake.values["combo:甲 + 乙"] = {
+        "result": "保留结果",
+        "source": "seed",
+    }
     fake.values["nick:玩家"] = "1"
     monkeypatch.setattr(db, "get_client", lambda: fake)
 
@@ -268,17 +421,24 @@ def test_same_epoch_digest_change_retires_only_fixed_content(
     assert decision.mode == "differential"
     assert fake.flush_count == 0
     assert f"combo:{retired_seed_pair}" not in fake.values
-    assert f"combo:{retired_dynamic_pair}" not in fake.values
-    assert fake.values["combo:甲 + 乙"] == {"result": "甲 + 乙"}
+    assert fake.values[f"combo:{retired_dynamic_pair}"] == {
+        "result": "玩家结果",
+        "source": "llm",
+    }
+    assert fake.values["combo:甲 + 乙"] == {
+        "result": "保留结果",
+        "source": "seed",
+    }
     assert fake.values["nick:玩家"] == "1"
 
     combinations = {row["key"]: row for row in archive.all_combinations()}
     assert retired_seed_pair not in combinations
     assert combinations[retired_dynamic_pair]["source"] == "llm"
     assert combinations["甲 + 乙"]["source"] == "seed"
-    elements = {row["name"] for row in archive.all_elements()}
-    assert retired_element not in elements
-    assert "玩家元素" in elements
+    elements = {row["name"]: row for row in archive.all_elements()}
+    assert retired_seed_element not in elements
+    assert elements[retired_dynamic_element]["source"] == "llm"
+    assert elements["玩家元素"]["source"] == "llm"
     assert community.public_formula(formula["id"]) is None
     con = archive._conn()
     try:
@@ -292,6 +452,26 @@ def test_same_epoch_digest_change_retires_only_fixed_content(
     assert archive.content_state()["status"] == "migrating"
 
 
+def test_redis_retirement_treats_missing_source_as_legacy_seed(monkeypatch):
+    compiled = content_catalog.load_compiled_content()
+    legacy_pair, dynamic_pair = compiled["retired_pairs"][:2]
+    fake = FakeRedis()
+    fake.values[f"combo:{legacy_pair}"] = {"result": "旧固定结果"}
+    fake.values[f"combo:{dynamic_pair}"] = {
+        "result": "玩家结果",
+        "source": "llm",
+    }
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+
+    db.delete_combo_keys({legacy_pair, dynamic_pair})
+
+    assert f"combo:{legacy_pair}" not in fake.values
+    assert fake.values[f"combo:{dynamic_pair}"] == {
+        "result": "玩家结果",
+        "source": "llm",
+    }
+
+
 def test_sqlite_reset_clears_every_gameplay_table_but_preserves_state_and_config(
     tmp_path, monkeypatch
 ):
@@ -301,7 +481,7 @@ def test_sqlite_reset_clears_every_gameplay_table_but_preserves_state_and_config
     epoch, digest = current_catalog_state()
     archive.complete_content_migration(epoch, digest)
     archive.upsert_combination("甲 + 乙", "结果", "📦", "llm", "ai")
-    archive.upsert_element("结果", "📦", "ai")
+    archive.upsert_element("结果", "📦", "ai", source="llm")
     archive.record_first_archive("结果", "📦", "玩家", 1.0)
     archive.kpi_archive("session", 10, "test")
     archive.nickname_archive("玩家")
@@ -428,7 +608,9 @@ def test_startup_failure_resumes_before_marking_content_ready(
     with pytest.raises(RuntimeError, match="seed load failed"):
         asyncio.run(main._startup())
 
-    assert archive.content_state()["status"] == "migrating"
+    failed_state = archive.content_state()
+    assert failed_state["status"] == "migrating"
+    assert "seed load failed" in failed_state["error"]
     assert fake.flush_count == 1
 
     monkeypatch.setattr(main.store, "load", lambda: (0, 0))
@@ -463,6 +645,89 @@ def test_depth_replacement_failure_does_not_mark_content_ready(
     state = archive.content_state()
     assert state["status"] == "migrating"
     assert state["phase"] == "bootstrap"
+    assert "depth replace failed" in state["error"]
+
+
+@pytest.mark.parametrize("stage", ["warmup", "seed", "depth"])
+def test_matching_ready_startup_failure_is_durable(
+    tmp_path, monkeypatch, stage
+):
+    use_temp_archive(tmp_path, monkeypatch)
+    archive.init_archive()
+    community.init()
+    epoch, digest = current_catalog_state()
+    archive.complete_content_migration(epoch, digest)
+    fake = FakeRedis()
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+    monkeypatch.setattr(main, "load_prompt_spec", lambda: {})
+
+    def warmup():
+        if stage == "warmup":
+            raise RuntimeError("warmup failed")
+        return {"combos": 0, "firsts": 0, "nicks": 0}
+
+    def seed_load():
+        if stage == "seed":
+            raise RuntimeError("seed failed")
+        return 1, 1
+
+    def depth_load():
+        if stage == "depth":
+            raise RuntimeError("depth failed")
+        return {}
+
+    monkeypatch.setattr(main.db, "warm_up_from_archive", warmup)
+    monkeypatch.setattr(main.store, "load", seed_load)
+    monkeypatch.setattr(main.depth_mod, "warm_up_from_seed", depth_load)
+
+    with pytest.raises(RuntimeError, match=f"{stage} failed"):
+        asyncio.run(main._startup())
+
+    state = archive.content_state()
+    assert state["status"] == "migrating"
+    assert state["phase"] == "reconcile"
+    assert f"{stage} failed" in state["error"]
+    assert state["completed_at"] is None
+    assert fake.flush_count == 0
+
+
+def test_failed_ready_reconciliation_resumes_without_reset(
+    tmp_path, monkeypatch
+):
+    use_temp_archive(tmp_path, monkeypatch)
+    archive.init_archive()
+    community.init()
+    epoch, digest = current_catalog_state()
+    archive.complete_content_migration(epoch, digest)
+    archive.upsert_combination("甲 + 乙", "玩家结果", "🧑", "llm", "ai")
+    fake = FakeRedis()
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+    monkeypatch.setattr(main, "load_prompt_spec", lambda: {})
+    calls = 0
+
+    def warmup():
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise RuntimeError("transient warmup failure")
+        return {"combos": 0, "firsts": 0, "nicks": 0}
+
+    monkeypatch.setattr(main.db, "warm_up_from_archive", warmup)
+    monkeypatch.setattr(main.store, "load", lambda: (1, 1))
+    monkeypatch.setattr(main.depth_mod, "warm_up_from_seed", lambda: {})
+
+    with pytest.raises(RuntimeError, match="transient warmup failure"):
+        asyncio.run(main._startup())
+    assert archive.content_state()["status"] == "migrating"
+
+    asyncio.run(main._startup())
+
+    assert calls == 2
+    assert fake.flush_count == 0
+    assert archive.all_combinations()[0]["result"] == "玩家结果"
+    state = archive.content_state()
+    assert state["status"] == "ready"
+    assert state["error"] == ""
 
 
 def test_health_exposes_durable_content_state(tmp_path, monkeypatch):

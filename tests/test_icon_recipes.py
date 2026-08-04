@@ -187,6 +187,7 @@ def test_init_archive_migrates_old_elements_schema(isolated_archive):
     }
     con.close()
     assert "icon_json" in columns
+    assert "source" in columns
 
 
 def test_icon_json_round_trips_without_overwriting_persisted_recipe(isolated_archive):
@@ -197,11 +198,14 @@ def test_icon_json_round_trips_without_overwriting_persisted_recipe(isolated_arc
         "palette": "product",
         "source": "generated",
     }
-    archive.upsert_element("智能咖啡", "☕", "ai", icon=original)
+    archive.upsert_element(
+        "智能咖啡", "☕", "ai", source="llm", icon=original
+    )
     archive.upsert_element(
         "智能咖啡",
         "❌",
         "other",
+        source="llm",
         icon={
             "base": "❌",
             "palette": "place",
@@ -215,6 +219,7 @@ def test_icon_json_round_trips_without_overwriting_persisted_recipe(isolated_arc
             "emoji": "☕",
             "category": "ai",
             "is_starter": 0,
+            "source": "llm",
             "icon": original,
         }
     ]
@@ -260,11 +265,14 @@ def test_upsert_repairs_invalid_nonempty_icon_json_without_overwriting_valid_rec
         "palette": "product",
         "source": "generated",
     }
-    archive.upsert_element("智能咖啡", "☕", "ai", icon=derived)
+    archive.upsert_element(
+        "智能咖啡", "☕", "ai", source="llm", icon=derived
+    )
     archive.upsert_element(
         "智能咖啡",
         "❌",
         "other",
+        source="llm",
         icon={
             "base": "❌",
             "palette": "place",
@@ -341,6 +349,7 @@ def test_seed_store_prefers_archived_icon_when_seed_name_collides(
         "Riot",
         "⚡",
         "studio",
+        source="llm",
         is_starter=True,
         icon=persisted,
     )
@@ -458,6 +467,7 @@ def test_new_dynamic_combine_persists_and_returns_icon(monkeypatch):
             "name": "智能咖啡",
             "emoji": "☕",
             "category": "ai",
+            "source": "llm",
             "is_starter": False,
             "icon": response.icon,
         }

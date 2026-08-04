@@ -140,6 +140,12 @@ def test_seed_load_replaces_conflicting_stores_without_touching_dynamic_formulas
         "llm",
         None,
     )
+    archive.upsert_element(
+        "玩家元素",
+        "🧑",
+        "dynamic",
+        source="llm",
+    )
     community.ensure_formula(
         "水 + 水",
         "水",
@@ -255,6 +261,12 @@ def test_seed_load_replaces_conflicting_stores_without_touching_dynamic_formulas
                 ("水 + 水",),
             ).fetchone()
         )
+        element_sources = {
+            row["name"]: row["source"]
+            for row in con.execute(
+                "SELECT name, source FROM elements"
+            ).fetchall()
+        }
     finally:
         con.close()
 
@@ -276,6 +288,9 @@ def test_seed_load_replaces_conflicting_stores_without_touching_dynamic_formulas
         "visibility": "hidden",
         "status": "active",
     }
+    assert element_sources["水"] == "seed"
+    assert element_sources["水塘"] == "seed"
+    assert element_sources["玩家元素"] == "llm"
 
 
 def test_retired_seed_pair_cannot_be_revived_by_archive_warmup(

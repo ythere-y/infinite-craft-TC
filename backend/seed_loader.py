@@ -40,13 +40,14 @@ class SeedStore:
         for s in self.starters:
             archive.upsert_element(
                 name=s["name"], emoji=s["emoji"],
-                category=s.get("category"), is_starter=True,
+                category=s.get("category"), source="seed", is_starter=True,
                 icon=s.get("icon"),
             )
         for name, info in self.elements.items():
             archive.upsert_element(
                 name=name, emoji=info.get("emoji", "❓"),
                 category=info.get("category"),
+                source="seed",
                 is_starter=(name in starter_names),
                 icon=info.get("icon"),
             )
@@ -69,11 +70,12 @@ class SeedStore:
             }
             enriched = attach_icon(name, info)
             self.elements[name] = enriched
-            if persisted_icon is None:
+            if persisted_icon is None or not row.get("source"):
                 archive.upsert_element(
                     name=name,
                     emoji=row["emoji"],
                     category=row["category"],
+                    source=row.get("source") or "llm",
                     is_starter=bool(row["is_starter"]),
                     icon=enriched["icon"],
                 )
@@ -122,7 +124,8 @@ class SeedStore:
                 self.elements[info["result"]] = result_info
                 archive.upsert_element(
                     name=info["result"], emoji=info.get("emoji", "❓"),
-                    category=info.get("chain"), is_starter=False,
+                    category=info.get("chain"), source="seed",
+                    is_starter=False,
                     icon=result_info["icon"],
                 )
         if bad > 0:

@@ -76,7 +76,8 @@ def init_archive() -> None:
                     category   TEXT,
                     is_starter INTEGER NOT NULL DEFAULT 0,
                     created_at REAL NOT NULL,
-                    icon_json  TEXT
+                    icon_json  TEXT,
+                    source     TEXT
                 );
 
                 CREATE TABLE IF NOT EXISTS first_discoveries (
@@ -134,6 +135,8 @@ def init_archive() -> None:
             }
             if "icon_json" not in element_columns:
                 con.execute("ALTER TABLE elements ADD COLUMN icon_json TEXT")
+            if "source" not in element_columns:
+                con.execute("ALTER TABLE elements ADD COLUMN source TEXT")
             con.commit()
             print(f"[sqlite] archive ready: {_db_path()}")
         finally:
@@ -208,6 +211,24 @@ def begin_content_migration(epoch: int, digest: str, phase: str) -> None:
             con.close()
 
 
+def fail_content_migration(error: str) -> None:
+    """Persist the latest failure without reviving a ready migration."""
+    with _lock:
+        con = _conn()
+        try:
+            con.execute(
+                """
+                UPDATE content_state
+                SET status='migrating', error=?, updated_at=?, completed_at=NULL
+                WHERE singleton=1 AND status='migrating'
+                """,
+                (error, time.time()),
+            )
+            con.commit()
+        finally:
+            con.close()
+
+
 def reset_gameplay_data() -> None:
     """Atomically clear local gameplay data while retaining durable metadata."""
     with _lock:
@@ -252,7 +273,10 @@ def retire_fixed_content(
             if element_names:
                 placeholders = ",".join("?" for _ in element_names)
                 con.execute(
-                    f"DELETE FROM elements WHERE name IN ({placeholders})",
+                    f"""
+                    DELETE FROM elements
+                    WHERE source='seed' AND name IN ({placeholders})
+                    """,
                     tuple(sorted(element_names)),
                 )
             con.commit()
@@ -356,6 +380,8 @@ def upsert_element(
     name: str,
     emoji: str,
     category: Optional[str],
+    *,
+    source: Optional[str],
     is_starter: bool = False,
     icon: Optional[dict] = None,
 ) -> None:
@@ -369,7 +395,7 @@ def upsert_element(
         con = _conn()
         try:
             existing = con.execute(
-                "SELECT icon_json FROM elements WHERE name = ?",
+                "SELECT icon_json, source FROM elements WHERE name = ?",
                 (name,),
             ).fetchone()
             replace_invalid = bool(
@@ -381,9 +407,10 @@ def upsert_element(
             con.execute(
                 """
                 INSERT INTO elements(
-                    name, emoji, category, is_starter, created_at, icon_json
+                    name, emoji, category, is_starter, created_at, icon_json,
+                    source
                 )
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(name) DO UPDATE SET
                     icon_json = CASE
                         WHEN elements.icon_json IS NULL
@@ -391,7 +418,8 @@ def upsert_element(
                              OR ?
                         THEN excluded.icon_json
                         ELSE elements.icon_json
-                    END
+                    END,
+                    source = COALESCE(elements.source, excluded.source)
                 """,
                 (
                     name,
@@ -400,6 +428,7 @@ def upsert_element(
                     1 if is_starter else 0,
                     time.time(),
                     icon_json,
+                    source,
                     1 if replace_invalid else 0,
                 ),
             )
@@ -467,7 +496,10 @@ def all_elements() -> List[Dict]:
     con = _conn()
     try:
         rows = con.execute(
-            "SELECT name, emoji, category, is_starter, icon_json FROM elements"
+            """
+            SELECT name, emoji, category, is_starter, icon_json, source
+            FROM elements
+            """
         ).fetchall()
         out: List[Dict] = []
         for row in rows:

@@ -25,6 +25,8 @@ def _catalog_state() -> dict[str, Any]:
 
 
 def _apply_migration(phase: str, catalog: dict[str, Any]) -> None:
+    if phase == "reconcile":
+        return
     if phase in {"epoch_reset", "bootstrap"}:
         if archive.has_gameplay_data():
             archive.reset_gameplay_data()
@@ -45,14 +47,28 @@ def prepare_local() -> MigrationDecision:
     state = archive.content_state()
 
     if state and state["status"] == "migrating":
-        phase = str(state["phase"])
+        if state["epoch"] != catalog["epoch"]:
+            phase = "epoch_reset"
+            mode = phase
+        elif state["catalog_digest"] != catalog["catalog_digest"]:
+            stored_phase = str(state["phase"])
+            if stored_phase in {"epoch_reset", "bootstrap"}:
+                phase = stored_phase
+            elif stored_phase in {"differential", "reconcile"}:
+                phase = "differential"
+            else:
+                phase = "epoch_reset"
+            mode = phase
+        else:
+            phase = str(state["phase"])
+            mode = "resume"
         archive.begin_content_migration(
             catalog["epoch"],
             catalog["catalog_digest"],
             phase,
         )
         _apply_migration(phase, catalog)
-        return MigrationDecision(mode="resume", phase=phase)
+        return MigrationDecision(mode=mode, phase=phase)
 
     if (
         state
@@ -60,7 +76,12 @@ def prepare_local() -> MigrationDecision:
         and state["epoch"] == catalog["epoch"]
         and state["catalog_digest"] == catalog["catalog_digest"]
     ):
-        return MigrationDecision(mode="ready", phase="ready")
+        archive.begin_content_migration(
+            catalog["epoch"],
+            catalog["catalog_digest"],
+            "reconcile",
+        )
+        return MigrationDecision(mode="ready", phase="reconcile")
 
     if state is None:
         phase = "epoch_reset" if archive.has_gameplay_data() else "bootstrap"
@@ -83,6 +104,16 @@ def complete_local() -> None:
     archive.complete_content_migration(
         catalog["epoch"],
         catalog["catalog_digest"],
+    )
+
+
+def fail_local(error: BaseException | str) -> None:
+    if isinstance(error, BaseException):
+        message = f"{type(error).__name__}: {error}"
+    else:
+        message = str(error)
+    archive.fail_content_migration(
+        (message.strip() or "local content startup failed")[:1000]
     )
 
 

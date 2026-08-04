@@ -83,20 +83,24 @@ async def _startup() -> None:
     load_prompt_spec()
     db.init_db()  # 连 Redis + 建 SQLite 表
     community.init()
-    decision = content_epoch.prepare_local()
-    # 1) 仅在内容版本已就绪时从 SQLite 恢复历史数据到 Redis。
-    if decision.mode == "ready":
-        warm = db.warm_up_from_archive()
-    else:
-        warm = {"combos": 0, "firsts": 0, "nicks": 0}
-    print(
-        f"[warmup] restored from SQLite: combos={warm['combos']} firsts={warm['firsts']} nicks={warm['nicks']}"
-    )
-    # 2) 加载 seed（会补齐 SQLite 没有的那些）
-    n_el, n_warmed = store.load()
-    # 3) 计算元素深度（合成分数用）
-    depth_table = depth_mod.warm_up_from_seed()
-    content_epoch.complete_local()
+    try:
+        decision = content_epoch.prepare_local()
+        # 1) ready/reconcile 会保留并恢复 SQLite 中的动态长尾。
+        if decision.mode == "ready" or decision.phase == "reconcile":
+            warm = db.warm_up_from_archive()
+        else:
+            warm = {"combos": 0, "firsts": 0, "nicks": 0}
+        print(
+            f"[warmup] restored from SQLite: combos={warm['combos']} firsts={warm['firsts']} nicks={warm['nicks']}"
+        )
+        # 2) 加载 seed（会补齐 SQLite 没有的那些）
+        n_el, n_warmed = store.load()
+        # 3) 计算元素深度（合成分数用）
+        depth_table = depth_mod.warm_up_from_seed()
+        content_epoch.complete_local()
+    except Exception as exc:
+        content_epoch.fail_local(exc)
+        raise
     env = os.environ.get("APP_ENV", "dev")
     redis_configured = "yes" if os.environ.get("REDIS_URL") else "default"
     print(f"[env] APP_ENV={env}  REDIS_URL={redis_configured}")
@@ -557,6 +561,7 @@ async def api_combine(
             name=result,
             emoji=emoji,
             category=chain,
+            source=source,
             is_starter=False,
             icon=icon,
         )
@@ -566,6 +571,7 @@ async def api_combine(
             name=result,
             emoji=emoji,
             category=existing_info.get("category") or chain,
+            source=source,
             is_starter=False,
             icon=icon,
         )
