@@ -1300,6 +1300,82 @@ test("health remains available when an initialization batch throws", async () =>
   }
 });
 
+test("failed epoch 2 persistence never exposes an epoch 1 ready tuple", async () => {
+  const staleDigest =
+    "sha256:0000000000000000000000000000000000000000000000000000000000000000";
+  class FailingCurrentStateKV extends FakeKV {
+    async put(key, value) {
+      if (key === "system_content_state") {
+        const candidate = JSON.parse(value);
+        if (candidate.epoch === 2) {
+          throw new Error("secret epoch 2 persistence failure");
+        }
+      }
+      return super.put(key, value);
+    }
+  }
+  const kv = new FailingCurrentStateKV({
+    system_content_state: JSON.stringify({
+      epoch: 1,
+      catalog_digest: staleDigest,
+      status: "ready",
+      mode: "ready",
+      phase: "ready",
+      error: "",
+    }),
+  });
+  globalThis.test = kv;
+  try {
+    const { onRequest } = await import("../edge-functions/api/[[default]].js");
+    const health = await onRequest({
+      request: request("/api/health"),
+      env: {},
+    });
+    const healthBody = await health.json();
+
+    assert.equal(health.status, 200);
+    assert.equal(healthBody.content.epoch, 2);
+    assert.equal(healthBody.content.catalog_digest, CATALOG_DIGEST);
+    assert.equal(healthBody.content.status, "migrating");
+    assert.equal(healthBody.content.mode, "unknown");
+    assert.equal(healthBody.content.phase, "detect");
+    assert.equal(
+      healthBody.content.error_code,
+      "CONTENT_INITIALIZATION_FAILED",
+    );
+
+    const combine = await onRequest({
+      request: request("/api/combine", {
+        method: "POST",
+        body: { a: "水", b: "火" },
+      }),
+      env: {},
+    });
+    const combineBody = await combine.json();
+
+    assert.equal(combine.status, 503);
+    assert.equal(combineBody.code, "CONTENT_INITIALIZING");
+    assert.equal(combineBody.details.content.epoch, 2);
+    assert.equal(
+      combineBody.details.content.catalog_digest,
+      CATALOG_DIGEST,
+    );
+    assert.equal(combineBody.details.content.status, "migrating");
+    assert.equal(combineBody.details.content.mode, "unknown");
+    assert.equal(combineBody.details.content.phase, "detect");
+    assert.equal(
+      combineBody.details.content.error_code,
+      "CONTENT_INITIALIZATION_FAILED",
+    );
+    assert.doesNotMatch(
+      JSON.stringify({ healthBody, combineBody }),
+      /secret epoch 2|sha256:000000/u,
+    );
+  } finally {
+    delete globalThis.test;
+  }
+});
+
 test("malformed truthy KV bindings return structured safe errors", async () => {
   globalThis.test = {};
   try {
@@ -1393,6 +1469,30 @@ test("router health sanitizes an injected durable error and cursor", async () =>
   );
   assert.equal("cursor" in health.body.content, false);
   assert.doesNotMatch(serialized, /secret-token|internal-kv|provider-cursor/u);
+});
+
+test("router health never exposes a provider-controlled KV error name", async () => {
+  class SecretNamedHealthKV extends FakeKV {
+    async get(key, options) {
+      if (key === "snapshot_health") {
+        const error = new Error("provider detail");
+        error.name = "SecretTenantKvFailure";
+        throw error;
+      }
+      return super.get(key, options);
+    }
+  }
+  const health = await json(
+    makeRouter({ kv: new SecretNamedHealthKV() }),
+    "/api/health",
+  );
+
+  assert.equal(health.response.status, 200);
+  assert.equal(health.body.kv, "error: KVError");
+  assert.doesNotMatch(
+    JSON.stringify(health.body),
+    /SecretTenantKvFailure|provider detail/u,
+  );
 });
 
 test("Edge Function entry uses only the production KV global", async () => {

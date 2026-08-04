@@ -73,11 +73,6 @@ const PUBLIC_CONTENT_PHASES = new Set([
   "verify_catalog",
   "ready",
 ]);
-const PUBLIC_CONTENT_STATUSES = new Set([
-  "ready",
-  "migrating",
-]);
-
 export function publicContentStatus(
   value,
   { initializationFailed = false } = {},
@@ -89,20 +84,40 @@ export function publicContentStatus(
   const rawDigest = cleanText(value?.catalog_digest);
   const index = Number(value?.index);
   const hasError = initializationFailed || Boolean(cleanText(value?.error));
+  const currentTarget = (
+    epoch === CONTENT_EPOCH &&
+    rawDigest === CATALOG_DIGEST
+  );
+  const ready = (
+    currentTarget &&
+    rawStatus === "ready" &&
+    rawMode === "ready" &&
+    rawPhase === "ready" &&
+    !hasError
+  );
+  const migrating = currentTarget && rawStatus === "migrating";
 
   return {
-    epoch: Number.isSafeInteger(epoch) && epoch > 0
-      ? epoch
-      : CONTENT_EPOCH,
-    catalog_digest: /^sha256:[0-9a-f]{64}$/u.test(rawDigest)
-      ? rawDigest
-      : CATALOG_DIGEST,
-    status: PUBLIC_CONTENT_STATUSES.has(rawStatus)
-      ? rawStatus
-      : "migrating",
-    mode: PUBLIC_CONTENT_MODES.has(rawMode) ? rawMode : "unknown",
-    phase: PUBLIC_CONTENT_PHASES.has(rawPhase) ? rawPhase : "detect",
-    ...(Number.isSafeInteger(index) && index >= 0 ? { index } : {}),
+    epoch: CONTENT_EPOCH,
+    catalog_digest: CATALOG_DIGEST,
+    status: ready ? "ready" : "migrating",
+    mode: ready
+      ? "ready"
+      : migrating &&
+          PUBLIC_CONTENT_MODES.has(rawMode) &&
+          rawMode !== "ready"
+        ? rawMode
+        : "unknown",
+    phase: ready
+      ? "ready"
+      : migrating &&
+          PUBLIC_CONTENT_PHASES.has(rawPhase) &&
+          rawPhase !== "ready"
+        ? rawPhase
+        : "detect",
+    ...(migrating && Number.isSafeInteger(index) && index >= 0
+      ? { index }
+      : {}),
     ...(hasError
       ? {
           error: "内容初始化暂时失败",
@@ -399,8 +414,8 @@ export function createRouter({
       let kvStatus = "ok";
       try {
         await kv.get("snapshot_health");
-      } catch (error) {
-        kvStatus = `error: ${error?.name || "KVError"}`;
+      } catch {
+        kvStatus = "error: KVError";
       }
       return jsonResponse({
         kv: kvStatus,
