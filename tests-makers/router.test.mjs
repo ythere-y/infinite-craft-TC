@@ -146,7 +146,7 @@ test("legacy KV elements gain response icons across element projections", async 
   const router = createRouter({ kv, env: {} });
   const expected = {
     base: "☕",
-    badge: "🧠",
+    badge: "🧩",
     palette: "product",
     source: "generated",
   };
