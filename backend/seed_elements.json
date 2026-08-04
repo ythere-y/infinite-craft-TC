@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "version": "1.1",
-    "updated": "2026-04-23",
+    "version": "2.0",
+    "updated": "2026-08-04",
     "description": "Infinity Craft · 鹅厂打工人版 元素库。category 用于前端分类显示和 LLM prompt 注入倾向性。",
     "categories": {
       "classic": "原版四元素",
@@ -20,7 +20,10 @@
       "building": "腾讯办公楼/园区",
       "level": "T/P/M 族职级",
       "boss": "腾讯高管",
-      "invest": "腾讯投资/被投"
+      "internet": "互联网与联网设备",
+      "qq_memory": "QQ 时代产品、身份与经典行为",
+      "tencent_game": "腾讯自研、代理、联合开发或发行的游戏",
+      "association": "有一手资料支撑的腾讯关联组织"
     }
   },
   "starters": [
@@ -55,22 +58,10 @@
       "category": "tencent"
     },
     {
-      "id": "desk",
-      "name": "工位",
-      "emoji": "🪑",
-      "category": "worker"
-    },
-    {
       "id": "person",
       "name": "人",
       "emoji": "🧍",
       "category": "social"
-    },
-    {
-      "id": "wechat",
-      "name": "微信",
-      "emoji": "💬",
-      "category": "tencent"
     },
     {
       "id": "time",
@@ -83,9 +74,31 @@
       "name": "AI",
       "emoji": "🤖",
       "category": "abstract"
+    },
+    {
+      "id": "computer",
+      "name": "电脑",
+      "emoji": "💻",
+      "category": "internet"
+    },
+    {
+      "id": "phone",
+      "name": "手机",
+      "emoji": "📱",
+      "category": "internet"
+    },
+    {
+      "id": "network",
+      "name": "网络",
+      "emoji": "🌐",
+      "category": "internet"
     }
   ],
   "elements": {
+    "996": {
+      "emoji": "⏰",
+      "category": "worker"
+    },
     "水": {
       "emoji": "💧",
       "category": "classic"
@@ -106,161 +119,17 @@
       "emoji": "🐧",
       "category": "tencent"
     },
-    "鹅厂": {
-      "emoji": "🏢",
-      "category": "tencent"
-    },
-    "工牌": {
-      "emoji": "🪪",
-      "category": "tencent"
-    },
     "门禁": {
       "emoji": "🚪",
-      "category": "tencent"
-    },
-    "电梯": {
-      "emoji": "🛗",
-      "category": "tencent"
-    },
-    "打卡": {
-      "emoji": "⏱️",
-      "category": "tencent"
-    },
-    "掌纹": {
-      "emoji": "🫴",
-      "category": "tencent"
-    },
-    "iWiki": {
-      "emoji": "📘",
-      "category": "tencent"
-    },
-    "RTX": {
-      "emoji": "📧",
-      "category": "tencent"
-    },
-    "乐享": {
-      "emoji": "🎨",
-      "category": "tencent"
-    },
-    "鹅卡": {
-      "emoji": "💳",
-      "category": "tencent"
-    },
-    "食堂": {
-      "emoji": "🍱",
-      "category": "tencent"
-    },
-    "鹅餐": {
-      "emoji": "🍱",
-      "category": "tencent"
-    },
-    "班车": {
-      "emoji": "🚌",
-      "category": "tencent"
-    },
-    "健身房": {
-      "emoji": "🏋️",
-      "category": "tencent"
-    },
-    "按摩椅": {
-      "emoji": "💆",
-      "category": "tencent"
-    },
-    "小马哥": {
-      "emoji": "🐎",
-      "category": "tencent"
-    },
-    "南极圈": {
-      "emoji": "🧊",
-      "category": "tencent"
-    },
-    "活水": {
-      "emoji": "🌊",
-      "category": "tencent"
-    },
-    "瑞雪": {
-      "emoji": "❄️",
-      "category": "tencent"
-    },
-    "赛马": {
-      "emoji": "🐎",
-      "category": "tencent"
-    },
-    "中台": {
-      "emoji": "🏗️",
-      "category": "tencent"
-    },
-    "TAPD": {
-      "emoji": "📋",
-      "category": "tencent"
-    },
-    "腾讯会议": {
-      "emoji": "📹",
-      "category": "tencent"
-    },
-    "腾讯文档": {
-      "emoji": "📄",
       "category": "tencent"
     },
     "微信": {
       "emoji": "💬",
       "category": "tencent"
     },
-    "QQ": {
-      "emoji": "🐧",
-      "category": "tencent"
-    },
-    "朋友圈": {
-      "emoji": "🔵",
-      "category": "tencent"
-    },
-    "视频号": {
-      "emoji": "📺",
-      "category": "tencent"
-    },
-    "王者荣耀": {
-      "emoji": "⚔️",
-      "category": "tencent"
-    },
-    "和平精英": {
-      "emoji": "🔫",
-      "category": "tencent"
-    },
-    "IEG": {
-      "emoji": "🎮",
-      "category": "tencent"
-    },
-    "WXG": {
-      "emoji": "💚",
-      "category": "tencent"
-    },
-    "CSIG": {
-      "emoji": "☁️",
-      "category": "tencent"
-    },
-    "PCG": {
-      "emoji": "💻",
-      "category": "tencent"
-    },
-    "TEG": {
-      "emoji": "🔧",
-      "category": "tencent"
-    },
-    "CDG": {
-      "emoji": "📈",
-      "category": "tencent"
-    },
-    "组织架构调整": {
-      "emoji": "🔄",
-      "category": "tencent"
-    },
     "鹅厂大楼": {
       "emoji": "🏛️",
       "category": "tencent"
-    },
-    "滨海大厦": {
-      "emoji": "🌆",
-      "category": "building"
     },
     "周报": {
       "emoji": "📝",
@@ -322,10 +191,6 @@
       "emoji": "🧑‍💻",
       "category": "worker"
     },
-    "打工鹅": {
-      "emoji": "🐧",
-      "category": "worker"
-    },
     "秃头": {
       "emoji": "👨‍🦲",
       "category": "worker"
@@ -348,10 +213,6 @@
     },
     "007": {
       "emoji": "🌚",
-      "category": "worker"
-    },
-    "996": {
-      "emoji": "⏰",
       "category": "worker"
     },
     "年终奖": {
@@ -902,42 +763,6 @@
       "emoji": "🌉",
       "category": "geo"
     },
-    "腾讯大厦": {
-      "emoji": "🏢",
-      "category": "building"
-    },
-    "金地威新": {
-      "emoji": "🏬",
-      "category": "building"
-    },
-    "TIT创意园": {
-      "emoji": "🎨",
-      "category": "building"
-    },
-    "科兴科学园": {
-      "emoji": "🔬",
-      "category": "building"
-    },
-    "琶洲新总部": {
-      "emoji": "🏗️",
-      "category": "building"
-    },
-    "T1塔楼": {
-      "emoji": "🗼",
-      "category": "building"
-    },
-    "北京总部": {
-      "emoji": "🏯",
-      "category": "building"
-    },
-    "上海总部": {
-      "emoji": "🌉",
-      "category": "building"
-    },
-    "成都办公楼": {
-      "emoji": "🐼",
-      "category": "building"
-    },
     "纺织机械厂": {
       "emoji": "🏭",
       "category": "building"
@@ -954,74 +779,6 @@
       "emoji": "🧱",
       "category": "building"
     },
-    "QQ邮箱": {
-      "emoji": "📬",
-      "category": "product"
-    },
-    "QQ音乐": {
-      "emoji": "🎵",
-      "category": "product"
-    },
-    "QQ浏览器": {
-      "emoji": "🌐",
-      "category": "product"
-    },
-    "QQ空间": {
-      "emoji": "🌌",
-      "category": "product"
-    },
-    "TIM": {
-      "emoji": "💼",
-      "category": "product"
-    },
-    "企业微信": {
-      "emoji": "💼",
-      "category": "product"
-    },
-    "微云": {
-      "emoji": "☁️",
-      "category": "product"
-    },
-    "公众号": {
-      "emoji": "📢",
-      "category": "product"
-    },
-    "小程序": {
-      "emoji": "🔲",
-      "category": "product"
-    },
-    "微信支付": {
-      "emoji": "💸",
-      "category": "product"
-    },
-    "红包": {
-      "emoji": "🧧",
-      "category": "product"
-    },
-    "腾讯视频": {
-      "emoji": "📺",
-      "category": "product"
-    },
-    "微视": {
-      "emoji": "🎬",
-      "category": "product"
-    },
-    "腾讯新闻": {
-      "emoji": "📰",
-      "category": "product"
-    },
-    "腾讯体育": {
-      "emoji": "⚽",
-      "category": "product"
-    },
-    "腾讯动漫": {
-      "emoji": "📖",
-      "category": "product"
-    },
-    "阅文集团": {
-      "emoji": "📚",
-      "category": "product"
-    },
     "酷狗": {
       "emoji": "🎧",
       "category": "product"
@@ -1029,202 +786,6 @@
     "酷我": {
       "emoji": "🎤",
       "category": "product"
-    },
-    "全民K歌": {
-      "emoji": "🎤",
-      "category": "product"
-    },
-    "TME": {
-      "emoji": "🎶",
-      "category": "product"
-    },
-    "腾讯云": {
-      "emoji": "☁️",
-      "category": "product"
-    },
-    "应用宝": {
-      "emoji": "📦",
-      "category": "product"
-    },
-    "电脑管家": {
-      "emoji": "🛡️",
-      "category": "product"
-    },
-    "CODING": {
-      "emoji": "💻",
-      "category": "product"
-    },
-    "腾讯地图": {
-      "emoji": "🗺️",
-      "category": "product"
-    },
-    "腾讯翻译君": {
-      "emoji": "🔤",
-      "category": "product"
-    },
-    "混元大模型": {
-      "emoji": "🧠",
-      "category": "product"
-    },
-    "元宝": {
-      "emoji": "💎",
-      "category": "product"
-    },
-    "CodeBuddy": {
-      "emoji": "🤖",
-      "category": "product"
-    },
-    "WorkBuddy": {
-      "emoji": "🧑‍💼",
-      "category": "product"
-    },
-    "AnyDev": {
-      "emoji": "🛠️",
-      "category": "product"
-    },
-    "Wedata": {
-      "emoji": "📊",
-      "category": "product"
-    },
-    "ima.copilot": {
-      "emoji": "📚",
-      "category": "product"
-    },
-    "腾讯企点": {
-      "emoji": "🎯",
-      "category": "product"
-    },
-    "CDC": {
-      "emoji": "🎨",
-      "category": "product"
-    },
-    "英雄联盟": {
-      "emoji": "🎮",
-      "category": "product"
-    },
-    "英雄联盟手游": {
-      "emoji": "📱",
-      "category": "product"
-    },
-    "金铲铲": {
-      "emoji": "♟️",
-      "category": "product"
-    },
-    "穿越火线": {
-      "emoji": "🔫",
-      "category": "product"
-    },
-    "DNF": {
-      "emoji": "⚔️",
-      "category": "product"
-    },
-    "火影忍者手游": {
-      "emoji": "🥷",
-      "category": "product"
-    },
-    "元梦之星": {
-      "emoji": "⭐",
-      "category": "product"
-    },
-    "PUBG": {
-      "emoji": "🪂",
-      "category": "product"
-    },
-    "Valorant": {
-      "emoji": "🎯",
-      "category": "product"
-    },
-    "欢乐斗地主": {
-      "emoji": "🃏",
-      "category": "product"
-    },
-    "欢乐麻将": {
-      "emoji": "🀄",
-      "category": "product"
-    },
-    "天美": {
-      "emoji": "⚔️",
-      "category": "studio"
-    },
-    "光子": {
-      "emoji": "💡",
-      "category": "studio"
-    },
-    "魔方": {
-      "emoji": "🎲",
-      "category": "studio"
-    },
-    "北极光": {
-      "emoji": "🌌",
-      "category": "studio"
-    },
-    "量子": {
-      "emoji": "⚛️",
-      "category": "studio"
-    },
-    "极光": {
-      "emoji": "✨",
-      "category": "studio"
-    },
-    "波士顿": {
-      "emoji": "🦞",
-      "category": "studio"
-    },
-    "拳头": {
-      "emoji": "👊",
-      "category": "studio"
-    },
-    "Supercell": {
-      "emoji": "🏰",
-      "category": "studio"
-    },
-    "Epic": {
-      "emoji": "🎮",
-      "category": "studio"
-    },
-    "T族": {
-      "emoji": "🧪",
-      "category": "level"
-    },
-    "P族": {
-      "emoji": "📋",
-      "category": "level"
-    },
-    "M族": {
-      "emoji": "👔",
-      "category": "level"
-    },
-    "S族": {
-      "emoji": "🛠️",
-      "category": "level"
-    },
-    "应届生": {
-      "emoji": "🎓",
-      "category": "level"
-    },
-    "实习生": {
-      "emoji": "🔰",
-      "category": "level"
-    },
-    "正式员工": {
-      "emoji": "🪪",
-      "category": "level"
-    },
-    "外包": {
-      "emoji": "📎",
-      "category": "level"
-    },
-    "专家": {
-      "emoji": "🧙",
-      "category": "level"
-    },
-    "总监": {
-      "emoji": "🎩",
-      "category": "level"
-    },
-    "VP": {
-      "emoji": "🎖️",
-      "category": "level"
     },
     "Pony": {
       "emoji": "🐎",
@@ -1254,49 +815,9 @@
       "emoji": "💚",
       "category": "boss"
     },
-    "全员信": {
-      "emoji": "📧",
-      "category": "boss"
-    },
     "董事长": {
       "emoji": "👑",
       "category": "boss"
-    },
-    "拼多多": {
-      "emoji": "🛒",
-      "category": "invest"
-    },
-    "美团": {
-      "emoji": "🛵",
-      "category": "invest"
-    },
-    "快手": {
-      "emoji": "📹",
-      "category": "invest"
-    },
-    "B站": {
-      "emoji": "📺",
-      "category": "invest"
-    },
-    "京东": {
-      "emoji": "📦",
-      "category": "invest"
-    },
-    "知乎": {
-      "emoji": "💡",
-      "category": "invest"
-    },
-    "蔚来": {
-      "emoji": "🚗",
-      "category": "invest"
-    },
-    "小红书": {
-      "emoji": "📕",
-      "category": "invest"
-    },
-    "Riot": {
-      "emoji": "🎮",
-      "category": "invest"
     },
     "99公益日": {
       "emoji": "❤️",
@@ -1486,10 +1007,6 @@
       "emoji": "😄",
       "category": "abstract"
     },
-    "CF": {
-      "emoji": "🔫",
-      "category": "product"
-    },
     "蛋仔": {
       "emoji": "🥚",
       "category": "product"
@@ -1558,14 +1075,6 @@
       "emoji": "🌃",
       "category": "life"
     },
-    "早会": {
-      "emoji": "🌅",
-      "category": "tencent"
-    },
-    "晚班": {
-      "emoji": "🌙",
-      "category": "tencent"
-    },
     "午休": {
       "emoji": "💤",
       "category": "tencent"
@@ -1620,10 +1129,6 @@
     },
     "应用": {
       "emoji": "📲",
-      "category": "product"
-    },
-    "聊天": {
-      "emoji": "💬",
       "category": "product"
     },
     "自己": {
@@ -1766,14 +1271,6 @@
       "emoji": "📢",
       "category": "worker"
     },
-    "鹅厂双子塔": {
-      "emoji": "🏙️",
-      "category": "building"
-    },
-    "微信总部": {
-      "emoji": "💚",
-      "category": "building"
-    },
     "LOFT工业风": {
       "emoji": "🏭",
       "category": "building"
@@ -1781,10 +1278,6 @@
     "硅谷风": {
       "emoji": "🛝",
       "category": "building"
-    },
-    "腾讯音乐娱乐": {
-      "emoji": "🎶",
-      "category": "product"
     },
     "微信之夜": {
       "emoji": "🌃",
@@ -1818,120 +1311,8 @@
       "emoji": "🧊",
       "category": "tencent"
     },
-    "烤企鹅": {
-      "emoji": "🔥",
-      "category": "tencent"
-    },
-    "爆料": {
-      "emoji": "💬",
-      "category": "tencent"
-    },
-    "续命鹅": {
-      "emoji": "☕",
-      "category": "tencent"
-    },
-    "静音挂机": {
-      "emoji": "🔇",
-      "category": "tencent"
-    },
-    "多人编辑打架": {
-      "emoji": "⚔️",
-      "category": "tencent"
-    },
-    "灯火通明": {
-      "emoji": "🌃",
-      "category": "tencent"
-    },
     "迟到": {
       "emoji": "🏃",
-      "category": "tencent"
-    },
-    "带薪养生": {
-      "emoji": "💆",
-      "category": "tencent"
-    },
-    "排队堵梯": {
-      "emoji": "🕰️",
-      "category": "tencent"
-    },
-    "尴尬同框": {
-      "emoji": "😬",
-      "category": "tencent"
-    },
-    "最后一班": {
-      "emoji": "🚌",
-      "category": "tencent"
-    },
-    "通勤睡眠": {
-      "emoji": "😴",
-      "category": "tencent"
-    },
-    "深夜食堂": {
-      "emoji": "🌙",
-      "category": "tencent"
-    },
-    "工位食堂": {
-      "emoji": "🥡",
-      "category": "tencent"
-    },
-    "午间撸铁": {
-      "emoji": "🏋️",
-      "category": "tencent"
-    },
-    "带薪健身": {
-      "emoji": "💪",
-      "category": "tencent"
-    },
-    "鹅式小憩": {
-      "emoji": "💤",
-      "category": "tencent"
-    },
-    "免费午餐": {
-      "emoji": "🍱",
-      "category": "tencent"
-    },
-    "鹅咖": {
-      "emoji": "☕",
-      "category": "tencent"
-    },
-    "水帖": {
-      "emoji": "💬",
-      "category": "tencent"
-    },
-    "道别贴": {
-      "emoji": "👋",
-      "category": "tencent"
-    },
-    "文档不同步": {
-      "emoji": "📚",
-      "category": "tencent"
-    },
-    "@所有人": {
-      "emoji": "📧",
-      "category": "tencent"
-    },
-    "周会纪要": {
-      "emoji": "📋",
-      "category": "tencent"
-    },
-    "晨会": {
-      "emoji": "🌅",
-      "category": "tencent"
-    },
-    "周会": {
-      "emoji": "🔁",
-      "category": "tencent"
-    },
-    "黑屏挂机": {
-      "emoji": "⬛",
-      "category": "tencent"
-    },
-    "虚拟背景": {
-      "emoji": "🖼️",
-      "category": "tencent"
-    },
-    "背景音": {
-      "emoji": "🐕",
       "category": "tencent"
     },
     "续命": {
@@ -2233,10 +1614,6 @@
     "Jason": {
       "emoji": "🚀",
       "category": "boss"
-    },
-    "程序员床位": {
-      "emoji": "🛏️",
-      "category": "building"
     },
     "T1": {
       "emoji": "1️⃣",

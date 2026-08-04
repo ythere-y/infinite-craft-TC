@@ -9,6 +9,7 @@
     "build": "node scripts/build-makers.mjs",
     "makers:build": "edgeone makers build",
     "generate:makers-data": "node scripts/generate-makers-data.mjs",
+    "generate:bounty-content": "node scripts/generate-bounty-content.mjs",
     "generate:makers-prompt-data": "node scripts/generate-makers-prompt-data.mjs",
     "generate:makers-nickname-data": "node scripts/generate-makers-nickname-data.mjs",
     "refresh:nickname-corpus": "node scripts/refresh-nickname-corpus.mjs",

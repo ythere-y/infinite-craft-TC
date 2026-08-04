@@ -1,0 +1,5682 @@
+{
+  "meta": {
+    "content_epoch": 2,
+    "version": "2.0.0"
+  },
+  "tabs": [
+    {
+      "key": "tencent",
+      "label": "腾讯互联网",
+      "emoji": "🐧"
+    }
+  ],
+  "groups": [
+    {
+      "key": "culture",
+      "category": "tencent",
+      "label": "鹅厂文化",
+      "emoji": "🐧",
+      "tab": "tencent",
+      "targets": [
+        "鹅厂",
+        "工牌",
+        "电梯",
+        "打卡",
+        "掌纹",
+        "iWiki",
+        "RTX",
+        "乐享",
+        "鹅卡",
+        "食堂",
+        "鹅餐",
+        "班车",
+        "健身房",
+        "按摩椅",
+        "小马哥",
+        "南极圈",
+        "活水",
+        "瑞雪",
+        "赛马",
+        "中台",
+        "TAPD",
+        "组织架构调整",
+        "烤企鹅",
+        "打工鹅",
+        "续命鹅",
+        "鹅咖",
+        "鹅式小憩",
+        "爆料",
+        "水帖",
+        "道别贴",
+        "深夜食堂",
+        "工位食堂",
+        "免费午餐",
+        "带薪养生",
+        "带薪健身",
+        "午间撸铁",
+        "早会",
+        "晨会",
+        "周会",
+        "周会纪要",
+        "虚拟背景",
+        "静音挂机",
+        "黑屏挂机",
+        "背景音",
+        "多人编辑打架",
+        "文档不同步",
+        "@所有人",
+        "全员信",
+        "排队堵梯",
+        "尴尬同框",
+        "最后一班",
+        "晚班",
+        "通勤睡眠",
+        "程序员床位",
+        "灯火通明",
+        "IEG",
+        "WXG",
+        "CSIG",
+        "PCG",
+        "TEG",
+        "CDG"
+      ]
+    },
+    {
+      "key": "qq_memory",
+      "category": "qq_memory",
+      "label": "QQ时代记忆",
+      "emoji": "💬",
+      "tab": "tencent",
+      "targets": [
+        "QQ",
+        "OICQ",
+        "手机QQ",
+        "QQ游戏",
+        "QQ游戏大厅",
+        "QQ空间",
+        "QQ秀",
+        "QQ邮箱",
+        "QQ音乐",
+        "QQ浏览器",
+        "QQ宠物",
+        "QQ农场",
+        "QQ牧场",
+        "QQ餐厅",
+        "抢车位",
+        "QQ校友",
+        "朋友网",
+        "腾讯微博",
+        "WebQQ",
+        "腾讯TT",
+        "QQ旋风",
+        "Q币",
+        "QQ会员",
+        "超级QQ",
+        "黄钻",
+        "红钻",
+        "绿钻",
+        "蓝钻",
+        "紫钻",
+        "粉钻",
+        "黑钻",
+        "QQ等级",
+        "太阳号",
+        "你是GG还是MM",
+        "滴滴滴",
+        "窗口抖动",
+        "隐身上线",
+        "在线升级",
+        "踩空间",
+        "偷菜",
+        "灰色头像",
+        "个性签名",
+        "QQ分组",
+        "留言板"
+      ]
+    },
+    {
+      "key": "tencent_game",
+      "category": "tencent_game",
+      "label": "腾讯游戏",
+      "emoji": "🎮",
+      "tab": "tencent",
+      "targets": [
+        "QQ堂",
+        "QQ幻想",
+        "自由幻想",
+        "QQ三国",
+        "QQ华夏",
+        "QQ飞车",
+        "QQ炫舞",
+        "QQ音速",
+        "洛克王国",
+        "Q宠大乐斗",
+        "弹弹堂",
+        "穿越火线",
+        "DNF",
+        "寻仙",
+        "逆战",
+        "战地之王",
+        "剑灵",
+        "上古世纪",
+        "使命召唤Online",
+        "NBA2K Online",
+        "FIFA Online",
+        "天涯明月刀",
+        "御龙在天",
+        "轩辕传奇",
+        "斗战神",
+        "节奏大师",
+        "天天酷跑",
+        "天天爱消除",
+        "全民飞机大战",
+        "欢乐斗地主",
+        "欢乐麻将",
+        "英雄联盟",
+        "王者荣耀",
+        "和平精英",
+        "金铲铲之战",
+        "火影忍者手游"
+      ]
+    },
+    {
+      "key": "product",
+      "category": "product",
+      "label": "当代产品",
+      "emoji": "📦",
+      "tab": "tencent",
+      "targets": [
+        "TIM",
+        "企业微信",
+        "微云",
+        "公众号",
+        "小程序",
+        "微信支付",
+        "微视",
+        "红包",
+        "朋友圈",
+        "视频号",
+        "腾讯视频",
+        "腾讯新闻",
+        "腾讯体育",
+        "腾讯动漫",
+        "全民K歌",
+        "腾讯云",
+        "腾讯会议",
+        "腾讯文档",
+        "应用宝",
+        "电脑管家",
+        "CODING",
+        "腾讯地图",
+        "腾讯翻译君",
+        "混元大模型",
+        "元宝",
+        "CodeBuddy",
+        "WorkBuddy",
+        "AnyDev",
+        "Wedata",
+        "ima.copilot",
+        "腾讯企点",
+        "CDC",
+        "英雄联盟手游",
+        "元梦之星",
+        "PUBG",
+        "Valorant"
+      ]
+    },
+    {
+      "key": "studio",
+      "category": "studio",
+      "label": "游戏工作室",
+      "emoji": "🕹️",
+      "tab": "tencent",
+      "targets": [
+        "天美工作室群",
+        "光子工作室群",
+        "魔方工作室群",
+        "北极光工作室群",
+        "NExT Studios",
+        "Team Jade",
+        "MoreFun Studios",
+        "Aurora Studio",
+        "LIGHTSPEED LA",
+        "Uncapped Games",
+        "Quantum Studio",
+        "S Studio",
+        "R Studio",
+        "TiKi Studio"
+      ]
+    },
+    {
+      "key": "campus",
+      "category": "building",
+      "label": "办公楼与园区",
+      "emoji": "🏢",
+      "tab": "tencent",
+      "targets": [
+        "腾讯大厦",
+        "滨海大厦",
+        "鹅厂双子塔",
+        "T1塔楼",
+        "琶洲新总部",
+        "科兴科学园",
+        "TIT创意园",
+        "微信总部",
+        "北京总部",
+        "上海总部",
+        "成都办公楼",
+        "金地威新"
+      ]
+    },
+    {
+      "key": "level",
+      "category": "level",
+      "label": "职级体系",
+      "emoji": "🎖️",
+      "tab": "tencent",
+      "targets": [
+        "T族",
+        "P族",
+        "M族",
+        "S族",
+        "应届生",
+        "实习生",
+        "正式员工",
+        "外包",
+        "专家",
+        "总监",
+        "VP"
+      ]
+    },
+    {
+      "key": "association",
+      "category": "association",
+      "label": "关联组织",
+      "emoji": "🤝",
+      "tab": "tencent",
+      "targets": [
+        "Riot Games",
+        "Supercell",
+        "Epic Games",
+        "Funcom",
+        "Sumo Group",
+        "Digital Extremes",
+        "Sharkmob",
+        "Grinding Gear Games",
+        "Klei Entertainment",
+        "Miniclip",
+        "腾讯音乐娱乐集团",
+        "阅文集团",
+        "微众银行",
+        "Ubisoft",
+        "Techland",
+        "Remedy Entertainment",
+        "Paradox Interactive",
+        "PlatinumGames",
+        "KADOKAWA",
+        "Sea",
+        "Spotify",
+        "Snap",
+        "Reddit",
+        "快手",
+        "哔哩哔哩",
+        "拼多多",
+        "蔚来",
+        "小红书",
+        "知乎",
+        "京东",
+        "美团",
+        "Neople",
+        "Smilegate",
+        "第七大道",
+        "Take-Two",
+        "EA",
+        "Activision",
+        "Nexon",
+        "KRAFTON",
+        "NCSoft"
+      ]
+    }
+  ],
+  "targets": {
+    "鹅厂": {
+      "emoji": "🏢",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "腾讯",
+        "b": "工位",
+        "chain": "tencent",
+        "comment": "腾讯与工位合成鹅厂。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "工牌": {
+      "emoji": "🪪",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "身份",
+        "b": "鹅厂",
+        "chain": "tencent",
+        "comment": "身份与鹅厂合成工牌。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "电梯": {
+      "emoji": "🛗",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "工位",
+        "b": "门禁",
+        "chain": "tencent",
+        "comment": "工位与门禁合成电梯。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "打卡": {
+      "emoji": "⏱️",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "工牌",
+        "b": "门禁",
+        "chain": "tencent",
+        "comment": "工牌与门禁合成打卡。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "掌纹": {
+      "emoji": "🫴",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "人",
+        "b": "工牌",
+        "chain": "tencent",
+        "comment": "人与工牌合成掌纹。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "iWiki": {
+      "emoji": "📘",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "知识",
+        "b": "公司",
+        "chain": "tencent",
+        "comment": "公司的知识沉淀为内部知识库 iWiki。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "RTX": {
+      "emoji": "📧",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "聊天",
+        "b": "工位",
+        "chain": "tencent",
+        "comment": "聊天与工位合成RTX。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "乐享": {
+      "emoji": "🎨",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "社区",
+        "b": "工位",
+        "chain": "tencent",
+        "comment": "社区与工位合成乐享。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "鹅卡": {
+      "emoji": "💳",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "工牌",
+        "b": "食堂",
+        "chain": "tencent",
+        "comment": "工牌与食堂合成鹅卡。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "食堂": {
+      "emoji": "🍱",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "灶台",
+        "b": "鹅厂",
+        "chain": "tencent",
+        "comment": "灶台与鹅厂合成食堂。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "鹅餐": {
+      "emoji": "🍱",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "打工人",
+        "b": "食堂",
+        "chain": "tencent",
+        "comment": "打工人与食堂合成鹅餐。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "班车": {
+      "emoji": "🚌",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "轨道",
+        "b": "鹅厂",
+        "chain": "tencent",
+        "comment": "轨道与鹅厂合成班车。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "健身房": {
+      "emoji": "🏋️",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "工位",
+        "b": "打工人",
+        "chain": "tencent",
+        "comment": "工位与打工人合成健身房。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "按摩椅": {
+      "emoji": "💆",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "健身房",
+        "b": "工位",
+        "chain": "tencent",
+        "comment": "健身房与工位合成按摩椅。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "小马哥": {
+      "emoji": "🐎",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "小马",
+        "b": "鹅厂",
+        "chain": "tencent",
+        "comment": "小马与鹅厂合成小马哥。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "南极圈": {
+      "emoji": "🧊",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "企鹅",
+        "b": "离职",
+        "chain": "tencent",
+        "comment": "企鹅与离职合成南极圈。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "活水": {
+      "emoji": "🌊",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "打工鹅",
+        "b": "转岗",
+        "chain": "tencent",
+        "comment": "打工鹅与转岗合成活水。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "瑞雪": {
+      "emoji": "❄️",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "OKR",
+        "b": "红包",
+        "chain": "tencent",
+        "comment": "完成 OKR 后获得年度红包，指向瑞雪激励。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "赛马": {
+      "emoji": "🐎",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "PCG",
+        "b": "WXG",
+        "chain": "tencent",
+        "comment": "PCG与WXG合成赛马。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "中台": {
+      "emoji": "🏗️",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "赛马",
+        "b": "赛马",
+        "chain": "tencent",
+        "comment": "赛马与赛马合成中台。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "TAPD": {
+      "emoji": "📋",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "OKR",
+        "b": "任务",
+        "chain": "tencent",
+        "comment": "OKR 拆解为任务并进入 TAPD 管理。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "组织架构调整": {
+      "emoji": "🔄",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "中台",
+        "b": "中台",
+        "chain": "tencent",
+        "comment": "中台与中台合成组织架构调整。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "烤企鹅": {
+      "emoji": "🔥",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "企鹅",
+        "b": "火",
+        "chain": "tencent",
+        "comment": "企鹅与火合成烤企鹅。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "打工鹅": {
+      "emoji": "🐧",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "企鹅",
+        "b": "打工人",
+        "chain": "tencent",
+        "comment": "企鹅与打工人合成打工鹅。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "续命鹅": {
+      "emoji": "☕",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "咖啡",
+        "b": "打工鹅",
+        "chain": "tencent",
+        "comment": "咖啡与打工鹅合成续命鹅。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "鹅咖": {
+      "emoji": "☕",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "瑞幸",
+        "b": "鹅卡",
+        "chain": "tencent",
+        "comment": "瑞幸与鹅卡合成鹅咖。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "鹅式小憩": {
+      "emoji": "💤",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "午休",
+        "b": "按摩椅",
+        "chain": "tencent",
+        "comment": "午休与按摩椅合成鹅式小憩。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "爆料": {
+      "emoji": "💬",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "南极圈",
+        "b": "脉脉",
+        "chain": "tencent",
+        "comment": "南极圈与脉脉合成爆料。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "水帖": {
+      "emoji": "💬",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "乐享",
+        "b": "周五",
+        "chain": "tencent",
+        "comment": "乐享与周五合成水帖。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "道别贴": {
+      "emoji": "👋",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "乐享",
+        "b": "离职",
+        "chain": "tencent",
+        "comment": "乐享与离职合成道别贴。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "深夜食堂": {
+      "emoji": "🌙",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "夜宵券",
+        "b": "食堂",
+        "chain": "tencent",
+        "comment": "夜宵券与食堂合成深夜食堂。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "工位食堂": {
+      "emoji": "🥡",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "工位",
+        "b": "鹅餐",
+        "chain": "tencent",
+        "comment": "工位与鹅餐合成工位食堂。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "免费午餐": {
+      "emoji": "🍱",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "食堂",
+        "b": "鹅卡",
+        "chain": "tencent",
+        "comment": "食堂与鹅卡合成免费午餐。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "带薪养生": {
+      "emoji": "💆",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "工位",
+        "b": "按摩椅",
+        "chain": "tencent",
+        "comment": "工位与按摩椅合成带薪养生。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "带薪健身": {
+      "emoji": "💪",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "健身房",
+        "b": "摸鱼",
+        "chain": "tencent",
+        "comment": "健身房与摸鱼合成带薪健身。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "午间撸铁": {
+      "emoji": "🏋️",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "健身房",
+        "b": "打工人",
+        "chain": "tencent",
+        "comment": "健身房与打工人合成午间撸铁。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "早会": {
+      "emoji": "🌅",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "周五",
+        "b": "腾讯会议",
+        "chain": "tencent",
+        "comment": "周五与腾讯会议合成早会。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "晨会": {
+      "emoji": "🌅",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "早会",
+        "b": "腾讯会议",
+        "chain": "tencent",
+        "comment": "早会与腾讯会议合成晨会。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "周会": {
+      "emoji": "🔁",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "周报",
+        "b": "腾讯会议",
+        "chain": "tencent",
+        "comment": "周报与腾讯会议合成周会。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "周会纪要": {
+      "emoji": "📋",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "RTX",
+        "b": "周五",
+        "chain": "tencent",
+        "comment": "RTX与周五合成周会纪要。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "虚拟背景": {
+      "emoji": "🖼️",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "背景",
+        "b": "腾讯会议",
+        "chain": "tencent",
+        "comment": "背景与腾讯会议合成虚拟背景。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "静音挂机": {
+      "emoji": "🔇",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "摸鱼",
+        "b": "腾讯会议",
+        "chain": "tencent",
+        "comment": "摸鱼与腾讯会议合成静音挂机。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "黑屏挂机": {
+      "emoji": "⬛",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "电脑",
+        "b": "腾讯会议",
+        "chain": "tencent",
+        "comment": "电脑与腾讯会议合成黑屏挂机。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "背景音": {
+      "emoji": "🐕",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "狗",
+        "b": "腾讯会议",
+        "chain": "tencent",
+        "comment": "狗与腾讯会议合成背景音。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "多人编辑打架": {
+      "emoji": "⚔️",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "协同",
+        "b": "腾讯文档",
+        "chain": "tencent",
+        "comment": "协同与腾讯文档合成多人编辑打架。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "文档不同步": {
+      "emoji": "📚",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "iWiki",
+        "b": "需求变更",
+        "chain": "tencent",
+        "comment": "iWiki与需求变更合成文档不同步。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "@所有人": {
+      "emoji": "📧",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "RTX",
+        "b": "老板",
+        "chain": "tencent",
+        "comment": "RTX与老板合成@所有人。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "全员信": {
+      "emoji": "📧",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "全员",
+        "b": "小马哥",
+        "chain": "tencent",
+        "comment": "全员与小马哥合成全员信。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "排队堵梯": {
+      "emoji": "🕰️",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "早高峰",
+        "b": "电梯",
+        "chain": "tencent",
+        "comment": "早高峰与电梯合成排队堵梯。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "尴尬同框": {
+      "emoji": "😬",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "电梯",
+        "b": "老板",
+        "chain": "tencent",
+        "comment": "电梯与老板合成尴尬同框。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "最后一班": {
+      "emoji": "🚌",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "晚班",
+        "b": "班车",
+        "chain": "tencent",
+        "comment": "晚班与班车合成最后一班。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "晚班": {
+      "emoji": "🌙",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "加班",
+        "b": "夜",
+        "chain": "tencent",
+        "comment": "加班与夜合成晚班。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "通勤睡眠": {
+      "emoji": "😴",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "早高峰",
+        "b": "班车",
+        "chain": "tencent",
+        "comment": "早高峰与班车合成通勤睡眠。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "程序员床位": {
+      "emoji": "🛏️",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "小床",
+        "b": "工位",
+        "chain": "tencent",
+        "comment": "小床与工位合成程序员床位。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "灯火通明": {
+      "emoji": "🌃",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "夜",
+        "b": "滨海大厦",
+        "chain": "tencent",
+        "comment": "夜与滨海大厦合成灯火通明。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "IEG": {
+      "emoji": "🎮",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "鹅厂",
+        "chain": "tencent",
+        "comment": "游戏与鹅厂合成IEG。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "WXG": {
+      "emoji": "💚",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "微信",
+        "b": "腾讯",
+        "chain": "tencent",
+        "comment": "微信业务与腾讯组织结合，指向 WXG。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "CSIG": {
+      "emoji": "☁️",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "腾讯",
+        "b": "腾讯云",
+        "chain": "tencent",
+        "comment": "腾讯与腾讯云合成CSIG。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "PCG": {
+      "emoji": "💻",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "视频",
+        "b": "腾讯",
+        "chain": "tencent",
+        "comment": "腾讯的平台与内容业务指向 PCG。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "TEG": {
+      "emoji": "🔧",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "代码",
+        "b": "鹅厂",
+        "chain": "tencent",
+        "comment": "代码与鹅厂合成TEG。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "CDG": {
+      "emoji": "📈",
+      "category": "tencent",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "广告",
+        "b": "鹅厂",
+        "chain": "tencent",
+        "comment": "广告与鹅厂合成CDG。"
+      },
+      "factual_metadata": {
+        "scope": "culture",
+        "provenance": "catalogued"
+      }
+    },
+    "QQ": {
+      "emoji": "🐧",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "企鹅",
+        "b": "聊天",
+        "chain": "qq_memory",
+        "comment": "企鹅与聊天合成QQ。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "OICQ": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "怀旧",
+        "chain": "qq_memory",
+        "comment": "QQ与怀旧合成OICQ。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "手机QQ": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "手机",
+        "chain": "qq_memory",
+        "comment": "QQ与手机合成手机QQ。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "QQ游戏": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "游戏",
+        "chain": "qq_memory",
+        "comment": "QQ与游戏合成QQ游戏。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "QQ游戏大厅": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ游戏",
+        "b": "电脑",
+        "chain": "qq_memory",
+        "comment": "QQ游戏与电脑合成QQ游戏大厅。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "QQ空间": {
+      "emoji": "🌌",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "QQ",
+        "chain": "qq_memory",
+        "comment": "QQ与QQ合成QQ空间。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "QQ秀": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "装扮",
+        "chain": "qq_memory",
+        "comment": "QQ与装扮合成QQ秀。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "QQ邮箱": {
+      "emoji": "📬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "邮箱",
+        "chain": "qq_memory",
+        "comment": "QQ与邮箱合成QQ邮箱。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "QQ音乐": {
+      "emoji": "🎵",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "音乐",
+        "chain": "qq_memory",
+        "comment": "QQ与音乐合成QQ音乐。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "QQ浏览器": {
+      "emoji": "🌐",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "浏览器",
+        "chain": "qq_memory",
+        "comment": "QQ与浏览器合成QQ浏览器。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "QQ宠物": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "动物",
+        "chain": "qq_memory",
+        "comment": "QQ与动物合成QQ宠物。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "QQ农场": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ空间",
+        "b": "植物",
+        "chain": "qq_memory",
+        "comment": "QQ空间与植物合成QQ农场。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "QQ牧场": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ空间",
+        "b": "动物",
+        "chain": "qq_memory",
+        "comment": "QQ空间与动物合成QQ牧场。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "QQ餐厅": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ空间",
+        "b": "食堂",
+        "chain": "qq_memory",
+        "comment": "QQ空间与食堂合成QQ餐厅。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "抢车位": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ空间",
+        "b": "汽车",
+        "chain": "qq_memory",
+        "comment": "QQ空间与汽车合成抢车位。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "QQ校友": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "学校",
+        "chain": "qq_memory",
+        "comment": "QQ与学校合成QQ校友。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "朋友网": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ校友",
+        "b": "朋友",
+        "chain": "qq_memory",
+        "comment": "QQ校友与朋友合成朋友网。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "腾讯微博": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "新闻",
+        "chain": "qq_memory",
+        "comment": "QQ与新闻合成腾讯微博。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "WebQQ": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "互联网",
+        "chain": "qq_memory",
+        "comment": "QQ与互联网合成WebQQ。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "腾讯TT": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ浏览器",
+        "b": "电脑",
+        "chain": "qq_memory",
+        "comment": "QQ浏览器与电脑合成腾讯TT。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "QQ旋风": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "下载",
+        "chain": "qq_memory",
+        "comment": "QQ与下载合成QQ旋风。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "Q币": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "货币",
+        "chain": "qq_memory",
+        "comment": "QQ与货币合成Q币。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "QQ会员": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "身份",
+        "chain": "qq_memory",
+        "comment": "QQ与身份合成QQ会员。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "超级QQ": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ会员",
+        "b": "手机",
+        "chain": "qq_memory",
+        "comment": "QQ会员与手机合成超级QQ。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "黄钻": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ空间",
+        "b": "QQ会员",
+        "chain": "qq_memory",
+        "comment": "QQ空间与QQ会员合成黄钻。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "红钻": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ秀",
+        "b": "QQ会员",
+        "chain": "qq_memory",
+        "comment": "QQ秀与QQ会员合成红钻。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "绿钻": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ音乐",
+        "b": "QQ会员",
+        "chain": "qq_memory",
+        "comment": "QQ音乐与QQ会员合成绿钻。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "蓝钻": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ游戏",
+        "b": "QQ会员",
+        "chain": "qq_memory",
+        "comment": "QQ游戏与QQ会员合成蓝钻。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "紫钻": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ飞车",
+        "b": "QQ会员",
+        "chain": "qq_memory",
+        "comment": "QQ飞车与QQ会员合成紫钻。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "粉钻": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ宠物",
+        "b": "QQ会员",
+        "chain": "qq_memory",
+        "comment": "QQ宠物与QQ会员合成粉钻。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "黑钻": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "DNF",
+        "b": "QQ会员",
+        "chain": "qq_memory",
+        "comment": "DNF与QQ会员合成黑钻。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "QQ等级": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "经验",
+        "chain": "qq_memory",
+        "comment": "QQ与经验合成QQ等级。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "太阳号": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ等级",
+        "b": "时间",
+        "chain": "qq_memory",
+        "comment": "QQ等级与时间合成太阳号。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "你是GG还是MM": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "陌生人",
+        "chain": "qq_memory",
+        "comment": "QQ与陌生人合成你是GG还是MM。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "滴滴滴": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "声音",
+        "chain": "qq_memory",
+        "comment": "QQ与声音合成滴滴滴。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "窗口抖动": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "震动",
+        "chain": "qq_memory",
+        "comment": "QQ与震动合成窗口抖动。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "隐身上线": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "影子",
+        "chain": "qq_memory",
+        "comment": "QQ与影子合成隐身上线。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "在线升级": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "经验值",
+        "chain": "qq_memory",
+        "comment": "QQ与经验值合成在线升级。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "踩空间": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ空间",
+        "b": "访问",
+        "chain": "qq_memory",
+        "comment": "QQ空间与访问合成踩空间。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "偷菜": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ农场",
+        "b": "朋友",
+        "chain": "qq_memory",
+        "comment": "QQ农场与朋友合成偷菜。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "灰色头像": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "离线",
+        "chain": "qq_memory",
+        "comment": "QQ与离线合成灰色头像。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "个性签名": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "签名",
+        "chain": "qq_memory",
+        "comment": "QQ与签名合成个性签名。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "QQ分组": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "好友",
+        "chain": "qq_memory",
+        "comment": "QQ与好友合成QQ分组。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "留言板": {
+      "emoji": "💬",
+      "category": "qq_memory",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ空间",
+        "b": "留言",
+        "chain": "qq_memory",
+        "comment": "QQ空间与留言合成留言板。"
+      },
+      "factual_metadata": {
+        "scope": "qq_memory",
+        "provenance": "catalogued"
+      }
+    },
+    "QQ堂": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "对战",
+        "chain": "tencent_game",
+        "comment": "QQ与对战合成QQ堂。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent",
+        "tencent_role": "in_house_game",
+        "source_url": "https://www.tencent.com/who-we-are/our-story/",
+        "source_title": "Tencent Our Story"
+      }
+    },
+    "QQ幻想": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "梦",
+        "chain": "tencent_game",
+        "comment": "QQ与梦合成QQ幻想。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent",
+        "tencent_role": "in_house_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "自由幻想": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ幻想",
+        "b": "自由",
+        "chain": "tencent_game",
+        "comment": "QQ幻想与自由合成自由幻想。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent Mobile Games",
+        "tencent_role": "app_store_developer",
+        "source_url": "https://apps.apple.com/cn/app/%E8%87%AA%E7%94%B1%E5%B9%BB%E6%83%B3/id1354764539",
+        "source_title": "自由幻想 - App Store"
+      }
+    },
+    "QQ三国": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "战争",
+        "chain": "tencent_game",
+        "comment": "QQ与战争合成QQ三国。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent",
+        "tencent_role": "in_house_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "QQ华夏": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "历史",
+        "chain": "tencent_game",
+        "comment": "QQ与历史合成QQ华夏。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent",
+        "tencent_role": "in_house_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "QQ飞车": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "速度",
+        "chain": "tencent_game",
+        "comment": "QQ与速度合成QQ飞车。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent",
+        "tencent_role": "in_house_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "QQ炫舞": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "舞蹈",
+        "chain": "tencent_game",
+        "comment": "QQ与舞蹈合成QQ炫舞。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent",
+        "tencent_role": "in_house_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "QQ音速": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ音乐",
+        "b": "速度",
+        "chain": "tencent_game",
+        "comment": "QQ音乐与速度合成QQ音速。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "licensed",
+        "developer": "SEED9",
+        "tencent_role": "licensed_china_operator",
+        "source_url": "https://developer.cloud.tencent.com/article/1366680",
+        "source_title": "运营12年后，《QQ音速》要说再见了"
+      }
+    },
+    "洛克王国": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ宠物",
+        "b": "魔法",
+        "chain": "tencent_game",
+        "comment": "QQ宠物与魔法合成洛克王国。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent",
+        "tencent_role": "in_house_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "Q宠大乐斗": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [
+        "Q宠大乱斗"
+      ],
+      "canonical_recipe": {
+        "a": "QQ宠物",
+        "b": "格斗",
+        "chain": "tencent_game",
+        "comment": "QQ宠物与格斗合成Q宠大乐斗。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "腾讯魔方工作室",
+        "tencent_role": "in_house_game",
+        "source_url": "https://cloud.tencent.com/developer/article/1108422",
+        "source_title": "移动互联网成社交游戏第二春"
+      }
+    },
+    "弹弹堂": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "弹射",
+        "chain": "tencent_game",
+        "comment": "游戏与弹射合成弹弹堂。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "licensed",
+        "developer": "第七大道",
+        "tencent_role": "licensed_mobile_game_publisher",
+        "source_url": "https://www.7road.com/index.php/article/index/id/139.html",
+        "source_title": "第七大道携手腾讯游戏 ChinaJoy强势新品亮相"
+      }
+    },
+    "穿越火线": {
+      "emoji": "🔫",
+      "category": "tencent_game",
+      "aliases": [
+        "CF"
+      ],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "枪",
+        "chain": "tencent_game",
+        "comment": "游戏与枪合成穿越火线。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "licensed",
+        "developer": "Smilegate",
+        "tencent_role": "long_standing_publisher",
+        "source_url": "https://newsroom.smilegate.com/en/bbs/board.php?bo_table=eng&wr_id=491",
+        "source_title": "That's No Moon Entertainment Reveals Crossfire -- A Cinematic Thriller with Genre-Reinventing Cover and Traversal, Developed by Veteran AAA Talent"
+      }
+    },
+    "DNF": {
+      "emoji": "⚔️",
+      "category": "tencent_game",
+      "aliases": [
+        "地下城与勇士"
+      ],
+      "canonical_recipe": {
+        "a": "勇士",
+        "b": "地下城",
+        "chain": "tencent_game",
+        "comment": "勇士与地下城合成DNF。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "licensed",
+        "developer": "Neople",
+        "tencent_role": "exclusive_china_operator",
+        "source_url": "https://static.www.tencent.com/storage/uploads/2019/11/09/34dd45fcd8bb3cac88e3f93294cbd639.pdf",
+        "source_title": "Tencent Obtains Exclusive License to Operate Dungeon & Fighter in China"
+      }
+    },
+    "寻仙": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "仙侠",
+        "chain": "tencent_game",
+        "comment": "游戏与仙侠合成寻仙。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "licensed",
+        "developer": "Third-party developer",
+        "tencent_role": "licensed_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "逆战": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "未来",
+        "chain": "tencent_game",
+        "comment": "游戏与未来合成逆战。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent",
+        "tencent_role": "in_house_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "战地之王": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "战地",
+        "chain": "tencent_game",
+        "comment": "游戏与战地合成战地之王。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "licensed",
+        "developer": "Korean developer",
+        "tencent_role": "licensed_game",
+        "source_url": "https://static.www.tencent.com/storage/uploads/2019/11/09/57af991f6140c11022fe47be60116589.pdf",
+        "source_title": "Tencent Holdings Limited Interim Report 2009"
+      }
+    },
+    "剑灵": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "剑",
+        "b": "灵魂",
+        "chain": "tencent_game",
+        "comment": "剑与灵魂合成剑灵。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "licensed",
+        "developer": "Third-party developer",
+        "tencent_role": "licensed_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "上古世纪": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "上古",
+        "chain": "tencent_game",
+        "comment": "游戏与上古合成上古世纪。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "licensed",
+        "developer": "Third-party developer",
+        "tencent_role": "licensed_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "使命召唤Online": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "使命召唤",
+        "chain": "tencent_game",
+        "comment": "游戏与使命召唤合成使命召唤Online。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "licensed",
+        "developer": "Activision Blizzard",
+        "tencent_role": "china_operator",
+        "source_url": "https://investor.activision.com/news-releases/news-release-details/activision-blizzard-and-tencent-announce-long-term-strategic",
+        "source_title": "Activision Blizzard and Tencent Announce Long-Term Strategic Relationship to Bring Call of Duty Online to China"
+      }
+    },
+    "NBA2K Online": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "NBA",
+        "chain": "tencent_game",
+        "comment": "游戏与NBA合成NBA2K Online。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "co_developed",
+        "developer": "Tencent and a third-party developer",
+        "tencent_role": "co_developed_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "FIFA Online": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "足球",
+        "chain": "tencent_game",
+        "comment": "游戏与足球合成FIFA Online。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "licensed",
+        "developer": "Third-party developer",
+        "tencent_role": "licensed_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "天涯明月刀": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "刀",
+        "b": "明月",
+        "chain": "tencent_game",
+        "comment": "刀与明月合成天涯明月刀。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent",
+        "tencent_role": "in_house_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "御龙在天": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "御龙",
+        "chain": "tencent_game",
+        "comment": "游戏与御龙合成御龙在天。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent",
+        "tencent_role": "in_house_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "轩辕传奇": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "轩辕",
+        "chain": "tencent_game",
+        "comment": "游戏与轩辕合成轩辕传奇。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent",
+        "tencent_role": "in_house_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "斗战神": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "斗战",
+        "chain": "tencent_game",
+        "comment": "游戏与斗战合成斗战神。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent",
+        "tencent_role": "in_house_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "节奏大师": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "节奏",
+        "chain": "tencent_game",
+        "comment": "游戏与节奏合成节奏大师。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent Mobile Games",
+        "tencent_role": "app_store_developer",
+        "source_url": "https://apps.apple.com/cn/app/%E8%8A%82%E5%A5%8F%E5%A4%A7%E5%B8%88/id493901993",
+        "source_title": "节奏大师 - App Store"
+      }
+    },
+    "天天酷跑": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "跑步",
+        "chain": "tencent_game",
+        "comment": "游戏与跑步合成天天酷跑。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent Mobile Games",
+        "tencent_role": "app_store_developer",
+        "source_url": "https://apps.apple.com/cn/app/%E5%A4%A9%E5%A4%A9%E9%85%B7%E8%B7%91/id653350791",
+        "source_title": "天天酷跑 - App Store"
+      }
+    },
+    "天天爱消除": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "消除",
+        "chain": "tencent_game",
+        "comment": "游戏与消除合成天天爱消除。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent Mobile Games",
+        "tencent_role": "app_store_developer",
+        "source_url": "https://apps.apple.com/cn/app/id654897098",
+        "source_title": "天天爱消除 - App Store"
+      }
+    },
+    "全民飞机大战": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "飞机",
+        "chain": "tencent_game",
+        "comment": "游戏与飞机合成全民飞机大战。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent Mobile Games",
+        "tencent_role": "app_store_developer",
+        "source_url": "https://apps.apple.com/cn/app/%E5%85%A8%E6%B0%91%E9%A3%9E%E6%9C%BA%E5%A4%A7%E6%88%98/id731871690",
+        "source_title": "全民飞机大战 - App Store"
+      }
+    },
+    "欢乐斗地主": {
+      "emoji": "🃏",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "扑克",
+        "b": "欢乐",
+        "chain": "tencent_game",
+        "comment": "扑克与欢乐合成欢乐斗地主。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Shenzhen Tencent Tianyou Technology Ltd",
+        "tencent_role": "app_store_developer",
+        "source_url": "https://apps.apple.com/cn/app/%E8%85%BE%E8%AE%AF%E6%AC%A2%E4%B9%90%E6%96%97%E5%9C%B0%E4%B8%BB/id446324234",
+        "source_title": "腾讯欢乐斗地主 - App Store"
+      }
+    },
+    "欢乐麻将": {
+      "emoji": "🀄",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "欢乐",
+        "b": "麻将",
+        "chain": "tencent_game",
+        "comment": "欢乐与麻将合成欢乐麻将。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent Mobile Games",
+        "tencent_role": "app_store_developer",
+        "source_url": "https://apps.apple.com/cn/app/%E6%AC%A2%E4%B9%90%E9%BA%BB%E5%B0%86/id689180123",
+        "source_title": "欢乐麻将 - App Store"
+      }
+    },
+    "英雄联盟": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "端游",
+        "chain": "tencent_game",
+        "comment": "游戏与端游合成英雄联盟。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent",
+        "tencent_role": "in_house_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "王者荣耀": {
+      "emoji": "⚔️",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "王者",
+        "chain": "tencent_game",
+        "comment": "游戏与王者合成王者荣耀。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent",
+        "tencent_role": "in_house_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "和平精英": {
+      "emoji": "🔫",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "战术",
+        "chain": "tencent_game",
+        "comment": "游戏与战术合成和平精英。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Tencent",
+        "tencent_role": "in_house_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "金铲铲之战": {
+      "emoji": "🎮",
+      "category": "tencent_game",
+      "aliases": [
+        "金铲铲"
+      ],
+      "canonical_recipe": {
+        "a": "英雄联盟",
+        "b": "棋盘",
+        "chain": "tencent_game",
+        "comment": "英雄联盟与棋盘合成金铲铲之战。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "licensed",
+        "developer": "Third-party developer",
+        "tencent_role": "licensed_game",
+        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+      }
+    },
+    "火影忍者手游": {
+      "emoji": "🥷",
+      "category": "tencent_game",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "游戏",
+        "b": "火影",
+        "chain": "tencent_game",
+        "comment": "游戏与火影合成火影忍者手游。"
+      },
+      "factual_metadata": {
+        "scope": "tencent_game",
+        "provenance": "in_house",
+        "developer": "Shenzhen Tencent Tianyou Technology Ltd",
+        "tencent_role": "app_store_developer",
+        "source_url": "https://apps.apple.com/cn/app/%E7%81%AB%E5%BD%B1%E5%BF%8D%E8%80%85/id955396648",
+        "source_title": "火影忍者 - App Store"
+      }
+    },
+    "TIM": {
+      "emoji": "💼",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ",
+        "b": "办公",
+        "chain": "product",
+        "comment": "QQ与办公合成TIM。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "企业微信": {
+      "emoji": "💼",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "企业",
+        "b": "微信",
+        "chain": "product",
+        "comment": "企业与微信合成企业微信。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "微云": {
+      "emoji": "☁️",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "腾讯",
+        "b": "云盘",
+        "chain": "product",
+        "comment": "腾讯与云盘合成微云。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "公众号": {
+      "emoji": "📢",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "微信",
+        "b": "订阅",
+        "chain": "product",
+        "comment": "微信与订阅合成公众号。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "小程序": {
+      "emoji": "🔲",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "公众号",
+        "b": "轻量",
+        "chain": "product",
+        "comment": "公众号与轻量合成小程序。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "微信支付": {
+      "emoji": "💸",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "微信",
+        "b": "钱包",
+        "chain": "product",
+        "comment": "微信与钱包合成微信支付。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "微视": {
+      "emoji": "🎬",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "腾讯",
+        "b": "短视频",
+        "chain": "product",
+        "comment": "腾讯与短视频合成微视。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "红包": {
+      "emoji": "🧧",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "微信支付",
+        "b": "新年",
+        "chain": "product",
+        "comment": "微信支付与新年合成红包。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "朋友圈": {
+      "emoji": "🔵",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "微信",
+        "b": "微信",
+        "chain": "product",
+        "comment": "微信与微信合成朋友圈。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "视频号": {
+      "emoji": "📺",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "微信",
+        "b": "短视频",
+        "chain": "product",
+        "comment": "微信与短视频合成视频号。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "腾讯视频": {
+      "emoji": "📺",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "视频号",
+        "b": "视频号",
+        "chain": "product",
+        "comment": "视频号与视频号合成腾讯视频。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "腾讯新闻": {
+      "emoji": "📰",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "新闻",
+        "b": "鹅厂",
+        "chain": "product",
+        "comment": "新闻与鹅厂合成腾讯新闻。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "腾讯体育": {
+      "emoji": "⚽",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "体育",
+        "b": "鹅厂",
+        "chain": "product",
+        "comment": "体育与鹅厂合成腾讯体育。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "腾讯动漫": {
+      "emoji": "📖",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "动漫",
+        "b": "鹅厂",
+        "chain": "product",
+        "comment": "动漫与鹅厂合成腾讯动漫。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "全民K歌": {
+      "emoji": "🎤",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "欢乐",
+        "b": "麦克风",
+        "chain": "product",
+        "comment": "欢乐与麦克风合成全民K歌。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "腾讯云": {
+      "emoji": "☁️",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "腾讯",
+        "b": "云",
+        "chain": "product",
+        "comment": "腾讯与云合成腾讯云。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "腾讯会议": {
+      "emoji": "📹",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "腾讯",
+        "b": "会议",
+        "chain": "product",
+        "comment": "腾讯与会议合成腾讯会议。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "腾讯文档": {
+      "emoji": "📄",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "知识",
+        "b": "腾讯会议",
+        "chain": "product",
+        "comment": "知识与腾讯会议合成腾讯文档。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "应用宝": {
+      "emoji": "📦",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "宝",
+        "b": "应用",
+        "chain": "product",
+        "comment": "宝与应用合成应用宝。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "电脑管家": {
+      "emoji": "🛡️",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "AI",
+        "b": "打工人",
+        "chain": "product",
+        "comment": "AI与打工人合成电脑管家。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "CODING": {
+      "emoji": "💻",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "代码",
+        "b": "协同",
+        "chain": "product",
+        "comment": "代码与协同合成CODING。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "腾讯地图": {
+      "emoji": "🗺️",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "地图",
+        "b": "鹅厂",
+        "chain": "product",
+        "comment": "地图与鹅厂合成腾讯地图。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "腾讯翻译君": {
+      "emoji": "🔤",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "翻译",
+        "b": "鹅厂",
+        "chain": "product",
+        "comment": "翻译与鹅厂合成腾讯翻译君。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "混元大模型": {
+      "emoji": "🧠",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "AI",
+        "b": "鹅厂",
+        "chain": "product",
+        "comment": "AI与鹅厂合成混元大模型。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "元宝": {
+      "emoji": "💎",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "混元大模型",
+        "b": "聊天",
+        "chain": "product",
+        "comment": "混元大模型与聊天合成元宝。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "CodeBuddy": {
+      "emoji": "🤖",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "AI",
+        "b": "代码",
+        "chain": "product",
+        "comment": "AI与代码合成CodeBuddy。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "WorkBuddy": {
+      "emoji": "🧑‍💼",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "CodeBuddy",
+        "b": "打工鹅",
+        "chain": "product",
+        "comment": "CodeBuddy与打工鹅合成WorkBuddy。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "AnyDev": {
+      "emoji": "🛠️",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "AI",
+        "b": "CODING",
+        "chain": "product",
+        "comment": "AI与CODING合成AnyDev。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "Wedata": {
+      "emoji": "📊",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "大数据",
+        "b": "鹅厂",
+        "chain": "product",
+        "comment": "大数据与鹅厂合成Wedata。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "ima.copilot": {
+      "emoji": "📚",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "混元大模型",
+        "b": "知识",
+        "chain": "product",
+        "comment": "混元大模型与知识合成ima.copilot。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "腾讯企点": {
+      "emoji": "🎯",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "客服",
+        "b": "鹅厂",
+        "chain": "product",
+        "comment": "客服与鹅厂合成腾讯企点。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "CDC": {
+      "emoji": "🎨",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "设计",
+        "b": "鹅厂",
+        "chain": "product",
+        "comment": "设计与鹅厂合成CDC。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "英雄联盟手游": {
+      "emoji": "📱",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "手机",
+        "b": "英雄联盟",
+        "chain": "product",
+        "comment": "手机与英雄联盟合成英雄联盟手游。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "元梦之星": {
+      "emoji": "⭐",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "派对",
+        "b": "游戏",
+        "chain": "product",
+        "comment": "派对与游戏合成元梦之星。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "PUBG": {
+      "emoji": "🪂",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "和平精英",
+        "b": "国际版",
+        "chain": "product",
+        "comment": "和平精英与国际版合成PUBG。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "Valorant": {
+      "emoji": "🎯",
+      "category": "product",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "枪",
+        "b": "竞技",
+        "chain": "product",
+        "comment": "枪与竞技合成Valorant。"
+      },
+      "factual_metadata": {
+        "scope": "product",
+        "provenance": "catalogued"
+      }
+    },
+    "天美工作室群": {
+      "emoji": "🕹️",
+      "category": "studio",
+      "aliases": [
+        "天美"
+      ],
+      "canonical_recipe": {
+        "a": "工作室",
+        "b": "王者荣耀",
+        "chain": "studio",
+        "comment": "工作室与王者荣耀合成天美工作室群。"
+      },
+      "factual_metadata": {
+        "scope": "studio",
+        "provenance": "catalogued"
+      }
+    },
+    "光子工作室群": {
+      "emoji": "🕹️",
+      "category": "studio",
+      "aliases": [
+        "光子"
+      ],
+      "canonical_recipe": {
+        "a": "工作室",
+        "b": "和平精英",
+        "chain": "studio",
+        "comment": "工作室与和平精英合成光子工作室群。"
+      },
+      "factual_metadata": {
+        "scope": "studio",
+        "provenance": "catalogued"
+      }
+    },
+    "魔方工作室群": {
+      "emoji": "🕹️",
+      "category": "studio",
+      "aliases": [
+        "魔方"
+      ],
+      "canonical_recipe": {
+        "a": "工作室",
+        "b": "火影忍者手游",
+        "chain": "studio",
+        "comment": "工作室与火影忍者手游合成魔方工作室群。"
+      },
+      "factual_metadata": {
+        "scope": "studio",
+        "provenance": "catalogued"
+      }
+    },
+    "北极光工作室群": {
+      "emoji": "🕹️",
+      "category": "studio",
+      "aliases": [
+        "北极光"
+      ],
+      "canonical_recipe": {
+        "a": "工作室",
+        "b": "天涯明月刀",
+        "chain": "studio",
+        "comment": "工作室与天涯明月刀合成北极光工作室群。"
+      },
+      "factual_metadata": {
+        "scope": "studio",
+        "provenance": "catalogued"
+      }
+    },
+    "NExT Studios": {
+      "emoji": "🕹️",
+      "category": "studio",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "工作室",
+        "b": "创新",
+        "chain": "studio",
+        "comment": "工作室与创新合成NExT Studios。"
+      },
+      "factual_metadata": {
+        "scope": "studio",
+        "provenance": "catalogued"
+      }
+    },
+    "Team Jade": {
+      "emoji": "🕹️",
+      "category": "studio",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "工作室",
+        "b": "使命召唤Online",
+        "chain": "studio",
+        "comment": "工作室与使命召唤Online合成Team Jade。"
+      },
+      "factual_metadata": {
+        "scope": "studio",
+        "provenance": "catalogued"
+      }
+    },
+    "MoreFun Studios": {
+      "emoji": "🕹️",
+      "category": "studio",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "工作室",
+        "b": "射击",
+        "chain": "studio",
+        "comment": "工作室与射击合成MoreFun Studios。"
+      },
+      "factual_metadata": {
+        "scope": "studio",
+        "provenance": "catalogued"
+      }
+    },
+    "Aurora Studio": {
+      "emoji": "🕹️",
+      "category": "studio",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "工作室",
+        "b": "光线",
+        "chain": "studio",
+        "comment": "工作室与光线合成Aurora Studio。"
+      },
+      "factual_metadata": {
+        "scope": "studio",
+        "provenance": "catalogued"
+      }
+    },
+    "LIGHTSPEED LA": {
+      "emoji": "🕹️",
+      "category": "studio",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "工作室",
+        "b": "洛杉矶",
+        "chain": "studio",
+        "comment": "工作室与洛杉矶合成LIGHTSPEED LA。"
+      },
+      "factual_metadata": {
+        "scope": "studio",
+        "provenance": "catalogued"
+      }
+    },
+    "Uncapped Games": {
+      "emoji": "🕹️",
+      "category": "studio",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "工作室",
+        "b": "即时战略",
+        "chain": "studio",
+        "comment": "工作室与即时战略合成Uncapped Games。"
+      },
+      "factual_metadata": {
+        "scope": "studio",
+        "provenance": "catalogued"
+      }
+    },
+    "Quantum Studio": {
+      "emoji": "🕹️",
+      "category": "studio",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "工作室",
+        "b": "量子计算",
+        "chain": "studio",
+        "comment": "工作室与量子计算合成Quantum Studio。"
+      },
+      "factual_metadata": {
+        "scope": "studio",
+        "provenance": "catalogued"
+      }
+    },
+    "S Studio": {
+      "emoji": "🕹️",
+      "category": "studio",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "工作室",
+        "b": "声音",
+        "chain": "studio",
+        "comment": "工作室以声音的首字母 S 命名，指向 S Studio。"
+      },
+      "factual_metadata": {
+        "scope": "studio",
+        "provenance": "catalogued"
+      }
+    },
+    "R Studio": {
+      "emoji": "🕹️",
+      "category": "studio",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "工作室",
+        "b": "速度",
+        "chain": "studio",
+        "comment": "工作室结合 Racing 的速度意象，指向 R Studio。"
+      },
+      "factual_metadata": {
+        "scope": "studio",
+        "provenance": "catalogued"
+      }
+    },
+    "TiKi Studio": {
+      "emoji": "🕹️",
+      "category": "studio",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "工作室",
+        "b": "魔法",
+        "chain": "studio",
+        "comment": "工作室结合 TiKi 的图腾与魔法意象，指向 TiKi Studio。"
+      },
+      "factual_metadata": {
+        "scope": "studio",
+        "provenance": "catalogued"
+      }
+    },
+    "腾讯大厦": {
+      "emoji": "🏢",
+      "category": "building",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "深圳",
+        "b": "鹅厂",
+        "chain": "building",
+        "comment": "深圳与鹅厂合成腾讯大厦。"
+      },
+      "factual_metadata": {
+        "scope": "campus",
+        "provenance": "catalogued"
+      }
+    },
+    "滨海大厦": {
+      "emoji": "🌆",
+      "category": "building",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "大厦",
+        "b": "海洋",
+        "chain": "building",
+        "comment": "大厦与海洋合成滨海大厦。"
+      },
+      "factual_metadata": {
+        "scope": "campus",
+        "provenance": "catalogued"
+      }
+    },
+    "鹅厂双子塔": {
+      "emoji": "🏙️",
+      "category": "building",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "滨海大厦",
+        "b": "腾讯大厦",
+        "chain": "building",
+        "comment": "滨海大厦与腾讯大厦合成鹅厂双子塔。"
+      },
+      "factual_metadata": {
+        "scope": "campus",
+        "provenance": "catalogued"
+      }
+    },
+    "T1塔楼": {
+      "emoji": "🗼",
+      "category": "building",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "前海",
+        "b": "鹅厂",
+        "chain": "building",
+        "comment": "前海与鹅厂合成T1塔楼。"
+      },
+      "factual_metadata": {
+        "scope": "campus",
+        "provenance": "catalogued"
+      }
+    },
+    "琶洲新总部": {
+      "emoji": "🏗️",
+      "category": "building",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "琶洲",
+        "b": "鹅厂",
+        "chain": "building",
+        "comment": "琶洲与鹅厂合成琶洲新总部。"
+      },
+      "factual_metadata": {
+        "scope": "campus",
+        "provenance": "catalogued"
+      }
+    },
+    "科兴科学园": {
+      "emoji": "🔬",
+      "category": "building",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "科兴",
+        "b": "鹅厂",
+        "chain": "building",
+        "comment": "科兴与鹅厂合成科兴科学园。"
+      },
+      "factual_metadata": {
+        "scope": "campus",
+        "provenance": "catalogued"
+      }
+    },
+    "TIT创意园": {
+      "emoji": "🎨",
+      "category": "building",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "广州",
+        "b": "鹅厂",
+        "chain": "building",
+        "comment": "广州与鹅厂合成TIT创意园。"
+      },
+      "factual_metadata": {
+        "scope": "campus",
+        "provenance": "catalogued"
+      }
+    },
+    "微信总部": {
+      "emoji": "💚",
+      "category": "building",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "TIT创意园",
+        "b": "滑梯",
+        "chain": "building",
+        "comment": "TIT创意园与滑梯合成微信总部。"
+      },
+      "factual_metadata": {
+        "scope": "campus",
+        "provenance": "catalogued"
+      }
+    },
+    "北京总部": {
+      "emoji": "🏯",
+      "category": "building",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "北京",
+        "b": "鹅厂",
+        "chain": "building",
+        "comment": "北京与鹅厂合成北京总部。"
+      },
+      "factual_metadata": {
+        "scope": "campus",
+        "provenance": "catalogued"
+      }
+    },
+    "上海总部": {
+      "emoji": "🌉",
+      "category": "building",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "上海",
+        "b": "鹅厂",
+        "chain": "building",
+        "comment": "上海与鹅厂合成上海总部。"
+      },
+      "factual_metadata": {
+        "scope": "campus",
+        "provenance": "catalogued"
+      }
+    },
+    "成都办公楼": {
+      "emoji": "🐼",
+      "category": "building",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "成都",
+        "b": "鹅厂",
+        "chain": "building",
+        "comment": "成都与鹅厂合成成都办公楼。"
+      },
+      "factual_metadata": {
+        "scope": "campus",
+        "provenance": "catalogued"
+      }
+    },
+    "金地威新": {
+      "emoji": "🏬",
+      "category": "building",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "大厦",
+        "b": "金属",
+        "chain": "building",
+        "comment": "大厦与金属合成金地威新。"
+      },
+      "factual_metadata": {
+        "scope": "campus",
+        "provenance": "catalogued"
+      }
+    },
+    "T族": {
+      "emoji": "🧪",
+      "category": "level",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "正式员工",
+        "b": "代码",
+        "chain": "level",
+        "comment": "正式员工沿技术路线发展，进入 T 族。"
+      },
+      "factual_metadata": {
+        "scope": "level",
+        "provenance": "catalogued"
+      }
+    },
+    "P族": {
+      "emoji": "📋",
+      "category": "level",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "正式员工",
+        "b": "经验",
+        "chain": "level",
+        "comment": "正式员工积累产品与专业经验，进入 P 族。"
+      },
+      "factual_metadata": {
+        "scope": "level",
+        "provenance": "catalogued"
+      }
+    },
+    "M族": {
+      "emoji": "👔",
+      "category": "level",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "正式员工",
+        "b": "公司",
+        "chain": "level",
+        "comment": "正式员工承担组织管理，进入 M 族。"
+      },
+      "factual_metadata": {
+        "scope": "level",
+        "provenance": "catalogued"
+      }
+    },
+    "S族": {
+      "emoji": "🛠️",
+      "category": "level",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "修bug",
+        "b": "运维",
+        "chain": "level",
+        "comment": "修bug与运维合成S族。"
+      },
+      "factual_metadata": {
+        "scope": "level",
+        "provenance": "catalogued"
+      }
+    },
+    "应届生": {
+      "emoji": "🎓",
+      "category": "level",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "入职",
+        "b": "毕业",
+        "chain": "level",
+        "comment": "入职与毕业合成应届生。"
+      },
+      "factual_metadata": {
+        "scope": "level",
+        "provenance": "catalogued"
+      }
+    },
+    "实习生": {
+      "emoji": "🔰",
+      "category": "level",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "工牌",
+        "b": "微信",
+        "chain": "level",
+        "comment": "工牌与微信合成实习生。"
+      },
+      "factual_metadata": {
+        "scope": "level",
+        "provenance": "catalogued"
+      }
+    },
+    "正式员工": {
+      "emoji": "🪪",
+      "category": "level",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "实习生",
+        "b": "工牌",
+        "chain": "level",
+        "comment": "实习生与工牌合成正式员工。"
+      },
+      "factual_metadata": {
+        "scope": "level",
+        "provenance": "catalogued"
+      }
+    },
+    "外包": {
+      "emoji": "📎",
+      "category": "level",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "公司",
+        "b": "成本",
+        "chain": "level",
+        "comment": "公司以外部成本采购人力服务，形成外包。"
+      },
+      "factual_metadata": {
+        "scope": "level",
+        "provenance": "catalogued"
+      }
+    },
+    "专家": {
+      "emoji": "🧙",
+      "category": "level",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "正式员工",
+        "b": "智慧",
+        "chain": "level",
+        "comment": "正式员工沉淀深厚智慧，成长为专家。"
+      },
+      "factual_metadata": {
+        "scope": "level",
+        "provenance": "catalogued"
+      }
+    },
+    "总监": {
+      "emoji": "🎩",
+      "category": "level",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "专家",
+        "b": "公司",
+        "chain": "level",
+        "comment": "专家承担公司的跨团队责任，成长为总监。"
+      },
+      "factual_metadata": {
+        "scope": "level",
+        "provenance": "catalogued"
+      }
+    },
+    "VP": {
+      "emoji": "🎖️",
+      "category": "level",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "总监",
+        "b": "集团",
+        "chain": "level",
+        "comment": "总监承担集团级职责，成长为 VP。"
+      },
+      "factual_metadata": {
+        "scope": "level",
+        "provenance": "catalogued"
+      }
+    },
+    "Riot Games": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "英雄联盟",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "英雄联盟与开发商合成Riot Games。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "subsidiary",
+        "as_of": "2015-12-31",
+        "source_url": "https://static.www.tencent.com/storage/uploads/2019/11/09/7ff11f32cb38df8cacc59374c0e94b84.pdf",
+        "source_title": "Tencent Holdings Limited Annual Report 2015",
+        "note": "Tencent's annual report lists Riot Games as a 100%-owned subsidiary."
+      }
+    },
+    "Supercell": {
+      "emoji": "🏰",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "部落冲突",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "部落冲突与开发商合成Supercell。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "equity_investment",
+        "as_of": "2016-06-21",
+        "source_url": "https://www.tencent.com/en-us/articles/2200296.html",
+        "source_title": "Tencent to Acquire Majority Stake in Supercell from SoftBank",
+        "note": "A Tencent-led consortium agreed to acquire a majority stake in Supercell."
+      }
+    },
+    "Epic Games": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "堡垒之夜",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "堡垒之夜与开发商合成Epic Games。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "equity_investment",
+        "as_of": "2012-06-19",
+        "source_url": "https://static.www.tencent.com/storage/uploads/2019/11/09/b0963ae0fe5736d1d2b1e7fd2bebb57f.pdf",
+        "source_title": "Tencent Makes Strategic Investment in Epic Games",
+        "note": "Tencent announced a minority strategic investment in Epic Games."
+      }
+    },
+    "Funcom": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "沙盒",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "沙盒与开发商合成Funcom。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "subsidiary",
+        "as_of": "2020-07-14",
+        "source_url": "https://www.funcom.com/about-us/",
+        "source_title": "About Us - Funcom",
+        "note": "Funcom's official history records Tencent's acquisition of full ownership in 2020."
+      }
+    },
+    "Sumo Group": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "竞速",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "竞速与开发商合成Sumo Group。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "subsidiary",
+        "as_of": "2022-01-17",
+        "source_url": "https://data.fca.org.uk/artefacts/NSM/RNS/4241899.html",
+        "source_title": "Recommended Cash Acquisition of Sumo Group plc by Sixjoy Hong Kong Limited — Scheme Becomes Effective",
+        "note": "The UK regulatory announcement records the Tencent subsidiary acquisition becoming effective."
+      }
+    },
+    "Digital Extremes": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "科幻",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "科幻与开发商合成Digital Extremes。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "subsidiary",
+        "as_of": "2020-12-22",
+        "source_url": "https://www.digitalextremes.com/news/digital-extremes-partners-with-tencent",
+        "source_title": "Digital Extremes Partners with Tencent",
+        "note": "Digital Extremes announced that Tencent became its parent company."
+      }
+    },
+    "Sharkmob": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "吸血鬼",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "吸血鬼与开发商合成Sharkmob。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "subsidiary",
+        "as_of": "2026-04-16",
+        "source_url": "https://career.sharkmob.com/jobs/7471597-executive-assistant",
+        "source_title": "Executive Assistant - Sharkmob",
+        "note": "Sharkmob's official company careers page states that the studio is owned by Tencent."
+      }
+    },
+    "Grinding Gear Games": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "流放",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "流放与开发商合成Grinding Gear Games。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "equity_investment",
+        "as_of": "2018-05-21",
+        "source_url": "https://www.pathofexile.com/forum/view-thread/2147313",
+        "source_title": "Tencent has Invested in Grinding Gear Games",
+        "note": "Grinding Gear Games announced Tencent's majority investment."
+      }
+    },
+    "Klei Entertainment": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "饥荒",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "饥荒与开发商合成Klei Entertainment。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "equity_investment",
+        "as_of": "2021-01-22",
+        "source_url": "https://forums.kleientertainment.com/announcement/70-studio-announcement/",
+        "source_title": "Studio Announcement",
+        "note": "Klei announced Tencent's acquisition of a majority stake while retaining studio autonomy."
+      }
+    },
+    "Miniclip": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "小游戏",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "小游戏与开发商合成Miniclip。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "subsidiary",
+        "as_of": "2023-08-07",
+        "source_url": "https://www.competition.gov.cy/competition/Competition.nsf/All/9FA5D7C9CA9D18C8C2258A04003D89C5?OpenDocument=&print=",
+        "source_title": "Notification of a concentration concerning the acquisition of FM Games Holding Limited by Miniclip SA",
+        "note": "The Cyprus competition authority identifies Miniclip as ultimately controlled by Tencent."
+      }
+    },
+    "腾讯音乐娱乐集团": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "QQ音乐",
+        "b": "集团",
+        "chain": "association",
+        "comment": "QQ音乐与集团合成腾讯音乐娱乐集团。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "subsidiary",
+        "as_of": "2025-12-31",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/1744676/000119312526160257/tme-20251231.htm",
+        "source_title": "Tencent Music Entertainment Group 2025 Annual Report on Form 20-F",
+        "note": "Tencent Music's annual report identifies Tencent as its controlling shareholder."
+      }
+    },
+    "阅文集团": {
+      "emoji": "📚",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "小说",
+        "b": "集团",
+        "chain": "association",
+        "comment": "小说与集团合成阅文集团。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "subsidiary",
+        "as_of": "2025-06-30",
+        "source_url": "https://www.hkexnews.hk/listedco/listconews/sehk/2025/0909/2025090900283.pdf",
+        "source_title": "China Literature Limited Interim Report 2025",
+        "note": "China Literature identifies Tencent as its ultimate holding company and 56.57% controlling shareholder."
+      }
+    },
+    "微众银行": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "微信支付",
+        "b": "银行",
+        "chain": "association",
+        "comment": "微信支付与银行合成微众银行。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "equity_investment",
+        "as_of": "2014-12-31",
+        "source_url": "https://static.www.tencent.com/storage/uploads/2019/11/09/dc4eda2bef30e63399c475accc01824e.pdf",
+        "source_title": "Tencent Holdings Limited Annual Report 2014",
+        "note": "Tencent's annual report disclosed a 30% interest in WeBank."
+      }
+    },
+    "Ubisoft": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "刺客",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "刺客与开发商合成Ubisoft。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "equity_investment",
+        "as_of": "2022-09-06",
+        "source_url": "https://staticctf.ubisoft.com/8aefmxkxpxwl/3kW9hU9OlyhgUZviNVbzFD/3070ed9013ca1972deb51edac9154248/Ubisoft_GB_Tencent_English_final.pdf",
+        "source_title": "Ubisoft strengthens its core shareholding via the expansion of the concert around the group's founders",
+        "note": "Ubisoft disclosed Tencent's direct 4.5% holding and authorization to increase it to 9.99%, alongside a strategic partnership."
+      }
+    },
+    "Techland": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "僵尸",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "僵尸与开发商合成Techland。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "subsidiary",
+        "as_of": "2023-08-31",
+        "source_url": "https://techland.net/upload/Strategia_podatkowa_2023_Techland_S.A..pdf",
+        "source_title": "Informacja o realizowanej strategii podatkowej Techland S.A. za rok podatkowy 2023",
+        "note": "Techland's tax disclosure records joining the Tencent group on 31 August 2023."
+      }
+    },
+    "Remedy Entertainment": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "叙事",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "叙事与开发商合成Remedy Entertainment。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "equity_investment",
+        "as_of": "2024-04-25",
+        "source_url": "https://investors.remedygames.com/fi/announcements/remedy-entertainment-oyj-tencent-holdings-limitedin-osakeomistus-remedysta-on-noussut-yli-10-prosentin-rajan/",
+        "source_title": "Tencent Holdings Limited's shareholding in Remedy has gone above the 10 percent threshold",
+        "note": "Remedy announced Tencent's holding crossing the 10 percent threshold."
+      }
+    },
+    "Paradox Interactive": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "策略",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "策略与开发商合成Paradox Interactive。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "equity_investment",
+        "as_of": "2016-05-27",
+        "source_url": "https://www.paradoxinteractive.com/media/press-releases/press-release/paradox-interactive-listing-attracts-tencent-as-fan-and-long-term-investor",
+        "source_title": "Paradox Interactive listing attracts Tencent as fan and long-term investor",
+        "note": "Paradox announced Tencent as a 5% long-term investor at listing."
+      }
+    },
+    "PlatinumGames": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "动作",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "动作与开发商合成PlatinumGames。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "equity_investment",
+        "as_of": "2020-01-07",
+        "source_url": "https://www.platinumgames.com/company/news/news-january-7-2020/",
+        "source_title": "Announcement regarding partnership with Tencent",
+        "note": "PlatinumGames announced a capital investment from Tencent."
+      }
+    },
+    "KADOKAWA": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "动漫",
+        "b": "出版",
+        "chain": "association",
+        "comment": "动漫与出版合成KADOKAWA。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "equity_investment",
+        "as_of": "2021-10-29",
+        "source_url": "https://www.kadokawa.co.jp/topics/6664/",
+        "source_title": "中国テンセントグループとの資本業務提携に関するお知らせ",
+        "note": "KADOKAWA announced a capital and business alliance with the Tencent group."
+      }
+    },
+    "Sea": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "电商",
+        "b": "游戏",
+        "chain": "association",
+        "comment": "电商与游戏合成Sea。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "equity_investment",
+        "as_of": "2022-01-04",
+        "source_url": "https://www.tencent.com.cn/en-us/articles/2201261.html",
+        "source_title": "Tencent divests 2.6% of equity interest in Sea Limited",
+        "note": "Tencent disclosed that its Sea stake would remain 18.7% after the divestment."
+      }
+    },
+    "Spotify": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "音乐",
+        "b": "流媒体",
+        "chain": "association",
+        "comment": "音乐与流媒体合成Spotify。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "historical_association",
+        "as_of": "2017-12-08",
+        "source_url": "https://static.www.tencent.com/storage/uploads/2019/11/09/254e32cc9ac777205085dbe6414fab48.pdf",
+        "source_title": "Spotify, Tencent and Tencent Music Entertainment Announce Equity Investments",
+        "note": "Spotify and Tencent Music announced reciprocal minority equity investments."
+      }
+    },
+    "Snap": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "社交",
+        "b": "相机",
+        "chain": "association",
+        "comment": "社交与相机合成Snap。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "historical_association",
+        "as_of": "2017-12-31",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/1564408/000156459018002721/snap-10k_20171231.htm",
+        "source_title": "Snap Inc. 2017 Annual Report on Form 10-K",
+        "note": "Snap disclosed Tencent's purchase of non-voting shares in 2017."
+      }
+    },
+    "Reddit": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "社区",
+        "b": "论坛",
+        "chain": "association",
+        "comment": "社区与论坛合成Reddit。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "equity_investment",
+        "as_of": "2025-09-30",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/0001713445/000114036125041618/xslSCHEDULE_13G_X01/primary_doc.xml",
+        "source_title": "Schedule 13G Amendment No. 2 — Reddit, Inc.",
+        "note": "Tencent's Schedule 13G amendment reports its Reddit shareholding."
+      }
+    },
+    "快手": {
+      "emoji": "📹",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "短视频",
+        "b": "老铁",
+        "chain": "association",
+        "comment": "短视频与老铁合成快手。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "equity_investment",
+        "as_of": "2025-07-17",
+        "source_url": "https://di.hkex.com.hk/di/NSConstdSSList.aspx?cid=0&corpn=Kuaishou+Technology+-+W&ed=17%2F07%2F2025&g_lang=en&lang=EN&pg=1&sa1=cl&sa1p=1&sa2=cs&sc=1024&sced=17%2F07%2F2025&scsd=17%2F07%2F2024&sd=17%2F07%2F2024&sid=322631&src=MAIN",
+        "source_title": "Disclosure of Interests — Kuaishou Technology",
+        "note": "HKEX disclosure records Tencent's substantial shareholding in Kuaishou."
+      }
+    },
+    "哔哩哔哩": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [
+        "B站"
+      ],
+      "canonical_recipe": {
+        "a": "弹幕",
+        "b": "视频",
+        "chain": "association",
+        "comment": "弹幕与视频合成哔哩哔哩。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "equity_investment",
+        "as_of": "2018-10-03",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/1723690/000110465919018702/a19-2736_1ex4d16.htm",
+        "source_title": "Share Subscription Agreement between Bilibili and Tencent Mobility",
+        "note": "Bilibili's filed subscription agreement documents Tencent's equity investment."
+      }
+    },
+    "拼多多": {
+      "emoji": "🛒",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "电商",
+        "b": "拼团",
+        "chain": "association",
+        "comment": "电商与拼团合成拼多多。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "historical_association",
+        "as_of": "2019-12-31",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/1737806/000110465920051022/pdd-20191231x20f.htm",
+        "source_title": "Pinduoduo Inc. 2019 Annual Report on Form 20-F",
+        "note": "Pinduoduo disclosed Tencent as a 16.5% principal shareholder at year end 2019."
+      }
+    },
+    "蔚来": {
+      "emoji": "🚗",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "新能源",
+        "b": "汽车",
+        "chain": "association",
+        "comment": "新能源与汽车合成蔚来。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "historical_association",
+        "as_of": "2019-02-04",
+        "source_url": "https://ir.nio.com/news-events/news-releases/news-release-details/nio-announces-us200-million-private-placement/",
+        "source_title": "NIO Announces US$200 Million Private Placement of Convertible Notes",
+        "note": "NIO announced a private placement of convertible notes including to Tencent."
+      }
+    },
+    "小红书": {
+      "emoji": "📕",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "社区",
+        "b": "种草",
+        "chain": "association",
+        "comment": "社区与种草合成小红书。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "equity_investment",
+        "as_of": "2018-05-31",
+        "source_url": "https://fevh5app.xiaohongshu.com/",
+        "source_title": "小红书 - 关于我们",
+        "note": "Xiaohongshu's official history records Tencent Investment's participation in its 2018 financing."
+      }
+    },
+    "知乎": {
+      "emoji": "💡",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "问答",
+        "b": "知识",
+        "chain": "association",
+        "comment": "问答与知识合成知乎。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "historical_association",
+        "as_of": "2021-03-05",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/1835724/000119312521070815/d72883df1.htm",
+        "source_title": "Zhihu Inc. Registration Statement on Form F-1",
+        "note": "Zhihu's registration statement identifies Tencent among its shareholders."
+      }
+    },
+    "京东": {
+      "emoji": "📦",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "电商",
+        "b": "物流",
+        "chain": "association",
+        "comment": "电商与物流合成京东。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "historical_association",
+        "as_of": "2021-12-22",
+        "source_url": "https://ir.jd.com/news-releases/news-release-details/jdcom-announces-board-and-shareholder-changes",
+        "source_title": "JD.com Announces Board and Shareholder Changes",
+        "note": "JD.com announced shareholder changes while confirming continuation of its strategic partnership with Tencent."
+      }
+    },
+    "美团": {
+      "emoji": "🛵",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "外卖",
+        "b": "团购",
+        "chain": "association",
+        "comment": "外卖与团购合成美团。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "historical_association",
+        "as_of": "2022-11-16",
+        "source_url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2022/1116/2022111600478.pdf",
+        "source_title": "Declaration of Interim Dividend by way of Distribution in Specie of Class B Ordinary Shares of Meituan",
+        "note": "Tencent announced distribution of most of its Meituan holding while maintaining the business relationship."
+      }
+    },
+    "Neople": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "DNF",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "DNF与开发商合成Neople。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "licensed_partner",
+        "as_of": "2007-12-13",
+        "source_url": "https://static.www.tencent.com/storage/uploads/2019/11/09/34dd45fcd8bb3cac88e3f93294cbd639.pdf",
+        "source_title": "Tencent Obtains Exclusive License to Operate Dungeon & Fighter in China",
+        "note": "Neople developed Dungeon & Fighter and licensed Tencent to operate it in China."
+      }
+    },
+    "Smilegate": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "穿越火线",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "穿越火线与开发商合成Smilegate。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "licensed_partner",
+        "as_of": "2026-06-08",
+        "source_url": "https://newsroom.smilegate.com/en/bbs/board.php?bo_table=eng&wr_id=491",
+        "source_title": "That's No Moon Entertainment Reveals Crossfire -- A Cinematic Thriller with Genre-Reinventing Cover and Traversal, Developed by Veteran AAA Talent",
+        "note": "Smilegate describes Tencent Games as the long-standing publisher supporting Crossfire."
+      }
+    },
+    "第七大道": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "弹弹堂",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "弹弹堂与开发商合成第七大道。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "licensed_partner",
+        "as_of": "2016-07-29",
+        "source_url": "https://www.7road.com/index.php/article/index/id/139.html",
+        "source_title": "七道携手腾讯游戏 ChinaJoy强势新品亮相",
+        "note": "第七大道研发、腾讯游戏代理《弹弹堂》正版手游。"
+      }
+    },
+    "Take-Two": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "NBA2K Online",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "NBA2K Online与开发商合成Take-Two。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "licensed_partner",
+        "as_of": "2009-06-23",
+        "source_url": "https://ir.take2games.com/static-files/2bb9b33b-3e55-4cdf-8c1c-3544eaffbe39",
+        "source_title": "2K Sports Partners with Tencent to Bring NBA 2K Online to Asia",
+        "note": "Take-Two's 2K Sports partnered with Tencent to co-develop and distribute NBA 2K Online."
+      }
+    },
+    "EA": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "极品飞车",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "极品飞车与开发商合成EA。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "licensed_partner",
+        "as_of": "2024-04-30",
+        "source_url": "https://www.tencent.com/en-us/articles/2201837.html",
+        "source_title": "Tencent Partners With Mercedes-Benz and Electronic Arts to Bring New Need for Speed Mobile to the Chinese Market",
+        "note": "EA licensed the Need for Speed franchise for a mobile game developed by Tencent's TiMi Studio."
+      }
+    },
+    "Activision": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "使命召唤Online",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "使命召唤Online与开发商合成Activision。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "licensed_partner",
+        "as_of": "2012-07-03",
+        "source_url": "https://investor.activision.com/news-releases/news-release-details/activision-blizzard-and-tencent-announce-long-term-strategic",
+        "source_title": "Activision Blizzard and Tencent Announce Long-Term Strategic Relationship to Bring Call of Duty Online to China",
+        "note": "Activision and Tencent announced a multi-year Call of Duty Online agreement for China."
+      }
+    },
+    "Nexon": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "DNF",
+        "b": "发行商",
+        "chain": "association",
+        "comment": "DNF与发行商合成Nexon。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "licensed_partner",
+        "as_of": "2026-05-14",
+        "source_url": "https://www.nexon.co.jp/en/news/detail/?id=20260514-8a3f2f33",
+        "source_title": "Nexon and Tencent Extend Publishing Partnership for Dungeon&Fighter PC in China",
+        "note": "Nexon and Tencent extended their Dungeon&Fighter publishing partnership in China."
+      }
+    },
+    "KRAFTON": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "PUBG",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "PUBG与开发商合成KRAFTON。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "licensed_partner",
+        "as_of": "2026-08-04",
+        "source_url": "https://intl.cloud.tencent.com/en/render/wggtf",
+        "source_title": "Where Great Games Take Flight",
+        "note": "Tencent's official case study records PUBG Mobile licensing and joint development with PUBG Corporation."
+      }
+    },
+    "NCSoft": {
+      "emoji": "🤝",
+      "category": "association",
+      "aliases": [],
+      "canonical_recipe": {
+        "a": "剑灵",
+        "b": "开发商",
+        "chain": "association",
+        "comment": "剑灵与开发商合成NCSoft。"
+      },
+      "factual_metadata": {
+        "scope": "association",
+        "provenance": "catalogued"
+      },
+      "relationship": {
+        "kind": "licensed_partner",
+        "as_of": "2024-12-18",
+        "source_url": "https://about.ncsoft.com/en/news/article/lineage2m_update_240106",
+        "source_title": "NCSOFT to Launch Lineage 2M in China in Partnership with Tencent Games",
+        "note": "NCSOFT announced its Lineage 2M publishing partnership with Tencent Games in China."
+      }
+    }
+  },
+  "support_elements": {
+    "互联网": {
+      "emoji": "🌐",
+      "category": "internet"
+    },
+    "移动互联网": {
+      "emoji": "📶",
+      "category": "internet"
+    },
+    "聊天": {
+      "emoji": "💬",
+      "category": "social"
+    },
+    "腾讯": {
+      "emoji": "🐧",
+      "category": "tencent"
+    },
+    "光": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "颜色": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "文字": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "公司": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "荒野": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "目标": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "怀旧": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "装扮": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "动物": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "汽车": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "学校": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "下载": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "货币": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "经验": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "陌生人": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "声音": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "震动": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "影子": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "经验值": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "访问": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "离线": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "签名": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "好友": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "留言": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "对战": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "梦": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "战争": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "历史": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "速度": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "舞蹈": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "魔法": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "格斗": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "弹射": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "仙侠": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "未来": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "战地": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "剑": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "灵魂": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "上古": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "使命召唤": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "NBA": {
+      "emoji": "🏀",
+      "category": "abstract"
+    },
+    "明月": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "御龙": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "轩辕": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "斗战": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "节奏": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "跑步": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "消除": {
+      "emoji": "💥",
+      "category": "abstract"
+    },
+    "战术": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "棋盘": {
+      "emoji": "♟️",
+      "category": "abstract"
+    },
+    "云盘": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "大数据": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "客服": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "创新": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "射击": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "光线": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "洛杉矶": {
+      "emoji": "🌴",
+      "category": "abstract"
+    },
+    "即时战略": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "量子计算": {
+      "emoji": "⚛️",
+      "category": "abstract"
+    },
+    "开发商": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "沙盒": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "竞速": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "科幻": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "吸血鬼": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "流放": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "饥荒": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "小游戏": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "集团": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "银行": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "刺客": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "僵尸": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "叙事": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "策略": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "动作": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "出版": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "流媒体": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "社交": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "相机": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "论坛": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "老铁": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "视频": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "拼团": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "团购": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "极品飞车": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "发行商": {
+      "emoji": "🧩",
+      "category": "abstract"
+    },
+    "物理": {
+      "emoji": "⚛️",
+      "category": "abstract"
+    }
+  },
+  "support_recipes": {
+    "人 + 电脑": {
+      "result": "工位",
+      "emoji": "🪑",
+      "chain": "worker",
+      "comment": "人在电脑前工作，形成工位。"
+    },
+    "电脑 + 网络": {
+      "result": "互联网",
+      "emoji": "🌐",
+      "chain": "internet",
+      "comment": "电脑接入网络，连成互联网。"
+    },
+    "手机 + 网络": {
+      "result": "移动互联网",
+      "emoji": "📶",
+      "chain": "internet",
+      "comment": "手机接入网络，形成移动互联网。"
+    },
+    "互联网 + 人": {
+      "result": "聊天",
+      "emoji": "💬",
+      "chain": "social",
+      "comment": "人在互联网上交流，形成聊天。"
+    },
+    "互联网 + 企鹅": {
+      "result": "腾讯",
+      "emoji": "🐧",
+      "chain": "tencent",
+      "comment": "企鹅连接互联网，指向腾讯。"
+    },
+    "移动互联网 + 腾讯": {
+      "result": "微信",
+      "emoji": "💬",
+      "chain": "product",
+      "comment": "腾讯进入移动互联网时代，微信诞生。"
+    },
+    "火 + 火": {
+      "result": "光",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "火焰汇聚，发出光。"
+    },
+    "光 + 雨": {
+      "result": "颜色",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "光穿过雨滴，分解出颜色。"
+    },
+    "电脑 + 知识": {
+      "result": "文字",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "知识输入电脑，沉淀为文字。"
+    },
+    "岩浆 + 时间": {
+      "result": "金属",
+      "emoji": "⚙️",
+      "chain": "support",
+      "comment": "岩浆中的矿物随时间冷却为金属。"
+    },
+    "AI + 电脑": {
+      "result": "代码",
+      "emoji": "👨‍💻",
+      "chain": "support",
+      "comment": "AI 在电脑上生成代码。"
+    },
+    "人 + 工位": {
+      "result": "公司",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "人们在工位上协作，组成公司。"
+    },
+    "人 + 手机": {
+      "result": "游戏",
+      "emoji": "🎮",
+      "chain": "support",
+      "comment": "人在手机上游玩游戏。"
+    },
+    "人 + 风": {
+      "result": "声音",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "人的发声借空气传播为声音。"
+    },
+    "声音 + 时间": {
+      "result": "音乐",
+      "emoji": "🎵",
+      "chain": "support",
+      "comment": "声音按时间组织，形成音乐。"
+    },
+    "人 + 聊天": {
+      "result": "朋友",
+      "emoji": "🧑‍🤝‍🧑",
+      "chain": "support",
+      "comment": "人与人持续聊天，成为朋友。"
+    },
+    "公司 + 游戏": {
+      "result": "工作室",
+      "emoji": "🎮",
+      "chain": "support",
+      "comment": "公司中的游戏团队组成工作室。"
+    },
+    "人 + 土": {
+      "result": "城市",
+      "emoji": "🏙️",
+      "chain": "support",
+      "comment": "人群在土地上聚居，形成城市。"
+    },
+    "朋友 + 聊天": {
+      "result": "社区",
+      "emoji": "🏙️",
+      "chain": "support",
+      "comment": "朋友们持续交流，形成社区。"
+    },
+    "互联网 + 货币": {
+      "result": "电商",
+      "emoji": "🛒",
+      "chain": "support",
+      "comment": "互联网连接交易与货币，形成电商。"
+    },
+    "土 + 影子": {
+      "result": "荒野",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "远离人烟的土地化作荒野。"
+    },
+    "文字 + 未来": {
+      "result": "目标",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "把未来设想写成文字，形成目标。"
+    },
+    "历史 + 聊天": {
+      "result": "怀旧",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "聊天回望历史，产生怀旧。"
+    },
+    "人 + 颜色": {
+      "result": "装扮",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "人用颜色装点自己，形成装扮。"
+    },
+    "时间 + 植物": {
+      "result": "动物",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "生命随时间演化出动物。"
+    },
+    "速度 + 金属": {
+      "result": "汽车",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "金属机械获得速度，成为汽车。"
+    },
+    "城市 + 知识": {
+      "result": "学校",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "城市集中传授知识，形成学校。"
+    },
+    "互联网 + 电脑": {
+      "result": "下载",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "电脑从互联网取得内容，即为下载。"
+    },
+    "人 + 金属": {
+      "result": "货币",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "人把金属用作交换媒介，形成货币。"
+    },
+    "人 + 知识": {
+      "result": "经验",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "人将知识用于实践，积累经验。"
+    },
+    "人 + 影子": {
+      "result": "陌生人",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "只见轮廓不识其人，是陌生人。"
+    },
+    "声音 + 手机": {
+      "result": "震动",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "手机把提示声转换为震动提醒。"
+    },
+    "人 + 光": {
+      "result": "影子",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "人挡住光线，留下影子。"
+    },
+    "时间 + 经验": {
+      "result": "经验值",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "经验随时间累积为经验值。"
+    },
+    "互联网 + 朋友": {
+      "result": "访问",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "朋友通过互联网互相访问主页。"
+    },
+    "互联网 + 影子": {
+      "result": "离线",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "网络中的身影消失，进入离线状态。"
+    },
+    "人 + 文字": {
+      "result": "签名",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "人用文字留下签名。"
+    },
+    "人 + 朋友": {
+      "result": "好友",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "熟悉的朋友成为好友。"
+    },
+    "文字 + 朋友": {
+      "result": "留言",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "朋友用文字留下留言。"
+    },
+    "战争 + 游戏": {
+      "result": "对战",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "战争规则进入游戏，形成对战。"
+    },
+    "云 + 人": {
+      "result": "梦",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "人在云端般的想象中做梦。"
+    },
+    "人 + 火": {
+      "result": "战争",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "人把火用于冲突，演变为战争。"
+    },
+    "人 + 时间": {
+      "result": "历史",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "人的经历随时间沉淀为历史。"
+    },
+    "时间 + 风": {
+      "result": "速度",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "风在时间中体现运动速度。"
+    },
+    "人 + 音乐": {
+      "result": "舞蹈",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "人随音乐起舞。"
+    },
+    "梦 + 知识": {
+      "result": "魔法",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "梦与知识交织成魔法体系。"
+    },
+    "人 + 对战": {
+      "result": "格斗",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "人参与近身对战，形成格斗。"
+    },
+    "火 + 速度": {
+      "result": "弹射",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "物体借爆发力高速弹射。"
+    },
+    "历史 + 魔法": {
+      "result": "仙侠",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "历史意象与魔法结合成仙侠世界。"
+    },
+    "AI + 时间": {
+      "result": "未来",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "AI 随时间发展，指向未来。"
+    },
+    "土 + 战争": {
+      "result": "战地",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "战争发生的土地成为战地。"
+    },
+    "战争 + 金属": {
+      "result": "剑",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "金属被锻造成战争中的剑。"
+    },
+    "人 + 梦": {
+      "result": "灵魂",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "人的梦境映照灵魂。"
+    },
+    "历史 + 土": {
+      "result": "上古",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "土地最久远的历史指向上古。"
+    },
+    "互联网 + 战争": {
+      "result": "使命召唤",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "战争题材联网，指向使命召唤。"
+    },
+    "云 + 时间": {
+      "result": "明月",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "云随夜色流转，露出明月。"
+    },
+    "动物 + 魔法": {
+      "result": "御龙",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "以魔法驾驭神兽，形成御龙意象。"
+    },
+    "上古 + 剑": {
+      "result": "轩辕",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "上古传说与神剑相合，指向轩辕。"
+    },
+    "格斗 + 魔法": {
+      "result": "斗战",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "格斗叠加神魔力量，形成斗战。"
+    },
+    "速度 + 音乐": {
+      "result": "节奏",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "音乐的快慢构成节奏。"
+    },
+    "人 + 速度": {
+      "result": "跑步",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "人以速度移动，就是跑步。"
+    },
+    "战争 + 知识": {
+      "result": "战术",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "以知识规划战争，形成战术。"
+    },
+    "云 + 互联网": {
+      "result": "云盘",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "云服务连接互联网，形成云盘。"
+    },
+    "互联网 + 知识": {
+      "result": "大数据",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "互联网汇聚海量知识数据。"
+    },
+    "公司 + 聊天": {
+      "result": "客服",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "公司通过聊天服务客户，形成客服。"
+    },
+    "未来 + 知识": {
+      "result": "创新",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "知识面向未来，产生创新。"
+    },
+    "弹射 + 战争": {
+      "result": "射击",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "战争中以弹射武器进行射击。"
+    },
+    "光 + 速度": {
+      "result": "光线",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "光以高速传播，形成光线。"
+    },
+    "电脑 + 策略": {
+      "result": "即时战略",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "策略在电脑上实时执行，形成即时战略。"
+    },
+    "代码 + 公司": {
+      "result": "开发商",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "公司以代码开发产品，成为开发商。"
+    },
+    "土 + 游戏": {
+      "result": "沙盒",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "游戏把土地开放为可塑造的沙盒。"
+    },
+    "汽车 + 速度": {
+      "result": "竞速",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "汽车追逐速度，形成竞速。"
+    },
+    "AI + 未来": {
+      "result": "科幻",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "AI 与未来想象结合成科幻。"
+    },
+    "动物 + 影子": {
+      "result": "吸血鬼",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "夜行生物的影子形成吸血鬼意象。"
+    },
+    "人 + 荒野": {
+      "result": "流放",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "人被逐入荒野，形成流放。"
+    },
+    "动物 + 荒野": {
+      "result": "饥荒",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "荒野中生命缺少食物，形成饥荒。"
+    },
+    "手机 + 游戏": {
+      "result": "小游戏",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "手机上的轻量玩法形成小游戏。"
+    },
+    "公司 + 公司": {
+      "result": "集团",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "多家公司联合组成集团。"
+    },
+    "公司 + 货币": {
+      "result": "银行",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "公司经营货币与信用，形成银行。"
+    },
+    "剑 + 影子": {
+      "result": "刺客",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "暗影中的利刃指向刺客。"
+    },
+    "人 + 泥": {
+      "result": "僵尸",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "人从泥土中复起，形成僵尸意象。"
+    },
+    "历史 + 文字": {
+      "result": "叙事",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "历史通过文字组织成叙事。"
+    },
+    "战争 + 智慧": {
+      "result": "策略",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "以智慧安排战争，形成策略。"
+    },
+    "游戏 + 速度": {
+      "result": "动作",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "高速交互形成动作游戏。"
+    },
+    "公司 + 文字": {
+      "result": "出版",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "公司编辑并发行文字，形成出版。"
+    },
+    "互联网 + 音乐": {
+      "result": "流媒体",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "音乐经互联网持续传输，形成流媒体。"
+    },
+    "朋友 + 社区": {
+      "result": "社交",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "朋友在社区互动，形成社交。"
+    },
+    "光 + 手机": {
+      "result": "相机",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "手机捕捉光线，成为相机。"
+    },
+    "文字 + 社区": {
+      "result": "论坛",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "社区围绕文字讨论，形成论坛。"
+    },
+    "时间 + 朋友": {
+      "result": "老铁",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "经得起时间的朋友成为老铁。"
+    },
+    "光 + 时间": {
+      "result": "视频",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "连续记录随时间变化的光，形成视频。"
+    },
+    "朋友 + 电商": {
+      "result": "拼团",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "朋友在电商平台共同下单，形成拼团。"
+    },
+    "好友 + 电商": {
+      "result": "团购",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "好友集合购买，形成团购。"
+    },
+    "汽车 + 游戏": {
+      "result": "极品飞车",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "汽车进入竞速游戏，指向极品飞车。"
+    },
+    "出版 + 游戏": {
+      "result": "发行商",
+      "emoji": "🧩",
+      "chain": "support",
+      "comment": "把游戏正式出版发行的组织是发行商。"
+    },
+    "人 + 公司": {
+      "result": "协同",
+      "emoji": "🤝",
+      "chain": "seed_bridge",
+      "comment": "公司中的人共同工作，形成协同。"
+    },
+    "公司 + 未来": {
+      "result": "OKR",
+      "emoji": "🎯",
+      "chain": "seed_bridge",
+      "comment": "公司面向未来设定目标，形成 OKR。"
+    },
+    "公司 + 时间": {
+      "result": "周报",
+      "emoji": "📝",
+      "chain": "seed_bridge",
+      "comment": "公司按时间周期总结工作，形成周报。"
+    },
+    "公司 + 目标": {
+      "result": "任务",
+      "emoji": "📋",
+      "chain": "seed_bridge",
+      "comment": "公司把目标拆成可执行任务。"
+    },
+    "目标 + 聊天": {
+      "result": "会议",
+      "emoji": "📅",
+      "chain": "seed_bridge",
+      "comment": "围绕共同目标集中交流，形成会议。"
+    },
+    "公司 + 视频": {
+      "result": "广告",
+      "emoji": "📢",
+      "chain": "seed_bridge",
+      "comment": "公司用视频传播产品，形成广告。"
+    },
+    "互联网 + 文字": {
+      "result": "邮箱",
+      "emoji": "📬",
+      "chain": "seed_bridge",
+      "comment": "文字经互联网传递，形成邮箱。"
+    },
+    "工位 + 电脑": {
+      "result": "办公",
+      "emoji": "💼",
+      "chain": "seed_bridge",
+      "comment": "电脑与工位结合，形成办公场景。"
+    },
+    "手机 + 货币": {
+      "result": "钱包",
+      "emoji": "👛",
+      "chain": "seed_bridge",
+      "comment": "手机承载数字货币，形成钱包。"
+    },
+    "手机 + 视频": {
+      "result": "短视频",
+      "emoji": "🎬",
+      "chain": "seed_bridge",
+      "comment": "手机拍摄并观看轻量视频，形成短视频。"
+    },
+    "时间 + 未来": {
+      "result": "新年",
+      "emoji": "🧧",
+      "chain": "seed_bridge",
+      "comment": "时间迈向未来，进入新年。"
+    },
+    "公司 + 工位": {
+      "result": "成本",
+      "emoji": "💸",
+      "chain": "seed_bridge",
+      "comment": "公司维持工位运营，形成成本。"
+    },
+    "聊天 + 视频": {
+      "result": "弹幕",
+      "emoji": "💬",
+      "chain": "seed_bridge",
+      "comment": "聊天文字覆盖视频，形成弹幕。"
+    },
+    "文字 + 视频": {
+      "result": "新闻",
+      "emoji": "📰",
+      "chain": "seed_bridge",
+      "comment": "视频与文字共同记录事件，形成新闻。"
+    },
+    "城市 + 文字": {
+      "result": "地图",
+      "emoji": "🗺️",
+      "chain": "seed_bridge",
+      "comment": "用文字标注城市空间，形成地图。"
+    },
+    "美国 + 体育": {
+      "result": "NBA",
+      "emoji": "🏀",
+      "chain": "support",
+      "comment": "美国职业篮球赛事指向 NBA。"
+    },
+    "颜色 + 游戏": {
+      "result": "消除",
+      "emoji": "💥",
+      "chain": "support",
+      "comment": "颜色匹配是消除类游戏的核心机制。"
+    },
+    "游戏 + 自走棋": {
+      "result": "棋盘",
+      "emoji": "♟️",
+      "chain": "support",
+      "comment": "自走棋游戏在棋盘上展开。"
+    },
+    "地图 + 美国": {
+      "result": "洛杉矶",
+      "emoji": "🌴",
+      "chain": "support",
+      "comment": "美国地图标出洛杉矶。"
+    },
+    "光 + 知识": {
+      "result": "物理",
+      "emoji": "⚛️",
+      "chain": "support",
+      "comment": "研究光的规律是物理知识的一部分。"
+    },
+    "电脑 + 物理": {
+      "result": "量子计算",
+      "emoji": "⚛️",
+      "chain": "support",
+      "comment": "计算机结合量子物理，形成量子计算。"
+    }
+  },
+  "retired_pairs": [
+    "DNF + 工作室",
+    "工作室 + 穿越火线",
+    "云 + 微信",
+    "人情 + 鹅厂",
+    "堡垒之夜 + 收购",
+    "打工鹅 + 时间",
+    "拳头 + 收购",
+    "视频号 + 鹅厂"
+  ],
+  "retired_elements": [
+    "天美",
+    "光子",
+    "魔方",
+    "北极光",
+    "量子",
+    "极光",
+    "波士顿",
+    "拳头",
+    "Riot",
+    "Epic",
+    "B站",
+    "TME",
+    "腾讯音乐娱乐",
+    "金铲铲",
+    "CF"
+  ]
+}
