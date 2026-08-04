@@ -277,6 +277,52 @@ test("candidate generation rejects redundant self badges", async () => {
   );
 });
 
+test("candidate generation rejects invalid category badge pools", async () => {
+  const { buildElementIconMap } = await import(
+    "../scripts/generate-icon-data.mjs"
+  );
+  const validManifest = {
+    "💧": "/assets/icons/water.png",
+    "🤖": "/assets/icons/robot.png",
+  };
+
+  for (const [name, pool, pattern] of [
+    ["missing", undefined, /must be a non-empty array/i],
+    ["empty", [], /must be a non-empty array/i],
+    ["non-string", ["🤖", null], /must contain non-empty strings/i],
+    ["duplicate", ["🤖", "🤖"], /must not contain duplicates/i],
+    [
+      "missing asset",
+      ["🤖", "🫥"],
+      /does not resolve through the Emoji manifest/i,
+    ],
+  ]) {
+    assert.throws(
+      () =>
+        buildElementIconMap({
+          seedElements: {
+            elements: {
+              Sample: { emoji: "💧", category: "ai" },
+            },
+          },
+          seedCombinations: { combinations: {} },
+          rules: {
+            palettes: ["product"],
+            category_palettes: { ai: "product" },
+            keyword_badges: [],
+            category_badges: {},
+            category_badge_pools: { ai: pool },
+            allowed_sources: ["generated", "fallback"],
+          },
+          knowledge: {},
+          emojiManifest: validManifest,
+        }),
+      pattern,
+      name,
+    );
+  }
+});
+
 test("audit counts every member of a reused signature and requires explicit exceptions above twice", async () => {
   const { auditIconMap } = await import("../scripts/audit-icon-map.mjs");
   const seedElements = {

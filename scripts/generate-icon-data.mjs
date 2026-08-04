@@ -60,6 +60,27 @@ function validateRules(rules, categories, emojiManifest) {
   for (const [category, badge] of Object.entries(rules.category_badges)) {
     requireManifestEmoji(emojiManifest, badge, `category_badges.${category}`);
   }
+  for (const [category, pool] of Object.entries(
+    rules.category_badge_pools || {},
+  )) {
+    const label = `category_badge_pools.${category}`;
+    if (!Array.isArray(pool) || !pool.length) {
+      throw new Error(`${label} must be a non-empty array`);
+    }
+    if (
+      !pool.every(
+        (badge) => typeof badge === "string" && badge.trim().length > 0,
+      )
+    ) {
+      throw new Error(`${label} must contain non-empty strings`);
+    }
+    if (new Set(pool).size !== pool.length) {
+      throw new Error(`${label} must not contain duplicates`);
+    }
+    for (const badge of pool) {
+      requireManifestEmoji(emojiManifest, badge, label);
+    }
+  }
 }
 
 function buildResultContexts(seedCombinations) {
