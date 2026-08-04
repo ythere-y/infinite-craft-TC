@@ -86,9 +86,32 @@ def init_archive() -> None:
                     ts   REAL NOT NULL
                 );
 
+                CREATE TABLE IF NOT EXISTS prompt_draft (
+                    singleton   INTEGER PRIMARY KEY CHECK (singleton = 1),
+                    config_json TEXT NOT NULL,
+                    updated_at  REAL NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS prompt_versions (
+                    id                  TEXT PRIMARY KEY,
+                    created_at          REAL NOT NULL,
+                    selected_style_id   TEXT,
+                    selected_style_name TEXT,
+                    snapshot_json       TEXT NOT NULL,
+                    effective_spec_json TEXT NOT NULL,
+                    preview             TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS prompt_state (
+                    singleton         INTEGER PRIMARY KEY CHECK (singleton = 1),
+                    active_version_id TEXT NOT NULL REFERENCES prompt_versions(id)
+                );
+
                 CREATE INDEX IF NOT EXISTS idx_kpi_session ON kpi_events(session_id);
                 CREATE INDEX IF NOT EXISTS idx_first_ts    ON first_discoveries(ts DESC);
                 CREATE INDEX IF NOT EXISTS idx_combo_chain ON combinations(chain);
+                CREATE INDEX IF NOT EXISTS idx_prompt_versions_created
+                ON prompt_versions(created_at DESC);
                 """
             )
             columns = {
