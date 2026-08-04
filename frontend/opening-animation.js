@@ -86,6 +86,23 @@
     return reducedMotion || !hasDrawable ? "static" : "live";
   }
 
+  function finalePlan(mode) {
+    if (mode === "static") {
+      return Object.freeze({
+        absorbMs: 0,
+        fragmentMs: 0,
+        revealAtMs: 0,
+        totalMs: 180,
+      });
+    }
+    return Object.freeze({
+      absorbMs: 360,
+      fragmentMs: 280,
+      revealAtMs: 160,
+      totalMs: 520,
+    });
+  }
+
   function identityModel(branch, nickname) {
     const normalizedNickname = String(nickname || "").trim();
     if (branch === "returning") {
@@ -148,6 +165,7 @@
       ),
     });
     const staticMode = mode === "static";
+    const plan = finalePlan(mode);
     const tokenLayer = documentRef.getElementById("opening-token-layer");
     const fragmentLayer = documentRef.getElementById("opening-fragment-layer");
     const birthLayer = documentRef.getElementById("opening-birth-layer");
@@ -174,6 +192,7 @@
     const motions = [];
     const throwingAnimations = new Set();
     const animeAnimations = new Set();
+    const finaleAnimations = new Set();
     let frameId = 0;
     let emissionTimer = 0;
     let lastFrameAt = 0;
@@ -468,7 +487,7 @@
       else resume();
     }
 
-    async function absorbAll() {
+    function beginFinale() {
       if (finalizing) return;
       finalizing = true;
       windowRef.clearInterval(emissionTimer);
@@ -478,14 +497,18 @@
       throwingAnimations.forEach((animation) => animation.cancel?.());
       throwingAnimations.clear();
       animeAnimations.forEach((animation) => animation.pause?.());
-      const allNodes = [
-        ...tokenNodes,
-        ...fragmentNodes,
-      ].filter((node) => !node.hidden);
-      const animations = allNodes.map((node, index) => {
+      const visibleTokens = [...tokenNodes].filter((node) => !node.hidden);
+      if (staticMode) {
+        visibleTokens.forEach((node) => {
+          node.style.opacity = "0";
+        });
+        fragmentLayer.style.opacity = "0";
+        return;
+      }
+      visibleTokens.forEach((node, index) => {
         if (!node.animate) {
           node.style.opacity = "0";
-          return Promise.resolve();
+          return;
         }
         const animation = node.animate(
           [
@@ -493,20 +516,36 @@
             {
               transform:
                 `translate3d(${center.x}px, ${center.y}px, 0) ` +
-                "translate(-50%, -50%) rotate(.9rad) scale(.08)",
+                "translate(-50%, -50%) rotate(.7rad) scale(.06)",
               opacity: 0,
             },
           ],
           {
-            duration: 430 + Math.min(220, index * 8),
-            delay: Math.min(220, index * 7),
-            easing: "cubic-bezier(.55,.04,.3,1)",
+            duration: plan.absorbMs,
+            delay: Math.min(40, index * 3),
+            easing: "cubic-bezier(.5,.02,.28,1)",
             fill: "forwards",
           },
         );
-        return animation.finished.catch(() => {});
+        finaleAnimations.add(animation);
       });
-      await Promise.all(animations);
+      if (fragmentLayer.animate) {
+        fragmentLayer.style.transformOrigin = "500px 296px";
+        const fragmentAnimation = fragmentLayer.animate(
+          [
+            { scale: 1, opacity: 1 },
+            { scale: 0.12, opacity: 0 },
+          ],
+          {
+            duration: plan.fragmentMs,
+            easing: "cubic-bezier(.5,.02,.28,1)",
+            fill: "forwards",
+          },
+        );
+        finaleAnimations.add(fragmentAnimation);
+      } else {
+        fragmentLayer.style.opacity = "0";
+      }
     }
 
     function destroy() {
@@ -516,6 +555,7 @@
       windowRef.clearInterval(emissionTimer);
       throwingAnimations.forEach((animation) => animation.cancel?.());
       animeAnimations.forEach((animation) => animation.cancel?.());
+      finaleAnimations.forEach((animation) => animation.cancel?.());
       windowRef.removeEventListener("resize", updateScale);
       documentRef.removeEventListener("visibilitychange", onVisibilityChange);
       motions.length = 0;
@@ -562,7 +602,7 @@
       scheduleEmission();
       initAnimeEffects();
     }
-    return { absorbAll, destroy, pause, resume };
+    return { beginFinale, destroy, mode, pause, resume };
   }
 
   async function start(options = {}) {
@@ -595,8 +635,9 @@
     } catch (error) {
       console.warn("opening vortex runtime unavailable", error);
       runtime = {
-        absorbAll: async () => {},
+        beginFinale() {},
         destroy() {},
+        mode: "static",
       };
     }
 
@@ -634,16 +675,23 @@
       finished = true;
       actions.removeEventListener("click", onAction);
       documentRef.removeEventListener("keydown", onKeyDown);
+      const plan = finalePlan(runtime.mode);
       stage.classList.add("is-finalizing");
-      await runtime.absorbAll();
+      runtime.beginFinale();
+      await wait(plan.revealAtMs);
       documentRef.body.classList.add("opening-finalizing");
       documentRef.body.classList.remove("opening-active");
-      await new Promise((resolve) => global.setTimeout(resolve, 720));
+      stage.classList.add("is-revealing");
+      await wait(plan.totalMs - plan.revealAtMs);
       runtime.destroy();
       stage.remove();
       documentRef.body.classList.remove("opening-finalizing");
       options.revealTargets?.workspace?.focus?.();
       return result;
+    }
+
+    function wait(milliseconds) {
+      return new Promise((resolve) => global.setTimeout(resolve, milliseconds));
     }
 
     let resolveStart;
@@ -741,6 +789,7 @@
     animationMode,
     branchForNickname,
     createSpiralPoints,
+    finalePlan,
     identityModel,
     motionSample,
     parabolicPoint,

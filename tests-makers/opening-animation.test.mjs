@@ -154,3 +154,31 @@ test("reduced motion and missing Anime use the static entry mode", async () => {
     "static",
   );
 });
+
+test("live finale overlaps absorption and reveal within 520 ms", async () => {
+  const opening = await loadOpeningAnimation();
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(opening.finalePlan("live"))),
+    {
+      absorbMs: 360,
+      fragmentMs: 280,
+      revealAtMs: 160,
+      totalMs: 520,
+    },
+  );
+});
+
+test("static finale is a short crossfade", async () => {
+  const opening = await loadOpeningAnimation();
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(opening.finalePlan("static"))),
+    {
+      absorbMs: 0,
+      fragmentMs: 0,
+      revealAtMs: 0,
+      totalMs: 180,
+    },
+  );
+});

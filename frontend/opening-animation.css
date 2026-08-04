@@ -18,6 +18,7 @@
     var(--opening-paper);
   contain: strict;
   isolation: isolate;
+  opacity: 1;
 }
 
 .opening-stage::after {
@@ -338,6 +339,22 @@ body.opening-finalizing #hint {
   pointer-events: none;
 }
 
+.opening-stage.is-revealing {
+  opacity: 0;
+  transition: opacity .36s cubic-bezier(.2, .75, .25, 1);
+}
+
+.opening-stage.is-finalizing .opening-vortex-svg {
+  opacity: .7;
+  transform:
+    translate(-50%, -50%)
+    scale(var(--opening-stage-scale, 1))
+    scale(.96);
+  transition:
+    transform .36s cubic-bezier(.5, .02, .28, 1),
+    opacity .28s ease;
+}
+
 .opening-stage.is-finalizing .opening-identity-card {
   opacity: 0;
   transform: translate(-50%, 18px) scale(.96);
@@ -408,6 +425,17 @@ body.opening-finalizing #hint {
   .opening-core-rings circle,
   .opening-infinity-detail {
     animation: none !important;
+  }
+
+  .opening-stage.is-revealing {
+    transition-duration: .18s;
+  }
+
+  .opening-stage.is-finalizing .opening-vortex-svg {
+    transform:
+      translate(-50%, -50%)
+      scale(var(--opening-stage-scale, 1));
+    transition: none;
   }
 }
 
