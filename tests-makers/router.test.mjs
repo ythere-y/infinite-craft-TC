@@ -23,9 +23,25 @@ function request(path, { method = "GET", body, headers = {} } = {}) {
   });
 }
 
-function makeRouter() {
+function makeRouter({
+  kv = new FakeKV(),
+  fetchImpl = async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content:
+                '{"name":"边缘咖啡","emoji":"☕","comment":"边缘一杯，灵感起飞。"}',
+            },
+          },
+        ],
+      }),
+      { status: 200 },
+    ),
+} = {}) {
   return createRouter({
-    kv: new FakeKV(),
+    kv,
     env: {
       APP_ENV: "test",
       DASHBOARD_PUBLIC: "1",
@@ -36,20 +52,7 @@ function makeRouter() {
     },
     now: () => 1_700_000_000_000,
     random: () => 0,
-    fetchImpl: async () =>
-      new Response(
-        JSON.stringify({
-          choices: [
-            {
-              message: {
-                content:
-                  '{"name":"边缘咖啡","emoji":"☕","comment":"边缘一杯，灵感起飞。"}',
-              },
-            },
-          ],
-        }),
-        { status: 200 },
-      ),
+    fetchImpl,
   });
 }
 
@@ -63,7 +66,7 @@ test("static, health and rank routes keep their public contracts", async () => {
 
   const starters = await json(router, "/api/starters");
   assert.equal(starters.response.status, 200);
-  assert.equal(starters.body.starters.length, 10);
+  assert.equal(starters.body.starters.length, 11);
   assert.deepEqual(
     starters.body.starters.find((item) => item.name === "水")?.icon,
     {
@@ -110,6 +113,118 @@ test("static, health and rank routes keep their public contracts", async () => {
   assert.equal("apiKey" in health.body.llm_config, false);
   assert.equal(health.body.security.dashboard, "public");
   assert.equal(health.body.security.model_calls_per_minute, 20);
+});
+
+test("aliases resolve before fixed formula lookup", async () => {
+  const kv = new FakeKV();
+  const router = makeRouter({ kv });
+  const response = await json(router, "/api/combine", {
+    method: "POST",
+    body: {
+      a: "地下城与勇士",
+      b: "QQ会员",
+      discoverer: "测试鹅",
+      session_id: "alias-test",
+    },
+  });
+
+  assert.equal(response.body.result, "黑钻");
+  assert.equal(response.body.a, "DNF");
+  assert.equal(response.body.b, "QQ会员");
+
+  const store = new KvStore(kv, { now: () => 1_700_000_000_000 });
+  const stored = await store.getCombination("DNF", "QQ会员");
+  assert.equal(stored.a, "DNF");
+  assert.equal(
+    await store.getCombination("地下城与勇士", "QQ会员"),
+    null,
+  );
+  const analytics = await json(router, "/api/analytics/combinations");
+  assert.equal(analytics.body.items[0].key, "DNF + QQ会员");
+
+  const verified = await json(router, "/api/recipes/verify", {
+    method: "POST",
+    body: {
+      recipes: [
+        {
+          a: "地下城与勇士",
+          b: "QQ会员",
+          result: "黑钻",
+          emoji: "💬",
+        },
+      ],
+    },
+  });
+  assert.deepEqual(verified.body.valid, [
+    {
+      a: "DNF",
+      b: "QQ会员",
+      result: "黑钻",
+      emoji: "💬",
+    },
+  ]);
+});
+
+test("aliases stay canonical through model, KV, community and recipe lookups", async () => {
+  const kv = new FakeKV();
+  let modelBody;
+  const router = makeRouter({
+    kv,
+    fetchImpl: async (_url, init) => {
+      modelBody = JSON.parse(init.body);
+      return new Response(
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content:
+                  '{"name":"宠物搭档","emoji":"🎮","comment":"宠物也找到了并肩作战的搭档。"}',
+              },
+            },
+          ],
+        }),
+        { status: 200 },
+      );
+    },
+  });
+
+  const response = await json(router, "/api/combine", {
+    method: "POST",
+    body: {
+      a: "Q宠大乱斗",
+      b: "未知搭档",
+      discoverer: "测试鹅",
+      session_id: "alias-model-test",
+    },
+  });
+
+  assert.equal(response.body.a, "Q宠大乐斗");
+  assert.equal(response.body.b, "未知搭档");
+  assert.match(modelBody.messages.at(-1).content, /Q宠大乐斗/u);
+  assert.doesNotMatch(modelBody.messages.at(-1).content, /Q宠大乱斗/u);
+
+  const store = new KvStore(kv, { now: () => 1_700_000_000_000 });
+  const stored = await store.getCombination("Q宠大乐斗", "未知搭档");
+  assert.equal(stored.a, "Q宠大乐斗");
+  assert.equal(
+    await store.getCombination("Q宠大乱斗", "未知搭档"),
+    null,
+  );
+  const formula = JSON.parse(
+    kv.values.get(`community_formula_${response.body.formula_id}`),
+  );
+  assert.equal(formula.a, "Q宠大乐斗");
+  assert.equal(formula.b, "未知搭档");
+  const analytics = await json(router, "/api/analytics/combinations");
+  assert.equal(analytics.body.items[0].key, "Q宠大乐斗 + 未知搭档");
+
+  const recipes = await json(
+    router,
+    `/api/element/${encodeURIComponent("Q宠大乱斗")}/recipes`,
+  );
+  assert.equal(recipes.body.result, "Q宠大乐斗");
+  assert.equal(recipes.body.count, 1);
+  assert.equal(recipes.body.recipes[0].a, "QQ宠物");
 });
 
 test("dynamic KV metadata never overwrites authoritative seed elements", async () => {
@@ -271,12 +386,11 @@ test("nickname, combine, wall, bounty and admin routes share KV state", async ()
   assert.ok(Array.isArray(bounty.body.groups));
   const riot = bounty.body.groups
     .flatMap((group) => group.items)
-    .find((item) => item.name === "Riot");
+    .find((item) => item.name === "Riot Games");
   assert.deepEqual(riot.icon, {
-    base: "👊",
-    badge: "🎮",
-    palette: "studio",
-    source: "curated",
+    base: "🤝",
+    palette: "place",
+    source: "fallback",
   });
 
   const admin = await json(router, "/api/admin/stats");
@@ -288,7 +402,7 @@ test("nickname, combine, wall, bounty and admin routes share KV state", async ()
   assert.deepEqual(admin.body.recent_firsts[0].icon, combine.body.icon);
 });
 
-test("non-seed community flow keeps formula, player, pagination and admin contracts", async () => {
+test("merged fixed community flow keeps formula, player, pagination and admin contracts", async () => {
   const router = makeRouter();
   const combined = await json(router, "/api/combine", {
     method: "POST",
@@ -300,7 +414,7 @@ test("non-seed community flow keeps formula, player, pagination and admin contra
     },
   });
   assert.equal(combined.response.status, 200);
-  assert.equal(combined.body.result, "边缘咖啡");
+  assert.equal(combined.body.result, "光");
   assert.equal(typeof combined.body.formula_id, "string");
   const playerCookie = combined.response.headers.get("set-cookie");
   assert.match(playerCookie, /^craft_player=/);
@@ -321,7 +435,7 @@ test("non-seed community flow keeps formula, player, pagination and admin contra
     },
     {
       id: formulaId,
-      result: "边缘咖啡",
+      result: "光",
       version: 1,
       net_score: 0,
       my_vote: null,
@@ -344,7 +458,7 @@ test("non-seed community flow keeps formula, player, pagination and admin contra
     },
     {
       id: formulaId,
-      result: "边缘咖啡",
+      result: "光",
       version: 1,
       net_score: 1,
       my_vote: 1,
@@ -366,7 +480,7 @@ test("non-seed community flow keeps formula, player, pagination and admin contra
     },
     {
       id: formulaId,
-      result: "边缘咖啡",
+      result: "光",
       version: 1,
       net_score: 1,
       my_vote: null,
@@ -387,7 +501,7 @@ test("non-seed community flow keeps formula, player, pagination and admin contra
     },
     {
       id: formulaId,
-      result: "边缘咖啡",
+      result: "光",
       version: 1,
       net_score: 1,
       my_vote: 1,

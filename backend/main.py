@@ -31,7 +31,15 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import db, kpi, archive, community, depth as depth_mod, bounty as bounty_mod
+from . import (
+    archive,
+    bounty as bounty_mod,
+    community,
+    content_catalog,
+    db,
+    depth as depth_mod,
+    kpi,
+)
 from .community_api import (
     router as community_router,
     player as community_player,
@@ -403,7 +411,8 @@ async def api_combine(
 ):
     request_id = uuid.uuid4().hex[:12]
     started = time.perf_counter()
-    a, b = req.a.strip(), req.b.strip()
+    a = content_catalog.normalize_alias(req.a.strip())
+    b = content_catalog.normalize_alias(req.b.strip())
     if not a or not b:
         raise HTTPException(400, "a/b 不能为空")
     if (
@@ -756,6 +765,8 @@ async def api_recipes_verify(req: VerifyReq):
             invalid.append({"a": a, "b": b, "reason": "字段过长"})
             continue
 
+        a = content_catalog.normalize_alias(a)
+        b = content_catalog.normalize_alias(b)
         key = db.normalize_key(a, b)
         hit = db.get_cached(key)
         if not hit:
@@ -1000,7 +1011,7 @@ async def api_element_recipes(name: str):
         ]
       }
     """
-    target = (name or "").strip()
+    target = content_catalog.normalize_alias((name or "").strip())
     if not target:
         raise HTTPException(400, "name 不能为空")
 

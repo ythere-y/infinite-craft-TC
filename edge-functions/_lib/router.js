@@ -9,7 +9,11 @@ import {
   MAX_SESSION_ID_LENGTH,
   MAX_VERIFY_RECIPES,
 } from "../_generated/runtime-contract-data.js";
-import { buildBounty, buildCategory } from "./bounty.js";
+import {
+  buildBounty,
+  buildCategory,
+  normalizeBountyAlias,
+} from "./bounty.js";
 import { createGameService } from "./game-service.js";
 import {
   CORS_HEADERS,
@@ -198,9 +202,11 @@ export function createRouter({
   }
 
   async function getKnownCombination(a, b) {
+    const canonicalA = normalizeBountyAlias(a);
+    const canonicalB = normalizeBountyAlias(b);
     return (
-      COMBINATIONS[normalizePair(a, b)] ||
-      (await store.getCombination(a, b)) ||
+      COMBINATIONS[normalizePair(canonicalA, canonicalB)] ||
+      (await store.getCombination(canonicalA, canonicalB)) ||
       null
     );
   }
@@ -561,7 +567,11 @@ export function createRouter({
           invalid.push({ a, b, reason: "字段过长" });
           continue;
         }
-        candidates.push({ a, b, result });
+        candidates.push({
+          a: normalizeBountyAlias(a),
+          b: normalizeBountyAlias(b),
+          result,
+        });
       }
 
       const checks = await mapInBatches(
@@ -742,7 +752,9 @@ export function createRouter({
     const recipeMatch = path.match(/^\/api\/element\/([^/]+)\/recipes$/);
     if (recipeMatch) {
       requireMethod(request, "GET");
-      const target = cleanText(decoded(recipeMatch[1], "name"));
+      const target = normalizeBountyAlias(
+        decoded(recipeMatch[1], "name"),
+      );
       if (!target) throw new HttpError(400, "name 不能为空");
       return jsonResponse(await recipePayload(target));
     }

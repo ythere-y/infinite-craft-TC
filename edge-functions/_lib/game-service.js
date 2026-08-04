@@ -10,7 +10,10 @@ import {
   MAX_DISCOVERER_LENGTH,
   MAX_SESSION_ID_LENGTH,
 } from "../_generated/runtime-contract-data.js";
-import { selectBountyCandidates } from "./bounty.js";
+import {
+  normalizeBountyAlias,
+  selectBountyCandidates,
+} from "./bounty.js";
 import { normalizePair, cleanText } from "./keys.js";
 import {
   llmConfiguration,
@@ -211,8 +214,8 @@ export function createGameService({
   }
 
   async function combine(input) {
-    const a = cleanText(input?.a);
-    const b = cleanText(input?.b);
+    const a = normalizeBountyAlias(input?.a);
+    const b = normalizeBountyAlias(input?.b);
     if (!a || !b) {
       throw badRequest("a/b 不能为空");
     }
