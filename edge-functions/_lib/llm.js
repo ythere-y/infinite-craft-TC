@@ -6,17 +6,13 @@ const DEFAULT_BASE_URL = "https://ai-gateway.edgeone.link/v1";
 const DEFAULT_MODEL = "@makers/deepseek-v4-flash";
 
 export function llmConfiguration(env = {}) {
-  const apiKey =
-    env.AI_GATEWAY_API_KEY ||
-    env.MAKERS_MODELS_KEY ||
-    env.LLM_API_KEY ||
-    "";
+  const apiKey = env.MAKERS_MODELS_KEY || "";
   const baseUrl =
-    env.AI_GATEWAY_BASE_URL || env.LLM_BASE_URL || DEFAULT_BASE_URL;
-  const model = env.AI_GATEWAY_MODEL || env.LLM_MODEL || DEFAULT_MODEL;
+    env.AI_GATEWAY_BASE_URL || DEFAULT_BASE_URL;
+  const model = env.AI_GATEWAY_MODEL || DEFAULT_MODEL;
   const timeoutSeconds = Math.max(
     1,
-    Math.min(60, Number(env.LLM_TIMEOUT) || 15),
+    Math.min(60, Number(env.AI_GATEWAY_TIMEOUT) || 15),
   );
   return {
     configured: Boolean(apiKey),

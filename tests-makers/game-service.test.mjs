@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  llmConfiguration,
   parseModelCombination,
   requestModelCombination,
 } from "../edge-functions/_lib/llm.js";
@@ -111,6 +112,20 @@ test("Makers comments use the same safe degradation policy as FastAPI", () => {
   );
 });
 
+test("Makers configuration ignores local DeepSeek variables", () => {
+  const config = llmConfiguration({
+    LLM_API_KEY: "local-only-key",
+    LLM_BASE_URL: "https://api.deepseek.com",
+    LLM_MODEL: "deepseek-v4-flash",
+    LLM_TIMEOUT: "60",
+  });
+
+  assert.equal(config.configured, false);
+  assert.equal(config.baseUrl, "https://ai-gateway.edgeone.link/v1");
+  assert.equal(config.model, "@makers/deepseek-v4-flash");
+  assert.equal(config.timeoutSeconds, 15);
+});
+
 test("model request uses Makers environment variables and OpenAI endpoint", async () => {
   let captured;
   let randomCalls = 0;
@@ -136,8 +151,8 @@ test("model request uses Makers environment variables and OpenAI endpoint", asyn
     },
     env: {
       MAKERS_MODELS_KEY: "secret",
-      LLM_BASE_URL: "https://example.test/v1/",
-      LLM_MODEL: "demo-model",
+      AI_GATEWAY_BASE_URL: "https://example.test/v1/",
+      AI_GATEWAY_MODEL: "demo-model",
     },
     fetchImpl: async (url, init) => {
       captured = { url, init };

@@ -27,10 +27,7 @@ class LLMSettings:
 
     @classmethod
     def from_env(cls) -> "LLMSettings":
-        api_key = (
-            os.getenv("LLM_API_KEY", "").strip()
-            or os.getenv("MAKERS_MODELS_KEY", "").strip()
-        )
+        api_key = os.getenv("LLM_API_KEY", "").strip()
         timeout = float(os.getenv("LLM_TIMEOUT", "15"))
         max_retries = int(os.getenv("LLM_MAX_RETRIES", "2"))
         thinking = os.getenv("LLM_THINKING_ENABLED", "").strip().lower()

@@ -32,7 +32,7 @@ function makeRouter() {
       ADMIN_TOKEN: "test-admin",
       SESSION_SECRET: "test-secret",
       MAKERS_MODELS_KEY: "secret",
-      LLM_MODEL: "test-model",
+      AI_GATEWAY_MODEL: "test-model",
     },
     now: () => 1_700_000_000_000,
     random: () => 0,

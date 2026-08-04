@@ -26,7 +26,11 @@ def clean_env(monkeypatch):
         monkeypatch.delenv(name, raising=False)
 
 
-def configure(monkeypatch, generic_key="", makers_key="makers-test-key"):
+def configure(
+    monkeypatch,
+    generic_key="local-test-key",
+    makers_key="makers-test-key",
+):
     monkeypatch.setenv("LLM_API_KEY", generic_key)
     monkeypatch.setenv("MAKERS_MODELS_KEY", makers_key)
     monkeypatch.setenv("LLM_BASE_URL", "https://gateway.test/v1")
@@ -198,12 +202,12 @@ def test_combine_orchestration_builds_shared_messages_once(monkeypatch):
     ]
 
 
-def test_makers_key_fallback_and_optional_temperature(monkeypatch):
-    configure(monkeypatch)
+def test_local_configuration_ignores_makers_key(monkeypatch):
+    configure(monkeypatch, generic_key="")
     factory, captured = fake_factory()
-    assert llm.query({"question": "ping"}, _client_factory=factory)
-    assert captured["init"]["api_key"] == "makers-test-key"
-    assert "temperature" not in captured["create"]
+    assert llm.query({"question": "ping"}, _client_factory=factory) is None
+    assert captured["init"] is None
+    assert llm.LLMSettings.from_env().is_configured is False
 
 
 def test_reasoning_options_are_mapped(monkeypatch):
@@ -228,7 +232,7 @@ def test_thinking_can_be_explicitly_disabled(monkeypatch):
     }
 
 
-@pytest.mark.parametrize("missing", ["MAKERS_MODELS_KEY", "LLM_BASE_URL", "LLM_MODEL"])
+@pytest.mark.parametrize("missing", ["LLM_API_KEY", "LLM_BASE_URL", "LLM_MODEL"])
 def test_incomplete_configuration_returns_none(monkeypatch, missing):
     configure(monkeypatch)
     monkeypatch.delenv(missing)
@@ -252,7 +256,7 @@ def test_empty_completion_returns_none(monkeypatch):
 
 
 def test_provider_error_is_redacted(monkeypatch, capsys):
-    configure(monkeypatch, makers_key="do-not-print-this-key")
+    configure(monkeypatch, generic_key="do-not-print-this-key")
     factory, _ = fake_factory(error=RuntimeError("private provider body"))
     assert llm.query({"question": "private prompt"}, _client_factory=factory) is None
     output = capsys.readouterr().out
@@ -277,7 +281,7 @@ def test_logs_include_request_id_and_safe_timing_fields(monkeypatch, capsys):
     assert "elapsed_ms=" in output
     assert "prompt_chars=14" in output
     assert "private prompt" not in output
-    assert "makers-test-key" not in output
+    assert "local-test-key" not in output
 
 
 def test_configuration_status(monkeypatch):
