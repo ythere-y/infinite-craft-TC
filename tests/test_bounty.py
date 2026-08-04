@@ -88,7 +88,7 @@ def test_combine_aliases_use_and_return_canonical_inputs(monkeypatch):
         "emoji": "💬",
         "source": "target",
         "chain": "qq_memory",
-        "comment": "DNF与QQ会员合成黑钻。",
+        "comment": "DNF与会员合成黑钻。",
     }
 
     monkeypatch.setattr(main.db, "get_client", lambda: FakeMetricsRedis())
@@ -106,7 +106,7 @@ def test_combine_aliases_use_and_return_canonical_inputs(monkeypatch):
     monkeypatch.setattr(main.depth_mod, "update_on_combine", lambda *_args: 1)
     monkeypatch.setattr(main.store, "elements", {
         "DNF": {"emoji": "🎮", "category": "tencent_game"},
-        "QQ会员": {"emoji": "💬", "category": "qq_memory"},
+        "会员": {"emoji": "🎫", "category": "abstract"},
         "黑钻": {"emoji": "💬", "category": "qq_memory"},
     })
 
@@ -114,7 +114,7 @@ def test_combine_aliases_use_and_return_canonical_inputs(monkeypatch):
         main.api_combine(
             main.CombineReq(
                 a="地下城与勇士",
-                b="QQ会员",
+                b="会员",
                 discoverer="测试鹅",
                 session_id="alias-test",
             )
@@ -123,8 +123,8 @@ def test_combine_aliases_use_and_return_canonical_inputs(monkeypatch):
 
     assert response.result == "黑钻"
     assert response.a == "DNF"
-    assert response.b == "QQ会员"
-    assert observed["key"] == main.db.normalize_key("DNF", "QQ会员")
+    assert response.b == "会员"
+    assert observed["key"] == main.db.normalize_key("DNF", "会员")
 
 
 def test_recipe_alias_looks_up_and_returns_canonical_target(monkeypatch):
@@ -173,7 +173,7 @@ def test_recipe_verification_uses_and_returns_canonical_inputs(monkeypatch):
                 recipes=[
                     {
                         "a": "地下城与勇士",
-                        "b": "QQ会员",
+                        "b": "会员",
                         "result": "黑钻",
                         "emoji": "💬",
                     }
@@ -182,11 +182,11 @@ def test_recipe_verification_uses_and_returns_canonical_inputs(monkeypatch):
         )
     )
 
-    assert observed["key"] == main.db.normalize_key("DNF", "QQ会员")
+    assert observed["key"] == main.db.normalize_key("DNF", "会员")
     assert response["valid"] == [
         {
             "a": "DNF",
-            "b": "QQ会员",
+            "b": "会员",
             "result": "黑钻",
             "emoji": "💬",
         }

@@ -1,6 +1,6 @@
 {
   "content_epoch": 2,
-  "catalog_digest": "sha256:1c7fb9d6660854f4375e775e5b18fa9898baa67cf0b1b7e00384f60412e26361",
+  "catalog_digest": "sha256:12dcf92fd83534147420e9e90396fd44f89b182147eed89728714de37e1338be",
   "catalog": {
     "meta": {
       "content_epoch": 2,
@@ -1713,9 +1713,9 @@
         "aliases": [],
         "canonical_recipe": {
           "a": "DNF",
-          "b": "QQ会员",
+          "b": "会员",
           "chain": "qq_memory",
-          "comment": "DNF与QQ会员合成黑钻。"
+          "comment": "DNF与会员合成黑钻。"
         },
         "factual_metadata": {
           "scope": "qq_memory",
@@ -4668,6 +4668,10 @@
         "emoji": "🧩",
         "category": "abstract"
       },
+      "会员": {
+        "emoji": "🎫",
+        "category": "abstract"
+      },
       "经验": {
         "emoji": "🧩",
         "category": "abstract"
@@ -5886,6 +5890,14 @@
         "a": "身份",
         "b": "游戏"
       },
+      "货币 + 身份": {
+        "result": "会员",
+        "emoji": "🎫",
+        "chain": "support",
+        "comment": "身份通过付费获得会员资格。",
+        "a": "身份",
+        "b": "货币"
+      },
       "速度 + 金属": {
         "result": "汽车",
         "emoji": "🧩",
@@ -5913,6 +5925,7 @@
     },
     "retired_pairs": [
       "DNF + 工作室",
+      "DNF + QQ会员",
       "工作室 + 穿越火线",
       "云 + 微信",
       "人情 + 鹅厂",
@@ -8147,6 +8160,10 @@
     },
     "货币": {
       "emoji": "🧩",
+      "category": "abstract"
+    },
+    "会员": {
+      "emoji": "🎫",
       "category": "abstract"
     },
     "经验": {
@@ -11406,11 +11423,11 @@
       "b": "游戏",
       "source": "seed"
     },
-    "DNF + QQ会员": {
+    "DNF + 会员": {
       "a": "DNF",
-      "b": "QQ会员",
+      "b": "会员",
       "chain": "qq_memory",
-      "comment": "DNF与QQ会员合成黑钻。",
+      "comment": "DNF与会员合成黑钻。",
       "result": "黑钻",
       "emoji": "💬",
       "source": "target"
@@ -18622,6 +18639,15 @@
       "b": "质疑",
       "source": "seed"
     },
+    "货币 + 身份": {
+      "result": "会员",
+      "emoji": "🎫",
+      "chain": "support",
+      "comment": "身份通过付费获得会员资格。",
+      "a": "身份",
+      "b": "货币",
+      "source": "support"
+    },
     "赋能 + 链路": {
       "result": "心智",
       "emoji": "🧠",
@@ -19255,9 +19281,9 @@
     "黑钻": [
       {
         "a": "DNF",
-        "b": "QQ会员",
+        "b": "会员",
         "chain": "qq_memory",
-        "comment": "DNF与QQ会员合成黑钻。",
+        "comment": "DNF与会员合成黑钻。",
         "result": "黑钻",
         "emoji": "💬",
         "source": "target"
@@ -27832,6 +27858,17 @@
         "source": "seed"
       }
     ],
+    "会员": [
+      {
+        "result": "会员",
+        "emoji": "🎫",
+        "chain": "support",
+        "comment": "身份通过付费获得会员资格。",
+        "a": "身份",
+        "b": "货币",
+        "source": "support"
+      }
+    ],
     "心智": [
       {
         "result": "心智",
@@ -29807,9 +29844,9 @@
     },
     "黑钻": {
       "a": "DNF",
-      "b": "QQ会员",
+      "b": "会员",
       "chain": "qq_memory",
-      "comment": "DNF与QQ会员合成黑钻。",
+      "comment": "DNF与会员合成黑钻。",
       "result": "黑钻"
     }
   },
@@ -29982,6 +30019,7 @@
     "企业微信": 5,
     "企业通讯": 6,
     "企鹅": 0,
+    "会员": 4,
     "会议": 7,
     "会议记录": 3,
     "体育": 8,
@@ -30572,6 +30610,7 @@
   },
   "retired_pairs": [
     "DNF + 工作室",
+    "DNF + QQ会员",
     "工作室 + 穿越火线",
     "云 + 微信",
     "人情 + 鹅厂",

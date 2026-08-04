@@ -4538,6 +4538,15 @@ export const ELEMENT_ICONS = {
     },
     "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 金属”（support 链）以“合并目录语义”徽章区分“货币”"
   },
+  "会员": {
+    "icon": {
+      "base": "🎫",
+      "badge": "🎁",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎫”，依据种子配方“货币 + 身份”（support 链）以“合并目录语义”徽章区分“会员”"
+  },
   "经验": {
     "icon": {
       "base": "🧩",
@@ -8525,7 +8534,7 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“DNF + QQ会员”（qq_memory 链）以“合并目录语义”徽章区分“黑钻”"
+    "rationale": "沿用种子语义“💬”，依据种子配方“DNF + 会员”（qq_memory 链）以“合并目录语义”徽章区分“黑钻”"
   }
 };
 

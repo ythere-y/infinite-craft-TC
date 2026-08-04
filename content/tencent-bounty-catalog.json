@@ -1710,9 +1710,9 @@
       "aliases": [],
       "canonical_recipe": {
         "a": "DNF",
-        "b": "QQ会员",
+        "b": "会员",
         "chain": "qq_memory",
-        "comment": "DNF与QQ会员合成黑钻。"
+        "comment": "DNF与会员合成黑钻。"
       },
       "factual_metadata": {
         "scope": "qq_memory",
@@ -4665,6 +4665,10 @@
       "emoji": "🧩",
       "category": "abstract"
     },
+    "会员": {
+      "emoji": "🎫",
+      "category": "abstract"
+    },
     "经验": {
       "emoji": "🧩",
       "category": "abstract"
@@ -5148,6 +5152,12 @@
       "emoji": "🧩",
       "chain": "support",
       "comment": "人把金属用作交换媒介，形成货币。"
+    },
+    "身份 + 货币": {
+      "result": "会员",
+      "emoji": "🎫",
+      "chain": "support",
+      "comment": "身份通过付费获得会员资格。"
     },
     "人 + 知识": {
       "result": "经验",
@@ -5674,6 +5684,7 @@
   },
   "retired_pairs": [
     "DNF + 工作室",
+    "DNF + QQ会员",
     "工作室 + 穿越火线",
     "云 + 微信",
     "人情 + 鹅厂",

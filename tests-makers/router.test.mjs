@@ -141,7 +141,7 @@ test("aliases resolve before fixed formula lookup", async () => {
     method: "POST",
     body: {
       a: "地下城与勇士",
-      b: "QQ会员",
+      b: "会员",
       discoverer: "测试鹅",
       session_id: "alias-test",
     },
@@ -149,17 +149,17 @@ test("aliases resolve before fixed formula lookup", async () => {
 
   assert.equal(response.body.result, "黑钻");
   assert.equal(response.body.a, "DNF");
-  assert.equal(response.body.b, "QQ会员");
+  assert.equal(response.body.b, "会员");
 
   const store = new KvStore(kv, { now: () => 1_700_000_000_000 });
-  const stored = await store.getCombination("DNF", "QQ会员");
+  const stored = await store.getCombination("DNF", "会员");
   assert.equal(stored.a, "DNF");
   assert.equal(
-    await store.getCombination("地下城与勇士", "QQ会员"),
+    await store.getCombination("地下城与勇士", "会员"),
     null,
   );
   const analytics = await json(router, "/api/analytics/combinations");
-  assert.equal(analytics.body.items[0].key, "DNF + QQ会员");
+  assert.equal(analytics.body.items[0].key, "DNF + 会员");
 
   const verified = await json(router, "/api/recipes/verify", {
     method: "POST",
@@ -167,7 +167,7 @@ test("aliases resolve before fixed formula lookup", async () => {
       recipes: [
         {
           a: "地下城与勇士",
-          b: "QQ会员",
+          b: "会员",
           result: "黑钻",
           emoji: "💬",
         },
@@ -177,7 +177,7 @@ test("aliases resolve before fixed formula lookup", async () => {
   assert.deepEqual(verified.body.valid, [
     {
       a: "DNF",
-      b: "QQ会员",
+      b: "会员",
       result: "黑钻",
       emoji: "💬",
     },

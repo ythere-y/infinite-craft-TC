@@ -86,9 +86,9 @@ test("Makers generator writes the merged artifact to an isolated output", async 
     `${pathToFileURL(outputPath).href}?test=${Date.now()}`
   );
 
-  assert.equal(generated.STARTERS.length, 11);
-  assert.equal(Object.keys(generated.ELEMENTS).length, 779);
-  assert.equal(Object.keys(generated.COMBINATIONS).length, 913);
+  assert.deepEqual(generated.STARTERS, STARTERS);
+  assert.deepEqual(generated.ELEMENTS, ELEMENTS);
+  assert.deepEqual(generated.COMBINATIONS, COMBINATIONS);
   assert.deepEqual(generated.DEPTHS, DEPTHS);
 });
 

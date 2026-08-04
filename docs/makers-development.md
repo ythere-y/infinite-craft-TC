@@ -69,7 +69,12 @@ curl --noproxy '*' http://127.0.0.1:8000/api/elements
   "redis": "ok",
   "llm": "configured",
   "sqlite": "/app/data/dev.db",
-  "app_env": "dev"
+  "app_env": "dev",
+  "content": {
+    "epoch": 2,
+    "catalog_digest": "sha256:...",
+    "status": "ready"
+  }
 }
 ```
 
@@ -86,6 +91,40 @@ curl --noproxy '*' http://127.0.0.1:8000/api/elements
 Compose 固定向 Web 容器注入 `APP_ENV=dev` 和
 `REDIS_URL=redis://redis:6379/1`，本机 `.env` 不能把它们改为生产值或远端
 Redis。后端与前端源码以只读方式挂载，Uvicorn 会在代码修改后自动重载。
+
+### Content Epoch 与本地数据迁移
+
+本地启动会先读取 SQLite 的 `content_state`，再加载固定目录：
+
+- 没有状态且没有玩法数据时执行 bootstrap；若已存在玩法数据，则保守执行
+  epoch reset；
+- `content_epoch` 变化时清空本地测试玩法数据，同时仅清空
+  `REDIS_URL` 选中的逻辑库；
+- epoch 相同但目录 digest 变化时执行差异迁移，删除明确退役的 seed
+  组合/元素，并用当前固定公式覆盖同键动态结果；
+- 迁移中断时保留 `migrating` 状态，下一次启动从安全阶段恢复；
+- 完成后写入 `ready`，相同 digest 的再次启动只做幂等对账，不会反复硬重置。
+
+Epoch 2 的 11 个 starter 为：
+
+```text
+水、火、风、土、企鹅、人、时间、AI、电脑、手机、网络
+```
+
+腾讯/互联网悬赏目录的唯一可编辑来源是
+`content/tencent-bounty-catalog.json`；编译器还会合并保留原版链条的
+`backend/seed_elements.json` 和 `backend/seed_combinations.json`，修改经典
+基础内容时应编辑对应源文件。修改后运行：
+
+```bash
+npm run generate:bounty-content
+npm run generate:icon-data
+npm run generate:makers-data
+```
+
+生成器会同时更新 FastAPI、Makers 和图标产物，并校验所有悬赏目标从 starter
+严格可达。不要手工编辑 `backend/generated/`、`edge-functions/_generated/`
+或生成的图标映射。
 
 <a id="共享业务契约与运行时边界"></a>
 
@@ -179,6 +218,16 @@ Edge Function 将 `test` 当作整个数据库使用，并在运行时自动创�
 首发、昵称、分数、排行榜和索引所需的 key。现有分数记录仍使用字面量
 `kpi_*` KV key，以兼容已持久化的数据。
 
+每个已构建版本都携带 `content_epoch`、catalog version 和 digest。Edge Function
+初始化会通过 `system_content_state` 执行分批、可恢复的 bootstrap、epoch reset 或
+差异迁移；非健康检查 API 在内容未 ready 时返回 503，`/api/health` 仍可用于
+观察公开的 epoch、digest、status、mode 和 phase。初始化完成后，固定元素、
+组合、配方索引和深度映射都会与该版本目录对账。
+
+Makers KV 没有 compare-and-swap。实现保证同一 isolate 内串行初始化，并通过
+可重放步骤在“同时只推进一个 catalog 版本”的发布约束下最终收敛；不宣称不同
+isolate 之间具有 SQL 事务或严格线性一致性。
+
 控制台中已有的 `test_dev → infinite_craft_dev` 可以保留备用，但当前源代码
 不会读取它。本地开发也不会连接它。
 
@@ -237,7 +286,14 @@ Makers 控制台意外出现 `APP_ENV=dev`，代码也不会切换到开发 KV�
 {
   "kv": "ok",
   "app_env": "makers",
-  "llm": "configured"
+  "llm": "configured",
+  "content": {
+    "epoch": 2,
+    "catalog_digest": "sha256:...",
+    "status": "ready",
+    "mode": "ready",
+    "phase": "ready"
+  }
 }
 ```
 

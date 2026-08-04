@@ -46,6 +46,7 @@ def test_retired_bad_formulas_are_absent():
     combinations = content_catalog.merged_combinations()
     for pair in [
         "DNF + 工作室",
+        "DNF + QQ会员",
         "工作室 + 穿越火线",
         "云 + 微信",
         "人情 + 鹅厂",

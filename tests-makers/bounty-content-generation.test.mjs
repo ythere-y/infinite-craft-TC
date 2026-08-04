@@ -146,6 +146,7 @@ const EXPECTED_CANONICAL_RECIPE_INPUTS = {
   "健身房": ["打工人", "跑步"],
   "周会纪要": ["周五", "会议记录"],
   "金地威新": ["大厦", "深圳"],
+  "黑钻": ["DNF", "会员"],
 };
 const KRAFTON_RELATIONSHIP = {
   kind: "licensed_partner",
@@ -195,6 +196,7 @@ const REQUIRED_BRIDGES = {
 };
 const REQUIRED_RETIRED_PAIRS = [
   "DNF + 工作室",
+  "DNF + QQ会员",
   "工作室 + 穿越火线",
   "云 + 微信",
   "人情 + 鹅厂",
