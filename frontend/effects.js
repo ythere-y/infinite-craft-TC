@@ -469,7 +469,21 @@
   let bossModeInitialized = false;
   let konamiBuffer = [];
 
+  function syncUraModeButton() {
+    const button = document.getElementById("btn-mode-toggle");
+    if (!button) return;
+    const icon = button.querySelector(".mode-toggle-icon");
+    const label = button.querySelector(".action-label");
+    const target = uraOn ? "普通模式" : "里模式";
+    if (icon) icon.textContent = uraOn ? "☀️" : "🌙";
+    if (label) label.textContent = target;
+    button.title = `切换到${target}`;
+    button.setAttribute("aria-label", `切换到${target}`);
+    button.setAttribute("aria-pressed", String(uraOn));
+  }
+
   function announceUraMode(initial) {
+    syncUraModeButton();
     window.dispatchEvent(new CustomEvent("ura-mode-change", {
       detail: {
         active: uraOn,
@@ -492,6 +506,7 @@
   function enterUra() {
     if (uraOn) return;
     uraOn = true;
+    syncUraModeButton();
     // 后续手动进入仍保留当前动画，方便以后单独重做这一段。
     playUraEnterTransition();
     setTimeout(() => {
@@ -503,6 +518,7 @@
   function exitUra() {
     if (!uraOn) return;
     uraOn = false;
+    syncUraModeButton();
     const banner = document.getElementById("boss-banner");
     if (banner) banner.classList.remove("show");
     document.body.classList.remove("ura-on");
@@ -519,7 +535,9 @@
     return uraOn;
   };
 
-  EFFECTS.initBossMode = function ({ defaultOn = true } = {}) {
+  EFFECTS.toggleUraMode = toggleUra;
+
+  EFFECTS.initBossMode = function ({ defaultOn = false } = {}) {
     if (!bossModeInitialized) {
       window.addEventListener("keydown", (event) => {
         const tag = (event.target?.tagName || "").toLowerCase();
@@ -541,15 +559,21 @@
             (key, index) => key.toLowerCase() === KONAMI[index].toLowerCase(),
           )
         ) {
-          toggleUra();
+          EFFECTS.toggleUraMode();
           konamiBuffer = [];
         }
       });
       bossModeInitialized = true;
     }
+    const button = document.getElementById("btn-mode-toggle");
+    if (button && button.dataset.modeToggleBound !== "true") {
+      button.addEventListener("click", EFFECTS.toggleUraMode);
+      button.dataset.modeToggleBound = "true";
+    }
     if (defaultOn && !uraOn) {
       applyUraStableState(true);
     }
+    syncUraModeButton();
   };
 
   // ---------- 里模式进场装饰层（不含背景，背景由 .workspace::before 做） ----------

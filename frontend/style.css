@@ -61,6 +61,14 @@ html, body {
   height: var(--action-icon-well);
   flex: 0 0 var(--action-icon-well);
 }
+.mode-toggle-icon {
+  display: inline-flex;
+  width: var(--action-icon-well);
+  height: var(--action-icon-well);
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 var(--action-icon-well);
+}
 
 .nick-chip {
   padding: 5px 12px;

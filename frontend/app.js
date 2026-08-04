@@ -266,7 +266,7 @@ function setDragTarget(record, active) {
 async function init() {
   await window.ICON_SYSTEM.ready;
   window.CASINO_MODE?.init?.({ awardScore: awardCasinoScore });
-  window.EFFECTS?.initBossMode?.({ defaultOn: true });
+  window.EFFECTS?.initBossMode?.({ defaultOn: false });
   await loadElements();
   window.ICON_SYSTEM.hydrateActions(document);
   renderHomeLevel();

@@ -342,6 +342,16 @@ def _production_app_page() -> str:
             buttonColor: buttonStyle.color
           };
         }
+        function captureModeButton() {
+          var button = document.getElementById("btn-mode-toggle");
+          if (!button) return null;
+          return {
+            text: button.textContent.replace(/\\s+/g, " ").trim(),
+            title: button.title,
+            label: button.getAttribute("aria-label"),
+            pressed: button.getAttribute("aria-pressed")
+          };
+        }
         window.EFFECTS.firstToast({
           name: "救火总指挥",
           emoji: "🧯",
@@ -356,40 +366,56 @@ def _production_app_page() -> str:
           document.getElementById("first-toast"),
           { publish: async function () { return { ok: true }; } }
         );
-        var midnightToast = captureToastStyles();
+        var lightToast = captureToastStyles();
         var hintText = document.getElementById("hint").textContent;
         var initial = {
           active: window.EFFECTS.isUraMode(),
           transitionCount: document.querySelectorAll(".ura-transition").length,
-          event: window.__uraEvents[0] || null
+          event: window.__uraEvents[0] || null,
+          button: captureModeButton()
         };
         window.CASINO_MODE.onCombineResult({ isGlobalFirst: true });
         window.CASINO_MODE.onCombineResult({ isGlobalFirst: true });
+
+        var modeButton = document.getElementById("btn-mode-toggle");
+        if (modeButton) modeButton.click();
+        var buttonEntranceTransitionCount =
+          document.querySelectorAll(".ura-transition.ura-enter").length;
+        await new Promise(function (resolve) { setTimeout(resolve, 650); });
+        var midnightToast = captureToastStyles();
+        var afterButtonEnter = {
+          active: window.EFFECTS.isUraMode(),
+          entranceTransitionCount: buttonEntranceTransitionCount,
+          chips: window.CASINO_MODE.getState().chips,
+          button: captureModeButton()
+        };
+
+        if (modeButton) modeButton.click();
+        await new Promise(function (resolve) { setTimeout(resolve, 30); });
+        var afterButtonExit = {
+          active: window.EFFECTS.isUraMode(),
+          chips: window.CASINO_MODE.getState().chips,
+          button: captureModeButton()
+        };
 
         var code = [
           "ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown",
           "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"
         ];
-        code.forEach(function (key) {
-          window.dispatchEvent(new KeyboardEvent("keydown", { key: key }));
-        });
-        await new Promise(function (resolve) { setTimeout(resolve, 30); });
-        var lightToast = captureToastStyles();
-        var afterFirstCode = {
-          active: window.EFFECTS.isUraMode(),
-          chips: window.CASINO_MODE.getState().chips
-        };
-
+        var transitionsBeforeCode =
+          document.querySelectorAll(".ura-transition.ura-enter").length;
         code.forEach(function (key) {
           window.dispatchEvent(new KeyboardEvent("keydown", { key: key }));
         });
         var entranceTransitionCount =
-          document.querySelectorAll(".ura-transition.ura-enter").length;
+          document.querySelectorAll(".ura-transition.ura-enter").length
+          - transitionsBeforeCode;
         await new Promise(function (resolve) { setTimeout(resolve, 650); });
-        var afterSecondCode = {
+        var afterCode = {
           active: window.EFFECTS.isUraMode(),
           entranceTransitionCount: entranceTransitionCount,
-          chips: window.CASINO_MODE.getState().chips
+          chips: window.CASINO_MODE.getState().chips,
+          button: captureModeButton()
         };
         window.CASINO_MODE.onCombineResult({ isGlobalFirst: false });
         await new Promise(function (resolve) { setTimeout(resolve, 20); });
@@ -512,8 +538,9 @@ def _production_app_page() -> str:
             ok: true,
             value: {
               initial: initial,
-              after_first_code: afterFirstCode,
-              after_second_code: afterSecondCode,
+              after_button_enter: afterButtonEnter,
+              after_button_exit: afterButtonExit,
+              after_code: afterCode,
               events: window.__uraEvents,
               ui: {
                 midnight_toast: midnightToast,
@@ -556,7 +583,7 @@ def _run_app_page(tmp_path: Path) -> dict[str, object]:
             "--disable-background-networking",
             "--no-first-run",
             "--no-default-browser-check",
-            "--virtual-time-budget=1800",
+            "--virtual-time-budget=2600",
             "--window-size=1280,900",
             f"--user-data-dir={profile}",
             "--dump-dom",
@@ -624,27 +651,56 @@ def test_anime_harvest_runs_composited_motion_before_settling_score(tmp_path):
     assert actual["during_harvest"]["activeAnimations"] > 0
 
 
-def test_game_starts_silently_in_inner_mode_and_preserves_reentry_animation(
+def test_game_starts_in_normal_mode_and_button_and_code_toggle_inner_mode(
     tmp_path,
 ):
     actual = _run_app_page(tmp_path)
 
     assert actual["initial"] == {
-        "active": True,
-        "transitionCount": 0,
-        "event": {"active": True, "initial": True},
-    }
-    assert actual["after_first_code"] == {
         "active": False,
-        "chips": 2,
+        "transitionCount": 0,
+        "event": None,
+        "button": {
+            "text": "🌙 里模式",
+            "title": "切换到里模式",
+            "label": "切换到里模式",
+            "pressed": "false",
+        },
     }
-    assert actual["after_second_code"] == {
+    assert actual["after_button_enter"] == {
         "active": True,
         "entranceTransitionCount": 1,
         "chips": 2,
+        "button": {
+            "text": "☀️ 普通模式",
+            "title": "切换到普通模式",
+            "label": "切换到普通模式",
+            "pressed": "true",
+        },
+    }
+    assert actual["after_button_exit"] == {
+        "active": False,
+        "chips": 2,
+        "button": {
+            "text": "🌙 里模式",
+            "title": "切换到里模式",
+            "label": "切换到里模式",
+            "pressed": "false",
+        },
+    }
+    assert actual["after_code"] == {
+        "active": True,
+        "entranceTransitionCount": 1,
+        "chips": 2,
+        "button": {
+            "text": "☀️ 普通模式",
+            "title": "切换到普通模式",
+            "label": "切换到普通模式",
+            "pressed": "true",
+        },
     }
     assert actual["events"][:3] == [
-        {"active": True, "initial": True},
+        {"active": True, "initial": False},
         {"active": False, "initial": False},
         {"active": True, "initial": False},
     ]
