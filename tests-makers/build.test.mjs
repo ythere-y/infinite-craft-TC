@@ -32,6 +32,7 @@ const REQUIRED_FILES = [
   "dist/THIRD_PARTY_NOTICES.md",
   "dist/index.html",
   "dist/app.js",
+  "dist/audio-feedback.js",
   "dist/casino-mode.js",
   "dist/casino-round.js",
   "dist/combine-feedback.js",

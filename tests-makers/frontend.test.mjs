@@ -8,16 +8,22 @@ import {
 } from "../frontend/wall/polling.js";
 import { recipeCommentFor } from "../frontend/wall/recipe-comments.js";
 
-test("score-level helper loads before consumers", async () => {
-  const html = await readFile("frontend/index.html", "utf8");
+test("score and audio helpers load before consumers", async () => {
+  const [html, build] = await Promise.all([
+    readFile("frontend/index.html", "utf8"),
+    readFile("scripts/build-makers.mjs", "utf8"),
+  ]);
 
   assert.ok(html.indexOf("icon-system.js") < html.indexOf("score-level.js"));
   assert.ok(html.indexOf("score-level.js") < html.indexOf("effects.js"));
   assert.ok(html.indexOf("score-level.js") < html.indexOf("app.js"));
+  assert.ok(html.indexOf("audio-feedback.js") < html.indexOf("app.js"));
+  assert.match(html, /audio-feedback\.js\?v=20260804a/);
   assert.ok(html.indexOf("anime.iife.min.js") < html.indexOf("casino-mode.js"));
   assert.ok(html.indexOf("casino-round.js") < html.indexOf("casino-mode.js"));
   assert.ok(html.indexOf("effects.js") < html.indexOf("casino-mode.js"));
   assert.ok(html.indexOf("casino-mode.js") < html.indexOf("app.js"));
+  assert.match(build, /"audio-feedback\.js"/);
 });
 
 test("homepage keeps basic guidance visible and advanced guidance collapsed", async () => {

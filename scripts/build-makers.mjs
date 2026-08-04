@@ -18,6 +18,7 @@ const REQUIRED_ENTRIES = [
   "THIRD_PARTY_NOTICES.md",
   "index.html",
   "app.js",
+  "audio-feedback.js",
   "casino-mode.js",
   "casino-round.js",
   "combine-feedback.js",
