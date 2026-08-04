@@ -285,6 +285,16 @@ export class KvStore {
     await this.putJson(storageKey, snapshot);
   }
 
+  async deleteIndexRecord(kind, canonicalKey) {
+    const shard = this.shardForCanonicalKey(kind, canonicalKey);
+    const storageKey = this.indexKey(kind, shard);
+    const snapshot = this.normalizeIndexSnapshot(
+      await this.getJson(storageKey, {}),
+    );
+    delete snapshot.items[canonicalKey];
+    await this.putJson(storageKey, snapshot);
+  }
+
   firstFeedKey(record, canonicalKey) {
     const timestamp = Math.max(
       0,
@@ -365,6 +375,12 @@ export class KvStore {
       comment: normalizeComment(rawRecord.comment),
       source: cleanText(rawRecord.source) || "llm",
       chain: cleanText(rawRecord.chain) || null,
+      ...(rawRecord?.content_epoch != null
+        ? { content_epoch: finiteInteger(rawRecord.content_epoch) }
+        : {}),
+      ...(cleanText(rawRecord?.catalog_digest)
+        ? { catalog_digest: cleanText(rawRecord.catalog_digest) }
+        : {}),
       ...(icon ? { icon } : {}),
       hit_count: authorizedOverwrite ? finiteInteger(existing?.hit_count) : 0,
       ts: this.timestamp(),
@@ -377,6 +393,13 @@ export class KvStore {
       writes.push(this.rememberElement(record.result, {
         emoji: record.emoji,
         category: record.chain || "ai",
+        source: record.source,
+        ...(record.content_epoch != null
+          ? { content_epoch: record.content_epoch }
+          : {}),
+        ...(record.catalog_digest
+          ? { catalog_digest: record.catalog_digest }
+          : {}),
         ...(icon ? { icon } : {}),
       }));
     }
@@ -411,6 +434,15 @@ export class KvStore {
       name: cleanName,
       emoji: cleanText(info?.emoji) || "❓",
       category: cleanText(info?.category) || "ai",
+      ...(cleanText(info?.source)
+        ? { source: cleanText(info.source) }
+        : {}),
+      ...(info?.content_epoch != null
+        ? { content_epoch: finiteInteger(info.content_epoch) }
+        : {}),
+      ...(cleanText(info?.catalog_digest)
+        ? { catalog_digest: cleanText(info.catalog_digest) }
+        : {}),
       ...(Number.isFinite(Number(info?.depth))
         ? { depth: Math.max(0, finiteInteger(info.depth)) }
         : {}),
@@ -463,6 +495,14 @@ export class KvStore {
     return this.publicElement(value);
   }
 
+  async deleteElement(name) {
+    const cleanName = cleanText(name);
+    if (!cleanName) return;
+    const key = await entityKey("element", cleanName);
+    await this.kv.delete(key);
+    await this.deleteIndexRecord("element", key);
+  }
+
   async rememberRecipe(record) {
     const result = cleanText(record.result);
     const pair = normalizePair(record.a, record.b);
@@ -477,10 +517,27 @@ export class KvStore {
       comment: normalizeComment(record.comment),
       source: record.source,
       chain: record.chain,
+      ...(record.content_epoch != null
+        ? { content_epoch: record.content_epoch }
+        : {}),
+      ...(record.catalog_digest
+        ? { catalog_digest: record.catalog_digest }
+        : {}),
       hit_count: finiteInteger(record.hit_count),
       ts: Number(record.ts) || this.timestamp(),
       storage_key: key,
     });
+  }
+
+  async deleteCombination(a, b, result) {
+    const pair = normalizePair(a, b);
+    const comboKey = await entityKey("combo", pair);
+    const recipeKey =
+      `recipe_${await sha256Hex(cleanText(result))}_${await sha256Hex(pair)}`;
+    await Promise.all([
+      this.kv.delete(comboKey),
+      this.kv.delete(recipeKey),
+    ]);
   }
 
   async dynamicRecipes(result) {
