@@ -191,8 +191,8 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
         longRow.querySelector(".recipe-result").dispatchEvent(new MouseEvent("dblclick", {
           bubbles: true, cancelable: true
         }));
-        var denseChipDoubleActivated =
-          document.querySelectorAll("#workspace .element.on-canvas").length === canvasCountBefore + 1;
+        var denseChipDoubleIgnored =
+          document.querySelectorAll("#workspace .element.on-canvas").length === canvasCountBefore;
         var dragChip = longRow.querySelector(".recipe-chip[data-name]");
         var dragChipRect = dragChip.getBoundingClientRect();
         var workspaceRect = document.getElementById("workspace").getBoundingClientRect();
@@ -298,7 +298,7 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
           nightColor: nightColor,
           nightScoreCloseBackground: nightScoreCloseBackground,
           nightScoreCloseColor: nightScoreCloseColor,
-          denseChipDoubleActivated: denseChipDoubleActivated,
+          denseChipDoubleIgnored: denseChipDoubleIgnored,
           denseChipDragged: denseChipDragged,
           scoreWasOpen: scoreWasOpen,
           scoreClosed: scoreClosed,
@@ -423,7 +423,7 @@ def test_recipebook_close_control_and_formula_density_use_real_production_page(t
     assert desktop["nightColor"] == "rgb(215, 212, 245)"
     assert desktop["nightScoreCloseBackground"] == desktop["nightBackground"]
     assert desktop["nightScoreCloseColor"] == desktop["nightColor"]
-    assert desktop["denseChipDoubleActivated"] is True
+    assert desktop["denseChipDoubleIgnored"] is True
     assert desktop["scoreWasOpen"] is True
     assert desktop["scoreClosed"] is True
     assert desktop["wasOpen"] is True
@@ -436,7 +436,7 @@ def test_recipebook_close_control_and_formula_density_use_real_production_page(t
     assert {"recipe-row-dense", "recipe-row-ultra-dense"} & set(mobile["longClasses"])
     assert mobile["longPlusPaddingLeft"] == 0
     assert mobile["longFits"] is True
-    assert mobile["denseChipDoubleActivated"] is True
+    assert mobile["denseChipDoubleIgnored"] is True
     assert mobile["denseChipDragged"] is True
     assert "recipe-row-fit" in mobile["fitClasses"]
     assert mobile["fitFits"] is True
