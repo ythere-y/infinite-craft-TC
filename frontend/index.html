@@ -6,8 +6,8 @@
   <title>🐧+🐧=? · 鹅厂无限合成 ♾️</title>
   <link rel="icon" type="image/png" href="/assets/icons/generated/emoji/1f427.png">
   <link rel="stylesheet" href="/icon-system.css?v=20260803d" />
-  <link rel="stylesheet" href="/opening-animation.css?v=20260804a" />
-  <link rel="stylesheet" href="/style.css?v=20260803d" />
+  <link rel="stylesheet" href="/opening-animation.css?v=20260804b" />
+  <link rel="stylesheet" href="/style.css?v=20260804b" />
   <link rel="stylesheet" href="/recipe-links.css?v=20260803d" />
 </head>
 <body class="opening-active">
@@ -108,8 +108,32 @@
     <section id="workspace" class="workspace" tabindex="-1">
       <div id="hint" class="hint">
         <div class="basic-guidance">
-          <div class="hint-line desktop-only-help">👆 把右边的元素<b>拖</b>到工作区，再把一个元素<b>拖</b>到另一个元素上合成新玩意儿</div>
-          <div class="hint-line mobile-only-help">👆 把下方的元素<b>拖</b>到工作区，再把一个元素<b>拖</b>到另一个元素上合成新玩意儿</div>
+          <div class="guidance-formula"
+               role="img"
+               aria-label="拖拽元素，加以合成，创造新元素。">
+            <div class="guidance-board guidance-drag">
+              <span class="guidance-icon action-slot"
+                    data-icon-action="next"
+                    aria-hidden="true"></span>
+              <strong>拖拽！</strong>
+            </div>
+            <span class="guidance-operator" aria-hidden="true">+</span>
+            <div class="guidance-board guidance-combine">
+              <span class="guidance-icon action-slot"
+                    data-icon-action="sparkle"
+                    aria-hidden="true"></span>
+              <strong>合成！</strong>
+            </div>
+            <span class="guidance-operator" aria-hidden="true">=</span>
+            <div class="guidance-board guidance-innovation">
+              <svg class="guidance-infinity"
+                   viewBox="-180 -90 360 180"
+                   aria-hidden="true">
+                <path d="M0 0C-55-78-168-78-168 0S-55 78 0 0C55-78 168-78 168 0S55 78 0 0Z"/>
+              </svg>
+              <strong>创新！</strong>
+            </div>
+          </div>
         </div>
         <div id="advanced-guidance" hidden>
           <div class="hint-line desktop-only-help">👆👆 <b>双击</b>右侧元素可快速放到画布中央；双击画布里的元素可就地复制一份</div>
@@ -280,7 +304,7 @@
   <script src="/combine-feedback.js?v=20260803d"></script>
   <script src="/score-level.js?v=20260730b"></script>
   <script src="/vendor/anime.iife.min.js?v=20260803a"></script>
-  <script src="/opening-animation.js?v=20260804a"></script>
+  <script src="/opening-animation.js?v=20260804b"></script>
   <script src="/casino-round.js?v=20260803a"></script>
   <script src="/effects.js?v=20260803d"></script>
   <script src="/casino-mode.js?v=20260803a"></script>

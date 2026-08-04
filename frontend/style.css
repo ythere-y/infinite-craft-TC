@@ -672,13 +672,90 @@ body.ura-on .casino-hud {
   pointer-events: none;
   text-align: center;
   line-height: 1.9;
-  max-width: 80%;
+  max-width: min(88%, 780px);
   transition: opacity .25s;
-  z-index: 1;
+  z-index: 0;
 }
 .hint.hide { opacity: 0; pointer-events: none; }
 .hint .hint-line { margin: 2px 0; }
 .hint .hint-line b { color: #666; }
+
+.guidance-formula {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 1.4vw, 18px);
+  width: min(720px, 88vw);
+}
+
+.guidance-board {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px auto;
+  align-items: center;
+  gap: 10px;
+  width: clamp(132px, 13vw, 174px);
+  min-height: 84px;
+  padding: 14px 18px;
+  border: 1px solid rgba(55, 63, 72, .24);
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, .76),
+      rgba(220, 224, 226, .48)
+    );
+  box-shadow:
+    0 18px 38px rgba(45, 52, 58, .09),
+    inset 0 1px 0 rgba(255, 255, 255, .72);
+  color: #4f565c;
+  opacity: .4;
+  pointer-events: none;
+}
+
+.guidance-board:nth-of-type(1) {
+  transform: rotate(-2deg);
+}
+
+.guidance-board:nth-of-type(2) {
+  transform: translateY(-5px) rotate(1deg);
+}
+
+.guidance-board:nth-of-type(3) {
+  transform: rotate(2deg);
+}
+
+.guidance-board strong {
+  font-size: clamp(18px, 2vw, 26px);
+  font-weight: 850;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+
+.guidance-icon {
+  width: 42px;
+  height: 42px;
+}
+
+.guidance-infinity {
+  width: 48px;
+  height: 42px;
+}
+
+.guidance-infinity path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 16;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.guidance-operator {
+  color: rgba(65, 72, 78, .48);
+  font: 800 clamp(24px, 3vw, 40px)/1 ui-monospace, monospace;
+}
+
 .hint .hint-line code {
   background: #F0F0F0;
   color: #444;
@@ -2983,6 +3060,34 @@ body.ura-on .workspace::after {
     pointer-events: auto;
     white-space: normal;
     overflow-wrap: anywhere;
+  }
+
+  .guidance-formula {
+    gap: 4px;
+    width: calc(100vw - 18px);
+  }
+
+  .guidance-board {
+    grid-template-columns: 24px auto;
+    gap: 4px;
+    width: min(27vw, 102px);
+    min-height: 58px;
+    padding: 8px 7px;
+    border-radius: 12px;
+  }
+
+  .guidance-board strong {
+    font-size: clamp(12px, 3.7vw, 16px);
+  }
+
+  .guidance-icon,
+  .guidance-infinity {
+    width: 24px;
+    height: 24px;
+  }
+
+  .guidance-operator {
+    font-size: 19px;
   }
 
   .desktop-only-help { display: none; }

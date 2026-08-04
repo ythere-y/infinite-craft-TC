@@ -30,9 +30,24 @@ test("homepage keeps basic guidance visible and advanced guidance collapsed", as
   assert.match(html, /id="btn-help"[^>]*aria-expanded="false"[^>]*aria-controls="advanced-guidance"/);
   assert.match(hint[1], /id="advanced-guidance"[^>]*hidden/);
   assert.match(hint[1], /id="advanced-guidance"[\s\S]*双击[\s\S]*案例展示[\s\S]*滨海大厦/);
-  assert.match(basic[1], /desktop-only-help[^>]*>[^<]*👆 把右边的元素<b>拖<\/b>/);
-  assert.match(basic[1], /mobile-only-help[^>]*>👆 把下方的元素<b>拖<\/b>/);
-  assert.match(basic[1], /合成/);
+  assert.match(
+    basic[1],
+    /class="guidance-formula"[^>]*aria-label="拖拽元素，加以合成，创造新元素。"/,
+  );
+  assert.match(
+    basic[1],
+    /class="guidance-board guidance-drag"[\s\S]*data-icon-action="next"[\s\S]*拖拽！/,
+  );
+  assert.match(
+    basic[1],
+    /class="guidance-operator"[^>]*>\+<\/span>[\s\S]*class="guidance-board guidance-combine"[\s\S]*data-icon-action="sparkle"[\s\S]*合成！/,
+  );
+  assert.match(
+    basic[1],
+    /class="guidance-operator"[^>]*>=<\/span>[\s\S]*class="guidance-board guidance-innovation"[\s\S]*class="guidance-infinity"[\s\S]*创新！/,
+  );
+  assert.doesNotMatch(basic[1], /data-icon-action="combine"/);
+  assert.doesNotMatch(basic[1], /把右边的元素|把下方的元素/);
   assert.doesNotMatch(basic[1], /双击|案例展示|↑↑↓↓←→←→BA/);
 });
 
@@ -76,6 +91,18 @@ test("main game ships the opening stage in dependency order", async () => {
   assert.match(
     html,
     /<script src="\/app\.js\?v=20260804a"><\/script>/,
+  );
+  assert.match(
+    html,
+    /<link rel="stylesheet" href="\/opening-animation\.css\?v=20260804b" \/>/,
+  );
+  assert.match(
+    html,
+    /<link rel="stylesheet" href="\/style\.css\?v=20260804b" \/>/,
+  );
+  assert.match(
+    html,
+    /<script src="\/opening-animation\.js\?v=20260804b"><\/script>/,
   );
   assert.match(build, /"opening-animation\.css"/);
   assert.match(build, /"opening-animation\.js"/);
@@ -458,13 +485,25 @@ test("phone layout keeps the workspace and element collection in vertical flow",
     readFile("frontend/style.css", "utf8"),
   ]);
 
-  assert.match(html, /class="hint-line mobile-only-help">👆 把下方的元素/);
+  assert.match(html, /class="guidance-formula"/);
   assert.match(html, /id="advanced-guidance"[\s\S]*class="hint-line desktop-only-help">👆👆 <b>双击<\/b>/);
   assert.match(html, /id="search"[^>]+aria-label="搜索已发现元素"/);
   assert.match(html, /class="topbar-controls">[\s\S]*id="nick-display"[\s\S]*class="topbar-actions"/);
   assert.match(html, /id="btn-help"[^>]*>[\s\S]*class="action-slot"[^>]*data-icon-action="help"[\s\S]*class="action-label">帮助<\/span>/);
   assert.doesNotMatch(html, /id="btn-help"[^>]*data-icon-action=/);
   assert.match(css, /\.mobile-only-help\s*\{\s*display:\s*none/);
+  assert.match(
+    css,
+    /\.guidance-formula\s*\{[^}]*display:\s*flex[^}]*flex-wrap:\s*nowrap/s,
+  );
+  assert.match(
+    css,
+    /\.guidance-board\s*\{[^}]*opacity:\s*\.4[^}]*pointer-events:\s*none/s,
+  );
+  assert.doesNotMatch(
+    css.match(/\.guidance-board\s*\{[^}]*\}/s)?.[0] || "",
+    /backdrop-filter|filter:/,
+  );
   assert.match(css, /@media\s*\(max-width:\s*780px\)/);
   assert.match(css, /\.topbar\s*\{[^}]*grid-template-columns:/s);
   assert.match(css, /\.topbar\s*\{[^}]*grid-template-columns:\s*auto\s+minmax\(0,\s*1fr\)/s);
