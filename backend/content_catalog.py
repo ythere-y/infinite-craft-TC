@@ -17,6 +17,19 @@ BOUNTY_CONTENT_PATH = _ROOT / "backend" / "generated" / "bounty-content.json"
 
 _CONTENT_EPOCH = 2
 _DIGEST_PATTERN = re.compile(r"^sha256:[0-9a-f]{64}$")
+_BINDING_STARTERS = (
+    "水",
+    "火",
+    "风",
+    "土",
+    "企鹅",
+    "人",
+    "时间",
+    "AI",
+    "电脑",
+    "手机",
+    "网络",
+)
 
 
 def _read_object(path: Path, label: str) -> dict[str, Any]:
@@ -121,6 +134,22 @@ def _validate_base_content(
                 raise ValueError(
                     f"compiled pair conflicts with base seed: {pair}"
                 )
+
+
+def _validate_starter_binding(starters_value: Any) -> None:
+    if not isinstance(starters_value, list):
+        raise ValueError("compiled starter binding must be an array")
+    names = []
+    for index, starter in enumerate(starters_value):
+        if not isinstance(starter, dict) or not isinstance(
+            starter.get("name"), str
+        ):
+            raise ValueError(f"compiled starter binding row {index} is invalid")
+        names.append(starter["name"])
+    if tuple(names) != _BINDING_STARTERS:
+        raise ValueError(
+            "compiled content must use the exact eleven ordered starter binding"
+        )
 
 
 def _catalog_projection(
@@ -319,6 +348,7 @@ def _validate_compiled_content(
         raise ValueError("compiled catalog_digest does not match base content")
 
     _validate_base_content(compiled, seed_elements, seed_combinations)
+    _validate_starter_binding(compiled.get("starters"))
     projection = _catalog_projection(
         catalog,
         seed_elements,
@@ -328,6 +358,7 @@ def _validate_compiled_content(
         "elements",
         "combinations",
         "aliases",
+        "canonical_recipes",
         "bounty",
         "retired_pairs",
         "retired_elements",
@@ -336,12 +367,15 @@ def _validate_compiled_content(
             raise ValueError(
                 f"compiled {field} does not match catalog projection"
             )
-    if (
-        "canonical_recipes" in compiled
-        and compiled["canonical_recipes"] != projection["canonical_recipes"]
-    ):
+
+    expected_recipes_by_result: dict[str, list[dict[str, Any]]] = {}
+    for recipe in compiled["combinations"].values():
+        expected_recipes_by_result.setdefault(recipe["result"], []).append(
+            recipe
+        )
+    if compiled.get("recipes_by_result") != expected_recipes_by_result:
         raise ValueError(
-            "compiled canonical_recipes do not match catalog projection"
+            "compiled recipes_by_result does not match combination projection"
         )
 
     starters_value = compiled.get("starters")

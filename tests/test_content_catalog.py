@@ -126,3 +126,126 @@ def test_compiled_content_rejects_catalog_projection_drift(label, mutate):
             seed_elements,
             seed_combinations,
         )
+
+
+def _consistent_starter_mutation(mutate):
+    compiled = deepcopy(content_catalog.load_compiled_content())
+    seed_elements = json.loads(
+        content_catalog.SEED_ELEMENTS_PATH.read_text(encoding="utf-8")
+    )
+    seed_combinations = json.loads(
+        content_catalog.SEED_COMBINATIONS_PATH.read_text(encoding="utf-8")
+    )
+    mutate(seed_elements["starters"])
+    compiled["starters"] = deepcopy(seed_elements["starters"])
+    compiled["depths"] = content_catalog._calculate_depths(
+        compiled["starters"],
+        compiled["combinations"],
+    )
+    compiled["catalog_digest"] = content_catalog._canonical_digest(
+        content_catalog._digest_source(
+            compiled["catalog"],
+            seed_elements,
+            seed_combinations,
+        )
+    )
+    return compiled, seed_elements, seed_combinations
+
+
+def _remove_starter(name):
+    def mutate(starters):
+        starters[:] = [row for row in starters if row["name"] != name]
+
+    return mutate
+
+
+def _reorder_starters(starters):
+    starters[0], starters[1] = starters[1], starters[0]
+
+
+def _append_starter(row):
+    return lambda starters: starters.append(row)
+
+
+@pytest.mark.parametrize(
+    ("label", "mutate"),
+    [
+        ("missing", _remove_starter("电脑")),
+        (
+            "extra",
+            _append_starter(
+                {
+                    "id": "extra",
+                    "name": "额外素材",
+                    "emoji": "❌",
+                    "category": "invalid",
+                }
+            ),
+        ),
+        ("reordered", _reorder_starters),
+        (
+            "input-only promoted",
+            _append_starter(
+                {
+                    "id": "desk",
+                    "name": "工位",
+                    "emoji": "🪑",
+                    "category": "worker",
+                }
+            ),
+        ),
+    ],
+)
+def test_compiled_content_requires_immutable_starter_binding(label, mutate):
+    compiled, seed_elements, seed_combinations = (
+        _consistent_starter_mutation(mutate)
+    )
+
+    with pytest.raises(ValueError, match="exact eleven|starter binding"):
+        content_catalog._validate_compiled_content(
+            compiled,
+            seed_elements,
+            seed_combinations,
+        )
+
+
+@pytest.mark.parametrize(
+    ("label", "mutate"),
+    [
+        (
+            "missing recipes_by_result",
+            lambda value: value.pop("recipes_by_result"),
+        ),
+        (
+            "drifted recipes_by_result",
+            lambda value: value["recipes_by_result"].__setitem__("微信", []),
+        ),
+        (
+            "missing canonical_recipes",
+            lambda value: value.pop("canonical_recipes"),
+        ),
+        (
+            "drifted canonical_recipes",
+            lambda value: value["canonical_recipes"]["QQ"].__setitem__(
+                "result",
+                "错误结果",
+            ),
+        ),
+    ],
+)
+def test_compiled_content_requires_complete_recipe_indexes(label, mutate):
+    compiled = deepcopy(content_catalog.load_compiled_content())
+    seed_elements = json.loads(
+        content_catalog.SEED_ELEMENTS_PATH.read_text(encoding="utf-8")
+    )
+    seed_combinations = json.loads(
+        content_catalog.SEED_COMBINATIONS_PATH.read_text(encoding="utf-8")
+    )
+    mutate(compiled)
+
+    with pytest.raises(ValueError, match="recipes"):
+        content_catalog._validate_compiled_content(
+            compiled,
+            seed_elements,
+            seed_combinations,
+        )
