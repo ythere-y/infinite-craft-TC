@@ -94,3 +94,24 @@ test("preset lookup and attachment return copies with canonical icons", () => {
   assert.deepEqual(original, { emoji: "⚡", category: "studio", extra: true });
   assert.deepEqual(preset, cases[0].expected);
 });
+
+test("exact map names win before reviewed alias fallback", () => {
+  assert.deepEqual(presetIcon("小马哥"), {
+    base: "🐎",
+    badge: "👔",
+    palette: "product",
+    source: "generated",
+  });
+  assert.deepEqual(presetIcon("Riot"), {
+    base: "👊",
+    badge: "🎮",
+    palette: "studio",
+    source: "curated",
+  });
+  assert.deepEqual(presetIcon("Epic"), {
+    base: "🛡️",
+    badge: "🎮",
+    palette: "studio",
+    source: "curated",
+  });
+});

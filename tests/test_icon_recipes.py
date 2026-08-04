@@ -50,6 +50,27 @@ def test_exact_preset_override_ignores_supplied_emoji():
     ) == preset_icon("Riot")
 
 
+def test_exact_map_name_wins_before_reviewed_alias_fallback():
+    assert preset_icon("小马哥") == {
+        "base": "🐎",
+        "badge": "👔",
+        "palette": "product",
+        "source": "generated",
+    }
+    assert preset_icon("Riot") == {
+        "base": "👊",
+        "badge": "🎮",
+        "palette": "studio",
+        "source": "curated",
+    }
+    assert preset_icon("Epic") == {
+        "base": "🛡️",
+        "badge": "🎮",
+        "palette": "studio",
+        "source": "curated",
+    }
+
+
 def test_valid_persisted_recipe_takes_precedence_over_exact_preset():
     persisted = {
         "base": "🪨",

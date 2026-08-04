@@ -42,7 +42,15 @@ export function normalizeIcon(value) {
 }
 
 export function presetIcon(name) {
-  const row = ELEMENT_ICONS[ENTITY_ALIASES[name] ?? name];
+  let row = Object.hasOwn(ELEMENT_ICONS, name)
+    ? ELEMENT_ICONS[name]
+    : null;
+  if (
+    !isObject(row) &&
+    Object.hasOwn(ENTITY_ALIASES, name)
+  ) {
+    row = ELEMENT_ICONS[ENTITY_ALIASES[name]];
+  }
   if (!isObject(row)) return null;
   return normalizeIcon(row.icon ?? row);
 }

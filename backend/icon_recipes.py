@@ -97,7 +97,9 @@ def normalize_icon(value: object) -> dict | None:
 
 def preset_icon(name: str) -> dict | None:
     """Resolve a canonical or reviewed-alias merged-catalog preset."""
-    row = _PRESETS.get(_PRESET_ALIASES.get(name, name))
+    row = _PRESETS.get(name)
+    if not isinstance(row, dict):
+        row = _PRESETS.get(_PRESET_ALIASES.get(name, name))
     if not isinstance(row, dict):
         return None
     return normalize_icon(row.get("icon", row))
