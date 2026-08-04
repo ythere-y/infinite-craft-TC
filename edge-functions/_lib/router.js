@@ -5,6 +5,10 @@ import {
   STARTERS,
 } from "../_generated/seed-data.js";
 import {
+  CATALOG_DIGEST,
+  CONTENT_EPOCH,
+} from "../_generated/bounty-content.js";
+import {
   MAX_RECIPE_FIELD_LENGTH,
   MAX_SESSION_ID_LENGTH,
   MAX_VERIFY_RECIPES,
@@ -53,6 +57,60 @@ import {
 } from "./icon-recipes.js";
 
 const VERIFY_READ_BATCH = 20;
+const PUBLIC_CONTENT_MODES = new Set([
+  "ready",
+  "epoch_reset",
+  "differential",
+  "unknown",
+]);
+const PUBLIC_CONTENT_PHASES = new Set([
+  "detect",
+  "purge_runtime_data",
+  "seed_starters",
+  "seed_elements",
+  "seed_recipes",
+  "rebuild_indexes",
+  "verify_catalog",
+  "ready",
+]);
+const PUBLIC_CONTENT_STATUSES = new Set([
+  "ready",
+  "migrating",
+]);
+
+export function publicContentStatus(
+  value,
+  { initializationFailed = false } = {},
+) {
+  const epoch = Number(value?.epoch);
+  const rawStatus = cleanText(value?.status);
+  const rawMode = cleanText(value?.mode);
+  const rawPhase = cleanText(value?.phase);
+  const rawDigest = cleanText(value?.catalog_digest);
+  const index = Number(value?.index);
+  const hasError = initializationFailed || Boolean(cleanText(value?.error));
+
+  return {
+    epoch: Number.isSafeInteger(epoch) && epoch > 0
+      ? epoch
+      : CONTENT_EPOCH,
+    catalog_digest: /^sha256:[0-9a-f]{64}$/u.test(rawDigest)
+      ? rawDigest
+      : CATALOG_DIGEST,
+    status: PUBLIC_CONTENT_STATUSES.has(rawStatus)
+      ? rawStatus
+      : "migrating",
+    mode: PUBLIC_CONTENT_MODES.has(rawMode) ? rawMode : "unknown",
+    phase: PUBLIC_CONTENT_PHASES.has(rawPhase) ? rawPhase : "detect",
+    ...(Number.isSafeInteger(index) && index >= 0 ? { index } : {}),
+    ...(hasError
+      ? {
+          error: "内容初始化暂时失败",
+          error_code: "CONTENT_INITIALIZATION_FAILED",
+        }
+      : {}),
+  };
+}
 
 function intParam(searchParams, name, fallback, minimum, maximum) {
   const raw = searchParams.get(name);
@@ -367,7 +425,7 @@ export function createRouter({
             ),
           ),
         },
-        content: contentStatus,
+        content: publicContentStatus(contentStatus),
       });
     }
 

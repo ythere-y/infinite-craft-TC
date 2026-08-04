@@ -4,8 +4,29 @@ import {
 } from "../_generated/bounty-content.js";
 import { createContentInitializer } from "../_lib/content-initializer.js";
 import { errorResponse } from "../_lib/http.js";
-import { createRouter } from "../_lib/router.js";
+import {
+  createRouter,
+  publicContentStatus,
+} from "../_lib/router.js";
 import { resolveRuntimeKv } from "../_lib/runtime-config.js";
+
+function validKvNamespace(kv) {
+  return (
+    kv &&
+    typeof kv.get === "function" &&
+    typeof kv.put === "function" &&
+    typeof kv.delete === "function" &&
+    typeof kv.list === "function"
+  );
+}
+
+function isReadyContentState(status) {
+  return (
+    status?.status === "ready" &&
+    Number(status.epoch) === CONTENT_EPOCH &&
+    status.catalog_digest === CATALOG_DIGEST
+  );
+}
 
 export async function onRequest({ request, env }) {
   const runtime = resolveRuntimeKv({
@@ -15,20 +36,33 @@ export async function onRequest({ request, env }) {
   if (!runtime.ok) {
     return errorResponse(500, runtime.message);
   }
+  if (!validKvNamespace(runtime.kv)) {
+    return errorResponse(
+      500,
+      "生产 KV 绑定无效：请确认 test → infinite_craft",
+      undefined,
+      "KV_BINDING_INVALID",
+    );
+  }
 
-  const initializer = createContentInitializer({ kv: runtime.kv });
+  let initializer = null;
   let initialization;
   try {
+    initializer = createContentInitializer({ kv: runtime.kv });
     initialization = await initializer.ensureInitialized();
   } catch (error) {
     let status = null;
-    try {
-      status = await initializer.readStatus();
-    } catch {
-      // Health must remain available even when content-state reads fail.
+    if (initializer) {
+      try {
+        status = await initializer.readStatus();
+      } catch {
+        // Health must remain available even when content-state reads fail.
+      }
     }
+    const ready = isReadyContentState(status);
     initialization = {
-      ready: false,
+      ready,
+      failed: !ready,
       status: status || {
         epoch: CONTENT_EPOCH,
         catalog_digest: CATALOG_DIGEST,
@@ -45,19 +79,22 @@ export async function onRequest({ request, env }) {
       },
     };
   }
+  const publicStatus = publicContentStatus(initialization.status, {
+    initializationFailed: initialization.failed === true,
+  });
   const path = new URL(request.url).pathname.replace(/\/+$/u, "") || "/";
-  if (!initialization.ready) {
+  if (!initialization.ready && !isReadyContentState(initialization.status)) {
     if (path === "/api/health") {
       return createRouter({
         kv: runtime.kv,
         env: { ...(env || {}), APP_ENV: runtime.appEnv },
-        contentStatus: initialization.status,
+        contentStatus: publicStatus,
       }).handle(request);
     }
     return errorResponse(
       503,
       "内容初始化中，请稍后重试",
-      { content: initialization.status },
+      { content: publicStatus },
       "CONTENT_INITIALIZING",
     );
   }
@@ -65,6 +102,6 @@ export async function onRequest({ request, env }) {
   return createRouter({
     kv: runtime.kv,
     env: { ...(env || {}), APP_ENV: runtime.appEnv },
-    contentStatus: initialization.status,
+    contentStatus: publicStatus,
   }).handle(request);
 }

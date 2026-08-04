@@ -1215,7 +1215,7 @@ test("health reports migration while gameplay fails closed", async () => {
     const { onRequest } = await import("../edge-functions/api/[[default]].js");
 
     const health = await onRequest({
-      request: request("/api/health"),
+      request: request("/api/health/?probe=migration"),
       env: {},
     });
     const healthBody = await health.json();
@@ -1225,7 +1225,7 @@ test("health reports migration while gameplay fails closed", async () => {
     assert.equal(healthBody.content.status, "migrating");
 
     const combine = await onRequest({
-      request: request("/api/combine", {
+      request: request("/api/combine/?probe=migration", {
         method: "POST",
         body: { a: "水", b: "火" },
       }),
@@ -1246,22 +1246,18 @@ test("health reports migration while gameplay fails closed", async () => {
 });
 
 test("health remains available when an initialization batch throws", async () => {
-  class OneDeleteFailureKV extends FakeKV {
-    constructor(initial) {
-      super(initial);
-      this.shouldFail = true;
-    }
-
+  class FailingDeleteKV extends FakeKV {
     async delete(key) {
-      if (this.shouldFail && key === "combo_legacy") {
-        this.shouldFail = false;
-        throw new Error("simulated initialization failure");
+      if (key === "combo_legacy") {
+        throw new Error(
+          "secret-token from https://internal-kv.example.invalid",
+        );
       }
       return super.delete(key);
     }
   }
 
-  const kv = new OneDeleteFailureKV({
+  const kv = new FailingDeleteKV({
     combo_legacy: JSON.stringify({
       a: "旧",
       b: "公式",
@@ -1281,10 +1277,122 @@ test("health remains available when an initialization batch throws", async () =>
     assert.equal(health.status, 200);
     assert.equal(body.content.epoch, CONTENT_EPOCH);
     assert.equal(body.content.status, "migrating");
-    assert.match(body.content.error, /simulated initialization failure/u);
+    assert.equal(body.content.error, "内容初始化暂时失败");
+    assert.equal(
+      body.content.error_code,
+      "CONTENT_INITIALIZATION_FAILED",
+    );
+    assert.doesNotMatch(JSON.stringify(body), /secret-token|internal-kv/u);
+
+    const combine = await onRequest({
+      request: request("/api/combine", {
+        method: "POST",
+        body: { a: "水", b: "火" },
+      }),
+      env: {},
+    });
+    const combineText = await combine.text();
+    assert.equal(combine.status, 503);
+    assert.match(combineText, /CONTENT_INITIALIZING/u);
+    assert.doesNotMatch(combineText, /secret-token|internal-kv/u);
   } finally {
     delete globalThis.test;
   }
+});
+
+test("malformed truthy KV bindings return structured safe errors", async () => {
+  globalThis.test = {};
+  try {
+    const { onRequest } = await import("../edge-functions/api/[[default]].js");
+    for (const target of ["/api/health", "/api/combine"]) {
+      const response = await onRequest({
+        request: request(target, target.endsWith("combine")
+          ? {
+              method: "POST",
+              body: { a: "水", b: "火" },
+            }
+          : {}),
+        env: {},
+      });
+      const body = await response.json();
+      assert.equal(response.status, 500);
+      assert.equal(body.code, "KV_BINDING_INVALID");
+      assert.match(body.detail, /KV/u);
+      assert.doesNotMatch(JSON.stringify(body), /TypeError|get is not/u);
+    }
+  } finally {
+    delete globalThis.test;
+  }
+});
+
+test("a ready reread after an initializer error routes normally", async () => {
+  const readyState = {
+    epoch: CONTENT_EPOCH,
+    catalog_digest: CATALOG_DIGEST,
+    status: "ready",
+    mode: "ready",
+    phase: "ready",
+    cursor: null,
+    index: 0,
+    started_at: 1_700_000_000_000,
+    completed_at: 1_700_000_000_000,
+    error: "",
+  };
+  class ConcurrentReadyKV extends FakeKV {
+    async delete(key) {
+      if (key === "combo_legacy") {
+        this.values.set(
+          "system_content_state",
+          JSON.stringify(readyState),
+        );
+        throw new Error("stale initializer lost the race");
+      }
+      return super.delete(key);
+    }
+  }
+  const kv = new ConcurrentReadyKV({
+    combo_legacy: JSON.stringify({ source: "seed" }),
+  });
+  globalThis.test = kv;
+  try {
+    const { onRequest } = await import("../edge-functions/api/[[default]].js");
+    const response = await onRequest({
+      request: request("/api/tiers"),
+      env: {},
+    });
+    const body = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(body.tiers, []);
+  } finally {
+    delete globalThis.test;
+  }
+});
+
+test("router health sanitizes an injected durable error and cursor", async () => {
+  const router = makeRouter({
+    contentStatus: {
+      epoch: CONTENT_EPOCH,
+      catalog_digest: CATALOG_DIGEST,
+      status: "migrating",
+      mode: "epoch_reset",
+      phase: "purge_runtime_data",
+      cursor: "secret-provider-cursor",
+      index: 3,
+      error: "secret-token https://internal-kv.example.invalid",
+    },
+  });
+
+  const health = await json(router, "/api/health?full=1");
+  const serialized = JSON.stringify(health.body);
+  assert.equal(health.response.status, 200);
+  assert.equal(health.body.content.error, "内容初始化暂时失败");
+  assert.equal(
+    health.body.content.error_code,
+    "CONTENT_INITIALIZATION_FAILED",
+  );
+  assert.equal("cursor" in health.body.content, false);
+  assert.doesNotMatch(serialized, /secret-token|internal-kv|provider-cursor/u);
 });
 
 test("Edge Function entry uses only the production KV global", async () => {
