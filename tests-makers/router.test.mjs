@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import {
+  CATALOG_DIGEST,
+  CONTENT_EPOCH,
+} from "../edge-functions/_generated/bounty-content.js";
 import { KvStore } from "../edge-functions/_lib/kv-store.js";
 import { createRouter } from "../edge-functions/_lib/router.js";
 import {
@@ -25,6 +29,13 @@ function request(path, { method = "GET", body, headers = {} } = {}) {
 
 function makeRouter({
   kv = new FakeKV(),
+  contentStatus = {
+    epoch: CONTENT_EPOCH,
+    catalog_digest: CATALOG_DIGEST,
+    status: "ready",
+    mode: "ready",
+    phase: "ready",
+  },
   fetchImpl = async () =>
     new Response(
       JSON.stringify({
@@ -53,6 +64,7 @@ function makeRouter({
     now: () => 1_700_000_000_000,
     random: () => 0,
     fetchImpl,
+    contentStatus,
   });
 }
 
@@ -113,6 +125,13 @@ test("static, health and rank routes keep their public contracts", async () => {
   assert.equal("apiKey" in health.body.llm_config, false);
   assert.equal(health.body.security.dashboard, "public");
   assert.equal(health.body.security.model_calls_per_minute, 20);
+  assert.deepEqual(health.body.content, {
+    epoch: CONTENT_EPOCH,
+    catalog_digest: CATALOG_DIGEST,
+    status: "ready",
+    mode: "ready",
+    phase: "ready",
+  });
 });
 
 test("aliases resolve before fixed formula lookup", async () => {
@@ -1182,8 +1201,107 @@ test("router returns safe JSON errors, CORS preflight and stream shutdown", asyn
   assert.equal(stream.status, 204);
 });
 
+test("health reports migration while gameplay fails closed", async () => {
+  const kv = new FakeKV({
+    combo_legacy: JSON.stringify({
+      a: "旧",
+      b: "公式",
+      result: "旧结果",
+      source: "seed",
+    }),
+  });
+  globalThis.test = kv;
+  try {
+    const { onRequest } = await import("../edge-functions/api/[[default]].js");
+
+    const health = await onRequest({
+      request: request("/api/health"),
+      env: {},
+    });
+    const healthBody = await health.json();
+    assert.equal(health.status, 200);
+    assert.equal(healthBody.content.epoch, CONTENT_EPOCH);
+    assert.equal(healthBody.content.catalog_digest, CATALOG_DIGEST);
+    assert.equal(healthBody.content.status, "migrating");
+
+    const combine = await onRequest({
+      request: request("/api/combine", {
+        method: "POST",
+        body: { a: "水", b: "火" },
+      }),
+      env: {},
+    });
+    const combineBody = await combine.json();
+    assert.equal(combine.status, 503);
+    assert.equal(combineBody.code, "CONTENT_INITIALIZING");
+    assert.equal(combineBody.details.content.status, "migrating");
+    assert.equal(
+      [...kv.values.keys()].some((key) =>
+        /^(first_|session_|formula_|community_)/u.test(key)),
+      false,
+    );
+  } finally {
+    delete globalThis.test;
+  }
+});
+
+test("health remains available when an initialization batch throws", async () => {
+  class OneDeleteFailureKV extends FakeKV {
+    constructor(initial) {
+      super(initial);
+      this.shouldFail = true;
+    }
+
+    async delete(key) {
+      if (this.shouldFail && key === "combo_legacy") {
+        this.shouldFail = false;
+        throw new Error("simulated initialization failure");
+      }
+      return super.delete(key);
+    }
+  }
+
+  const kv = new OneDeleteFailureKV({
+    combo_legacy: JSON.stringify({
+      a: "旧",
+      b: "公式",
+      result: "旧结果",
+      source: "seed",
+    }),
+  });
+  globalThis.test = kv;
+  try {
+    const { onRequest } = await import("../edge-functions/api/[[default]].js");
+    const health = await onRequest({
+      request: request("/api/health"),
+      env: {},
+    });
+    const body = await health.json();
+
+    assert.equal(health.status, 200);
+    assert.equal(body.content.epoch, CONTENT_EPOCH);
+    assert.equal(body.content.status, "migrating");
+    assert.match(body.content.error, /simulated initialization failure/u);
+  } finally {
+    delete globalThis.test;
+  }
+});
+
 test("Edge Function entry uses only the production KV global", async () => {
-  const productionKv = new FakeKV();
+  const productionKv = new FakeKV({
+    system_content_state: JSON.stringify({
+      epoch: CONTENT_EPOCH,
+      catalog_digest: CATALOG_DIGEST,
+      status: "ready",
+      mode: "ready",
+      phase: "ready",
+      cursor: null,
+      index: 0,
+      started_at: 1_700_000_000_000,
+      completed_at: 1_700_000_000_000,
+      error: "",
+    }),
+  });
   globalThis.test = productionKv;
   try {
     const { onRequest } = await import("../edge-functions/api/[[default]].js");
@@ -1193,8 +1311,12 @@ test("Edge Function entry uses only the production KV global", async () => {
       env: { APP_ENV: "dev" },
     });
     assert.equal(production.status, 200);
-    assert.equal((await production.json()).app_env, "makers");
-    assert.equal(productionKv.getCalls, 1);
+    const productionBody = await production.json();
+    assert.equal(productionBody.app_env, "makers");
+    assert.equal(productionBody.content.status, "ready");
+    assert.equal(productionBody.content.epoch, CONTENT_EPOCH);
+    const productionReads = productionKv.getCalls;
+    assert.ok(productionReads >= 2);
 
     const local = await onRequest({
       request: new Request("http://127.0.0.1:8088/api/health"),
@@ -1202,7 +1324,7 @@ test("Edge Function entry uses only the production KV global", async () => {
     });
     assert.equal(local.status, 500);
     assert.match((await local.json()).detail, /npm run dev/u);
-    assert.equal(productionKv.getCalls, 1);
+    assert.equal(productionKv.getCalls, productionReads);
   } finally {
     delete globalThis.test;
   }

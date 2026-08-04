@@ -109,6 +109,7 @@ async function mapInBatches(items, batchSize, worker) {
 export function createRouter({
   kv,
   env = {},
+  contentStatus = null,
   fetchImpl = globalThis.fetch,
   now = () => Date.now(),
   random = Math.random,
@@ -366,6 +367,7 @@ export function createRouter({
             ),
           ),
         },
+        content: contentStatus,
       });
     }
 
