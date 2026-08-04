@@ -62,23 +62,6 @@ export const ELEMENT_ICONS = {
     },
     "rationale": "沿用种子元素的“🐧”语义；tencent类别无需附加徽章"
   },
-  "鹅厂": {
-    "icon": {
-      "base": "🏢",
-      "badge": "🐧",
-      "palette": "product",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🏢”，依据种子配方“企鹅 + 水”（tencent 链）以“腾讯公司昵称”徽章区分“鹅厂”"
-  },
-  "工牌": {
-    "icon": {
-      "base": "🪪",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🪪”；种子配方“身份 + 鹅厂”（tencent 链）确认“工牌”概念，无需附加徽章"
-  },
   "门禁": {
     "icon": {
       "base": "🚪",
@@ -87,218 +70,6 @@ export const ELEMENT_ICONS = {
     },
     "rationale": "沿用种子语义“🚪”；种子配方“工牌 + 工牌”（tencent 链）确认“门禁”概念，无需附加徽章"
   },
-  "电梯": {
-    "icon": {
-      "base": "🛗",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🛗”；种子配方“工位 + 门禁”（tencent 链）确认“电梯”概念，无需附加徽章"
-  },
-  "打卡": {
-    "icon": {
-      "base": "⏱️",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“⏱️”；种子配方“工牌 + 门禁”（tencent 链）确认“打卡”概念，无需附加徽章"
-  },
-  "掌纹": {
-    "icon": {
-      "base": "🫴",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🫴”；种子配方“人 + 工牌”（tencent 链）确认“掌纹”概念，无需附加徽章"
-  },
-  "iWiki": {
-    "entity_type": "product",
-    "canonical_name": "腾讯 iWiki",
-    "aliases": [
-      "iWiki知识库",
-      "腾讯内部知识库"
-    ],
-    "contexts": [
-      "tencent",
-      "office"
-    ],
-    "forbidden_senses": [
-      "wiki=维基百科"
-    ],
-    "icon": {
-      "base": "📘",
-      "badge": "🐧",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯内部知识管理产品；蓝色书本配企鹅徽章"
-  },
-  "RTX": {
-    "entity_type": "product",
-    "canonical_name": "腾讯通 RTX",
-    "aliases": [
-      "腾讯通",
-      "腾讯RTX"
-    ],
-    "contexts": [
-      "tencent",
-      "office"
-    ],
-    "forbidden_senses": [
-      "RTX=显卡型号"
-    ],
-    "icon": {
-      "base": "📧",
-      "badge": "🐧",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯内部即时通讯产品；消息信封配企鹅徽章"
-  },
-  "乐享": {
-    "icon": {
-      "base": "🎨",
-      "badge": "🐧",
-      "palette": "product",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🎨”，依据种子配方“iWiki + 老板”（tencent 链）以“腾讯内部内容平台”徽章区分“乐享”"
-  },
-  "鹅卡": {
-    "icon": {
-      "base": "💳",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“💳”；种子配方“工牌 + 食堂”（tencent 链）确认“鹅卡”概念，无需附加徽章"
-  },
-  "食堂": {
-    "icon": {
-      "base": "🍱",
-      "badge": "🍽️",
-      "palette": "product",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🍱”，依据种子配方“灶台 + 鹅厂”（tencent 链）以“员工就餐场所”徽章区分“食堂”"
-  },
-  "鹅餐": {
-    "icon": {
-      "base": "🍱",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🍱”；种子配方“打工人 + 食堂”（tencent 链）确认“鹅餐”概念，无需附加徽章"
-  },
-  "班车": {
-    "icon": {
-      "base": "🚌",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🚌”；种子配方“轨道 + 鹅厂”（tencent 链）确认“班车”概念，无需附加徽章"
-  },
-  "健身房": {
-    "icon": {
-      "base": "🏋️",
-      "badge": "🏢",
-      "palette": "product",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🏋️”，依据种子配方“工位 + 打工人”（tencent 链）以“室内健身场所”徽章区分“健身房”"
-  },
-  "按摩椅": {
-    "icon": {
-      "base": "💆",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“💆”；种子配方“健身房 + 工位”（tencent 链）确认“按摩椅”概念，无需附加徽章"
-  },
-  "小马哥": {
-    "icon": {
-      "base": "🐎",
-      "badge": "👔",
-      "palette": "product",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🐎”，依据种子配方“小马 + 鹅厂”（tencent 链）以“马化腾人物昵称”徽章区分“小马哥”"
-  },
-  "南极圈": {
-    "icon": {
-      "base": "🧊",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🧊”；种子配方“企鹅 + 离职”（tencent 链）确认“南极圈”概念，无需附加徽章"
-  },
-  "活水": {
-    "icon": {
-      "base": "🌊",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🌊”；种子配方“打工鹅 + 转岗”（tencent 链）确认“活水”概念，无需附加徽章"
-  },
-  "瑞雪": {
-    "icon": {
-      "base": "❄️",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“❄️”；种子配方“OKR + 夜宵券”（tencent 链）确认“瑞雪”概念，无需附加徽章"
-  },
-  "赛马": {
-    "icon": {
-      "base": "🐎",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🐎”；种子配方“PCG + WXG”（tencent 链）确认“赛马”概念，无需附加徽章"
-  },
-  "中台": {
-    "icon": {
-      "base": "🏗️",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🏗️”；种子配方“赛马 + 赛马”（tencent 链）确认“中台”概念，无需附加徽章"
-  },
-  "TAPD": {
-    "entity_type": "product",
-    "canonical_name": "腾讯敏捷产品研发平台",
-    "aliases": [
-      "TAPD平台",
-      "腾讯TAPD"
-    ],
-    "contexts": [
-      "tencent",
-      "office"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "📋",
-      "badge": "🐧",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯敏捷研发协作平台；任务板配企鹅徽章"
-  },
-  "腾讯会议": {
-    "icon": {
-      "base": "📹",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“📹”；种子配方“会议 + 腾讯云”（product 链）确认“腾讯会议”概念，无需附加徽章"
-  },
-  "腾讯文档": {
-    "icon": {
-      "base": "📄",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“📄”；种子配方“会议 + 腾讯会议”（tencent 链）确认“腾讯文档”概念，无需附加徽章"
-  },
   "微信": {
     "icon": {
       "base": "💬",
@@ -306,189 +77,7 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“💬”，依据tencent类别以“移动社交产品”徽章区分“微信”"
-  },
-  "QQ": {
-    "entity_type": "product",
-    "canonical_name": "腾讯 QQ",
-    "aliases": [
-      "腾讯QQ",
-      "QQ聊天"
-    ],
-    "contexts": [
-      "tencent",
-      "product"
-    ],
-    "forbidden_senses": [
-      "QQ=普通企鹅"
-    ],
-    "icon": {
-      "base": "🐧",
-      "badge": "💬",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯即时通讯品牌；企鹅主图配聊天徽章避免与动物概念混淆"
-  },
-  "朋友圈": {
-    "icon": {
-      "base": "🔵",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🔵”；种子配方“微信 + 微信”（product 链）确认“朋友圈”概念，无需附加徽章"
-  },
-  "视频号": {
-    "icon": {
-      "base": "📺",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“📺”；种子配方“微信 + 朋友圈”（product 链）确认“视频号”概念，无需附加徽章"
-  },
-  "王者荣耀": {
-    "icon": {
-      "base": "⚔️",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“⚔️”；种子配方“天美 + 赛马”（studio 链）确认“王者荣耀”概念，无需附加徽章"
-  },
-  "和平精英": {
-    "icon": {
-      "base": "🔫",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🔫”；种子配方“光子 + 赛马”（studio 链）确认“和平精英”概念，无需附加徽章"
-  },
-  "IEG": {
-    "entity_type": "organization",
-    "canonical_name": "互动娱乐事业群",
-    "aliases": [
-      "腾讯IEG",
-      "Interactive Entertainment Group"
-    ],
-    "contexts": [
-      "tencent",
-      "studio"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🎮",
-      "badge": "🐧",
-      "palette": "studio",
-      "source": "entity"
-    },
-    "rationale": "腾讯互动娱乐事业群缩写；游戏主图配企鹅徽章"
-  },
-  "WXG": {
-    "entity_type": "organization",
-    "canonical_name": "微信事业群",
-    "aliases": [
-      "腾讯WXG",
-      "Weixin Group"
-    ],
-    "contexts": [
-      "tencent",
-      "product"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "💚",
-      "badge": "🐧",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯微信事业群缩写；绿色品牌意象配企鹅徽章"
-  },
-  "CSIG": {
-    "entity_type": "organization",
-    "canonical_name": "云与智慧产业事业群",
-    "aliases": [
-      "腾讯CSIG",
-      "Cloud and Smart Industries Group"
-    ],
-    "contexts": [
-      "tencent",
-      "product"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "☁️",
-      "badge": "🏢",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯云与智慧产业事业群缩写；云主图配企业徽章"
-  },
-  "PCG": {
-    "entity_type": "organization",
-    "canonical_name": "平台与内容事业群",
-    "aliases": [
-      "腾讯PCG",
-      "Platform and Content Group"
-    ],
-    "contexts": [
-      "tencent",
-      "product"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "💻",
-      "badge": "🐧",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯平台与内容事业群缩写；数字终端配企鹅徽章"
-  },
-  "TEG": {
-    "entity_type": "organization",
-    "canonical_name": "技术工程事业群",
-    "aliases": [
-      "腾讯TEG",
-      "Technology and Engineering Group"
-    ],
-    "contexts": [
-      "tencent",
-      "office"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🔧",
-      "badge": "🐧",
-      "palette": "office",
-      "source": "entity"
-    },
-    "rationale": "腾讯技术工程事业群缩写；工程工具配企鹅徽章"
-  },
-  "CDG": {
-    "entity_type": "organization",
-    "canonical_name": "企业发展事业群",
-    "aliases": [
-      "腾讯CDG",
-      "Corporate Development Group"
-    ],
-    "contexts": [
-      "tencent",
-      "invest"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "📈",
-      "badge": "🐧",
-      "palette": "office",
-      "source": "entity"
-    },
-    "rationale": "腾讯企业发展事业群缩写；增长图表配企鹅徽章"
-  },
-  "组织架构调整": {
-    "icon": {
-      "base": "🔄",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🔄”；种子配方“中台 + 中台”（tencent 链）确认“组织架构调整”概念，无需附加徽章"
+    "rationale": "沿用种子语义“💬”，依据种子配方“移动互联网 + 腾讯”（product 链）以“移动社交产品”徽章区分“微信”"
   },
   "鹅厂大楼": {
     "icon": {
@@ -497,15 +86,6 @@ export const ELEMENT_ICONS = {
       "source": "fallback"
     },
     "rationale": "沿用种子语义“🏛️”；种子配方“腾讯大厦 + 鹅厂”（building 链）确认“鹅厂大楼”概念，无需附加徽章"
-  },
-  "滨海大厦": {
-    "icon": {
-      "base": "🌆",
-      "badge": "🌊",
-      "palette": "place",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🌆”，依据种子配方“大厦 + 海洋”（building 链）以“滨海办公建筑”徽章区分“滨海大厦”"
   },
   "周报": {
     "icon": {
@@ -632,7 +212,7 @@ export const ELEMENT_ICONS = {
       "palette": "office",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🪑”语义；worker类别无需附加徽章"
+    "rationale": "沿用种子语义“🪑”；种子配方“人 + 电脑”（worker 链）确认“工位”概念，无需附加徽章"
   },
   "老板": {
     "icon": {
@@ -665,15 +245,7 @@ export const ELEMENT_ICONS = {
       "palette": "office",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧑‍💻”；种子配方“人 + 工位”（social 链）确认“打工人”概念，无需附加徽章"
-  },
-  "打工鹅": {
-    "icon": {
-      "base": "🐧",
-      "palette": "office",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🐧”；种子配方“企鹅 + 打工人”（tencent 链）确认“打工鹅”概念，无需附加徽章"
+    "rationale": "沿用种子语义“🧑‍💻”；种子配方“工位 + 工牌”（tencent 链）确认“打工人”概念，无需附加徽章"
   },
   "秃头": {
     "icon": {
@@ -681,7 +253,7 @@ export const ELEMENT_ICONS = {
       "palette": "office",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“👨‍🦲”；种子配方“头发 + 火”（worker 链）确认“秃头”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“👨‍🦲”语义；worker类别无需附加徽章"
   },
   "黑眼圈": {
     "icon": {
@@ -987,7 +559,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“💀”；种子配方“周一 + 班味”（meme_2026w16 链）确认“死者人格”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“💀”语义；meme_2026w16类别无需附加徽章"
   },
   "哭哭马": {
     "icon": {
@@ -1011,7 +583,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“😮‍💨”；种子配方“秃头 + 黑眼圈”（worker 链）确认“班味”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“😮‍💨”语义；meme_2026w16类别无需附加徽章"
   },
   "空降疲惫": {
     "icon": {
@@ -1035,7 +607,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“🌴”；种子配方“打工人 + 松弛感”（meme_2026w16 链）确认“松人”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“🌴”语义；meme_2026w16类别无需附加徽章"
   },
   "紧人": {
     "icon": {
@@ -1051,7 +623,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“🤪”；种子配方“吗喽 + 班味”（meme_2026w16 链）确认“颠颠上班”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“🤪”语义；meme_2026w16类别无需附加徽章"
   },
   "对抗路姨甥": {
     "icon": {
@@ -1068,7 +640,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“😑”；种子配方“孙红雷 + 表情”（meme_2026w16 链）确认“孙红雷关人脸”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“😑”语义；meme_2026w16类别无需附加徽章"
   },
   "过期酸奶": {
     "icon": {
@@ -1076,7 +648,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“🥛”；种子配方“嘎子 + 直播间”（meme_2026w16 链）确认“过期酸奶”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“🥛”语义；meme_2026w16类别无需附加徽章"
   },
   "上坟都不敢这么烧": {
     "icon": {
@@ -1084,7 +656,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“🕯️”；种子配方“氪金 + 直播打赏”（meme_2026w16 链）确认“上坟都不敢这么烧”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“🕯️”语义；meme_2026w16类别无需附加徽章"
   },
   "鹿晗穿红": {
     "icon": {
@@ -1148,7 +720,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“😤”；种子配方“打工人 + 班味”（meme_classic 链）确认“紧绷感”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“😤”语义；meme_classic类别无需附加徽章"
   },
   "松弛感": {
     "icon": {
@@ -1156,7 +728,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“😌”；种子配方“gap year + 班味”（worker 链）确认“松弛感”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“😌”语义；meme_classic类别无需附加徽章"
   },
   "班上不想上": {
     "icon": {
@@ -1164,7 +736,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“😵”；种子配方“周一 + 精神状态”（meme_classic 链）确认“班上不想上”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“😵”语义；meme_classic类别无需附加徽章"
   },
   "gap year": {
     "entity_type": "english_term",
@@ -1192,7 +764,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“⚡”；种子配方“发疯 + 班味”（meme_classic 链）确认“精神状态”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“⚡”语义；meme_classic类别无需附加徽章"
   },
   "闭环": {
     "icon": {
@@ -1360,7 +932,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧬”；种子配方“时间 + 植物”（physical 链）确认“生命”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“🧬”语义；physical类别无需附加徽章"
   },
   "时间": {
     "icon": {
@@ -1458,7 +1030,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“💇”；种子配方“打工人 + 秃头”（life 链）确认“头发”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“💇”语义；life类别无需附加徽章"
   },
   "眼泪": {
     "icon": {
@@ -1923,109 +1495,6 @@ export const ELEMENT_ICONS = {
     },
     "rationale": "沿用种子语义“🌉”，依据种子配方“城市 + 美国”（geo 链）以“科技产业地区”徽章区分“硅谷”"
   },
-  "腾讯大厦": {
-    "icon": {
-      "base": "🏢",
-      "badge": "🐧",
-      "palette": "place",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🏢”，依据种子配方“深圳 + 鹅厂”（building 链）以“腾讯办公建筑”徽章区分“腾讯大厦”"
-  },
-  "金地威新": {
-    "icon": {
-      "base": "🏬",
-      "palette": "place",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🏬”；种子配方“大厦 + 金属”（building 链）确认“金地威新”概念，无需附加徽章"
-  },
-  "TIT创意园": {
-    "entity_type": "place",
-    "canonical_name": "TIT创意园",
-    "aliases": [
-      "广州TIT创意园",
-      "微信TIT园区"
-    ],
-    "contexts": [
-      "building",
-      "geo"
-    ],
-    "forbidden_senses": [
-      "TIT=普通字母缩写"
-    ],
-    "icon": {
-      "base": "🎨",
-      "badge": "🏢",
-      "palette": "place",
-      "source": "entity"
-    },
-    "rationale": "广州创意园与办公地点；调色板配建筑徽章"
-  },
-  "科兴科学园": {
-    "icon": {
-      "base": "🔬",
-      "palette": "place",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🔬”；种子配方“科兴 + 鹅厂”（building 链）确认“科兴科学园”概念，无需附加徽章"
-  },
-  "琶洲新总部": {
-    "icon": {
-      "base": "🏗️",
-      "palette": "place",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🏗️”；种子配方“琶洲 + 鹅厂”（building 链）确认“琶洲新总部”概念，无需附加徽章"
-  },
-  "T1塔楼": {
-    "entity_type": "place",
-    "canonical_name": "T1塔楼",
-    "aliases": [
-      "腾讯T1塔楼",
-      "T1办公塔楼"
-    ],
-    "contexts": [
-      "building",
-      "office"
-    ],
-    "forbidden_senses": [
-      "T1=职级"
-    ],
-    "icon": {
-      "base": "🗼",
-      "badge": "🏢",
-      "palette": "place",
-      "source": "entity"
-    },
-    "rationale": "办公园区塔楼名称；高塔配建筑徽章"
-  },
-  "北京总部": {
-    "icon": {
-      "base": "🏯",
-      "badge": "🏢",
-      "palette": "place",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🏯”，依据种子配方“北京 + 鹅厂”（building 链）以“北京办公总部”徽章区分“北京总部”"
-  },
-  "上海总部": {
-    "icon": {
-      "base": "🌉",
-      "palette": "place",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🌉”；种子配方“上海 + 鹅厂”（building 链）确认“上海总部”概念，无需附加徽章"
-  },
-  "成都办公楼": {
-    "icon": {
-      "base": "🐼",
-      "badge": "🏢",
-      "palette": "place",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🐼”，依据种子配方“成都 + 鹅厂”（building 链）以“成都办公建筑”徽章区分“成都办公楼”"
-  },
   "纺织机械厂": {
     "icon": {
       "base": "🏭",
@@ -2058,360 +1527,6 @@ export const ELEMENT_ICONS = {
       "source": "fallback"
     },
     "rationale": "沿用种子语义“🧱”；种子配方“土 + 岩浆”（building 链）确认“红砖墙”概念，无需附加徽章"
-  },
-  "QQ邮箱": {
-    "entity_type": "product",
-    "canonical_name": "QQ邮箱",
-    "aliases": [
-      "腾讯QQ邮箱",
-      "mail.qq.com"
-    ],
-    "contexts": [
-      "product",
-      "communication"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "📬",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯电子邮件产品；邮箱主图配产品徽章"
-  },
-  "QQ音乐": {
-    "entity_type": "product",
-    "canonical_name": "QQ音乐",
-    "aliases": [
-      "腾讯QQ音乐",
-      "QQ Music"
-    ],
-    "contexts": [
-      "product",
-      "music"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🎵",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯音乐流媒体产品；音符配产品徽章"
-  },
-  "QQ浏览器": {
-    "entity_type": "product",
-    "canonical_name": "QQ浏览器",
-    "aliases": [
-      "腾讯QQ浏览器",
-      "QQ Browser"
-    ],
-    "contexts": [
-      "product",
-      "browser"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🌐",
-      "badge": "🐧",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯浏览器产品；网络主图配企鹅品牌徽章"
-  },
-  "QQ空间": {
-    "entity_type": "product",
-    "canonical_name": "QQ空间",
-    "aliases": [
-      "腾讯QQ空间",
-      "Qzone"
-    ],
-    "contexts": [
-      "product",
-      "social"
-    ],
-    "forbidden_senses": [
-      "空间=宇宙"
-    ],
-    "icon": {
-      "base": "🌌",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯社交空间产品；星空主图配产品徽章"
-  },
-  "TIM": {
-    "entity_type": "product",
-    "canonical_name": "腾讯 TIM",
-    "aliases": [
-      "腾讯TIM",
-      "TIM办公版QQ"
-    ],
-    "contexts": [
-      "product",
-      "office"
-    ],
-    "forbidden_senses": [
-      "TIM=人名"
-    ],
-    "icon": {
-      "base": "💼",
-      "badge": "💬",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "面向办公协作的即时通讯产品；公文包配聊天徽章"
-  },
-  "企业微信": {
-    "entity_type": "product",
-    "canonical_name": "企业微信",
-    "aliases": [
-      "WeCom",
-      "腾讯企业微信"
-    ],
-    "contexts": [
-      "product",
-      "office"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "💼",
-      "badge": "🏢",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯企业通讯与协作产品；公文包配企业徽章"
-  },
-  "微云": {
-    "entity_type": "product",
-    "canonical_name": "腾讯微云",
-    "aliases": [
-      "腾讯微云",
-      "Weiyun"
-    ],
-    "contexts": [
-      "product",
-      "cloud_storage"
-    ],
-    "forbidden_senses": [
-      "微云=小片云朵"
-    ],
-    "icon": {
-      "base": "☁️",
-      "badge": "📁",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯云端文件存储产品；云主图配文件夹徽章"
-  },
-  "公众号": {
-    "entity_type": "product_feature",
-    "canonical_name": "微信公众平台公众号",
-    "aliases": [
-      "微信公众号",
-      "微信公众账号"
-    ],
-    "contexts": [
-      "product",
-      "content"
-    ],
-    "forbidden_senses": [
-      "公众号=普通公共号码"
-    ],
-    "icon": {
-      "base": "📢",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "微信公众平台内容账号能力；扩音器配产品徽章"
-  },
-  "小程序": {
-    "entity_type": "product_feature",
-    "canonical_name": "微信小程序",
-    "aliases": [
-      "微信小程序",
-      "Mini Program"
-    ],
-    "contexts": [
-      "product",
-      "application"
-    ],
-    "forbidden_senses": [
-      "小程序=任意短小代码"
-    ],
-    "icon": {
-      "base": "🔲",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "微信内轻量应用平台；模块方块配产品徽章"
-  },
-  "微信支付": {
-    "entity_type": "product",
-    "canonical_name": "微信支付",
-    "aliases": [
-      "WeChat Pay",
-      "腾讯微信支付"
-    ],
-    "contexts": [
-      "product",
-      "payment"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "💸",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "微信支付产品；流动钱币配产品徽章"
-  },
-  "红包": {
-    "entity_type": "product_feature",
-    "canonical_name": "微信红包",
-    "aliases": [
-      "微信红包",
-      "WeChat Red Packet"
-    ],
-    "contexts": [
-      "product",
-      "payment"
-    ],
-    "forbidden_senses": [
-      "红包=普通现金礼封"
-    ],
-    "icon": {
-      "base": "🧧",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "微信支付内的红包功能；红包主图配产品徽章"
-  },
-  "腾讯视频": {
-    "entity_type": "product",
-    "canonical_name": "腾讯视频",
-    "aliases": [
-      "Tencent Video",
-      "腾讯视频客户端"
-    ],
-    "contexts": [
-      "product",
-      "video"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "📺",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯长视频平台；电视主图配产品徽章"
-  },
-  "微视": {
-    "entity_type": "product",
-    "canonical_name": "腾讯微视",
-    "aliases": [
-      "腾讯微视",
-      "Weishi"
-    ],
-    "contexts": [
-      "product",
-      "short_video"
-    ],
-    "forbidden_senses": [
-      "微视=轻微视力"
-    ],
-    "icon": {
-      "base": "🎬",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯短视频产品；场记板配产品徽章"
-  },
-  "腾讯新闻": {
-    "entity_type": "product",
-    "canonical_name": "腾讯新闻",
-    "aliases": [
-      "Tencent News",
-      "腾讯新闻客户端"
-    ],
-    "contexts": [
-      "product",
-      "news"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "📰",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯新闻资讯产品；报纸主图配产品徽章"
-  },
-  "腾讯体育": {
-    "entity_type": "product",
-    "canonical_name": "腾讯体育",
-    "aliases": [
-      "Tencent Sports",
-      "腾讯体育频道"
-    ],
-    "contexts": [
-      "product",
-      "sports"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "⚽",
-      "badge": "🐧",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯体育内容产品；足球主图配企鹅品牌徽章"
-  },
-  "腾讯动漫": {
-    "entity_type": "product",
-    "canonical_name": "腾讯动漫",
-    "aliases": [
-      "Tencent Animation & Comics",
-      "腾讯动漫平台"
-    ],
-    "contexts": [
-      "product",
-      "comics"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "📖",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯动漫内容平台；翻开的书配产品徽章"
-  },
-  "阅文集团": {
-    "entity_type": "company",
-    "canonical_name": "阅文集团",
-    "aliases": [
-      "China Literature",
-      "腾讯阅文"
-    ],
-    "contexts": [
-      "product",
-      "literature"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "📚",
-      "badge": "🏢",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "网络文学企业阅文集团；书本配企业徽章"
   },
   "酷狗": {
     "entity_type": "product",
@@ -2454,1045 +1569,6 @@ export const ELEMENT_ICONS = {
       "source": "entity"
     },
     "rationale": "在线音乐产品酷我音乐；麦克风配产品徽章"
-  },
-  "全民K歌": {
-    "entity_type": "product",
-    "canonical_name": "全民K歌",
-    "aliases": [
-      "WeSing",
-      "腾讯全民K歌"
-    ],
-    "contexts": [
-      "product",
-      "music"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🎤",
-      "badge": "🎵",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯在线卡拉 OK 产品；麦克风配音符徽章"
-  },
-  "TME": {
-    "entity_type": "company",
-    "canonical_name": "Tencent Music Entertainment",
-    "aliases": [
-      "腾讯音乐娱乐集团",
-      "腾讯音乐"
-    ],
-    "contexts": [
-      "product",
-      "music"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🎶",
-      "badge": "🔤",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯音乐娱乐集团英文缩写；多音符配字母徽章标示缩写语境"
-  },
-  "腾讯云": {
-    "entity_type": "product",
-    "canonical_name": "腾讯云",
-    "aliases": [
-      "Tencent Cloud",
-      "腾讯云计算"
-    ],
-    "contexts": [
-      "product",
-      "cloud"
-    ],
-    "forbidden_senses": [
-      "腾讯云=天气云层"
-    ],
-    "icon": {
-      "base": "☁️",
-      "badge": "🖥️",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯云计算平台；云主图配计算终端徽章"
-  },
-  "应用宝": {
-    "entity_type": "product",
-    "canonical_name": "腾讯应用宝",
-    "aliases": [
-      "腾讯应用宝",
-      "Tencent App Store"
-    ],
-    "contexts": [
-      "product",
-      "application"
-    ],
-    "forbidden_senses": [
-      "应用宝=抽象宝物"
-    ],
-    "icon": {
-      "base": "📦",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯应用分发产品；软件包裹配产品徽章"
-  },
-  "电脑管家": {
-    "entity_type": "product",
-    "canonical_name": "腾讯电脑管家",
-    "aliases": [
-      "腾讯电脑管家",
-      "Tencent PC Manager"
-    ],
-    "contexts": [
-      "product",
-      "security"
-    ],
-    "forbidden_senses": [
-      "管家=家庭服务人员"
-    ],
-    "icon": {
-      "base": "🛡️",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯终端安全产品；盾牌配产品徽章"
-  },
-  "CODING": {
-    "entity_type": "product",
-    "canonical_name": "CODING DevOps",
-    "aliases": [
-      "腾讯云CODING",
-      "CODING研发平台"
-    ],
-    "contexts": [
-      "product",
-      "development"
-    ],
-    "forbidden_senses": [
-      "coding=泛指编程"
-    ],
-    "icon": {
-      "base": "💻",
-      "badge": "🧑‍💻",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯云软件研发协作平台；电脑配开发者徽章"
-  },
-  "腾讯地图": {
-    "entity_type": "product",
-    "canonical_name": "腾讯地图",
-    "aliases": [
-      "Tencent Maps",
-      "腾讯地图客户端"
-    ],
-    "contexts": [
-      "product",
-      "map"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🗺️",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯地图与导航产品；地图主图配产品徽章"
-  },
-  "腾讯翻译君": {
-    "entity_type": "product",
-    "canonical_name": "腾讯翻译君",
-    "aliases": [
-      "Tencent Translator",
-      "翻译君"
-    ],
-    "contexts": [
-      "product",
-      "translation"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🔤",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯翻译产品；字母主图配产品徽章"
-  },
-  "混元大模型": {
-    "entity_type": "product",
-    "canonical_name": "腾讯混元大模型",
-    "aliases": [
-      "腾讯混元",
-      "Hunyuan"
-    ],
-    "contexts": [
-      "product",
-      "ai"
-    ],
-    "forbidden_senses": [
-      "混元=传统哲学概念"
-    ],
-    "icon": {
-      "base": "🧠",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯基础大模型品牌；大脑配产品徽章"
-  },
-  "元宝": {
-    "entity_type": "product",
-    "canonical_name": "腾讯元宝",
-    "aliases": [
-      "腾讯元宝",
-      "Yuanbao AI"
-    ],
-    "contexts": [
-      "product",
-      "ai"
-    ],
-    "forbidden_senses": [
-      "元宝=古代货币"
-    ],
-    "icon": {
-      "base": "💎",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯 AI 助手产品；宝石主图配产品徽章以限定品牌语境"
-  },
-  "CodeBuddy": {
-    "entity_type": "product",
-    "canonical_name": "Tencent Cloud CodeBuddy",
-    "aliases": [
-      "腾讯云CodeBuddy",
-      "CodeBuddy编程助手"
-    ],
-    "contexts": [
-      "product",
-      "ai"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🤖",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯云 AI 编程助手；机器人配产品徽章"
-  },
-  "WorkBuddy": {
-    "entity_type": "product",
-    "canonical_name": "WorkBuddy",
-    "aliases": [
-      "WorkBuddy工作助手",
-      "腾讯WorkBuddy"
-    ],
-    "contexts": [
-      "product",
-      "office"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🧑‍💼",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "面向工作场景的智能助手；职业人士配产品徽章"
-  },
-  "AnyDev": {
-    "entity_type": "product",
-    "canonical_name": "AnyDev",
-    "aliases": [
-      "AnyDev开发平台",
-      "腾讯AnyDev"
-    ],
-    "contexts": [
-      "product",
-      "development"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🛠️",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "开发工具产品；工具主图配产品徽章"
-  },
-  "Wedata": {
-    "entity_type": "product",
-    "canonical_name": "WeData",
-    "aliases": [
-      "腾讯云WeData",
-      "WeData数据开发治理"
-    ],
-    "contexts": [
-      "product",
-      "data"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "📊",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "数据开发治理平台；数据图表配产品徽章"
-  },
-  "ima.copilot": {
-    "entity_type": "product",
-    "canonical_name": "ima.copilot",
-    "aliases": [
-      "腾讯ima",
-      "ima知识助手"
-    ],
-    "contexts": [
-      "product",
-      "ai"
-    ],
-    "forbidden_senses": [
-      "copilot=飞行副驾驶"
-    ],
-    "icon": {
-      "base": "📚",
-      "badge": "🤖",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯 AI 知识助手；书本配机器人徽章"
-  },
-  "腾讯企点": {
-    "entity_type": "product",
-    "canonical_name": "腾讯企点",
-    "aliases": [
-      "Tencent Qidian",
-      "腾讯企点客服"
-    ],
-    "contexts": [
-      "product",
-      "enterprise"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🎯",
-      "badge": "🏢",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯企业客户连接产品；目标主图配企业服务徽章"
-  },
-  "CDC": {
-    "entity_type": "organization",
-    "canonical_name": "Tencent Customer Research and User Experience Design Center",
-    "aliases": [
-      "腾讯CDC",
-      "腾讯用户研究与体验设计部"
-    ],
-    "contexts": [
-      "product",
-      "design"
-    ],
-    "forbidden_senses": [
-      "CDC=疾病控制中心"
-    ],
-    "icon": {
-      "base": "🎨",
-      "badge": "🏢",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯用户研究与体验设计组织缩写；调色板配组织徽章"
-  },
-  "英雄联盟": {
-    "entity_type": "product",
-    "canonical_name": "League of Legends",
-    "aliases": [
-      "LOL端游",
-      "英雄联盟端游"
-    ],
-    "contexts": [
-      "product",
-      "game"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🎮",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "拳头游戏开发的多人竞技游戏；手柄配产品徽章"
-  },
-  "英雄联盟手游": {
-    "entity_type": "product",
-    "canonical_name": "League of Legends: Wild Rift",
-    "aliases": [
-      "LOL手游",
-      "Wild Rift"
-    ],
-    "contexts": [
-      "product",
-      "game"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "📱",
-      "badge": "🎮",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "英雄联盟移动游戏产品；手机主图配游戏徽章"
-  },
-  "金铲铲": {
-    "entity_type": "product",
-    "canonical_name": "金铲铲之战",
-    "aliases": [
-      "金铲铲之战",
-      "腾讯金铲铲"
-    ],
-    "contexts": [
-      "product",
-      "game"
-    ],
-    "forbidden_senses": [
-      "金铲铲=普通铲子"
-    ],
-    "icon": {
-      "base": "♟️",
-      "badge": "⛏️",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "自走棋游戏《金铲铲之战》；棋子配铲子徽章"
-  },
-  "穿越火线": {
-    "entity_type": "product",
-    "canonical_name": "CrossFire",
-    "aliases": [
-      "CF端游",
-      "穿越火线端游"
-    ],
-    "contexts": [
-      "product",
-      "game"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🔫",
-      "badge": "🎮",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "射击游戏《穿越火线》；枪械配游戏徽章"
-  },
-  "DNF": {
-    "entity_type": "product",
-    "canonical_name": "Dungeon & Fighter",
-    "aliases": [
-      "地下城与勇士",
-      "DNF端游"
-    ],
-    "contexts": [
-      "product",
-      "game"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "⚔️",
-      "badge": "🎮",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "动作游戏《地下城与勇士》缩写；武器配游戏徽章"
-  },
-  "火影忍者手游": {
-    "entity_type": "product",
-    "canonical_name": "火影忍者手游",
-    "aliases": [
-      "腾讯火影忍者手游",
-      "火影手游"
-    ],
-    "contexts": [
-      "product",
-      "game"
-    ],
-    "forbidden_senses": [
-      "火影=火焰影子"
-    ],
-    "icon": {
-      "base": "🥷",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯发行的火影忍者移动游戏；忍者配产品徽章"
-  },
-  "元梦之星": {
-    "entity_type": "product",
-    "canonical_name": "元梦之星",
-    "aliases": [
-      "腾讯元梦之星",
-      "元梦"
-    ],
-    "contexts": [
-      "product",
-      "game"
-    ],
-    "forbidden_senses": [
-      "元梦之星=普通星体"
-    ],
-    "icon": {
-      "base": "⭐",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯派对游戏产品；星星主图配产品徽章"
-  },
-  "PUBG": {
-    "entity_type": "product",
-    "canonical_name": "PUBG: Battlegrounds",
-    "aliases": [
-      "绝地求生",
-      "PUBG端游"
-    ],
-    "contexts": [
-      "product",
-      "game"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🪂",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "战术竞技游戏；降落伞配产品徽章"
-  },
-  "Valorant": {
-    "entity_type": "product",
-    "canonical_name": "VALORANT",
-    "aliases": [
-      "无畏契约",
-      "瓦罗兰特"
-    ],
-    "contexts": [
-      "product",
-      "game"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🎯",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "拳头游戏开发的战术射击产品；靶心配产品徽章"
-  },
-  "欢乐斗地主": {
-    "entity_type": "product",
-    "canonical_name": "腾讯欢乐斗地主",
-    "aliases": [
-      "腾讯欢乐斗地主",
-      "欢乐斗地主游戏"
-    ],
-    "contexts": [
-      "product",
-      "game"
-    ],
-    "forbidden_senses": [
-      "斗地主=线下扑克玩法"
-    ],
-    "icon": {
-      "base": "🃏",
-      "badge": "🎮",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯数字扑克游戏；纸牌配游戏徽章"
-  },
-  "欢乐麻将": {
-    "entity_type": "product",
-    "canonical_name": "腾讯欢乐麻将",
-    "aliases": [
-      "腾讯欢乐麻将",
-      "欢乐麻将全集"
-    ],
-    "contexts": [
-      "product",
-      "game"
-    ],
-    "forbidden_senses": [
-      "麻将=线下桌游"
-    ],
-    "icon": {
-      "base": "🀄",
-      "badge": "🎮",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯数字麻将游戏；麻将牌配游戏徽章"
-  },
-  "天美": {
-    "entity_type": "studio",
-    "canonical_name": "天美工作室群",
-    "aliases": [
-      "TiMi Studio Group",
-      "腾讯天美"
-    ],
-    "contexts": [
-      "studio",
-      "tencent"
-    ],
-    "forbidden_senses": [
-      "天美=天气美好"
-    ],
-    "icon": {
-      "base": "⚔️",
-      "badge": "🎮",
-      "palette": "studio",
-      "source": "entity"
-    },
-    "rationale": "腾讯游戏工作室群；武器配游戏徽章"
-  },
-  "光子": {
-    "entity_type": "studio",
-    "canonical_name": "光子工作室群",
-    "aliases": [
-      "Lightspeed Studios",
-      "腾讯光子"
-    ],
-    "contexts": [
-      "studio",
-      "tencent"
-    ],
-    "forbidden_senses": [
-      "光子=物理粒子"
-    ],
-    "icon": {
-      "base": "💡",
-      "badge": "🎮",
-      "palette": "studio",
-      "source": "entity"
-    },
-    "rationale": "腾讯游戏工作室群；光源配游戏徽章限定实体语境"
-  },
-  "魔方": {
-    "entity_type": "studio",
-    "canonical_name": "魔方工作室群",
-    "aliases": [
-      "Morefun Studios",
-      "腾讯魔方"
-    ],
-    "contexts": [
-      "studio",
-      "tencent"
-    ],
-    "forbidden_senses": [
-      "魔方=益智玩具"
-    ],
-    "icon": {
-      "base": "🎲",
-      "badge": "🎮",
-      "palette": "studio",
-      "source": "entity"
-    },
-    "rationale": "腾讯游戏工作室群；立方体玩具意象配游戏徽章"
-  },
-  "北极光": {
-    "entity_type": "studio",
-    "canonical_name": "北极光工作室群",
-    "aliases": [
-      "Aurora Studios",
-      "腾讯北极光"
-    ],
-    "contexts": [
-      "studio",
-      "tencent"
-    ],
-    "forbidden_senses": [
-      "北极光=自然极光"
-    ],
-    "icon": {
-      "base": "🌌",
-      "badge": "🎮",
-      "palette": "studio",
-      "source": "entity"
-    },
-    "rationale": "腾讯游戏工作室群；极光夜空配游戏徽章"
-  },
-  "量子": {
-    "entity_type": "studio",
-    "canonical_name": "量子工作室",
-    "aliases": [
-      "Quantum Studio",
-      "腾讯量子"
-    ],
-    "contexts": [
-      "studio",
-      "tencent"
-    ],
-    "forbidden_senses": [
-      "量子=物理概念"
-    ],
-    "icon": {
-      "base": "⚛️",
-      "badge": "🎮",
-      "palette": "studio",
-      "source": "entity"
-    },
-    "rationale": "腾讯游戏工作室；原子意象配游戏徽章限定实体语境"
-  },
-  "极光": {
-    "entity_type": "studio",
-    "canonical_name": "极光计划",
-    "aliases": [
-      "腾讯极光计划",
-      "Aurora Project"
-    ],
-    "contexts": [
-      "studio",
-      "tencent"
-    ],
-    "forbidden_senses": [
-      "极光=自然现象"
-    ],
-    "icon": {
-      "base": "✨",
-      "badge": "🎮",
-      "palette": "studio",
-      "source": "entity"
-    },
-    "rationale": "腾讯游戏发行品牌语境；闪光配游戏徽章"
-  },
-  "波士顿": {
-    "entity_type": "studio",
-    "canonical_name": "腾讯波士顿工作室语境",
-    "aliases": [
-      "腾讯波士顿工作室",
-      "Boston studio"
-    ],
-    "contexts": [
-      "studio",
-      "tencent"
-    ],
-    "forbidden_senses": [
-      "波士顿=普通城市"
-    ],
-    "icon": {
-      "base": "🦞",
-      "badge": "🎮",
-      "palette": "studio",
-      "source": "entity"
-    },
-    "rationale": "种子工作室链中的波士顿实体；当地龙虾意象配游戏徽章"
-  },
-  "拳头": {
-    "entity_type": "company",
-    "canonical_name": "Riot Games",
-    "aliases": [
-      "拳头游戏",
-      "Riot Games中文名"
-    ],
-    "contexts": [
-      "studio",
-      "invest"
-    ],
-    "forbidden_senses": [
-      "拳头=身体部位"
-    ],
-    "icon": {
-      "base": "👊",
-      "badge": "🐧",
-      "palette": "studio",
-      "source": "entity"
-    },
-    "rationale": "Riot Games 的中文通称；拳头主图配企鹅徽章标示腾讯投资语境"
-  },
-  "Supercell": {
-    "entity_type": "company",
-    "canonical_name": "Supercell",
-    "aliases": [
-      "Supercell游戏公司",
-      "超级细胞"
-    ],
-    "contexts": [
-      "studio",
-      "invest"
-    ],
-    "forbidden_senses": [
-      "supercell=超级单体雷暴"
-    ],
-    "icon": {
-      "base": "🏰",
-      "badge": "🎮",
-      "palette": "studio",
-      "source": "entity"
-    },
-    "rationale": "移动游戏公司 Supercell；城堡主图配游戏徽章"
-  },
-  "Epic": {
-    "entity_type": "company",
-    "canonical_name": "Epic Games",
-    "aliases": [
-      "Epic Games",
-      "Epic游戏"
-    ],
-    "contexts": [
-      "studio",
-      "invest"
-    ],
-    "forbidden_senses": [
-      "epic=史诗",
-      "epic=宏大"
-    ],
-    "icon": {
-      "base": "🛡️",
-      "badge": "🎮",
-      "palette": "studio",
-      "source": "curated"
-    },
-    "rationale": "游戏工作室 Epic Games；盾牌主图配游戏徽章表示其公司语境"
-  },
-  "T族": {
-    "entity_type": "role_family",
-    "canonical_name": "腾讯 T 族职级",
-    "aliases": [
-      "腾讯T序列",
-      "技术族职级"
-    ],
-    "contexts": [
-      "level",
-      "technology"
-    ],
-    "forbidden_senses": [
-      "T=普通字母"
-    ],
-    "icon": {
-      "base": "🧪",
-      "badge": "🪜",
-      "palette": "office",
-      "source": "entity"
-    },
-    "rationale": "腾讯技术族职级体系；实验器具配晋升阶梯徽章"
-  },
-  "P族": {
-    "entity_type": "role_family",
-    "canonical_name": "腾讯 P 族职级",
-    "aliases": [
-      "腾讯P序列",
-      "产品专业族职级"
-    ],
-    "contexts": [
-      "level",
-      "product"
-    ],
-    "forbidden_senses": [
-      "P=普通字母"
-    ],
-    "icon": {
-      "base": "📋",
-      "badge": "🪜",
-      "palette": "office",
-      "source": "entity"
-    },
-    "rationale": "腾讯产品专业族职级体系；任务板配晋升阶梯徽章"
-  },
-  "M族": {
-    "entity_type": "role_family",
-    "canonical_name": "腾讯 M 族职级",
-    "aliases": [
-      "腾讯M序列",
-      "管理族职级"
-    ],
-    "contexts": [
-      "level",
-      "management"
-    ],
-    "forbidden_senses": [
-      "M=普通字母"
-    ],
-    "icon": {
-      "base": "👔",
-      "badge": "🪜",
-      "palette": "office",
-      "source": "entity"
-    },
-    "rationale": "腾讯管理族职级体系；领带配晋升阶梯徽章"
-  },
-  "S族": {
-    "entity_type": "role_family",
-    "canonical_name": "腾讯 S 族职级",
-    "aliases": [
-      "腾讯S序列",
-      "技术支持族职级"
-    ],
-    "contexts": [
-      "level",
-      "operations"
-    ],
-    "forbidden_senses": [
-      "S=普通字母"
-    ],
-    "icon": {
-      "base": "🛠️",
-      "badge": "🪜",
-      "palette": "office",
-      "source": "entity"
-    },
-    "rationale": "腾讯技术支持族职级体系；工具配晋升阶梯徽章"
-  },
-  "应届生": {
-    "entity_type": "role",
-    "canonical_name": "应届毕业生岗位",
-    "aliases": [
-      "校招生",
-      "应届校招员工"
-    ],
-    "contexts": [
-      "level",
-      "career"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🎓",
-      "badge": "🪜",
-      "palette": "office",
-      "source": "entity"
-    },
-    "rationale": "校招职业阶段；毕业帽配职级阶梯徽章"
-  },
-  "实习生": {
-    "entity_type": "role",
-    "canonical_name": "实习员工",
-    "aliases": [
-      "intern",
-      "实习岗位"
-    ],
-    "contexts": [
-      "level",
-      "career"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🔰",
-      "badge": "🪜",
-      "palette": "office",
-      "source": "entity"
-    },
-    "rationale": "实习职业阶段；新手标记配职级阶梯徽章"
-  },
-  "正式员工": {
-    "entity_type": "role",
-    "canonical_name": "正式员工",
-    "aliases": [
-      "正式编制员工",
-      "regular employee"
-    ],
-    "contexts": [
-      "level",
-      "career"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🪪",
-      "badge": "🪜",
-      "palette": "office",
-      "source": "entity"
-    },
-    "rationale": "正式雇佣身份；工牌配职级阶梯徽章"
-  },
-  "外包": {
-    "entity_type": "role",
-    "canonical_name": "外包员工",
-    "aliases": [
-      "外包岗位",
-      "contractor"
-    ],
-    "contexts": [
-      "level",
-      "career"
-    ],
-    "forbidden_senses": [
-      "外包=包裹外包装"
-    ],
-    "icon": {
-      "base": "📎",
-      "badge": "🪜",
-      "palette": "office",
-      "source": "entity"
-    },
-    "rationale": "外包雇佣身份；附件意象配职级阶梯徽章"
-  },
-  "专家": {
-    "entity_type": "role",
-    "canonical_name": "专家岗位",
-    "aliases": [
-      "专业专家",
-      "expert"
-    ],
-    "contexts": [
-      "level",
-      "career"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🧙",
-      "badge": "🪜",
-      "palette": "office",
-      "source": "entity"
-    },
-    "rationale": "高级专业岗位；智者主图配职级阶梯徽章"
-  },
-  "总监": {
-    "entity_type": "role",
-    "canonical_name": "总监岗位",
-    "aliases": [
-      "业务总监",
-      "director"
-    ],
-    "contexts": [
-      "level",
-      "management"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🎩",
-      "badge": "🪜",
-      "palette": "office",
-      "source": "entity"
-    },
-    "rationale": "组织管理岗位；礼帽配职级阶梯徽章"
-  },
-  "VP": {
-    "entity_type": "role",
-    "canonical_name": "Vice President",
-    "aliases": [
-      "副总裁",
-      "公司VP"
-    ],
-    "contexts": [
-      "level",
-      "boss"
-    ],
-    "forbidden_senses": [
-      "VP=普通字母组合"
-    ],
-    "icon": {
-      "base": "🎖️",
-      "badge": "🪜",
-      "palette": "office",
-      "source": "entity"
-    },
-    "rationale": "公司副总裁职位缩写；勋章配职级阶梯徽章"
   },
   "Pony": {
     "entity_type": "person",
@@ -3547,7 +1623,7 @@ export const ELEMENT_ICONS = {
     ],
     "contexts": [
       "boss",
-      "invest"
+      "association"
     ],
     "forbidden_senses": [
       "Martin=泛指英文人名"
@@ -3569,7 +1645,7 @@ export const ELEMENT_ICONS = {
     ],
     "contexts": [
       "boss",
-      "invest"
+      "association"
     ],
     "forbidden_senses": [],
     "icon": {
@@ -3644,14 +1720,6 @@ export const ELEMENT_ICONS = {
     },
     "rationale": "微信业务代表人物张小龙；绿色品牌意象配高管徽章"
   },
-  "全员信": {
-    "icon": {
-      "base": "📧",
-      "palette": "people",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“📧”；种子配方“全员 + 小马哥”（tencent 链）确认“全员信”概念，无需附加徽章"
-  },
   "董事长": {
     "entity_type": "role",
     "canonical_name": "董事长",
@@ -3672,199 +1740,6 @@ export const ELEMENT_ICONS = {
     },
     "rationale": "公司董事会最高职位；皇冠配高管徽章"
   },
-  "拼多多": {
-    "entity_type": "company",
-    "canonical_name": "拼多多",
-    "aliases": [
-      "Pinduoduo",
-      "PDD电商"
-    ],
-    "contexts": [
-      "invest",
-      "ecommerce"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🛒",
-      "badge": "💰",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯投资语境中的电商公司；购物车配投资徽章"
-  },
-  "美团": {
-    "entity_type": "company",
-    "canonical_name": "美团",
-    "aliases": [
-      "Meituan",
-      "美团平台"
-    ],
-    "contexts": [
-      "invest",
-      "local_services"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🛵",
-      "badge": "💰",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯投资语境中的本地生活公司；配送车配投资徽章"
-  },
-  "快手": {
-    "entity_type": "company",
-    "canonical_name": "快手",
-    "aliases": [
-      "Kuaishou",
-      "快手科技"
-    ],
-    "contexts": [
-      "invest",
-      "short_video"
-    ],
-    "forbidden_senses": [
-      "快手=动作很快的人"
-    ],
-    "icon": {
-      "base": "📹",
-      "badge": "💰",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯投资语境中的短视频公司；摄像机配投资徽章"
-  },
-  "B站": {
-    "entity_type": "company",
-    "canonical_name": "哔哩哔哩",
-    "aliases": [
-      "Bilibili",
-      "哔哩哔哩"
-    ],
-    "contexts": [
-      "invest",
-      "video"
-    ],
-    "forbidden_senses": [
-      "B站=普通B号站点"
-    ],
-    "icon": {
-      "base": "📺",
-      "badge": "💰",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯投资语境中的视频社区；电视配投资徽章"
-  },
-  "京东": {
-    "entity_type": "company",
-    "canonical_name": "京东",
-    "aliases": [
-      "JD.com",
-      "京东集团"
-    ],
-    "contexts": [
-      "invest",
-      "ecommerce"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "📦",
-      "badge": "💰",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯投资语境中的电商与物流公司；包裹配投资徽章"
-  },
-  "知乎": {
-    "entity_type": "company",
-    "canonical_name": "知乎",
-    "aliases": [
-      "Zhihu",
-      "知乎社区"
-    ],
-    "contexts": [
-      "invest",
-      "knowledge"
-    ],
-    "forbidden_senses": [
-      "知乎=古文疑问词"
-    ],
-    "icon": {
-      "base": "💡",
-      "badge": "💰",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯投资语境中的问答社区；灯泡配投资徽章"
-  },
-  "蔚来": {
-    "entity_type": "company",
-    "canonical_name": "蔚来汽车",
-    "aliases": [
-      "NIO",
-      "蔚来"
-    ],
-    "contexts": [
-      "invest",
-      "vehicle"
-    ],
-    "forbidden_senses": [
-      "蔚来=未来谐音"
-    ],
-    "icon": {
-      "base": "🚗",
-      "badge": "💰",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯投资语境中的新能源汽车公司；汽车配投资徽章"
-  },
-  "小红书": {
-    "entity_type": "company",
-    "canonical_name": "小红书",
-    "aliases": [
-      "Xiaohongshu",
-      "RED社区"
-    ],
-    "contexts": [
-      "invest",
-      "social"
-    ],
-    "forbidden_senses": [
-      "小红书=红色小册子"
-    ],
-    "icon": {
-      "base": "📕",
-      "badge": "💰",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯投资语境中的生活方式社区；红书配投资徽章"
-  },
-  "Riot": {
-    "entity_type": "company",
-    "canonical_name": "Riot Games",
-    "aliases": [
-      "拳头",
-      "拳头游戏"
-    ],
-    "contexts": [
-      "studio",
-      "invest"
-    ],
-    "forbidden_senses": [
-      "riot=暴乱",
-      "riot=闪电"
-    ],
-    "icon": {
-      "base": "👊",
-      "badge": "🎮",
-      "palette": "studio",
-      "source": "curated"
-    },
-    "rationale": "腾讯投资的游戏工作室；中文通称拳头游戏"
-  },
   "99公益日": {
     "entity_type": "campaign",
     "canonical_name": "腾讯99公益日",
@@ -3873,7 +1748,7 @@ export const ELEMENT_ICONS = {
       "腾讯公益日"
     ],
     "contexts": [
-      "invest",
+      "association",
       "charity"
     ],
     "forbidden_senses": [
@@ -3909,7 +1784,7 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“📰”；种子配方“人 + 知识”（product 链）确认“新闻”概念，无需附加徽章"
+    "rationale": "沿用种子语义“📰”；种子配方“文字 + 视频”（seed_bridge 链）确认“新闻”概念，无需附加徽章"
   },
   "动漫": {
     "icon": {
@@ -3966,7 +1841,7 @@ export const ELEMENT_ICONS = {
       "palette": "product",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“🗺️”；种子配方“城市 + 知识”（product 链）确认“地图”概念，无需附加徽章"
+    "rationale": "沿用种子语义“🗺️”；种子配方“城市 + 文字”（seed_bridge 链）确认“地图”概念，无需附加徽章"
   },
   "代码": {
     "icon": {
@@ -4344,28 +2219,6 @@ export const ELEMENT_ICONS = {
     },
     "rationale": "沿用种子语义“😄”；种子配方“人 + 自由”（abstract 链）确认“欢乐”概念，无需附加徽章"
   },
-  "CF": {
-    "entity_type": "product_reference",
-    "canonical_name": "CrossFire",
-    "aliases": [
-      "穿越火线简称",
-      "CF游戏"
-    ],
-    "contexts": [
-      "product",
-      "game"
-    ],
-    "forbidden_senses": [
-      "CF=普通字母缩写"
-    ],
-    "icon": {
-      "base": "🔫",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "《穿越火线》的英文缩写；枪械配产品徽章"
-  },
   "蛋仔": {
     "entity_type": "product_reference",
     "canonical_name": "蛋仔派对",
@@ -4458,7 +2311,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“👛”；种子配方“人 + 金属”（life 链）确认“钱包”概念，无需附加徽章"
+    "rationale": "沿用种子语义“👛”；种子配方“手机 + 货币”（seed_bridge 链）确认“钱包”概念，无需附加徽章"
   },
   "背景": {
     "icon": {
@@ -4474,7 +2327,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“🙂”；种子配方“人 + 手机”（life 链）确认“表情”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“🙂”语义；life类别无需附加徽章"
   },
   "小床": {
     "icon": {
@@ -4515,22 +2368,6 @@ export const ELEMENT_ICONS = {
       "source": "fallback"
     },
     "rationale": "沿用种子语义“🌃”；种子配方“时间 + 火”（life 链）确认“夜”概念，无需附加徽章"
-  },
-  "早会": {
-    "icon": {
-      "base": "🌅",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🌅”；种子配方“周五 + 腾讯会议”（tencent 链）确认“早会”概念，无需附加徽章"
-  },
-  "晚班": {
-    "icon": {
-      "base": "🌙",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🌙”；种子配方“加班 + 夜”（tencent 链）确认“晚班”概念，无需附加徽章"
   },
   "午休": {
     "icon": {
@@ -4579,7 +2416,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧒”；种子配方“人 + 直播间”（life 链）确认“嘎子”概念，无需附加徽章"
+    "rationale": "沿用种子语义“🧒”；种子配方“人 + 打工人”（meme_classic 链）确认“嘎子”概念，无需附加徽章"
   },
   "孙红雷": {
     "icon": {
@@ -4587,7 +2424,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“😑”；种子配方“人 + 表情”（life 链）确认“孙红雷”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“😑”语义；life类别无需附加徽章"
   },
   "红袜子": {
     "icon": {
@@ -4645,15 +2482,6 @@ export const ELEMENT_ICONS = {
       "source": "fallback"
     },
     "rationale": "沿用种子语义“📲”；种子配方“代码 + 手机”（product 链）确认“应用”概念，无需附加徽章"
-  },
-  "聊天": {
-    "icon": {
-      "base": "💬",
-      "badge": "👥",
-      "palette": "product",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“💬”，依据种子配方“微信 + 手机”（product 链）以“人与人交谈”徽章区分“聊天”"
   },
   "自己": {
     "icon": {
@@ -4972,7 +2800,7 @@ export const ELEMENT_ICONS = {
       "palette": "office",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“💎”；种子配方“手机 + 游戏”（worker 链）确认“氪金”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“💎”语义；worker类别无需附加徽章"
   },
   "直播间": {
     "icon": {
@@ -4980,7 +2808,7 @@ export const ELEMENT_ICONS = {
       "palette": "office",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“📹”；种子配方“氪金 + 视频号”（worker 链）确认“直播间”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“📹”语义；worker类别无需附加徽章"
   },
   "直播打赏": {
     "icon": {
@@ -4988,7 +2816,7 @@ export const ELEMENT_ICONS = {
       "palette": "office",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“💰”；种子配方“氪金 + 直播间”（worker 链）确认“直播打赏”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“💰”语义；worker类别无需附加徽章"
   },
   "广告": {
     "icon": {
@@ -5013,22 +2841,6 @@ export const ELEMENT_ICONS = {
       "source": "fallback"
     },
     "rationale": "沿用种子语义“📢”；种子配方“P0故障 + P0故障”（easter_egg 链）确认“全员告警”概念，无需附加徽章"
-  },
-  "鹅厂双子塔": {
-    "icon": {
-      "base": "🏙️",
-      "palette": "place",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🏙️”；种子配方“滨海大厦 + 腾讯大厦”（building 链）确认“鹅厂双子塔”概念，无需附加徽章"
-  },
-  "微信总部": {
-    "icon": {
-      "base": "💚",
-      "palette": "place",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“💚”；种子配方“TIT创意园 + 滑梯”（building 链）确认“微信总部”概念，无需附加徽章"
   },
   "LOFT工业风": {
     "entity_type": "design_term",
@@ -5059,26 +2871,6 @@ export const ELEMENT_ICONS = {
       "source": "fallback"
     },
     "rationale": "沿用种子语义“🛝”；种子配方“工位 + 滑梯”（building 链）确认“硅谷风”概念，无需附加徽章"
-  },
-  "腾讯音乐娱乐": {
-    "entity_type": "company",
-    "canonical_name": "Tencent Music Entertainment",
-    "aliases": [
-      "腾讯音乐娱乐集团",
-      "TME中文名"
-    ],
-    "contexts": [
-      "product",
-      "music"
-    ],
-    "forbidden_senses": [],
-    "icon": {
-      "base": "🎶",
-      "badge": "📱",
-      "palette": "product",
-      "source": "entity"
-    },
-    "rationale": "腾讯音乐娱乐集团中文名；多音符配产品徽章"
   },
   "微信之夜": {
     "entity_type": "event",
@@ -5159,57 +2951,6 @@ export const ELEMENT_ICONS = {
     },
     "rationale": "沿用种子语义“🧊”；种子配方“企鹅 + 雪”（tencent 链）确认“南极”概念，无需附加徽章"
   },
-  "烤企鹅": {
-    "icon": {
-      "base": "🔥",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🔥”；种子配方“企鹅 + 火”（tencent 链）确认“烤企鹅”概念，无需附加徽章"
-  },
-  "爆料": {
-    "icon": {
-      "base": "💬",
-      "badge": "📢",
-      "palette": "product",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“💬”，依据种子配方“南极圈 + 脉脉”（tencent 链）以“公开传播消息”徽章区分“爆料”"
-  },
-  "续命鹅": {
-    "icon": {
-      "base": "☕",
-      "badge": "❤️",
-      "palette": "product",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“☕”，依据种子配方“咖啡 + 打工鹅”（tencent 链）以“咖啡续命的打工鹅”徽章区分“续命鹅”"
-  },
-  "静音挂机": {
-    "icon": {
-      "base": "🔇",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🔇”；种子配方“摸鱼 + 腾讯会议”（tencent 链）确认“静音挂机”概念，无需附加徽章"
-  },
-  "多人编辑打架": {
-    "icon": {
-      "base": "⚔️",
-      "badge": "📝",
-      "palette": "product",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“⚔️”，依据种子配方“协同 + 腾讯文档”（tencent 链）以“文档多人编辑冲突”徽章区分“多人编辑打架”"
-  },
-  "灯火通明": {
-    "icon": {
-      "base": "🌃",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🌃”；种子配方“夜 + 滨海大厦”（tencent 链）确认“灯火通明”概念，无需附加徽章"
-  },
   "迟到": {
     "icon": {
       "base": "🏃",
@@ -5217,187 +2958,6 @@ export const ELEMENT_ICONS = {
       "source": "fallback"
     },
     "rationale": "沿用种子语义“🏃”；种子配方“周一 + 打卡”（tencent 链）确认“迟到”概念，无需附加徽章"
-  },
-  "带薪养生": {
-    "icon": {
-      "base": "💆",
-      "badge": "💼",
-      "palette": "product",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“💆”，依据种子配方“工位 + 按摩椅”（tencent 链）以“工作时间内养生”徽章区分“带薪养生”"
-  },
-  "排队堵梯": {
-    "icon": {
-      "base": "🕰️",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🕰️”；种子配方“早高峰 + 电梯”（tencent 链）确认“排队堵梯”概念，无需附加徽章"
-  },
-  "尴尬同框": {
-    "icon": {
-      "base": "😬",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“😬”；种子配方“电梯 + 老板”（tencent 链）确认“尴尬同框”概念，无需附加徽章"
-  },
-  "最后一班": {
-    "icon": {
-      "base": "🚌",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🚌”；种子配方“晚班 + 班车”（tencent 链）确认“最后一班”概念，无需附加徽章"
-  },
-  "通勤睡眠": {
-    "icon": {
-      "base": "😴",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“😴”；种子配方“早高峰 + 班车”（tencent 链）确认“通勤睡眠”概念，无需附加徽章"
-  },
-  "深夜食堂": {
-    "icon": {
-      "base": "🌙",
-      "badge": "🍜",
-      "palette": "product",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🌙”，依据种子配方“夜宵券 + 食堂”（tencent 链）以“深夜餐食场景”徽章区分“深夜食堂”"
-  },
-  "工位食堂": {
-    "icon": {
-      "base": "🥡",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🥡”；种子配方“工位 + 鹅餐”（tencent 链）确认“工位食堂”概念，无需附加徽章"
-  },
-  "午间撸铁": {
-    "icon": {
-      "base": "🏋️",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🏋️”；种子配方“健身房 + 打工人”（tencent 链）确认“午间撸铁”概念，无需附加徽章"
-  },
-  "带薪健身": {
-    "icon": {
-      "base": "💪",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“💪”；种子配方“健身房 + 摸鱼”（tencent 链）确认“带薪健身”概念，无需附加徽章"
-  },
-  "鹅式小憩": {
-    "icon": {
-      "base": "💤",
-      "badge": "🐧",
-      "palette": "product",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“💤”，依据种子配方“午休 + 按摩椅”（tencent 链）以“腾讯员工小憩”徽章区分“鹅式小憩”"
-  },
-  "免费午餐": {
-    "icon": {
-      "base": "🍱",
-      "badge": "🎁",
-      "palette": "product",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🍱”，依据种子配方“食堂 + 鹅卡”（tencent 链）以“免费福利餐”徽章区分“免费午餐”"
-  },
-  "鹅咖": {
-    "icon": {
-      "base": "☕",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“☕”；种子配方“瑞幸 + 鹅卡”（tencent 链）确认“鹅咖”概念，无需附加徽章"
-  },
-  "水帖": {
-    "icon": {
-      "base": "💬",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“💬”；种子配方“乐享 + 周五”（tencent 链）确认“水帖”概念，无需附加徽章"
-  },
-  "道别贴": {
-    "icon": {
-      "base": "👋",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“👋”；种子配方“乐享 + 离职”（tencent 链）确认“道别贴”概念，无需附加徽章"
-  },
-  "文档不同步": {
-    "icon": {
-      "base": "📚",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“📚”；种子配方“iWiki + 需求变更”（tencent 链）确认“文档不同步”概念，无需附加徽章"
-  },
-  "@所有人": {
-    "icon": {
-      "base": "📧",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“📧”；种子配方“RTX + 老板”（tencent 链）确认“@所有人”概念，无需附加徽章"
-  },
-  "周会纪要": {
-    "icon": {
-      "base": "📋",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“📋”；种子配方“RTX + 周五”（tencent 链）确认“周会纪要”概念，无需附加徽章"
-  },
-  "晨会": {
-    "icon": {
-      "base": "🌅",
-      "badge": "📝",
-      "palette": "product",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🌅”，依据种子配方“早会 + 腾讯会议”（tencent 链）以“晨间工作会议”徽章区分“晨会”"
-  },
-  "周会": {
-    "icon": {
-      "base": "🔁",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🔁”；种子配方“周报 + 腾讯会议”（tencent 链）确认“周会”概念，无需附加徽章"
-  },
-  "黑屏挂机": {
-    "icon": {
-      "base": "⬛",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“⬛”；种子配方“电脑 + 腾讯会议”（tencent 链）确认“黑屏挂机”概念，无需附加徽章"
-  },
-  "虚拟背景": {
-    "icon": {
-      "base": "🖼️",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🖼️”；种子配方“背景 + 腾讯会议”（tencent 链）确认“虚拟背景”概念，无需附加徽章"
-  },
-  "背景音": {
-    "icon": {
-      "base": "🐕",
-      "palette": "product",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🐕”；种子配方“狗 + 腾讯会议”（tencent 链）确认“背景音”概念，无需附加徽章"
   },
   "续命": {
     "icon": {
@@ -5413,7 +2973,7 @@ export const ELEMENT_ICONS = {
       "palette": "office",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧓”；种子配方“周报 + 秃头”（worker 链）确认“资深打工人”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“🧓”语义；worker类别无需附加徽章"
   },
   "猝死": {
     "icon": {
@@ -5516,7 +3076,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧾”；种子配方“打工人 + 过期酸奶”（meme_2026w16 链）确认“智商税”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“🧾”语义；meme_2026w16类别无需附加徽章"
   },
   "起床": {
     "icon": {
@@ -6036,7 +3596,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“😴”；种子配方“头发 + 熬夜”（life 链）确认“朦胧”概念，无需附加徽章"
+    "rationale": "沿用种子语义“😴”；种子配方“熬夜 + 黑眼圈”（life 链）确认“朦胧”概念，无需附加徽章"
   },
   "早班车": {
     "icon": {
@@ -6327,14 +3887,6 @@ export const ELEMENT_ICONS = {
     },
     "rationale": "曾李青的英文名；火箭配高管徽章"
   },
-  "程序员床位": {
-    "icon": {
-      "base": "🛏️",
-      "palette": "place",
-      "source": "fallback"
-    },
-    "rationale": "沿用种子语义“🛏️”；种子配方“小床 + 工位”（tencent 链）确认“程序员床位”概念，无需附加徽章"
-  },
   "T1": {
     "entity_type": "role_level",
     "canonical_name": "腾讯 T1 职级",
@@ -6425,7 +3977,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“🏗️”；种子配方“人 + 泥”（physical 链）确认“工地”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“🏗️”语义；physical类别无需附加徽章"
   },
   "矿石": {
     "icon": {
@@ -6473,7 +4025,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“👵”；种子配方“人 + 时间”（life 链）确认“皱纹”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“👵”语义；life类别无需附加徽章"
   },
   "白发": {
     "icon": {
@@ -6481,7 +4033,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“👴”；种子配方“时间 + 皱纹”（life 链）确认“白发”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“👴”语义；life类别无需附加徽章"
   },
   "资历": {
     "icon": {
@@ -6806,7 +4358,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子语义“🧧”；种子配方“人 + 朋友”（life 链）确认“人情”概念，无需附加徽章"
+    "rationale": "沿用种子元素的“🧧”语义；life类别无需附加徽章"
   },
   "盆栽": {
     "icon": {
@@ -6823,6 +4375,4157 @@ export const ELEMENT_ICONS = {
       "source": "fallback"
     },
     "rationale": "沿用种子语义“🏺”；种子配方“土 + 锅”（life 链）确认“花盆”概念，无需附加徽章"
+  },
+  "互联网": {
+    "icon": {
+      "base": "🌐",
+      "badge": "🌸",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🌐”，依据种子配方“电脑 + 网络”（internet 链）以“合并目录语义”徽章区分“互联网”"
+  },
+  "移动互联网": {
+    "icon": {
+      "base": "📶",
+      "badge": "🎮",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“📶”，依据种子配方“手机 + 网络”（internet 链）以“合并目录语义”徽章区分“移动互联网”"
+  },
+  "聊天": {
+    "icon": {
+      "base": "💬",
+      "badge": "🏝️",
+      "palette": "people",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“互联网 + 人”（social 链）以“合并目录语义”徽章区分“聊天”"
+  },
+  "会议记录": {
+    "icon": {
+      "base": "📋",
+      "badge": "📷",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“📋”，依据种子配方“时间 + 聊天”（tencent 链）以“合并目录语义”徽章区分“会议记录”"
+  },
+  "腾讯": {
+    "icon": {
+      "base": "🐧",
+      "badge": "🧑‍💻",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🐧”，依据种子配方“互联网 + 企鹅”（tencent 链）以“合并目录语义”徽章区分“腾讯”"
+  },
+  "光": {
+    "icon": {
+      "base": "🧩",
+      "badge": "📈",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“火 + 火”（support 链）以“合并目录语义”徽章区分“光”"
+  },
+  "颜色": {
+    "icon": {
+      "base": "🧩",
+      "badge": "☕",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“光 + 雨”（support 链）以“合并目录语义”徽章区分“颜色”"
+  },
+  "文字": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🎵",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“电脑 + 知识”（support 链）以“合并目录语义”徽章区分“文字”"
+  },
+  "公司": {
+    "icon": {
+      "base": "🧩",
+      "badge": "⚡",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 工位”（support 链）以“合并目录语义”徽章区分“公司”"
+  },
+  "荒野": {
+    "icon": {
+      "base": "🧩",
+      "badge": "👔",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“土 + 影子”（support 链）以“合并目录语义”徽章区分“荒野”"
+  },
+  "目标": {
+    "icon": {
+      "base": "🧩",
+      "badge": "👥",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“文字 + 未来”（support 链）以“合并目录语义”徽章区分“目标”"
+  },
+  "怀旧": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🌈",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“历史 + 聊天”（support 链）以“合并目录语义”徽章区分“怀旧”"
+  },
+  "装扮": {
+    "icon": {
+      "base": "🧩",
+      "badge": "📚",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 颜色”（support 链）以“合并目录语义”徽章区分“装扮”"
+  },
+  "动物": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🎯",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“时间 + 植物”（support 链）以“合并目录语义”徽章区分“动物”"
+  },
+  "汽车": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🎲",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“速度 + 金属”（support 链）以“合并目录语义”徽章区分“汽车”"
+  },
+  "学校": {
+    "icon": {
+      "base": "🧩",
+      "badge": "💻",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“城市 + 知识”（support 链）以“合并目录语义”徽章区分“学校”"
+  },
+  "下载": {
+    "icon": {
+      "base": "🧩",
+      "badge": "💬",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“互联网 + 电脑”（support 链）以“合并目录语义”徽章区分“下载”"
+  },
+  "货币": {
+    "icon": {
+      "base": "🧩",
+      "badge": "⚽",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 金属”（support 链）以“合并目录语义”徽章区分“货币”"
+  },
+  "经验": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🔑",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 知识”（support 链）以“合并目录语义”徽章区分“经验”"
+  },
+  "陌生人": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🌳",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 影子”（support 链）以“合并目录语义”徽章区分“陌生人”"
+  },
+  "声音": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🏀",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 风”（support 链）以“合并目录语义”徽章区分“声音”"
+  },
+  "震动": {
+    "icon": {
+      "base": "🧩",
+      "badge": "♟️",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“声音 + 手机”（support 链）以“合并目录语义”徽章区分“震动”"
+  },
+  "影子": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🎤",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 光”（support 链）以“合并目录语义”徽章区分“影子”"
+  },
+  "经验值": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🌸",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“时间 + 经验”（support 链）以“合并目录语义”徽章区分“经验值”"
+  },
+  "访问": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🎁",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“互联网 + 朋友”（support 链）以“合并目录语义”徽章区分“访问”"
+  },
+  "离线": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🟠",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“互联网 + 影子”（support 链）以“合并目录语义”徽章区分“离线”"
+  },
+  "签名": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🚀",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 文字”（support 链）以“合并目录语义”徽章区分“签名”"
+  },
+  "好友": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🔍",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 朋友”（support 链）以“合并目录语义”徽章区分“好友”"
+  },
+  "留言": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🎉",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“文字 + 朋友”（support 链）以“合并目录语义”徽章区分“留言”"
+  },
+  "对战": {
+    "icon": {
+      "base": "🧩",
+      "badge": "💡",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“战争 + 游戏”（support 链）以“合并目录语义”徽章区分“对战”"
+  },
+  "角色扮演": {
+    "icon": {
+      "base": "🎭",
+      "badge": "📝",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎭”，依据种子配方“游戏 + 身份”（studio 链）以“合并目录语义”徽章区分“角色扮演”"
+  },
+  "梦": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🗺️",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“云 + 人”（support 链）以“合并目录语义”徽章区分“梦”"
+  },
+  "战争": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🔔",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 火”（support 链）以“合并目录语义”徽章区分“战争”"
+  },
+  "历史": {
+    "icon": {
+      "base": "🧩",
+      "badge": "📍",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 时间”（support 链）以“合并目录语义”徽章区分“历史”"
+  },
+  "速度": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🧑‍💻",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“时间 + 风”（support 链）以“合并目录语义”徽章区分“速度”"
+  },
+  "舞蹈": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🧑‍💼",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 音乐”（support 链）以“合并目录语义”徽章区分“舞蹈”"
+  },
+  "魔法": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🚲",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“梦 + 知识”（support 链）以“合并目录语义”徽章区分“魔法”"
+  },
+  "格斗": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🔥",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 对战”（support 链）以“合并目录语义”徽章区分“格斗”"
+  },
+  "弹射": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🎨",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“火 + 速度”（support 链）以“合并目录语义”徽章区分“弹射”"
+  },
+  "仙侠": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🌱",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“历史 + 魔法”（support 链）以“合并目录语义”徽章区分“仙侠”"
+  },
+  "未来": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🏔️",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“AI + 时间”（support 链）以“合并目录语义”徽章区分“未来”"
+  },
+  "战地": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🧠",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“土 + 战争”（support 链）以“合并目录语义”徽章区分“战地”"
+  },
+  "剑": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🏭",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“战争 + 金属”（support 链）以“合并目录语义”徽章区分“剑”"
+  },
+  "灵魂": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🏆",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 梦”（support 链）以“合并目录语义”徽章区分“灵魂”"
+  },
+  "上古": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🌍",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“历史 + 土”（support 链）以“合并目录语义”徽章区分“上古”"
+  },
+  "使命召唤": {
+    "icon": {
+      "base": "🧩",
+      "badge": "⌚",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“互联网 + 战争”（support 链）以“合并目录语义”徽章区分“使命召唤”"
+  },
+  "NBA": {
+    "entity_type": "sports_league",
+    "canonical_name": "National Basketball Association",
+    "aliases": [
+      "美国职业篮球联赛",
+      "美职篮"
+    ],
+    "contexts": [
+      "sports",
+      "basketball"
+    ],
+    "forbidden_senses": [
+      "NBA=普通字母缩写"
+    ],
+    "icon": {
+      "base": "🏀",
+      "badge": "🏆",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "美国职业篮球联赛；篮球主图配奖杯徽章限定联盟实体语境"
+  },
+  "明月": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🎧",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“云 + 时间”（support 链）以“合并目录语义”徽章区分“明月”"
+  },
+  "御龙": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🌊",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“动物 + 魔法”（support 链）以“合并目录语义”徽章区分“御龙”"
+  },
+  "轩辕": {
+    "icon": {
+      "base": "🧩",
+      "badge": "✅",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“上古 + 剑”（support 链）以“合并目录语义”徽章区分“轩辕”"
+  },
+  "斗战": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🎾",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“格斗 + 魔法”（support 链）以“合并目录语义”徽章区分“斗战”"
+  },
+  "节奏": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🪨",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“速度 + 音乐”（support 链）以“合并目录语义”徽章区分“节奏”"
+  },
+  "跑步": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🌙",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 速度”（support 链）以“合并目录语义”徽章区分“跑步”"
+  },
+  "消除": {
+    "icon": {
+      "base": "💥",
+      "badge": "🔑",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💥”，依据种子配方“游戏 + 颜色”（support 链）以“合并目录语义”徽章区分“消除”"
+  },
+  "战术": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🟡",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“战争 + 知识”（support 链）以“合并目录语义”徽章区分“战术”"
+  },
+  "棋盘": {
+    "icon": {
+      "base": "♟️",
+      "badge": "🏠",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“♟️”，依据种子配方“游戏 + 自走棋”（support 链）以“合并目录语义”徽章区分“棋盘”"
+  },
+  "云盘": {
+    "icon": {
+      "base": "🧩",
+      "badge": "📊",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“云 + 互联网”（support 链）以“合并目录语义”徽章区分“云盘”"
+  },
+  "大数据": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🐼",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“互联网 + 知识”（support 链）以“合并目录语义”徽章区分“大数据”"
+  },
+  "客服": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🦁",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“公司 + 聊天”（support 链）以“合并目录语义”徽章区分“客服”"
+  },
+  "创新": {
+    "icon": {
+      "base": "🧩",
+      "badge": "💙",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“未来 + 知识”（support 链）以“合并目录语义”徽章区分“创新”"
+  },
+  "射击": {
+    "icon": {
+      "base": "🧩",
+      "badge": "📷",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“弹射 + 战争”（support 链）以“合并目录语义”徽章区分“射击”"
+  },
+  "光线": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🐧",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“光 + 速度”（support 链）以“合并目录语义”徽章区分“光线”"
+  },
+  "洛杉矶": {
+    "icon": {
+      "base": "🌴",
+      "badge": "🔮",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🌴”，依据种子配方“地图 + 美国”（support 链）以“合并目录语义”徽章区分“洛杉矶”"
+  },
+  "即时战略": {
+    "icon": {
+      "base": "🧩",
+      "badge": "⛵",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“电脑 + 策略”（support 链）以“合并目录语义”徽章区分“即时战略”"
+  },
+  "量子计算": {
+    "icon": {
+      "base": "⚛️",
+      "badge": "📍",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“⚛️”，依据种子配方“物理 + 电脑”（support 链）以“合并目录语义”徽章区分“量子计算”"
+  },
+  "开发商": {
+    "icon": {
+      "base": "🧩",
+      "badge": "💧",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“代码 + 公司”（support 链）以“合并目录语义”徽章区分“开发商”"
+  },
+  "沙盒": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🎭",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“土 + 游戏”（support 链）以“合并目录语义”徽章区分“沙盒”"
+  },
+  "竞速": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🛒",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“汽车 + 速度”（support 链）以“合并目录语义”徽章区分“竞速”"
+  },
+  "科幻": {
+    "icon": {
+      "base": "🧩",
+      "badge": "💼",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“AI + 未来”（support 链）以“合并目录语义”徽章区分“科幻”"
+  },
+  "吸血鬼": {
+    "icon": {
+      "base": "🧩",
+      "badge": "📝",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“动物 + 影子”（support 链）以“合并目录语义”徽章区分“吸血鬼”"
+  },
+  "流放": {
+    "icon": {
+      "base": "🧩",
+      "badge": "📣",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 荒野”（support 链）以“合并目录语义”徽章区分“流放”"
+  },
+  "饥荒": {
+    "icon": {
+      "base": "🧩",
+      "badge": "📱",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“动物 + 荒野”（support 链）以“合并目录语义”徽章区分“饥荒”"
+  },
+  "小游戏": {
+    "icon": {
+      "base": "🧩",
+      "badge": "📦",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“手机 + 游戏”（support 链）以“合并目录语义”徽章区分“小游戏”"
+  },
+  "集团": {
+    "icon": {
+      "base": "🧩",
+      "badge": "❤️",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“公司 + 公司”（support 链）以“合并目录语义”徽章区分“集团”"
+  },
+  "银行": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🦋",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“公司 + 货币”（support 链）以“合并目录语义”徽章区分“银行”"
+  },
+  "刺客": {
+    "icon": {
+      "base": "🧩",
+      "badge": "💎",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“剑 + 影子”（support 链）以“合并目录语义”徽章区分“刺客”"
+  },
+  "僵尸": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🐉",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 泥”（support 链）以“合并目录语义”徽章区分“僵尸”"
+  },
+  "叙事": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🏢",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“历史 + 文字”（support 链）以“合并目录语义”徽章区分“叙事”"
+  },
+  "策略": {
+    "icon": {
+      "base": "🧩",
+      "badge": "⚙️",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“战争 + 智慧”（support 链）以“合并目录语义”徽章区分“策略”"
+  },
+  "动作": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🍜",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“游戏 + 速度”（support 链）以“合并目录语义”徽章区分“动作”"
+  },
+  "出版": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🛠️",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“公司 + 文字”（support 链）以“合并目录语义”徽章区分“出版”"
+  },
+  "流媒体": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🏛️",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“互联网 + 音乐”（support 链）以“合并目录语义”徽章区分“流媒体”"
+  },
+  "社交": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🍎",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“朋友 + 社区”（support 链）以“合并目录语义”徽章区分“社交”"
+  },
+  "相机": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🟣",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“光 + 手机”（support 链）以“合并目录语义”徽章区分“相机”"
+  },
+  "论坛": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🏝️",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“文字 + 社区”（support 链）以“合并目录语义”徽章区分“论坛”"
+  },
+  "老铁": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🔮",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“时间 + 朋友”（support 链）以“合并目录语义”徽章区分“老铁”"
+  },
+  "视频": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🔧",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“光 + 时间”（support 链）以“合并目录语义”徽章区分“视频”"
+  },
+  "拼团": {
+    "icon": {
+      "base": "🧩",
+      "badge": "💰",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“朋友 + 电商”（support 链）以“合并目录语义”徽章区分“拼团”"
+  },
+  "团购": {
+    "icon": {
+      "base": "🧩",
+      "badge": "🍀",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“好友 + 电商”（support 链）以“合并目录语义”徽章区分“团购”"
+  },
+  "极品飞车": {
+    "icon": {
+      "base": "🧩",
+      "badge": "☀️",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“汽车 + 游戏”（support 链）以“合并目录语义”徽章区分“极品飞车”"
+  },
+  "发行商": {
+    "icon": {
+      "base": "🧩",
+      "badge": "✈️",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧩”，依据种子配方“出版 + 游戏”（support 链）以“合并目录语义”徽章区分“发行商”"
+  },
+  "物理": {
+    "icon": {
+      "base": "⚛️",
+      "badge": "🧑‍💻",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“⚛️”，依据种子配方“光 + 知识”（support 链）以“合并目录语义”徽章区分“物理”"
+  },
+  "@所有人": {
+    "icon": {
+      "base": "📧",
+      "badge": "🎮",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“📧”，依据种子配方“RTX + 老板”（tencent 链）以“合并目录语义”徽章区分“@所有人”"
+  },
+  "Activision": {
+    "icon": {
+      "base": "🤝",
+      "badge": "🔔",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“使命召唤Online + 开发商”（association 链）以“合并目录语义”徽章区分“Activision”"
+  },
+  "AnyDev": {
+    "entity_type": "product",
+    "canonical_name": "AnyDev",
+    "aliases": [
+      "AnyDev开发平台",
+      "腾讯AnyDev"
+    ],
+    "contexts": [
+      "product",
+      "development"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🛠️",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "开发工具产品；工具主图配产品徽章"
+  },
+  "Aurora Studio": {
+    "icon": {
+      "base": "🕹️",
+      "badge": "🏛️",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🕹️”，依据种子配方“光线 + 工作室”（studio 链）以“合并目录语义”徽章区分“Aurora Studio”"
+  },
+  "CDC": {
+    "entity_type": "organization",
+    "canonical_name": "Tencent Customer Research and User Experience Design Center",
+    "aliases": [
+      "腾讯CDC",
+      "腾讯用户研究与体验设计部"
+    ],
+    "contexts": [
+      "product",
+      "design"
+    ],
+    "forbidden_senses": [
+      "CDC=疾病控制中心"
+    ],
+    "icon": {
+      "base": "🎨",
+      "badge": "🏢",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯用户研究与体验设计组织缩写；调色板配组织徽章"
+  },
+  "CDG": {
+    "entity_type": "organization",
+    "canonical_name": "企业发展事业群",
+    "aliases": [
+      "腾讯CDG",
+      "Corporate Development Group"
+    ],
+    "contexts": [
+      "tencent",
+      "association"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "📈",
+      "badge": "🐧",
+      "palette": "office",
+      "source": "entity"
+    },
+    "rationale": "腾讯企业发展事业群缩写；增长图表配企鹅徽章"
+  },
+  "CodeBuddy": {
+    "entity_type": "product",
+    "canonical_name": "Tencent Cloud CodeBuddy",
+    "aliases": [
+      "腾讯云CodeBuddy",
+      "CodeBuddy编程助手"
+    ],
+    "contexts": [
+      "product",
+      "ai"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🤖",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯云 AI 编程助手；机器人配产品徽章"
+  },
+  "CODING": {
+    "entity_type": "product",
+    "canonical_name": "CODING DevOps",
+    "aliases": [
+      "腾讯云CODING",
+      "CODING研发平台"
+    ],
+    "contexts": [
+      "product",
+      "development"
+    ],
+    "forbidden_senses": [
+      "coding=泛指编程"
+    ],
+    "icon": {
+      "base": "💻",
+      "badge": "🧑‍💻",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯云软件研发协作平台；电脑配开发者徽章"
+  },
+  "CSIG": {
+    "entity_type": "organization",
+    "canonical_name": "云与智慧产业事业群",
+    "aliases": [
+      "腾讯CSIG",
+      "Cloud and Smart Industries Group"
+    ],
+    "contexts": [
+      "tencent",
+      "product"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "☁️",
+      "badge": "🏢",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯云与智慧产业事业群缩写；云主图配企业徽章"
+  },
+  "Digital Extremes": {
+    "icon": {
+      "base": "🤝",
+      "badge": "💼",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“开发商 + 科幻”（association 链）以“合并目录语义”徽章区分“Digital Extremes”"
+  },
+  "DNF": {
+    "entity_type": "product",
+    "canonical_name": "Dungeon & Fighter",
+    "aliases": [
+      "地下城与勇士",
+      "DNF端游"
+    ],
+    "contexts": [
+      "product",
+      "game"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "⚔️",
+      "badge": "🎮",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "动作游戏《地下城与勇士》缩写；武器配游戏徽章"
+  },
+  "EA": {
+    "icon": {
+      "base": "🤝",
+      "badge": "👥",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“开发商 + 极品飞车”（association 链）以“合并目录语义”徽章区分“EA”"
+  },
+  "Epic Games": {
+    "entity_type": "company",
+    "canonical_name": "Epic Games",
+    "aliases": [
+      "Epic",
+      "Epic游戏"
+    ],
+    "contexts": [
+      "studio",
+      "association"
+    ],
+    "forbidden_senses": [
+      "epic=史诗",
+      "epic=宏大"
+    ],
+    "icon": {
+      "base": "🛡️",
+      "badge": "🎮",
+      "palette": "studio",
+      "source": "curated"
+    },
+    "rationale": "游戏工作室 Epic Games；盾牌主图配游戏徽章表示其公司语境"
+  },
+  "FIFA Online": {
+    "icon": {
+      "base": "🎮",
+      "badge": "🚗",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“游戏 + 足球”（tencent_game 链）以“合并目录语义”徽章区分“FIFA Online”"
+  },
+  "Funcom": {
+    "icon": {
+      "base": "🤝",
+      "badge": "💙",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“开发商 + 沙盒”（association 链）以“合并目录语义”徽章区分“Funcom”"
+  },
+  "Grinding Gear Games": {
+    "icon": {
+      "base": "🤝",
+      "badge": "🏀",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“开发商 + 流放”（association 链）以“合并目录语义”徽章区分“Grinding Gear Games”"
+  },
+  "IEG": {
+    "entity_type": "organization",
+    "canonical_name": "互动娱乐事业群",
+    "aliases": [
+      "腾讯IEG",
+      "Interactive Entertainment Group"
+    ],
+    "contexts": [
+      "tencent",
+      "studio"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🎮",
+      "badge": "🐧",
+      "palette": "studio",
+      "source": "entity"
+    },
+    "rationale": "腾讯互动娱乐事业群缩写；游戏主图配企鹅徽章"
+  },
+  "ima.copilot": {
+    "entity_type": "product",
+    "canonical_name": "ima.copilot",
+    "aliases": [
+      "腾讯ima",
+      "ima知识助手"
+    ],
+    "contexts": [
+      "product",
+      "ai"
+    ],
+    "forbidden_senses": [
+      "copilot=飞行副驾驶"
+    ],
+    "icon": {
+      "base": "📚",
+      "badge": "🤖",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯 AI 知识助手；书本配机器人徽章"
+  },
+  "iWiki": {
+    "entity_type": "product",
+    "canonical_name": "腾讯 iWiki",
+    "aliases": [
+      "iWiki知识库",
+      "腾讯内部知识库"
+    ],
+    "contexts": [
+      "tencent",
+      "office"
+    ],
+    "forbidden_senses": [
+      "wiki=维基百科"
+    ],
+    "icon": {
+      "base": "📘",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯内部知识管理产品；蓝色书本配企鹅徽章"
+  },
+  "KADOKAWA": {
+    "icon": {
+      "base": "🤝",
+      "badge": "✅",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“出版 + 动漫”（association 链）以“合并目录语义”徽章区分“KADOKAWA”"
+  },
+  "Klei Entertainment": {
+    "icon": {
+      "base": "🤝",
+      "badge": "📝",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“开发商 + 饥荒”（association 链）以“合并目录语义”徽章区分“Klei Entertainment”"
+  },
+  "KRAFTON": {
+    "icon": {
+      "base": "🤝",
+      "badge": "🟣",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“PUBG + 开发商”（association 链）以“合并目录语义”徽章区分“KRAFTON”"
+  },
+  "LIGHTSPEED LA": {
+    "icon": {
+      "base": "🕹️",
+      "badge": "🌱",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🕹️”，依据种子配方“工作室 + 洛杉矶”（studio 链）以“合并目录语义”徽章区分“LIGHTSPEED LA”"
+  },
+  "Miniclip": {
+    "icon": {
+      "base": "🤝",
+      "badge": "💬",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“小游戏 + 开发商”（association 链）以“合并目录语义”徽章区分“Miniclip”"
+  },
+  "MoreFun Studios": {
+    "icon": {
+      "base": "🕹️",
+      "badge": "🧑‍💻",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🕹️”，依据种子配方“射击 + 工作室”（studio 链）以“合并目录语义”徽章区分“MoreFun Studios”"
+  },
+  "M族": {
+    "entity_type": "role_family",
+    "canonical_name": "腾讯 M 族职级",
+    "aliases": [
+      "腾讯M序列",
+      "管理族职级"
+    ],
+    "contexts": [
+      "level",
+      "management"
+    ],
+    "forbidden_senses": [
+      "M=普通字母"
+    ],
+    "icon": {
+      "base": "👔",
+      "badge": "🪜",
+      "palette": "office",
+      "source": "entity"
+    },
+    "rationale": "腾讯管理族职级体系；领带配晋升阶梯徽章"
+  },
+  "NBA2K Online": {
+    "icon": {
+      "base": "🎮",
+      "badge": "🟣",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“NBA + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“NBA2K Online”"
+  },
+  "NCSoft": {
+    "icon": {
+      "base": "🤝",
+      "badge": "🏔️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“剑灵 + 开发商”（association 链）以“合并目录语义”徽章区分“NCSoft”"
+  },
+  "Neople": {
+    "icon": {
+      "base": "🤝",
+      "badge": "📣",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“DNF + 开发商”（association 链）以“合并目录语义”徽章区分“Neople”"
+  },
+  "Nexon": {
+    "icon": {
+      "base": "🤝",
+      "badge": "❄️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“DNF + 发行商”（association 链）以“合并目录语义”徽章区分“Nexon”"
+  },
+  "NExT Studios": {
+    "icon": {
+      "base": "🕹️",
+      "badge": "👔",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🕹️”，依据种子配方“创新 + 工作室”（studio 链）以“合并目录语义”徽章区分“NExT Studios”"
+  },
+  "OICQ": {
+    "icon": {
+      "base": "💬",
+      "badge": "🏭",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 怀旧”（qq_memory 链）以“合并目录语义”徽章区分“OICQ”"
+  },
+  "Paradox Interactive": {
+    "icon": {
+      "base": "🤝",
+      "badge": "🟡",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“开发商 + 策略”（association 链）以“合并目录语义”徽章区分“Paradox Interactive”"
+  },
+  "PCG": {
+    "entity_type": "organization",
+    "canonical_name": "平台与内容事业群",
+    "aliases": [
+      "腾讯PCG",
+      "Platform and Content Group"
+    ],
+    "contexts": [
+      "tencent",
+      "product"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "💻",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯平台与内容事业群缩写；数字终端配企鹅徽章"
+  },
+  "PlatinumGames": {
+    "icon": {
+      "base": "🤝",
+      "badge": "🍜",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“动作 + 开发商”（association 链）以“合并目录语义”徽章区分“PlatinumGames”"
+  },
+  "PUBG": {
+    "entity_type": "product",
+    "canonical_name": "PUBG: Battlegrounds",
+    "aliases": [
+      "绝地求生",
+      "PUBG端游"
+    ],
+    "contexts": [
+      "product",
+      "game"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🪂",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "战术竞技游戏；降落伞配产品徽章"
+  },
+  "P族": {
+    "entity_type": "role_family",
+    "canonical_name": "腾讯 P 族职级",
+    "aliases": [
+      "腾讯P序列",
+      "产品专业族职级"
+    ],
+    "contexts": [
+      "level",
+      "product"
+    ],
+    "forbidden_senses": [
+      "P=普通字母"
+    ],
+    "icon": {
+      "base": "📋",
+      "badge": "🪜",
+      "palette": "office",
+      "source": "entity"
+    },
+    "rationale": "腾讯产品专业族职级体系；任务板配晋升阶梯徽章"
+  },
+  "QQ": {
+    "entity_type": "product",
+    "canonical_name": "腾讯 QQ",
+    "aliases": [
+      "腾讯QQ",
+      "QQ聊天"
+    ],
+    "contexts": [
+      "tencent",
+      "product"
+    ],
+    "forbidden_senses": [
+      "QQ=普通企鹅"
+    ],
+    "icon": {
+      "base": "🐧",
+      "badge": "💬",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯即时通讯品牌；企鹅主图配聊天徽章避免与动物概念混淆"
+  },
+  "QQ三国": {
+    "icon": {
+      "base": "🎮",
+      "badge": "📚",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ + 战争”（tencent_game 链）以“合并目录语义”徽章区分“QQ三国”"
+  },
+  "QQ会员": {
+    "icon": {
+      "base": "💬",
+      "badge": "🔔",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 身份”（qq_memory 链）以“合并目录语义”徽章区分“QQ会员”"
+  },
+  "QQ农场": {
+    "icon": {
+      "base": "💬",
+      "badge": "💻",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ空间 + 植物”（qq_memory 链）以“合并目录语义”徽章区分“QQ农场”"
+  },
+  "QQ分组": {
+    "icon": {
+      "base": "💬",
+      "badge": "❤️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 好友”（qq_memory 链）以“合并目录语义”徽章区分“QQ分组”"
+  },
+  "QQ华夏": {
+    "icon": {
+      "base": "🎮",
+      "badge": "⭐",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ + 历史”（tencent_game 链）以“合并目录语义”徽章区分“QQ华夏”"
+  },
+  "QQ堂": {
+    "icon": {
+      "base": "🎮",
+      "badge": "🔒",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ + 对战”（tencent_game 链）以“合并目录语义”徽章区分“QQ堂”"
+  },
+  "QQ宠物": {
+    "icon": {
+      "base": "💬",
+      "badge": "💼",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 动物”（qq_memory 链）以“合并目录语义”徽章区分“QQ宠物”"
+  },
+  "QQ幻想": {
+    "icon": {
+      "base": "🎮",
+      "badge": "🏢",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ + 梦”（tencent_game 链）以“合并目录语义”徽章区分“QQ幻想”"
+  },
+  "QQ旋风": {
+    "icon": {
+      "base": "💬",
+      "badge": "☕",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 下载”（qq_memory 链）以“合并目录语义”徽章区分“QQ旋风”"
+  },
+  "QQ校友": {
+    "icon": {
+      "base": "💬",
+      "badge": "🍀",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 学校”（qq_memory 链）以“合并目录语义”徽章区分“QQ校友”"
+  },
+  "QQ浏览器": {
+    "entity_type": "product",
+    "canonical_name": "QQ浏览器",
+    "aliases": [
+      "腾讯QQ浏览器",
+      "QQ Browser"
+    ],
+    "contexts": [
+      "product",
+      "browser"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🌐",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯浏览器产品；网络主图配企鹅品牌徽章"
+  },
+  "QQ游戏": {
+    "icon": {
+      "base": "💬",
+      "badge": "💙",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 游戏”（qq_memory 链）以“合并目录语义”徽章区分“QQ游戏”"
+  },
+  "QQ游戏大厅": {
+    "icon": {
+      "base": "💬",
+      "badge": "🔒",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ游戏 + 电脑”（qq_memory 链）以“合并目录语义”徽章区分“QQ游戏大厅”"
+  },
+  "QQ炫舞": {
+    "icon": {
+      "base": "🎮",
+      "badge": "💚",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ + 舞蹈”（tencent_game 链）以“合并目录语义”徽章区分“QQ炫舞”"
+  },
+  "QQ牧场": {
+    "icon": {
+      "base": "💬",
+      "badge": "🎤",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ空间 + 动物”（qq_memory 链）以“合并目录语义”徽章区分“QQ牧场”"
+  },
+  "QQ秀": {
+    "icon": {
+      "base": "💬",
+      "badge": "💰",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 装扮”（qq_memory 链）以“合并目录语义”徽章区分“QQ秀”"
+  },
+  "QQ空间": {
+    "entity_type": "product",
+    "canonical_name": "QQ空间",
+    "aliases": [
+      "腾讯QQ空间",
+      "Qzone"
+    ],
+    "contexts": [
+      "product",
+      "social"
+    ],
+    "forbidden_senses": [
+      "空间=宇宙"
+    ],
+    "icon": {
+      "base": "🌌",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯社交空间产品；星空主图配产品徽章"
+  },
+  "QQ等级": {
+    "icon": {
+      "base": "💬",
+      "badge": "🚀",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 经验”（qq_memory 链）以“合并目录语义”徽章区分“QQ等级”"
+  },
+  "QQ邮箱": {
+    "entity_type": "product",
+    "canonical_name": "QQ邮箱",
+    "aliases": [
+      "腾讯QQ邮箱",
+      "mail.qq.com"
+    ],
+    "contexts": [
+      "product",
+      "communication"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "📬",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯电子邮件产品；邮箱主图配产品徽章"
+  },
+  "QQ音乐": {
+    "entity_type": "product",
+    "canonical_name": "QQ音乐",
+    "aliases": [
+      "腾讯QQ音乐",
+      "QQ Music"
+    ],
+    "contexts": [
+      "product",
+      "music"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🎵",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯音乐流媒体产品；音符配产品徽章"
+  },
+  "QQ音速": {
+    "icon": {
+      "base": "🎮",
+      "badge": "📊",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ音乐 + 速度”（tencent_game 链）以“合并目录语义”徽章区分“QQ音速”"
+  },
+  "QQ飞车": {
+    "icon": {
+      "base": "🎮",
+      "badge": "👔",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ + 速度”（tencent_game 链）以“合并目录语义”徽章区分“QQ飞车”"
+  },
+  "QQ餐厅": {
+    "icon": {
+      "base": "💬",
+      "badge": "🔑",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ空间 + 食堂”（qq_memory 链）以“合并目录语义”徽章区分“QQ餐厅”"
+  },
+  "Quantum Studio": {
+    "entity_type": "studio",
+    "canonical_name": "Quantum Studio",
+    "aliases": [
+      "量子",
+      "量子工作室",
+      "腾讯量子"
+    ],
+    "contexts": [
+      "studio",
+      "tencent"
+    ],
+    "forbidden_senses": [
+      "量子=物理概念"
+    ],
+    "icon": {
+      "base": "⚛️",
+      "badge": "🎮",
+      "palette": "studio",
+      "source": "entity"
+    },
+    "rationale": "腾讯游戏工作室；原子意象配游戏徽章限定实体语境"
+  },
+  "Q宠大乐斗": {
+    "icon": {
+      "base": "🎮",
+      "badge": "🌱",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ宠物 + 格斗”（tencent_game 链）以“合并目录语义”徽章区分“Q宠大乐斗”"
+  },
+  "Q币": {
+    "icon": {
+      "base": "💬",
+      "badge": "🧑‍💻",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 货币”（qq_memory 链）以“合并目录语义”徽章区分“Q币”"
+  },
+  "R Studio": {
+    "icon": {
+      "base": "🕹️",
+      "badge": "📷",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🕹️”，依据种子配方“工作室 + 角色扮演”（studio 链）以“合并目录语义”徽章区分“R Studio”"
+  },
+  "Reddit": {
+    "icon": {
+      "base": "🤝",
+      "badge": "🏙️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“社区 + 论坛”（association 链）以“合并目录语义”徽章区分“Reddit”"
+  },
+  "Remedy Entertainment": {
+    "icon": {
+      "base": "🤝",
+      "badge": "🚀",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“叙事 + 开发商”（association 链）以“合并目录语义”徽章区分“Remedy Entertainment”"
+  },
+  "Riot Games": {
+    "entity_type": "company",
+    "canonical_name": "Riot Games",
+    "aliases": [
+      "Riot",
+      "拳头",
+      "拳头游戏"
+    ],
+    "contexts": [
+      "studio",
+      "association"
+    ],
+    "forbidden_senses": [
+      "riot=暴乱",
+      "riot=闪电"
+    ],
+    "icon": {
+      "base": "👊",
+      "badge": "🎮",
+      "palette": "studio",
+      "source": "curated"
+    },
+    "rationale": "腾讯投资的游戏工作室；中文通称拳头游戏"
+  },
+  "RTX": {
+    "entity_type": "product",
+    "canonical_name": "腾讯通 RTX",
+    "aliases": [
+      "腾讯通",
+      "腾讯RTX"
+    ],
+    "contexts": [
+      "tencent",
+      "office"
+    ],
+    "forbidden_senses": [
+      "RTX=显卡型号"
+    ],
+    "icon": {
+      "base": "📧",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯内部即时通讯产品；消息信封配企鹅徽章"
+  },
+  "S Studio": {
+    "icon": {
+      "base": "🕹️",
+      "badge": "🐼",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🕹️”，依据种子配方“对战 + 工作室”（studio 链）以“合并目录语义”徽章区分“S Studio”"
+  },
+  "Sea": {
+    "icon": {
+      "base": "🤝",
+      "badge": "🔍",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“游戏 + 电商”（association 链）以“合并目录语义”徽章区分“Sea”"
+  },
+  "Sharkmob": {
+    "icon": {
+      "base": "🤝",
+      "badge": "☁️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“吸血鬼 + 开发商”（association 链）以“合并目录语义”徽章区分“Sharkmob”"
+  },
+  "Smilegate": {
+    "icon": {
+      "base": "🤝",
+      "badge": "🏠",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“开发商 + 穿越火线”（association 链）以“合并目录语义”徽章区分“Smilegate”"
+  },
+  "Snap": {
+    "icon": {
+      "base": "🤝",
+      "badge": "🏢",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“相机 + 社交”（association 链）以“合并目录语义”徽章区分“Snap”"
+  },
+  "Spotify": {
+    "icon": {
+      "base": "🤝",
+      "badge": "🏝️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“流媒体 + 音乐”（association 链）以“合并目录语义”徽章区分“Spotify”"
+  },
+  "Sumo Group": {
+    "icon": {
+      "base": "🤝",
+      "badge": "🎤",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“开发商 + 竞速”（association 链）以“合并目录语义”徽章区分“Sumo Group”"
+  },
+  "Supercell": {
+    "entity_type": "company",
+    "canonical_name": "Supercell",
+    "aliases": [
+      "Supercell游戏公司",
+      "超级细胞"
+    ],
+    "contexts": [
+      "studio",
+      "association"
+    ],
+    "forbidden_senses": [
+      "supercell=超级单体雷暴"
+    ],
+    "icon": {
+      "base": "🏰",
+      "badge": "🎮",
+      "palette": "studio",
+      "source": "entity"
+    },
+    "rationale": "移动游戏公司 Supercell；城堡主图配游戏徽章"
+  },
+  "S族": {
+    "entity_type": "role_family",
+    "canonical_name": "腾讯 S 族职级",
+    "aliases": [
+      "腾讯S序列",
+      "技术支持族职级"
+    ],
+    "contexts": [
+      "level",
+      "operations"
+    ],
+    "forbidden_senses": [
+      "S=普通字母"
+    ],
+    "icon": {
+      "base": "🛠️",
+      "badge": "🪜",
+      "palette": "office",
+      "source": "entity"
+    },
+    "rationale": "腾讯技术支持族职级体系；工具配晋升阶梯徽章"
+  },
+  "T1塔楼": {
+    "entity_type": "place",
+    "canonical_name": "T1塔楼",
+    "aliases": [
+      "腾讯T1塔楼",
+      "T1办公塔楼"
+    ],
+    "contexts": [
+      "building",
+      "office"
+    ],
+    "forbidden_senses": [
+      "T1=职级"
+    ],
+    "icon": {
+      "base": "🗼",
+      "badge": "🏢",
+      "palette": "place",
+      "source": "entity"
+    },
+    "rationale": "办公园区塔楼名称；高塔配建筑徽章"
+  },
+  "Take-Two": {
+    "icon": {
+      "base": "🤝",
+      "badge": "🏆",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“NBA2K Online + 开发商”（association 链）以“合并目录语义”徽章区分“Take-Two”"
+  },
+  "TAPD": {
+    "entity_type": "product",
+    "canonical_name": "腾讯敏捷产品研发平台",
+    "aliases": [
+      "TAPD平台",
+      "腾讯TAPD"
+    ],
+    "contexts": [
+      "tencent",
+      "office"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "📋",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯敏捷研发协作平台；任务板配企鹅徽章"
+  },
+  "Team Jade": {
+    "icon": {
+      "base": "🕹️",
+      "badge": "🏀",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🕹️”，依据种子配方“使命召唤Online + 工作室”（studio 链）以“合并目录语义”徽章区分“Team Jade”"
+  },
+  "Techland": {
+    "icon": {
+      "base": "🤝",
+      "badge": "🧑‍💼",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“僵尸 + 开发商”（association 链）以“合并目录语义”徽章区分“Techland”"
+  },
+  "TEG": {
+    "entity_type": "organization",
+    "canonical_name": "技术工程事业群",
+    "aliases": [
+      "腾讯TEG",
+      "Technology and Engineering Group"
+    ],
+    "contexts": [
+      "tencent",
+      "office"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🔧",
+      "badge": "🐧",
+      "palette": "office",
+      "source": "entity"
+    },
+    "rationale": "腾讯技术工程事业群缩写；工程工具配企鹅徽章"
+  },
+  "TiKi Studio": {
+    "icon": {
+      "base": "🕹️",
+      "badge": "💡",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🕹️”，依据种子配方“工作室 + 麻将”（studio 链）以“合并目录语义”徽章区分“TiKi Studio”"
+  },
+  "TIM": {
+    "entity_type": "product",
+    "canonical_name": "腾讯 TIM",
+    "aliases": [
+      "腾讯TIM",
+      "TIM办公版QQ"
+    ],
+    "contexts": [
+      "product",
+      "office"
+    ],
+    "forbidden_senses": [
+      "TIM=人名"
+    ],
+    "icon": {
+      "base": "💼",
+      "badge": "💬",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "面向办公协作的即时通讯产品；公文包配聊天徽章"
+  },
+  "TIT创意园": {
+    "entity_type": "place",
+    "canonical_name": "TIT创意园",
+    "aliases": [
+      "广州TIT创意园",
+      "微信TIT园区"
+    ],
+    "contexts": [
+      "building",
+      "geo"
+    ],
+    "forbidden_senses": [
+      "TIT=普通字母缩写"
+    ],
+    "icon": {
+      "base": "🎨",
+      "badge": "🏢",
+      "palette": "place",
+      "source": "entity"
+    },
+    "rationale": "广州创意园与办公地点；调色板配建筑徽章"
+  },
+  "T族": {
+    "entity_type": "role_family",
+    "canonical_name": "腾讯 T 族职级",
+    "aliases": [
+      "腾讯T序列",
+      "技术族职级"
+    ],
+    "contexts": [
+      "level",
+      "technology"
+    ],
+    "forbidden_senses": [
+      "T=普通字母"
+    ],
+    "icon": {
+      "base": "🧪",
+      "badge": "🪜",
+      "palette": "office",
+      "source": "entity"
+    },
+    "rationale": "腾讯技术族职级体系；实验器具配晋升阶梯徽章"
+  },
+  "Ubisoft": {
+    "icon": {
+      "base": "🤝",
+      "badge": "🕹️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“刺客 + 开发商”（association 链）以“合并目录语义”徽章区分“Ubisoft”"
+  },
+  "Uncapped Games": {
+    "icon": {
+      "base": "🕹️",
+      "badge": "📱",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🕹️”，依据种子配方“即时战略 + 工作室”（studio 链）以“合并目录语义”徽章区分“Uncapped Games”"
+  },
+  "Valorant": {
+    "entity_type": "product",
+    "canonical_name": "VALORANT",
+    "aliases": [
+      "无畏契约",
+      "瓦罗兰特"
+    ],
+    "contexts": [
+      "product",
+      "game"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🎯",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "拳头游戏开发的战术射击产品；靶心配产品徽章"
+  },
+  "VP": {
+    "entity_type": "role",
+    "canonical_name": "Vice President",
+    "aliases": [
+      "副总裁",
+      "公司VP"
+    ],
+    "contexts": [
+      "level",
+      "boss"
+    ],
+    "forbidden_senses": [
+      "VP=普通字母组合"
+    ],
+    "icon": {
+      "base": "🎖️",
+      "badge": "🪜",
+      "palette": "office",
+      "source": "entity"
+    },
+    "rationale": "公司副总裁职位缩写；勋章配职级阶梯徽章"
+  },
+  "WebQQ": {
+    "icon": {
+      "base": "💬",
+      "badge": "💚",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 互联网”（qq_memory 链）以“合并目录语义”徽章区分“WebQQ”"
+  },
+  "Wedata": {
+    "entity_type": "product",
+    "canonical_name": "WeData",
+    "aliases": [
+      "腾讯云WeData",
+      "WeData数据开发治理"
+    ],
+    "contexts": [
+      "product",
+      "data"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "📊",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "数据开发治理平台；数据图表配产品徽章"
+  },
+  "WorkBuddy": {
+    "entity_type": "product",
+    "canonical_name": "WorkBuddy",
+    "aliases": [
+      "WorkBuddy工作助手",
+      "腾讯WorkBuddy"
+    ],
+    "contexts": [
+      "product",
+      "office"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🧑‍💼",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "面向工作场景的智能助手；职业人士配产品徽章"
+  },
+  "WXG": {
+    "entity_type": "organization",
+    "canonical_name": "微信事业群",
+    "aliases": [
+      "腾讯WXG",
+      "Weixin Group"
+    ],
+    "contexts": [
+      "tencent",
+      "product"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "💚",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯微信事业群缩写；绿色品牌意象配企鹅徽章"
+  },
+  "上古世纪": {
+    "icon": {
+      "base": "🎮",
+      "badge": "💬",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“上古 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“上古世纪”"
+  },
+  "上海总部": {
+    "icon": {
+      "base": "🌉",
+      "badge": "🕹️",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🌉”，依据种子配方“上海 + 鹅厂”（building 链）以“合并目录语义”徽章区分“上海总部”"
+  },
+  "专家": {
+    "entity_type": "role",
+    "canonical_name": "专家岗位",
+    "aliases": [
+      "专业专家",
+      "expert"
+    ],
+    "contexts": [
+      "level",
+      "career"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🧙",
+      "badge": "🪜",
+      "palette": "office",
+      "source": "entity"
+    },
+    "rationale": "高级专业岗位；智者主图配职级阶梯徽章"
+  },
+  "个性签名": {
+    "icon": {
+      "base": "💬",
+      "badge": "🐼",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 签名”（qq_memory 链）以“合并目录语义”徽章区分“个性签名”"
+  },
+  "中台": {
+    "icon": {
+      "base": "🏗️",
+      "badge": "🍎",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🏗️”，依据种子配方“公司 + 协作”（tencent 链）以“合并目录语义”徽章区分“中台”"
+  },
+  "乐享": {
+    "icon": {
+      "base": "🎨",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎨”，依据种子配方“工位 + 社区”（tencent 链）以“腾讯内部内容平台”徽章区分“乐享”"
+  },
+  "京东": {
+    "entity_type": "company",
+    "canonical_name": "京东",
+    "aliases": [
+      "JD.com",
+      "京东集团"
+    ],
+    "contexts": [
+      "association",
+      "ecommerce"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "📦",
+      "badge": "💰",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯投资语境中的电商与物流公司；包裹配投资徽章"
+  },
+  "企业微信": {
+    "entity_type": "product",
+    "canonical_name": "企业微信",
+    "aliases": [
+      "WeCom",
+      "腾讯企业微信"
+    ],
+    "contexts": [
+      "product",
+      "office"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "💼",
+      "badge": "🏢",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯企业通讯与协作产品；公文包配企业徽章"
+  },
+  "你是GG还是MM": {
+    "icon": {
+      "base": "💬",
+      "badge": "🏛️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 陌生人”（qq_memory 链）以“合并目录语义”徽章区分“你是GG还是MM”"
+  },
+  "使命召唤Online": {
+    "icon": {
+      "base": "🎮",
+      "badge": "📍",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“使命召唤 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“使命召唤Online”"
+  },
+  "健身房": {
+    "icon": {
+      "base": "🏋️",
+      "badge": "🏢",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🏋️”，依据种子配方“打工人 + 跑步”（tencent 链）以“室内健身场所”徽章区分“健身房”"
+  },
+  "偷菜": {
+    "icon": {
+      "base": "💬",
+      "badge": "🗺️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ农场 + 朋友”（qq_memory 链）以“合并目录语义”徽章区分“偷菜”"
+  },
+  "元宝": {
+    "entity_type": "product",
+    "canonical_name": "腾讯元宝",
+    "aliases": [
+      "腾讯元宝",
+      "Yuanbao AI"
+    ],
+    "contexts": [
+      "product",
+      "ai"
+    ],
+    "forbidden_senses": [
+      "元宝=古代货币"
+    ],
+    "icon": {
+      "base": "💎",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯 AI 助手产品；宝石主图配产品徽章以限定品牌语境"
+  },
+  "元梦之星": {
+    "entity_type": "product",
+    "canonical_name": "元梦之星",
+    "aliases": [
+      "腾讯元梦之星",
+      "元梦"
+    ],
+    "contexts": [
+      "product",
+      "game"
+    ],
+    "forbidden_senses": [
+      "元梦之星=普通星体"
+    ],
+    "icon": {
+      "base": "⭐",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯派对游戏产品；星星主图配产品徽章"
+  },
+  "光子工作室群": {
+    "entity_type": "studio",
+    "canonical_name": "光子工作室群",
+    "aliases": [
+      "光子",
+      "Lightspeed Studios",
+      "腾讯光子"
+    ],
+    "contexts": [
+      "studio",
+      "tencent"
+    ],
+    "forbidden_senses": [
+      "光子=物理粒子"
+    ],
+    "icon": {
+      "base": "💡",
+      "badge": "🎮",
+      "palette": "studio",
+      "source": "entity"
+    },
+    "rationale": "腾讯游戏工作室群；光源配游戏徽章限定实体语境"
+  },
+  "免费午餐": {
+    "icon": {
+      "base": "🍱",
+      "badge": "🎁",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🍱”，依据种子配方“食堂 + 鹅卡”（tencent 链）以“免费福利餐”徽章区分“免费午餐”"
+  },
+  "全员信": {
+    "icon": {
+      "base": "📧",
+      "badge": "🏆",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“📧”，依据种子配方“全员 + 小马哥”（tencent 链）以“合并目录语义”徽章区分“全员信”"
+  },
+  "全民K歌": {
+    "entity_type": "product",
+    "canonical_name": "全民K歌",
+    "aliases": [
+      "WeSing",
+      "腾讯全民K歌"
+    ],
+    "contexts": [
+      "product",
+      "music"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🎤",
+      "badge": "🎵",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯在线卡拉 OK 产品；麦克风配音符徽章"
+  },
+  "全民飞机大战": {
+    "icon": {
+      "base": "🎮",
+      "badge": "⚓",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“游戏 + 飞机”（tencent_game 链）以“合并目录语义”徽章区分“全民飞机大战”"
+  },
+  "公众号": {
+    "entity_type": "product_feature",
+    "canonical_name": "微信公众平台公众号",
+    "aliases": [
+      "微信公众号",
+      "微信公众账号"
+    ],
+    "contexts": [
+      "product",
+      "content"
+    ],
+    "forbidden_senses": [
+      "公众号=普通公共号码"
+    ],
+    "icon": {
+      "base": "📢",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "微信公众平台内容账号能力；扩音器配产品徽章"
+  },
+  "最后一班": {
+    "icon": {
+      "base": "🚌",
+      "badge": "⛵",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🚌”，依据种子配方“晚班 + 班车”（tencent 链）以“合并目录语义”徽章区分“最后一班”"
+  },
+  "剑灵": {
+    "icon": {
+      "base": "🎮",
+      "badge": "🎤",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“剑 + 灵魂”（tencent_game 链）以“合并目录语义”徽章区分“剑灵”"
+  },
+  "北京总部": {
+    "icon": {
+      "base": "🏯",
+      "badge": "🏢",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🏯”，依据种子配方“北京 + 鹅厂”（building 链）以“北京办公总部”徽章区分“北京总部”"
+  },
+  "北极光工作室群": {
+    "entity_type": "studio",
+    "canonical_name": "北极光工作室群",
+    "aliases": [
+      "北极光",
+      "Aurora Studios",
+      "腾讯北极光"
+    ],
+    "contexts": [
+      "studio",
+      "tencent"
+    ],
+    "forbidden_senses": [
+      "北极光=自然极光"
+    ],
+    "icon": {
+      "base": "🌌",
+      "badge": "🎮",
+      "palette": "studio",
+      "source": "entity"
+    },
+    "rationale": "腾讯游戏工作室群；极光夜空配游戏徽章"
+  },
+  "午间撸铁": {
+    "icon": {
+      "base": "🏋️",
+      "badge": "🛠️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🏋️”，依据种子配方“健身房 + 打工人”（tencent 链）以“合并目录语义”徽章区分“午间撸铁”"
+  },
+  "南极圈": {
+    "icon": {
+      "base": "🧊",
+      "badge": "🛒",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧊”，依据种子配方“企鹅 + 离职”（tencent 链）以“合并目录语义”徽章区分“南极圈”"
+  },
+  "周会": {
+    "icon": {
+      "base": "🔁",
+      "badge": "🟠",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🔁”，依据种子配方“周报 + 腾讯会议”（tencent 链）以“合并目录语义”徽章区分“周会”"
+  },
+  "周会纪要": {
+    "icon": {
+      "base": "📋",
+      "badge": "🌸",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“📋”，依据种子配方“会议记录 + 周五”（tencent 链）以“合并目录语义”徽章区分“周会纪要”"
+  },
+  "和平精英": {
+    "icon": {
+      "base": "🔫",
+      "badge": "🔥",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🔫”，依据种子配方“战术 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“和平精英”"
+  },
+  "哔哩哔哩": {
+    "entity_type": "company",
+    "canonical_name": "哔哩哔哩",
+    "aliases": [
+      "B站",
+      "Bilibili"
+    ],
+    "contexts": [
+      "association",
+      "video"
+    ],
+    "forbidden_senses": [
+      "B站=普通B号站点"
+    ],
+    "icon": {
+      "base": "📺",
+      "badge": "💰",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯投资语境中的视频社区；电视配投资徽章"
+  },
+  "在线升级": {
+    "icon": {
+      "base": "💬",
+      "badge": "✈️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 经验值”（qq_memory 链）以“合并目录语义”徽章区分“在线升级”"
+  },
+  "外包": {
+    "entity_type": "role",
+    "canonical_name": "外包员工",
+    "aliases": [
+      "外包岗位",
+      "contractor"
+    ],
+    "contexts": [
+      "level",
+      "career"
+    ],
+    "forbidden_senses": [
+      "外包=包裹外包装"
+    ],
+    "icon": {
+      "base": "📎",
+      "badge": "🪜",
+      "palette": "office",
+      "source": "entity"
+    },
+    "rationale": "外包雇佣身份；附件意象配职级阶梯徽章"
+  },
+  "多人编辑打架": {
+    "icon": {
+      "base": "⚔️",
+      "badge": "📝",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“⚔️”，依据种子配方“协同 + 腾讯文档”（tencent 链）以“文档多人编辑冲突”徽章区分“多人编辑打架”"
+  },
+  "天天爱消除": {
+    "icon": {
+      "base": "🎮",
+      "badge": "🐼",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“消除 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“天天爱消除”"
+  },
+  "天天酷跑": {
+    "icon": {
+      "base": "🎮",
+      "badge": "🕹️",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“游戏 + 跑步”（tencent_game 链）以“合并目录语义”徽章区分“天天酷跑”"
+  },
+  "天涯明月刀": {
+    "icon": {
+      "base": "🎮",
+      "badge": "🐉",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“刀 + 明月”（tencent_game 链）以“合并目录语义”徽章区分“天涯明月刀”"
+  },
+  "天美工作室群": {
+    "entity_type": "studio",
+    "canonical_name": "天美工作室群",
+    "aliases": [
+      "天美",
+      "TiMi Studio Group",
+      "腾讯天美"
+    ],
+    "contexts": [
+      "studio",
+      "tencent"
+    ],
+    "forbidden_senses": [
+      "天美=天气美好"
+    ],
+    "icon": {
+      "base": "⚔️",
+      "badge": "🎮",
+      "palette": "studio",
+      "source": "entity"
+    },
+    "rationale": "腾讯游戏工作室群；武器配游戏徽章"
+  },
+  "太阳号": {
+    "icon": {
+      "base": "💬",
+      "badge": "🏔️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ等级 + 时间”（qq_memory 链）以“合并目录语义”徽章区分“太阳号”"
+  },
+  "实习生": {
+    "entity_type": "role",
+    "canonical_name": "实习员工",
+    "aliases": [
+      "intern",
+      "实习岗位"
+    ],
+    "contexts": [
+      "level",
+      "career"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🔰",
+      "badge": "🪜",
+      "palette": "office",
+      "source": "entity"
+    },
+    "rationale": "实习职业阶段；新手标记配职级阶梯徽章"
+  },
+  "寻仙": {
+    "icon": {
+      "base": "🎮",
+      "badge": "🎨",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“仙侠 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“寻仙”"
+  },
+  "小程序": {
+    "entity_type": "product_feature",
+    "canonical_name": "微信小程序",
+    "aliases": [
+      "微信小程序",
+      "Mini Program"
+    ],
+    "contexts": [
+      "product",
+      "application"
+    ],
+    "forbidden_senses": [
+      "小程序=任意短小代码"
+    ],
+    "icon": {
+      "base": "🔲",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "微信内轻量应用平台；模块方块配产品徽章"
+  },
+  "小红书": {
+    "entity_type": "company",
+    "canonical_name": "小红书",
+    "aliases": [
+      "Xiaohongshu",
+      "RED社区"
+    ],
+    "contexts": [
+      "association",
+      "social"
+    ],
+    "forbidden_senses": [
+      "小红书=红色小册子"
+    ],
+    "icon": {
+      "base": "📕",
+      "badge": "💰",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯投资语境中的生活方式社区；红书配投资徽章"
+  },
+  "小马哥": {
+    "icon": {
+      "base": "🐎",
+      "badge": "👔",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🐎”，依据种子配方“小马 + 鹅厂”（tencent 链）以“马化腾人物昵称”徽章区分“小马哥”"
+  },
+  "尴尬同框": {
+    "icon": {
+      "base": "😬",
+      "badge": "🦋",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“😬”，依据种子配方“电梯 + 老板”（tencent 链）以“合并目录语义”徽章区分“尴尬同框”"
+  },
+  "工位食堂": {
+    "icon": {
+      "base": "🥡",
+      "badge": "💎",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🥡”，依据种子配方“工位 + 鹅餐”（tencent 链）以“合并目录语义”徽章区分“工位食堂”"
+  },
+  "工牌": {
+    "icon": {
+      "base": "🪪",
+      "badge": "☁️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🪪”，依据种子配方“身份 + 鹅厂”（tencent 链）以“合并目录语义”徽章区分“工牌”"
+  },
+  "带薪健身": {
+    "icon": {
+      "base": "💪",
+      "badge": "✅",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💪”，依据种子配方“健身房 + 摸鱼”（tencent 链）以“合并目录语义”徽章区分“带薪健身”"
+  },
+  "带薪养生": {
+    "icon": {
+      "base": "💆",
+      "badge": "💼",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💆”，依据种子配方“工位 + 按摩椅”（tencent 链）以“工作时间内养生”徽章区分“带薪养生”"
+  },
+  "应届生": {
+    "entity_type": "role",
+    "canonical_name": "应届毕业生岗位",
+    "aliases": [
+      "校招生",
+      "应届校招员工"
+    ],
+    "contexts": [
+      "level",
+      "career"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🎓",
+      "badge": "🪜",
+      "palette": "office",
+      "source": "entity"
+    },
+    "rationale": "校招职业阶段；毕业帽配职级阶梯徽章"
+  },
+  "应用宝": {
+    "entity_type": "product",
+    "canonical_name": "腾讯应用宝",
+    "aliases": [
+      "腾讯应用宝",
+      "Tencent App Store"
+    ],
+    "contexts": [
+      "product",
+      "application"
+    ],
+    "forbidden_senses": [
+      "应用宝=抽象宝物"
+    ],
+    "icon": {
+      "base": "📦",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯应用分发产品；软件包裹配产品徽章"
+  },
+  "弹弹堂": {
+    "icon": {
+      "base": "🎮",
+      "badge": "✨",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“弹射 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“弹弹堂”"
+  },
+  "御龙在天": {
+    "icon": {
+      "base": "🎮",
+      "badge": "🛒",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“御龙 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“御龙在天”"
+  },
+  "微云": {
+    "entity_type": "product",
+    "canonical_name": "腾讯微云",
+    "aliases": [
+      "腾讯微云",
+      "Weiyun"
+    ],
+    "contexts": [
+      "product",
+      "cloud_storage"
+    ],
+    "forbidden_senses": [
+      "微云=小片云朵"
+    ],
+    "icon": {
+      "base": "☁️",
+      "badge": "📁",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯云端文件存储产品；云主图配文件夹徽章"
+  },
+  "微众银行": {
+    "icon": {
+      "base": "🤝",
+      "badge": "🎵",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“微信支付 + 银行”（association 链）以“合并目录语义”徽章区分“微众银行”"
+  },
+  "微信总部": {
+    "icon": {
+      "base": "💚",
+      "badge": "⚓",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💚”，依据种子配方“TIT创意园 + 滑梯”（building 链）以“合并目录语义”徽章区分“微信总部”"
+  },
+  "微信支付": {
+    "entity_type": "product",
+    "canonical_name": "微信支付",
+    "aliases": [
+      "WeChat Pay",
+      "腾讯微信支付"
+    ],
+    "contexts": [
+      "product",
+      "payment"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "💸",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "微信支付产品；流动钱币配产品徽章"
+  },
+  "微视": {
+    "entity_type": "product",
+    "canonical_name": "腾讯微视",
+    "aliases": [
+      "腾讯微视",
+      "Weishi"
+    ],
+    "contexts": [
+      "product",
+      "short_video"
+    ],
+    "forbidden_senses": [
+      "微视=轻微视力"
+    ],
+    "icon": {
+      "base": "🎬",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯短视频产品；场记板配产品徽章"
+  },
+  "快手": {
+    "entity_type": "company",
+    "canonical_name": "快手",
+    "aliases": [
+      "Kuaishou",
+      "快手科技"
+    ],
+    "contexts": [
+      "association",
+      "short_video"
+    ],
+    "forbidden_senses": [
+      "快手=动作很快的人"
+    ],
+    "icon": {
+      "base": "📹",
+      "badge": "💰",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯投资语境中的短视频公司；摄像机配投资徽章"
+  },
+  "总监": {
+    "entity_type": "role",
+    "canonical_name": "总监岗位",
+    "aliases": [
+      "业务总监",
+      "director"
+    ],
+    "contexts": [
+      "level",
+      "management"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🎩",
+      "badge": "🪜",
+      "palette": "office",
+      "source": "entity"
+    },
+    "rationale": "组织管理岗位；礼帽配职级阶梯徽章"
+  },
+  "成都办公楼": {
+    "icon": {
+      "base": "🐼",
+      "badge": "🏢",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🐼”，依据种子配方“成都 + 鹅厂”（building 链）以“成都办公建筑”徽章区分“成都办公楼”"
+  },
+  "战地之王": {
+    "icon": {
+      "base": "🎮",
+      "badge": "🪨",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“战地 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“战地之王”"
+  },
+  "手机QQ": {
+    "icon": {
+      "base": "💬",
+      "badge": "🟣",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 手机”（qq_memory 链）以“合并目录语义”徽章区分“手机QQ”"
+  },
+  "打卡": {
+    "icon": {
+      "base": "⏱️",
+      "badge": "🌙",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“⏱️”，依据种子配方“工牌 + 门禁”（tencent 链）以“合并目录语义”徽章区分“打卡”"
+  },
+  "打工鹅": {
+    "icon": {
+      "base": "🐧",
+      "badge": "🧭",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🐧”，依据种子配方“企鹅 + 打工人”（tencent 链）以“合并目录语义”徽章区分“打工鹅”"
+  },
+  "抢车位": {
+    "icon": {
+      "base": "💬",
+      "badge": "📷",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ空间 + 汽车”（qq_memory 链）以“合并目录语义”徽章区分“抢车位”"
+  },
+  "拼多多": {
+    "entity_type": "company",
+    "canonical_name": "拼多多",
+    "aliases": [
+      "Pinduoduo",
+      "PDD电商"
+    ],
+    "contexts": [
+      "association",
+      "ecommerce"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🛒",
+      "badge": "💰",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯投资语境中的电商公司；购物车配投资徽章"
+  },
+  "按摩椅": {
+    "icon": {
+      "base": "💆",
+      "badge": "🌍",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💆”，依据种子配方“健身房 + 工位”（tencent 链）以“合并目录语义”徽章区分“按摩椅”"
+  },
+  "掌纹": {
+    "icon": {
+      "base": "🫴",
+      "badge": "🚇",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🫴”，依据种子配方“人 + 工牌”（tencent 链）以“合并目录语义”徽章区分“掌纹”"
+  },
+  "排队堵梯": {
+    "icon": {
+      "base": "🕰️",
+      "badge": "🎯",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🕰️”，依据种子配方“早高峰 + 电梯”（tencent 链）以“合并目录语义”徽章区分“排队堵梯”"
+  },
+  "文档不同步": {
+    "icon": {
+      "base": "📚",
+      "badge": "🔮",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“📚”，依据种子配方“iWiki + 需求变更”（tencent 链）以“合并目录语义”徽章区分“文档不同步”"
+  },
+  "斗战神": {
+    "icon": {
+      "base": "🎮",
+      "badge": "💙",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“斗战 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“斗战神”"
+  },
+  "早会": {
+    "icon": {
+      "base": "🌅",
+      "badge": "✈️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🌅”，依据种子配方“早高峰 + 腾讯会议”（tencent 链）以“合并目录语义”徽章区分“早会”"
+  },
+  "晚班": {
+    "icon": {
+      "base": "🌙",
+      "badge": "💙",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🌙”，依据种子配方“加班 + 夜”（tencent 链）以“合并目录语义”徽章区分“晚班”"
+  },
+  "晨会": {
+    "icon": {
+      "base": "🌅",
+      "badge": "📝",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🌅”，依据种子配方“早会 + 腾讯会议”（tencent 链）以“晨间工作会议”徽章区分“晨会”"
+  },
+  "朋友圈": {
+    "icon": {
+      "base": "🔵",
+      "badge": "🔍",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🔵”，依据种子配方“微信 + 朋友”（product 链）以“合并目录语义”徽章区分“朋友圈”"
+  },
+  "朋友网": {
+    "icon": {
+      "base": "💬",
+      "badge": "🎉",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ校友 + 朋友”（qq_memory 链）以“合并目录语义”徽章区分“朋友网”"
+  },
+  "欢乐斗地主": {
+    "entity_type": "product",
+    "canonical_name": "腾讯欢乐斗地主",
+    "aliases": [
+      "腾讯欢乐斗地主",
+      "欢乐斗地主游戏"
+    ],
+    "contexts": [
+      "product",
+      "game"
+    ],
+    "forbidden_senses": [
+      "斗地主=线下扑克玩法"
+    ],
+    "icon": {
+      "base": "🃏",
+      "badge": "🎮",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯数字扑克游戏；纸牌配游戏徽章"
+  },
+  "欢乐麻将": {
+    "entity_type": "product",
+    "canonical_name": "腾讯欢乐麻将",
+    "aliases": [
+      "腾讯欢乐麻将",
+      "欢乐麻将全集"
+    ],
+    "contexts": [
+      "product",
+      "game"
+    ],
+    "forbidden_senses": [
+      "麻将=线下桌游"
+    ],
+    "icon": {
+      "base": "🀄",
+      "badge": "🎮",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯数字麻将游戏；麻将牌配游戏徽章"
+  },
+  "正式员工": {
+    "entity_type": "role",
+    "canonical_name": "正式员工",
+    "aliases": [
+      "正式编制员工",
+      "regular employee"
+    ],
+    "contexts": [
+      "level",
+      "career"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🪪",
+      "badge": "🪜",
+      "palette": "office",
+      "source": "entity"
+    },
+    "rationale": "正式雇佣身份；工牌配职级阶梯徽章"
+  },
+  "水帖": {
+    "icon": {
+      "base": "💬",
+      "badge": "🌸",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“乐享 + 周五”（tencent 链）以“合并目录语义”徽章区分“水帖”"
+  },
+  "洛克王国": {
+    "icon": {
+      "base": "🎮",
+      "badge": "🌈",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ宠物 + 魔法”（tencent_game 链）以“合并目录语义”徽章区分“洛克王国”"
+  },
+  "活水": {
+    "icon": {
+      "base": "🌊",
+      "badge": "🏝️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🌊”，依据种子配方“打工鹅 + 转岗”（tencent 链）以“合并目录语义”徽章区分“活水”"
+  },
+  "深夜食堂": {
+    "icon": {
+      "base": "🌙",
+      "badge": "🍜",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🌙”，依据种子配方“夜宵券 + 食堂”（tencent 链）以“深夜餐食场景”徽章区分“深夜食堂”"
+  },
+  "混元大模型": {
+    "entity_type": "product",
+    "canonical_name": "腾讯混元大模型",
+    "aliases": [
+      "腾讯混元",
+      "Hunyuan"
+    ],
+    "contexts": [
+      "product",
+      "ai"
+    ],
+    "forbidden_senses": [
+      "混元=传统哲学概念"
+    ],
+    "icon": {
+      "base": "🧠",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯基础大模型品牌；大脑配产品徽章"
+  },
+  "滨海大厦": {
+    "icon": {
+      "base": "🌆",
+      "badge": "🌊",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🌆”，依据种子配方“大厦 + 海洋”（building 链）以“滨海办公建筑”徽章区分“滨海大厦”"
+  },
+  "滴滴滴": {
+    "icon": {
+      "base": "💬",
+      "badge": "📍",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 声音”（qq_memory 链）以“合并目录语义”徽章区分“滴滴滴”"
+  },
+  "火影忍者手游": {
+    "entity_type": "product",
+    "canonical_name": "火影忍者手游",
+    "aliases": [
+      "腾讯火影忍者手游",
+      "火影手游"
+    ],
+    "contexts": [
+      "product",
+      "game"
+    ],
+    "forbidden_senses": [
+      "火影=火焰影子"
+    ],
+    "icon": {
+      "base": "🥷",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯发行的火影忍者移动游戏；忍者配产品徽章"
+  },
+  "灯火通明": {
+    "icon": {
+      "base": "🌃",
+      "badge": "🔍",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🌃”，依据种子配方“夜 + 滨海大厦”（tencent 链）以“合并目录语义”徽章区分“灯火通明”"
+  },
+  "灰色头像": {
+    "icon": {
+      "base": "💬",
+      "badge": "🦋",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 离线”（qq_memory 链）以“合并目录语义”徽章区分“灰色头像”"
+  },
+  "烤企鹅": {
+    "icon": {
+      "base": "🔥",
+      "badge": "☕",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🔥”，依据种子配方“企鹅 + 火”（tencent 链）以“合并目录语义”徽章区分“烤企鹅”"
+  },
+  "爆料": {
+    "icon": {
+      "base": "💬",
+      "badge": "📢",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“南极圈 + 脉脉”（tencent 链）以“公开传播消息”徽章区分“爆料”"
+  },
+  "王者荣耀": {
+    "icon": {
+      "base": "⚔️",
+      "badge": "🏢",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“⚔️”，依据种子配方“游戏 + 王者”（tencent_game 链）以“合并目录语义”徽章区分“王者荣耀”"
+  },
+  "班车": {
+    "icon": {
+      "base": "🚌",
+      "badge": "🏙️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🚌”，依据种子配方“轨道 + 鹅厂”（tencent 链）以“合并目录语义”徽章区分“班车”"
+  },
+  "琶洲新总部": {
+    "icon": {
+      "base": "🏗️",
+      "badge": "⌚",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🏗️”，依据种子配方“琶洲 + 鹅厂”（building 链）以“合并目录语义”徽章区分“琶洲新总部”"
+  },
+  "瑞雪": {
+    "icon": {
+      "base": "❄️",
+      "badge": "🟡",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“❄️”，依据种子配方“OKR + 红包”（tencent 链）以“合并目录语义”徽章区分“瑞雪”"
+  },
+  "电梯": {
+    "icon": {
+      "base": "🛗",
+      "badge": "🐉",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🛗”，依据种子配方“工位 + 门禁”（tencent 链）以“合并目录语义”徽章区分“电梯”"
+  },
+  "电脑管家": {
+    "entity_type": "product",
+    "canonical_name": "腾讯电脑管家",
+    "aliases": [
+      "腾讯电脑管家",
+      "Tencent PC Manager"
+    ],
+    "contexts": [
+      "product",
+      "security"
+    ],
+    "forbidden_senses": [
+      "管家=家庭服务人员"
+    ],
+    "icon": {
+      "base": "🛡️",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯终端安全产品；盾牌配产品徽章"
+  },
+  "留言板": {
+    "icon": {
+      "base": "💬",
+      "badge": "🏠",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ空间 + 留言”（qq_memory 链）以“合并目录语义”徽章区分“留言板”"
+  },
+  "知乎": {
+    "entity_type": "company",
+    "canonical_name": "知乎",
+    "aliases": [
+      "Zhihu",
+      "知乎社区"
+    ],
+    "contexts": [
+      "association",
+      "knowledge"
+    ],
+    "forbidden_senses": [
+      "知乎=古文疑问词"
+    ],
+    "icon": {
+      "base": "💡",
+      "badge": "💰",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯投资语境中的问答社区；灯泡配投资徽章"
+  },
+  "视频号": {
+    "icon": {
+      "base": "📺",
+      "badge": "🌊",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“📺”，依据种子配方“微信 + 短视频”（product 链）以“合并目录语义”徽章区分“视频号”"
+  },
+  "科兴科学园": {
+    "icon": {
+      "base": "🔬",
+      "badge": "🚗",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🔬”，依据种子配方“科兴 + 鹅厂”（building 链）以“合并目录语义”徽章区分“科兴科学园”"
+  },
+  "程序员床位": {
+    "icon": {
+      "base": "🛏️",
+      "badge": "🧑‍💻",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🛏️”，依据种子配方“小床 + 工位”（tencent 链）以“合并目录语义”徽章区分“程序员床位”"
+  },
+  "穿越火线": {
+    "entity_type": "product",
+    "canonical_name": "CrossFire",
+    "aliases": [
+      "CF",
+      "CF端游",
+      "CF游戏",
+      "穿越火线简称",
+      "穿越火线端游"
+    ],
+    "contexts": [
+      "product",
+      "game"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🔫",
+      "badge": "🎮",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "射击游戏《穿越火线》；枪械配游戏徽章"
+  },
+  "窗口抖动": {
+    "icon": {
+      "base": "💬",
+      "badge": "🟡",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 震动”（qq_memory 链）以“合并目录语义”徽章区分“窗口抖动”"
+  },
+  "第七大道": {
+    "icon": {
+      "base": "🤝",
+      "badge": "❤️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🤝”，依据种子配方“开发商 + 弹弹堂”（association 链）以“合并目录语义”徽章区分“第七大道”"
+  },
+  "粉钻": {
+    "icon": {
+      "base": "💬",
+      "badge": "🚇",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ会员 + QQ宠物”（qq_memory 链）以“合并目录语义”徽章区分“粉钻”"
+  },
+  "红包": {
+    "entity_type": "product_feature",
+    "canonical_name": "微信红包",
+    "aliases": [
+      "微信红包",
+      "WeChat Red Packet"
+    ],
+    "contexts": [
+      "product",
+      "payment"
+    ],
+    "forbidden_senses": [
+      "红包=普通现金礼封"
+    ],
+    "icon": {
+      "base": "🧧",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "微信支付内的红包功能；红包主图配产品徽章"
+  },
+  "红钻": {
+    "icon": {
+      "base": "💬",
+      "badge": "🍜",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ会员 + QQ秀”（qq_memory 链）以“合并目录语义”徽章区分“红钻”"
+  },
+  "紫钻": {
+    "icon": {
+      "base": "💬",
+      "badge": "⭐",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ会员 + QQ飞车”（qq_memory 链）以“合并目录语义”徽章区分“紫钻”"
+  },
+  "组织架构调整": {
+    "icon": {
+      "base": "🔄",
+      "badge": "✨",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🔄”，依据种子配方“中台 + 转岗”（tencent 链）以“合并目录语义”徽章区分“组织架构调整”"
+  },
+  "续命鹅": {
+    "icon": {
+      "base": "☕",
+      "badge": "❤️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“☕”，依据种子配方“咖啡 + 打工鹅”（tencent 链）以“咖啡续命的打工鹅”徽章区分“续命鹅”"
+  },
+  "绿钻": {
+    "icon": {
+      "base": "💬",
+      "badge": "🔧",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ会员 + QQ音乐”（qq_memory 链）以“合并目录语义”徽章区分“绿钻”"
+  },
+  "美团": {
+    "entity_type": "company",
+    "canonical_name": "美团",
+    "aliases": [
+      "Meituan",
+      "美团平台"
+    ],
+    "contexts": [
+      "association",
+      "local_services"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🛵",
+      "badge": "💰",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯投资语境中的本地生活公司；配送车配投资徽章"
+  },
+  "背景音": {
+    "icon": {
+      "base": "🐕",
+      "badge": "🎨",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🐕”，依据种子配方“狗 + 腾讯会议”（tencent 链）以“合并目录语义”徽章区分“背景音”"
+  },
+  "腾讯TT": {
+    "icon": {
+      "base": "💬",
+      "badge": "🍎",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ浏览器 + 电脑”（qq_memory 链）以“合并目录语义”徽章区分“腾讯TT”"
+  },
+  "腾讯云": {
+    "entity_type": "product",
+    "canonical_name": "腾讯云",
+    "aliases": [
+      "Tencent Cloud",
+      "腾讯云计算"
+    ],
+    "contexts": [
+      "product",
+      "cloud"
+    ],
+    "forbidden_senses": [
+      "腾讯云=天气云层"
+    ],
+    "icon": {
+      "base": "☁️",
+      "badge": "🖥️",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯云计算平台；云主图配计算终端徽章"
+  },
+  "腾讯企点": {
+    "entity_type": "product",
+    "canonical_name": "腾讯企点",
+    "aliases": [
+      "Tencent Qidian",
+      "腾讯企点客服"
+    ],
+    "contexts": [
+      "product",
+      "enterprise"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🎯",
+      "badge": "🏢",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯企业客户连接产品；目标主图配企业服务徽章"
+  },
+  "腾讯会议": {
+    "icon": {
+      "base": "📹",
+      "badge": "🎲",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“📹”，依据种子配方“会议 + 腾讯”（product 链）以“合并目录语义”徽章区分“腾讯会议”"
+  },
+  "腾讯体育": {
+    "entity_type": "product",
+    "canonical_name": "腾讯体育",
+    "aliases": [
+      "Tencent Sports",
+      "腾讯体育频道"
+    ],
+    "contexts": [
+      "product",
+      "sports"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "⚽",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯体育内容产品；足球主图配企鹅品牌徽章"
+  },
+  "腾讯动漫": {
+    "entity_type": "product",
+    "canonical_name": "腾讯动漫",
+    "aliases": [
+      "Tencent Animation & Comics",
+      "腾讯动漫平台"
+    ],
+    "contexts": [
+      "product",
+      "comics"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "📖",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯动漫内容平台；翻开的书配产品徽章"
+  },
+  "腾讯地图": {
+    "entity_type": "product",
+    "canonical_name": "腾讯地图",
+    "aliases": [
+      "Tencent Maps",
+      "腾讯地图客户端"
+    ],
+    "contexts": [
+      "product",
+      "map"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🗺️",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯地图与导航产品；地图主图配产品徽章"
+  },
+  "腾讯大厦": {
+    "icon": {
+      "base": "🏢",
+      "badge": "🐧",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🏢”，依据种子配方“深圳 + 鹅厂”（building 链）以“腾讯办公建筑”徽章区分“腾讯大厦”"
+  },
+  "腾讯微博": {
+    "icon": {
+      "base": "💬",
+      "badge": "🪨",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 新闻”（qq_memory 链）以“合并目录语义”徽章区分“腾讯微博”"
+  },
+  "腾讯文档": {
+    "icon": {
+      "base": "📄",
+      "badge": "🏔️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“📄”，依据种子配方“知识 + 腾讯会议”（product 链）以“合并目录语义”徽章区分“腾讯文档”"
+  },
+  "腾讯新闻": {
+    "entity_type": "product",
+    "canonical_name": "腾讯新闻",
+    "aliases": [
+      "Tencent News",
+      "腾讯新闻客户端"
+    ],
+    "contexts": [
+      "product",
+      "news"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "📰",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯新闻资讯产品；报纸主图配产品徽章"
+  },
+  "腾讯视频": {
+    "entity_type": "product",
+    "canonical_name": "腾讯视频",
+    "aliases": [
+      "Tencent Video",
+      "腾讯视频客户端"
+    ],
+    "contexts": [
+      "product",
+      "video"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "📺",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯长视频平台；电视主图配产品徽章"
+  },
+  "腾讯翻译君": {
+    "entity_type": "product",
+    "canonical_name": "腾讯翻译君",
+    "aliases": [
+      "Tencent Translator",
+      "翻译君"
+    ],
+    "contexts": [
+      "product",
+      "translation"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🔤",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯翻译产品；字母主图配产品徽章"
+  },
+  "腾讯音乐娱乐集团": {
+    "entity_type": "company",
+    "canonical_name": "Tencent Music Entertainment",
+    "aliases": [
+      "TME",
+      "腾讯音乐娱乐",
+      "腾讯音乐"
+    ],
+    "contexts": [
+      "product",
+      "music"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🎶",
+      "badge": "🔤",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯音乐娱乐集团英文缩写；多音符配字母徽章标示缩写语境"
+  },
+  "自由幻想": {
+    "icon": {
+      "base": "🎮",
+      "badge": "💻",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ幻想 + 自由”（tencent_game 链）以“合并目录语义”徽章区分“自由幻想”"
+  },
+  "节奏大师": {
+    "icon": {
+      "base": "🎮",
+      "badge": "🔥",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“游戏 + 节奏”（tencent_game 链）以“合并目录语义”徽章区分“节奏大师”"
+  },
+  "英雄联盟": {
+    "entity_type": "product",
+    "canonical_name": "League of Legends",
+    "aliases": [
+      "LOL端游",
+      "英雄联盟端游"
+    ],
+    "contexts": [
+      "product",
+      "game"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "🎮",
+      "badge": "📱",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "拳头游戏开发的多人竞技游戏；手柄配产品徽章"
+  },
+  "英雄联盟手游": {
+    "entity_type": "product",
+    "canonical_name": "League of Legends: Wild Rift",
+    "aliases": [
+      "LOL手游",
+      "Wild Rift"
+    ],
+    "contexts": [
+      "product",
+      "game"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "📱",
+      "badge": "🎮",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "英雄联盟移动游戏产品；手机主图配游戏徽章"
+  },
+  "蓝钻": {
+    "icon": {
+      "base": "💬",
+      "badge": "📦",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ会员 + QQ游戏”（qq_memory 链）以“合并目录语义”徽章区分“蓝钻”"
+  },
+  "蔚来": {
+    "entity_type": "company",
+    "canonical_name": "蔚来汽车",
+    "aliases": [
+      "NIO",
+      "蔚来"
+    ],
+    "contexts": [
+      "association",
+      "vehicle"
+    ],
+    "forbidden_senses": [
+      "蔚来=未来谐音"
+    ],
+    "icon": {
+      "base": "🚗",
+      "badge": "💰",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "腾讯投资语境中的新能源汽车公司；汽车配投资徽章"
+  },
+  "虚拟背景": {
+    "icon": {
+      "base": "🖼️",
+      "badge": "🚲",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🖼️”，依据种子配方“背景 + 腾讯会议”（tencent 链）以“合并目录语义”徽章区分“虚拟背景”"
+  },
+  "赛马": {
+    "icon": {
+      "base": "🐎",
+      "badge": "🚇",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🐎”，依据种子配方“PCG + WXG”（tencent 链）以“合并目录语义”徽章区分“赛马”"
+  },
+  "超级QQ": {
+    "icon": {
+      "base": "💬",
+      "badge": "🎮",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ会员 + 手机”（qq_memory 链）以“合并目录语义”徽章区分“超级QQ”"
+  },
+  "踩空间": {
+    "icon": {
+      "base": "💬",
+      "badge": "🎨",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ空间 + 访问”（qq_memory 链）以“合并目录语义”徽章区分“踩空间”"
+  },
+  "轩辕传奇": {
+    "icon": {
+      "base": "🎮",
+      "badge": "📷",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“游戏 + 轩辕”（tencent_game 链）以“合并目录语义”徽章区分“轩辕传奇”"
+  },
+  "逆战": {
+    "icon": {
+      "base": "🎮",
+      "badge": "⚡",
+      "palette": "studio",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🎮”，依据种子配方“未来 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“逆战”"
+  },
+  "通勤睡眠": {
+    "icon": {
+      "base": "😴",
+      "badge": "🍜",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“😴”，依据种子配方“早高峰 + 班车”（tencent 链）以“合并目录语义”徽章区分“通勤睡眠”"
+  },
+  "道别贴": {
+    "icon": {
+      "base": "👋",
+      "badge": "🧠",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“👋”，依据种子配方“乐享 + 离职”（tencent 链）以“合并目录语义”徽章区分“道别贴”"
+  },
+  "金地威新": {
+    "icon": {
+      "base": "🏬",
+      "badge": "🦁",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🏬”，依据种子配方“大厦 + 深圳”（building 链）以“合并目录语义”徽章区分“金地威新”"
+  },
+  "金铲铲之战": {
+    "entity_type": "product",
+    "canonical_name": "金铲铲之战",
+    "aliases": [
+      "金铲铲",
+      "腾讯金铲铲"
+    ],
+    "contexts": [
+      "product",
+      "game"
+    ],
+    "forbidden_senses": [
+      "金铲铲=普通铲子"
+    ],
+    "icon": {
+      "base": "♟️",
+      "badge": "⛏️",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "自走棋游戏《金铲铲之战》；棋子配铲子徽章"
+  },
+  "阅文集团": {
+    "entity_type": "company",
+    "canonical_name": "阅文集团",
+    "aliases": [
+      "China Literature",
+      "腾讯阅文"
+    ],
+    "contexts": [
+      "product",
+      "literature"
+    ],
+    "forbidden_senses": [],
+    "icon": {
+      "base": "📚",
+      "badge": "🏢",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "网络文学企业阅文集团；书本配企业徽章"
+  },
+  "隐身上线": {
+    "icon": {
+      "base": "💬",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 影子”（qq_memory 链）以“合并目录语义”徽章区分“隐身上线”"
+  },
+  "静音挂机": {
+    "icon": {
+      "base": "🔇",
+      "badge": "🚀",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🔇”，依据种子配方“摸鱼 + 腾讯会议”（tencent 链）以“合并目录语义”徽章区分“静音挂机”"
+  },
+  "食堂": {
+    "icon": {
+      "base": "🍱",
+      "badge": "🍽️",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🍱”，依据种子配方“灶台 + 鹅厂”（tencent 链）以“员工就餐场所”徽章区分“食堂”"
+  },
+  "魔方工作室群": {
+    "entity_type": "studio",
+    "canonical_name": "魔方工作室群",
+    "aliases": [
+      "魔方",
+      "Morefun Studios",
+      "腾讯魔方"
+    ],
+    "contexts": [
+      "studio",
+      "tencent"
+    ],
+    "forbidden_senses": [
+      "魔方=益智玩具"
+    ],
+    "icon": {
+      "base": "🎲",
+      "badge": "🎮",
+      "palette": "studio",
+      "source": "entity"
+    },
+    "rationale": "腾讯游戏工作室群；立方体玩具意象配游戏徽章"
+  },
+  "鹅卡": {
+    "icon": {
+      "base": "💳",
+      "badge": "🎾",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💳”，依据种子配方“工牌 + 食堂”（tencent 链）以“合并目录语义”徽章区分“鹅卡”"
+  },
+  "鹅厂": {
+    "icon": {
+      "base": "🏢",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🏢”，依据种子配方“工位 + 腾讯”（tencent 链）以“腾讯公司昵称”徽章区分“鹅厂”"
+  },
+  "鹅厂双子塔": {
+    "icon": {
+      "base": "🏙️",
+      "badge": "📝",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🏙️”，依据种子配方“滨海大厦 + 腾讯大厦”（building 链）以“合并目录语义”徽章区分“鹅厂双子塔”"
+  },
+  "鹅咖": {
+    "icon": {
+      "base": "☕",
+      "badge": "📍",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“☕”，依据种子配方“瑞幸 + 鹅卡”（tencent 链）以“合并目录语义”徽章区分“鹅咖”"
+  },
+  "鹅式小憩": {
+    "icon": {
+      "base": "💤",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💤”，依据种子配方“午休 + 按摩椅”（tencent 链）以“腾讯员工小憩”徽章区分“鹅式小憩”"
+  },
+  "鹅餐": {
+    "icon": {
+      "base": "🍱",
+      "badge": "🎭",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🍱”，依据种子配方“打工人 + 食堂”（tencent 链）以“合并目录语义”徽章区分“鹅餐”"
+  },
+  "黄钻": {
+    "icon": {
+      "base": "💬",
+      "badge": "🦊",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“QQ会员 + QQ空间”（qq_memory 链）以“合并目录语义”徽章区分“黄钻”"
+  },
+  "黑屏挂机": {
+    "icon": {
+      "base": "⬛",
+      "badge": "🦋",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“⬛”，依据种子配方“电脑 + 腾讯会议”（tencent 链）以“合并目录语义”徽章区分“黑屏挂机”"
+  },
+  "黑钻": {
+    "icon": {
+      "base": "💬",
+      "badge": "🔥",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“💬”，依据种子配方“DNF + QQ会员”（qq_memory 链）以“合并目录语义”徽章区分“黑钻”"
   }
 };
 
@@ -6852,7 +8555,10 @@ export const ICON_RULES = {
     "building": "place",
     "level": "office",
     "boss": "people",
-    "invest": "product",
+    "association": "product",
+    "internet": "product",
+    "qq_memory": "product",
+    "tencent_game": "studio",
     "ai": "product"
   },
   "keyword_badges": [
@@ -7804,6 +9510,106 @@ export const ICON_RULES = {
     }
   ],
   "category_badge_pools": {
+    "catalog": [
+      "🔥",
+      "💧",
+      "🌱",
+      "🌳",
+      "🌊",
+      "☀️",
+      "🌙",
+      "⭐",
+      "✨",
+      "⚡",
+      "❄️",
+      "☁️",
+      "🌈",
+      "🌍",
+      "🪨",
+      "💎",
+      "🔮",
+      "🧭",
+      "🗺️",
+      "🏔️",
+      "🏝️",
+      "🏙️",
+      "🏠",
+      "🏢",
+      "🏭",
+      "🏛️",
+      "🚀",
+      "✈️",
+      "🚗",
+      "🚇",
+      "🚲",
+      "⛵",
+      "⚓",
+      "🎮",
+      "🕹️",
+      "🎲",
+      "♟️",
+      "🏆",
+      "⚽",
+      "🏀",
+      "🎾",
+      "🎯",
+      "🎨",
+      "🎭",
+      "🎬",
+      "🎵",
+      "🎤",
+      "🎧",
+      "📚",
+      "📝",
+      "📊",
+      "📈",
+      "💻",
+      "📱",
+      "⌚",
+      "📷",
+      "🔍",
+      "💡",
+      "🧠",
+      "🧩",
+      "⚙️",
+      "🛠️",
+      "🔧",
+      "🔒",
+      "🔑",
+      "📦",
+      "🛒",
+      "💰",
+      "💼",
+      "👔",
+      "👥",
+      "🤝",
+      "💬",
+      "📣",
+      "🔔",
+      "❤️",
+      "💚",
+      "💙",
+      "🟣",
+      "🟡",
+      "🟠",
+      "🐧",
+      "🐉",
+      "🦊",
+      "🦁",
+      "🐼",
+      "🦋",
+      "🌸",
+      "🍀",
+      "🍎",
+      "☕",
+      "🍜",
+      "🎁",
+      "🎉",
+      "✅",
+      "📍",
+      "🧑‍💻",
+      "🧑‍💼"
+    ],
     "ai": [
       "🤖",
       "✨",
@@ -7826,12 +9632,16 @@ export const ENTITY_ALIASES = {
   "996": "996",
   "早九晚九工作制": "996",
   "每周工作六天": "996",
-  "Riot": "Riot",
-  "拳头": "拳头",
-  "拳头游戏": "拳头",
-  "Epic": "Epic",
-  "Epic Games": "Epic",
-  "Epic游戏": "Epic",
+  "Riot Games": "Riot Games",
+  "Riot": "Riot Games",
+  "拳头": "Riot Games",
+  "拳头游戏": "Riot Games",
+  "Epic Games": "Epic Games",
+  "Epic": "Epic Games",
+  "Epic游戏": "Epic Games",
+  "NBA": "NBA",
+  "美国职业篮球联赛": "NBA",
+  "美职篮": "NBA",
   "COO": "COO",
   "首席运营官": "COO",
   "运营负责人": "COO",
@@ -7916,9 +9726,10 @@ export const ENTITY_ALIASES = {
   "腾讯云": "腾讯云",
   "Tencent Cloud": "腾讯云",
   "腾讯云计算": "腾讯云",
-  "TME": "TME",
-  "腾讯音乐娱乐集团": "腾讯音乐娱乐",
-  "腾讯音乐": "TME",
+  "腾讯音乐娱乐集团": "腾讯音乐娱乐集团",
+  "TME": "腾讯音乐娱乐集团",
+  "腾讯音乐娱乐": "腾讯音乐娱乐集团",
+  "腾讯音乐": "腾讯音乐娱乐集团",
   "CODING": "CODING",
   "腾讯云CODING": "CODING",
   "CODING研发平台": "CODING",
@@ -8012,11 +9823,14 @@ export const ENTITY_ALIASES = {
   "英雄联盟手游": "英雄联盟手游",
   "LOL手游": "英雄联盟手游",
   "Wild Rift": "英雄联盟手游",
-  "金铲铲": "金铲铲",
-  "金铲铲之战": "金铲铲",
-  "腾讯金铲铲": "金铲铲",
+  "金铲铲之战": "金铲铲之战",
+  "金铲铲": "金铲铲之战",
+  "腾讯金铲铲": "金铲铲之战",
   "穿越火线": "穿越火线",
+  "CF": "穿越火线",
   "CF端游": "穿越火线",
+  "CF游戏": "穿越火线",
+  "穿越火线简称": "穿越火线",
   "穿越火线端游": "穿越火线",
   "火影忍者手游": "火影忍者手游",
   "腾讯火影忍者手游": "火影忍者手游",
@@ -8030,28 +9844,26 @@ export const ENTITY_ALIASES = {
   "欢乐麻将": "欢乐麻将",
   "腾讯欢乐麻将": "欢乐麻将",
   "欢乐麻将全集": "欢乐麻将",
-  "天美": "天美",
-  "TiMi Studio Group": "天美",
-  "腾讯天美": "天美",
-  "光子": "光子",
-  "Lightspeed Studios": "光子",
-  "腾讯光子": "光子",
-  "魔方": "魔方",
-  "Morefun Studios": "魔方",
-  "腾讯魔方": "魔方",
-  "北极光": "北极光",
-  "Aurora Studios": "北极光",
-  "腾讯北极光": "北极光",
-  "量子": "量子",
-  "Quantum Studio": "量子",
-  "腾讯量子": "量子",
-  "极光": "极光",
-  "腾讯极光计划": "极光",
-  "Aurora Project": "极光",
-  "波士顿": "波士顿",
-  "腾讯波士顿工作室": "波士顿",
-  "Boston studio": "波士顿",
-  "Riot Games中文名": "拳头",
+  "天美工作室群": "天美工作室群",
+  "天美": "天美工作室群",
+  "TiMi Studio Group": "天美工作室群",
+  "腾讯天美": "天美工作室群",
+  "光子工作室群": "光子工作室群",
+  "光子": "光子工作室群",
+  "Lightspeed Studios": "光子工作室群",
+  "腾讯光子": "光子工作室群",
+  "魔方工作室群": "魔方工作室群",
+  "魔方": "魔方工作室群",
+  "Morefun Studios": "魔方工作室群",
+  "腾讯魔方": "魔方工作室群",
+  "北极光工作室群": "北极光工作室群",
+  "北极光": "北极光工作室群",
+  "Aurora Studios": "北极光工作室群",
+  "腾讯北极光": "北极光工作室群",
+  "Quantum Studio": "Quantum Studio",
+  "量子": "Quantum Studio",
+  "量子工作室": "Quantum Studio",
+  "腾讯量子": "Quantum Studio",
   "Supercell": "Supercell",
   "Supercell游戏公司": "Supercell",
   "超级细胞": "Supercell",
@@ -8064,9 +9876,9 @@ export const ENTITY_ALIASES = {
   "快手": "快手",
   "Kuaishou": "快手",
   "快手科技": "快手",
-  "B站": "B站",
-  "Bilibili": "B站",
-  "哔哩哔哩": "B站",
+  "哔哩哔哩": "哔哩哔哩",
+  "B站": "哔哩哔哩",
+  "Bilibili": "哔哩哔哩",
   "京东": "京东",
   "JD.com": "京东",
   "京东集团": "京东",
@@ -8222,14 +10034,9 @@ export const ENTITY_ALIASES = {
   "堡垒之夜": "堡垒之夜",
   "Fortnite": "堡垒之夜",
   "堡垒之夜游戏": "堡垒之夜",
-  "CF": "CF",
-  "穿越火线简称": "CF",
-  "CF游戏": "CF",
   "蛋仔": "蛋仔",
   "蛋仔派对简称": "蛋仔",
   "蛋仔游戏": "蛋仔",
-  "腾讯音乐娱乐": "腾讯音乐娱乐",
-  "TME中文名": "腾讯音乐娱乐",
   "微信之夜": "微信之夜",
   "微信公开课夜场": "微信之夜",
   "WeChat Night": "微信之夜",

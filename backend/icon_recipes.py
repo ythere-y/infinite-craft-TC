@@ -22,6 +22,7 @@ class IconRecipe(TypedDict):
 _BACKEND_DIR = Path(__file__).parent
 _PROJECT_DIR = _BACKEND_DIR.parent
 _RULES_PATH = _BACKEND_DIR / "icon_rules.json"
+_KNOWLEDGE_PATH = _BACKEND_DIR / "icon_knowledge.json"
 _PRESET_PATH = (
     _PROJECT_DIR
     / "frontend"
@@ -41,10 +42,26 @@ def _read_object(path: Path) -> dict:
 
 
 _RULES = _read_object(_RULES_PATH)
+_KNOWLEDGE = _read_object(_KNOWLEDGE_PATH)
 _PRESETS = _read_object(_PRESET_PATH)
 _PALETTES = frozenset(_RULES.get("palettes", ()))
 _SOURCES = frozenset(_RULES.get("allowed_sources", ()))
 _STABLE_HASH_MODULUS = 2_147_483_647
+
+
+def _preset_aliases() -> dict[str, str]:
+    aliases: dict[str, str] = {}
+    for canonical, row in _KNOWLEDGE.items():
+        if not isinstance(row, dict) or canonical not in _PRESETS:
+            continue
+        aliases[canonical] = canonical
+        for alias in row.get("aliases", ()):
+            if isinstance(alias, str) and alias:
+                aliases[alias] = canonical
+    return aliases
+
+
+_PRESET_ALIASES = _preset_aliases()
 
 
 def normalize_icon(value: object) -> dict | None:
@@ -79,8 +96,8 @@ def normalize_icon(value: object) -> dict | None:
 
 
 def preset_icon(name: str) -> dict | None:
-    """Resolve an exact-name preset from the generated 591-element map."""
-    row = _PRESETS.get(name)
+    """Resolve a canonical or reviewed-alias merged-catalog preset."""
+    row = _PRESETS.get(_PRESET_ALIASES.get(name, name))
     if not isinstance(row, dict):
         return None
     return normalize_icon(row.get("icon", row))

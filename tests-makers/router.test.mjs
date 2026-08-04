@@ -423,9 +423,10 @@ test("nickname, combine, wall, bounty and admin routes share KV state", async ()
     .flatMap((group) => group.items)
     .find((item) => item.name === "Riot Games");
   assert.deepEqual(riot.icon, {
-    base: "🤝",
-    palette: "place",
-    source: "fallback",
+    base: "👊",
+    badge: "🎮",
+    palette: "studio",
+    source: "curated",
   });
 
   const admin = await json(router, "/api/admin/stats");

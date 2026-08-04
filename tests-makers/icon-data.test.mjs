@@ -16,18 +16,18 @@ async function readJson(path) {
 }
 
 test("the committed icon map covers every preset with valid semantic recipes", async () => {
-  const [seed, iconMap, manifest] = await Promise.all([
+  const [base, compiled, iconMap, manifest] = await Promise.all([
     readJson("backend/seed_elements.json"),
+    readJson("backend/generated/bounty-content.json"),
     readJson("frontend/assets/icons/generated/element-icon-map.json"),
     readJson("frontend/assets/icons/generated/emoji-icon-manifest.json"),
   ]);
+  const expectedNames = new Set([
+    ...Object.keys(base.elements),
+    ...Object.keys(compiled.elements),
+  ]);
 
-  assert.equal(Object.keys(seed.elements).length, 591);
-  assert.equal(Object.keys(iconMap).length, 591);
-  assert.deepEqual(
-    new Set(Object.keys(iconMap)),
-    new Set(Object.keys(seed.elements)),
-  );
+  assert.deepEqual(new Set(Object.keys(iconMap)), expectedNames);
 
   for (const [name, entry] of Object.entries(iconMap)) {
     assert.equal(typeof entry.icon?.base, "string", `${name} needs icon.base`);
@@ -56,20 +56,22 @@ test("locked entities retain their reviewed interpretations", async () => {
     "frontend/assets/icons/generated/element-icon-map.json",
   );
 
-  assert.deepEqual(iconMap.Riot.icon, {
+  assert.deepEqual(iconMap["Riot Games"].icon, {
     base: "👊",
     badge: "🎮",
     palette: "studio",
     source: "curated",
   });
-  assert.equal(iconMap.Riot.canonical_name, "Riot Games");
-  assert.doesNotMatch(iconMap.Riot.rationale, /闪电|暴乱/u);
-  assert.deepEqual(iconMap.Epic.icon, {
+  assert.equal(iconMap["Riot Games"].canonical_name, "Riot Games");
+  assert.doesNotMatch(iconMap["Riot Games"].rationale, /闪电|暴乱/u);
+  assert.deepEqual(iconMap["Epic Games"].icon, {
     base: "🛡️",
     badge: "🎮",
     palette: "studio",
     source: "curated",
   });
+  assert.equal(iconMap.Riot, undefined);
+  assert.equal(iconMap.Epic, undefined);
   assert.equal(iconMap.COO.entity_type, "role");
 });
 
@@ -91,14 +93,16 @@ test("generic presets do not receive blanket category or self badges", async () 
   });
 });
 
-test("rules cover every seed category and knowledge rows are well formed", async () => {
-  const [seed, rules, knowledge] = await Promise.all([
+test("rules cover every merged category and knowledge rows are well formed", async () => {
+  const [base, compiled, rules, knowledge] = await Promise.all([
     readJson("backend/seed_elements.json"),
+    readJson("backend/generated/bounty-content.json"),
     readJson("backend/icon_rules.json"),
     readJson("backend/icon_knowledge.json"),
   ]);
+  const elements = { ...base.elements, ...compiled.elements };
   const categories = new Set(
-    Object.values(seed.elements).map((entry) => entry.category),
+    Object.values(elements).map((entry) => entry.category),
   );
 
   for (const category of categories) {
@@ -108,6 +112,8 @@ test("rules cover every seed category and knowledge rows are well formed", async
     );
   }
   assert.equal(rules.category_palettes.ai, "product");
+  assert.equal(rules.category_palettes.association, "product");
+  assert.equal(rules.category_palettes.invest, undefined);
   assert.deepEqual(new Set(rules.palettes), PALETTES);
   assert.deepEqual(
     new Set(rules.allowed_sources),
@@ -148,6 +154,60 @@ test("rules cover every seed category and knowledge rows are well formed", async
     assert.ok(row.rationale.trim(), `${name} needs a non-empty rationale`);
     assert.equal(typeof row.icon?.base, "string", `${name} needs icon.base`);
   }
+});
+
+test("icon content merging rejects base conflicts before generation", async () => {
+  const { mergeIconContent } = await import(
+    "../scripts/generate-icon-data.mjs"
+  );
+  const baseElements = {
+    starters: [],
+    elements: {
+      Shared: { emoji: "💧", category: "classic" },
+    },
+  };
+  const baseCombinations = {
+    combinations: {
+      "A + B": {
+        result: "Shared",
+        emoji: "💧",
+        chain: "classic",
+      },
+    },
+  };
+
+  assert.throws(
+    () =>
+      mergeIconContent({
+        baseElements,
+        baseCombinations,
+        bountyContent: {
+          elements: {
+            Shared: { emoji: "🔥", category: "classic" },
+          },
+          combinations: {},
+        },
+      }),
+    /element conflicts with base seed.*Shared/i,
+  );
+  assert.throws(
+    () =>
+      mergeIconContent({
+        baseElements,
+        baseCombinations,
+        bountyContent: {
+          elements: structuredClone(baseElements.elements),
+          combinations: {
+            "B + A": {
+              result: "Different",
+              emoji: "🔥",
+              chain: "classic",
+            },
+          },
+        },
+      }),
+    /combination conflicts with base seed.*A \+ B/i,
+  );
 });
 
 test("candidate generation honors entity, keyword, category, then fallback order", async () => {
@@ -323,6 +383,46 @@ test("candidate generation rejects invalid category badge pools", async () => {
   }
 });
 
+test("catalog fallbacks allocate distinct deterministic semantic badges", async () => {
+  const { buildElementIconMap } = await import(
+    "../scripts/generate-icon-data.mjs"
+  );
+  const iconMap = buildElementIconMap({
+    seedElements: {
+      elements: Object.fromEntries(
+        ["Catalog A", "Catalog B", "Catalog C"].map((name) => [
+          name,
+          { emoji: "🧩", category: "abstract" },
+        ]),
+      ),
+    },
+    seedCombinations: { combinations: {} },
+    catalogElementNames: new Set(["Catalog A", "Catalog B", "Catalog C"]),
+    rules: {
+      palettes: ["place"],
+      category_palettes: { abstract: "place" },
+      keyword_badges: [],
+      category_badges: {},
+      category_badge_pools: {
+        catalog: ["🔥", "💧", "🌱"],
+      },
+      allowed_sources: ["generated", "fallback"],
+    },
+    knowledge: {},
+    emojiManifest: Object.fromEntries(
+      ["🧩", "🔥", "💧", "🌱"].map((emoji) => [emoji, `/icons/${emoji}.png`]),
+    ),
+  });
+
+  assert.equal(
+    new Set(Object.values(iconMap).map((entry) => entry.icon.badge)).size,
+    3,
+  );
+  assert.ok(
+    Object.values(iconMap).every((entry) => entry.icon.source === "generated"),
+  );
+});
+
 test("audit counts every member of a reused signature and requires explicit exceptions above twice", async () => {
   const { auditIconMap } = await import("../scripts/audit-icon-map.mjs");
   const seedElements = {
@@ -414,4 +514,38 @@ test("audit gates unresolved abbreviations embedded in Chinese names", async () 
   assert.ok(
     audit.violations.some((message) => /2 unresolved entity.*abbreviation/i.test(message)),
   );
+});
+
+test("audit accepts catalog-provenance entities without duplicate knowledge rows", async () => {
+  const { auditIconMap } = await import("../scripts/audit-icon-map.mjs");
+  const seedElements = {
+    elements: {
+      "Catalog Studio": {
+        emoji: "🎮",
+        category: "studio",
+        factual_metadata: {
+          scope: "studio",
+          provenance: "catalogued",
+        },
+      },
+    },
+  };
+
+  const audit = auditIconMap({
+    seedElements,
+    iconMap: {
+      "Catalog Studio": {
+        icon: {
+          base: "🎮",
+          palette: "studio",
+          source: "fallback",
+        },
+        rationale: "目录已审核工作室实体",
+      },
+    },
+    emojiManifest: { "🎮": "/icons/game.png" },
+    knowledge: {},
+  });
+
+  assert.deepEqual(audit.unresolvedEntityCandidates, []);
 });

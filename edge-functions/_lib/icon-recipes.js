@@ -1,5 +1,6 @@
 import {
   ELEMENT_ICONS,
+  ENTITY_ALIASES,
   ICON_RULES,
 } from "../_generated/icon-data.js";
 
@@ -41,7 +42,7 @@ export function normalizeIcon(value) {
 }
 
 export function presetIcon(name) {
-  const row = ELEMENT_ICONS[name];
+  const row = ELEMENT_ICONS[ENTITY_ALIASES[name] ?? name];
   if (!isObject(row)) return null;
   return normalizeIcon(row.icon ?? row);
 }
