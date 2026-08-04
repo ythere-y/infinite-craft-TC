@@ -5,7 +5,7 @@ from decimal import Decimal
 
 import pytest
 
-from backend import archive, prompt_spec
+from backend import archive, prompt, prompt_spec
 from backend import prompt_store
 
 
@@ -39,6 +39,26 @@ def test_bootstrap_imports_canonical_prompt_as_active_version(
     assert prompt_store.get_active_spec() == canonical_spec
     assert draft["positive_examples"] == []
     assert draft["negative_examples"] == []
+
+
+def test_combine_uses_active_prompt_version(monkeypatch, isolated_prompt_db):
+    """Default local LLM composition must render the published spec, not disk."""
+    prompt_store.init_prompt_store()
+    generated = prompt_store.aggregate_draft(random_value=0)
+    prompt_store.activate_version(generated["id"])
+    captured = {}
+
+    def build_messages(spec, **inputs):
+        captured["spec"] = spec
+        return {"system": "s", "user": "u", "temperature": 0}
+
+    monkeypatch.setattr(prompt, "build_prompt_messages_from_spec", build_messages)
+    monkeypatch.setattr(prompt, "_select_bounty_candidates", lambda *a, **k: [])
+    monkeypatch.setattr("backend.llm.query", lambda *a, **k: None)
+
+    prompt.combine_via_llm("需求", "会议")
+
+    assert captured["spec"] == generated["effective_spec"]
 
 
 def test_draft_conversion_preserves_all_styles_or_selects_one(canonical_spec):

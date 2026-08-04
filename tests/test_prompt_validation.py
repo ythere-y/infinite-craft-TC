@@ -1,5 +1,6 @@
 import asyncio
 import copy
+from types import SimpleNamespace
 import json
 from pathlib import Path
 
@@ -139,11 +140,45 @@ def test_renderer_is_unchanged_when_plain_text_examples_are_missing_or_empty():
     )
 
 
-def test_startup_validates_prompt_before_initializing_services(monkeypatch):
+def test_startup_initializes_prompt_store_after_validating_prompt_and_database(
+    monkeypatch,
+):
+    events = []
+
+    def canonical_prompt():
+        events.append("canonical")
+
+    def initialize_db():
+        events.append("db")
+
+    def fail_prompt_store():
+        events.append("prompt_store")
+        raise ValueError("invalid prompt store")
+
+    def fail_community():
+        events.append("community")
+        raise RuntimeError("community initialized before prompt store")
+
+    monkeypatch.setattr(main, "load_prompt_spec", canonical_prompt, raising=False)
+    monkeypatch.setattr(main.db, "init_db", initialize_db)
+    monkeypatch.setattr(
+        main,
+        "prompt_store",
+        SimpleNamespace(init_prompt_store=fail_prompt_store),
+        raising=False,
+    )
+    monkeypatch.setattr(main.community, "init", fail_community)
+
+    with pytest.raises(ValueError, match="invalid prompt store"):
+        asyncio.run(main._startup())
+    assert events == ["canonical", "db", "prompt_store"]
+
+
+def test_startup_rejects_canonical_prompt_before_initializing_database(monkeypatch):
     events = []
 
     def reject_prompt():
-        events.append("prompt")
+        events.append("canonical")
         raise ValueError("invalid prompt")
 
     def fail_db():
@@ -155,4 +190,4 @@ def test_startup_validates_prompt_before_initializing_services(monkeypatch):
 
     with pytest.raises(ValueError, match="invalid prompt"):
         asyncio.run(main._startup())
-    assert events == ["prompt"]
+    assert events == ["canonical"]

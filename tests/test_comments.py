@@ -433,9 +433,11 @@ def test_old_cache_without_comment_uses_default(monkeypatch):
 
 
 def test_llm_comment_is_persisted_once(monkeypatch):
-    from backend import main
+    from backend import main, prompt_store
+    from backend.prompt_spec import load_prompt_spec
 
     monkeypatch.setattr(main.db, "recent_result_names", lambda limit: [])
+    monkeypatch.setattr(prompt_store, "get_active_spec", load_prompt_spec)
     monkeypatch.setattr(
         prompt,
         "combine_via_llm",
@@ -525,3 +527,80 @@ def test_fastapi_llm_producers_receive_raised_shared_limits(monkeypatch):
     assert kwargs["avoid_words"][-1] == "最近结果30"
     assert len(kwargs["community_examples"]) == 9
     assert kwargs["prompt_spec"] is spec
+
+
+def test_fastapi_llm_uses_explicit_spec_without_active_lookup(monkeypatch):
+    from copy import deepcopy
+
+    from backend import main, prompt_store
+    from backend.prompt_spec import load_prompt_spec
+
+    spec = deepcopy(load_prompt_spec())
+    spec["limits"] = {
+        "avoid_words": 1,
+        "community_examples": 1,
+        "bounty_candidates": 1,
+    }
+
+    monkeypatch.setattr(
+        prompt_store,
+        "get_active_spec",
+        lambda: (_ for _ in ()).throw(AssertionError("active spec was read")),
+    )
+    monkeypatch.setattr(main.db, "recent_result_names", lambda limit: [])
+    monkeypatch.setattr(
+        main.community, "feedback_examples", lambda **kwargs: ([], [])
+    )
+    monkeypatch.setattr(main.db, "put_cache", lambda **kwargs: None)
+    monkeypatch.setattr(
+        prompt,
+        "combine_via_llm",
+        lambda *args, **kwargs: {
+            "name": "显式配置",
+            "emoji": "⚙️",
+            "comment": "使用调用方提供的规范。",
+        },
+    )
+
+    result = asyncio.run(
+        main._combine_via_llm("需求", "会议", "req-explicit-spec", prompt_spec=spec)
+    )
+
+    assert result["result"] == "显式配置"
+
+
+def test_fastapi_llm_uses_active_spec_by_default(monkeypatch):
+    from copy import deepcopy
+
+    from backend import main, prompt_store
+    from backend.prompt_spec import load_prompt_spec
+
+    active_spec = deepcopy(load_prompt_spec())
+    active_spec["limits"] = {
+        "avoid_words": 1,
+        "community_examples": 1,
+        "bounty_candidates": 1,
+    }
+    captured = {}
+
+    monkeypatch.setattr(prompt_store, "get_active_spec", lambda: active_spec)
+    monkeypatch.setattr(main.db, "recent_result_names", lambda limit: [])
+    monkeypatch.setattr(
+        main.community, "feedback_examples", lambda **kwargs: ([], [])
+    )
+    monkeypatch.setattr(main.db, "put_cache", lambda **kwargs: None)
+
+    def combine(*args, **kwargs):
+        captured["spec"] = kwargs["prompt_spec"]
+        return {
+            "name": "已发布版本",
+            "emoji": "✅",
+            "comment": "使用当前生效规范。",
+        }
+
+    monkeypatch.setattr(prompt, "combine_via_llm", combine)
+
+    result = asyncio.run(main._combine_via_llm("需求", "会议", "req-active-spec"))
+
+    assert result["result"] == "已发布版本"
+    assert captured["spec"] is active_spec

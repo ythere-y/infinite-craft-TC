@@ -31,7 +31,15 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import db, kpi, archive, community, depth as depth_mod, bounty as bounty_mod
+from . import (
+    db,
+    kpi,
+    archive,
+    community,
+    depth as depth_mod,
+    bounty as bounty_mod,
+    prompt_store,
+)
 from .community_api import (
     router as community_router,
     player as community_player,
@@ -73,6 +81,7 @@ _LLM_EXECUTOR = ThreadPoolExecutor(
 async def _startup() -> None:
     load_prompt_spec()
     db.init_db()  # 连 Redis + 建 SQLite 表
+    prompt_store.init_prompt_store()
     community.init()
     # 1) 从 SQLite 恢复历史数据到 Redis（重启不丢 AI 生成的长尾）
     warm = db.warm_up_from_archive()
@@ -632,7 +641,7 @@ async def _combine_via_llm(
             flush=True,
         )
         return None
-    spec = prompt_spec or load_prompt_spec()
+    spec = prompt_spec if prompt_spec is not None else prompt_store.get_active_spec()
     prompt_limits = spec["limits"]
     recent_results = db.recent_result_names(prompt_limits["avoid_words"])
     positive_examples, negative_results = community.feedback_examples(

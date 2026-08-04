@@ -202,6 +202,22 @@ def test_combine_orchestration_builds_shared_messages_once(monkeypatch):
     ]
 
 
+def test_combine_prefers_explicit_prompt_spec(monkeypatch):
+    from backend import prompt, prompt_store
+
+    spec = deepcopy(prompt.load_prompt_spec())
+
+    monkeypatch.setattr(
+        prompt_store,
+        "get_active_spec",
+        lambda: (_ for _ in ()).throw(AssertionError("active spec was read")),
+    )
+    monkeypatch.setattr(prompt, "_select_bounty_candidates", lambda *a, **k: [])
+    monkeypatch.setattr(llm, "query", lambda *a, **k: None)
+
+    assert prompt.combine_via_llm("需求", "会议", prompt_spec=spec) is None
+
+
 def test_local_configuration_ignores_makers_key(monkeypatch):
     configure(monkeypatch, generic_key="")
     factory, captured = fake_factory()

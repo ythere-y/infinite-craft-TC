@@ -5,6 +5,7 @@ import re
 from typing import Dict, List, Optional
 
 from .comments import normalize_comment
+from . import prompt_store
 from .prompt_spec import (
     build_prompt_messages,
     build_prompt_messages_from_spec,
@@ -150,7 +151,7 @@ def combine_via_llm(
     """Call the configured OpenAI-compatible LLM for a combination."""
     from .llm import query
 
-    spec = prompt_spec or load_prompt_spec()
+    spec = prompt_spec if prompt_spec is not None else prompt_store.get_active_spec()
     try:
         bounty_candidates = _select_bounty_candidates(
             a,
