@@ -354,6 +354,24 @@ def _production_app_page() -> str:
             pressed: button.getAttribute("aria-pressed")
           };
         }
+        function captureTopbar() {
+          var helpButton = document.getElementById("btn-help");
+          var helpRect = helpButton.getBoundingClientRect();
+          var iconWells = {};
+          ["btn-recipebook", "btn-score", "first-wall"].forEach(function (id) {
+            var icon = document.querySelector("#" + id + " .action-icon");
+            iconWells[id] = icon ? getComputedStyle(icon).backgroundColor : null;
+          });
+          return {
+            reset_present: Boolean(document.getElementById("btn-reset")),
+            icon_wells: iconWells,
+            help_button: {
+              width: helpRect.width,
+              height: helpRect.height,
+              border_radius: getComputedStyle(helpButton).borderRadius
+            }
+          };
+        }
         window.EFFECTS.firstToast({
           name: "救火总指挥",
           emoji: "🧯",
@@ -399,6 +417,7 @@ def _production_app_page() -> str:
           document.querySelectorAll(".ura-transition.ura-enter").length;
         await new Promise(function (resolve) { setTimeout(resolve, 650); });
         var midnightToast = captureToastStyles();
+        var midnightTopbar = captureTopbar();
         var afterButtonEnter = {
           active: window.EFFECTS.isUraMode(),
           entranceTransitionCount: buttonEntranceTransitionCount,
@@ -517,7 +536,9 @@ def _production_app_page() -> str:
           window.dispatchEvent(new KeyboardEvent("keydown", { key: key }));
         });
         await new Promise(function (resolve) { setTimeout(resolve, 30); });
-        document.getElementById("btn-reset").click();
+        document.querySelectorAll("#workspace .element.on-canvas").forEach(
+          function (element) { element.remove(); }
+        );
         await placeStarter(
           "水",
           workspaceRect.left + 210,
@@ -564,6 +585,7 @@ def _production_app_page() -> str:
                 initial_guidance: initialGuidance,
                 expanded_guidance: expandedGuidance,
                 collapsed_guidance: collapsedGuidance,
+                midnight_topbar: midnightTopbar,
                 double_click_retained: doubleClickRetained
               },
               scoring: {
@@ -757,6 +779,28 @@ def test_midnight_toast_is_dark_and_advanced_guidance_toggles(
     assert midnight["dividerColor"] != light["dividerColor"]
     assert midnight["buttonBackground"] != light["buttonBackground"]
     assert midnight["buttonColor"] != light["buttonColor"]
+
+
+def test_reset_control_is_replaced_by_reload_guidance(tmp_path):
+    actual = _run_app_page(tmp_path)["ui"]
+
+    assert actual["midnight_topbar"]["reset_present"] is False
+    assert "F5" in actual["expanded_guidance"]["visible_text"]
+    assert "清空画布" in actual["expanded_guidance"]["visible_text"]
+
+
+def test_inner_mode_topbar_icons_are_legible_and_help_button_stays_round(tmp_path):
+    topbar = _run_app_page(tmp_path)["ui"]["midnight_topbar"]
+
+    assert set(topbar["icon_wells"]) == {
+        "btn-recipebook",
+        "btn-score",
+        "first-wall",
+    }
+    for background in topbar["icon_wells"].values():
+        assert background not in (None, "rgba(0, 0, 0, 0)")
+    assert topbar["help_button"]["width"] == topbar["help_button"]["height"]
+    assert topbar["help_button"]["border_radius"] == "50%"
 
 
 def test_inner_mode_routes_score_to_harvest_and_normal_mode_keeps_direct_score(

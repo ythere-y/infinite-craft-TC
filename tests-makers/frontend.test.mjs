@@ -90,7 +90,7 @@ test("main game ships the opening stage in dependency order", async () => {
   );
   assert.match(
     html,
-    /<script src="\/app\.js\?v=20260804a"><\/script>/,
+    /<script src="\/app\.js\?v=20260804b"><\/script>/,
   );
   assert.match(
     html,
@@ -98,7 +98,7 @@ test("main game ships the opening stage in dependency order", async () => {
   );
   assert.match(
     html,
-    /<link rel="stylesheet" href="\/style\.css\?v=20260804c" \/>/,
+    /<link rel="stylesheet" href="\/style\.css\?v=20260804d" \/>/,
   );
   assert.match(
     html,
@@ -385,7 +385,6 @@ test("main game uses compact sticker and action-icon contracts", async () => {
   const actionIds = {
     "btn-recipebook": "recipes",
     "btn-score": "score",
-    "btn-reset": "reset",
     "first-wall": "wall",
     "btn-help": "help",
     "search": "search",

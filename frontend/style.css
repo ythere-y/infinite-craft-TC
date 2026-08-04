@@ -2339,11 +2339,24 @@ body.ura-on .nick-chip:hover {
 
 body.ura-on .btn-help {
   background: #1A1A3A;
-  padding-right: 38px;
+  padding: 0;
   border-color: #333355;
   color: #CAA6FF;
 }
 body.ura-on .btn-help:hover { background: #2A2A5A; }
+body.ura-on .btn-help .action-icon img {
+  filter: brightness(0) invert(1) opacity(.86);
+}
+
+body.ura-on .topbar-actions .btn-ghost .action-icon {
+  border: 1px solid rgba(187, 222, 251, .9);
+  border-radius: 7px;
+  background: #E3F2FD linear-gradient(135deg, #FFFFFF, #E3F2FD);
+  box-shadow: 0 1px 4px rgba(127, 168, 214, .24);
+}
+body.ura-on .topbar-actions .btn-ghost .action-icon img {
+  filter: none;
+}
 
 /* 工作区夜幕：.workspace::before 作为带繁星的夜空幕布
    - 白天：top:-100%, bottom:100% （幕布收在上方外）

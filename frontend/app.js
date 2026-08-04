@@ -981,10 +981,6 @@ function bindSearch() {
 }
 
 function bindButtons() {
-  $("#btn-reset").addEventListener("click", () => {
-    state.onCanvas.slice().forEach(r => removeCanvasEl(r.id));
-    recipeLinks.clear();
-  });
   $("#nick-display")?.addEventListener("click", async () => {
     await rerollNickname();
   });
