@@ -85,5 +85,62 @@ def test_prompt_admin_locks_editors_during_mutations_without_rebuilding_them():
     assert "draft = payload.config" not in save_body
 
 
+def test_admin_tabs_expose_accessible_relationships_and_keyboard_navigation():
+    html = ADMIN_HTML.read_text(encoding="utf-8")
+    source = ADMIN_JS.read_text(encoding="utf-8")
+
+    assert 'class="admin-tabs" role="tablist"' in html
+    assert (
+        'id="admin-monitor-tab" role="tab" aria-controls="admin-monitor-panel"'
+        in html
+    )
+    assert (
+        'id="admin-prompt-tab" role="tab" aria-controls="admin-prompt-panel"'
+        in html
+    )
+    assert 'role="tabpanel" aria-labelledby="admin-monitor-tab"' in html
+    assert 'role="tabpanel" aria-labelledby="admin-prompt-tab"' in html
+    assert 'tabindex="0"' in html
+    assert 'tabindex="-1"' in html
+    for key in ("ArrowLeft", "ArrowRight", "Home", "End"):
+        assert f'"{key}"' in source
+    assert "event.preventDefault()" in source
+    assert "tab.tabIndex = selected ? 0 : -1" in source
+    assert "nextTab.focus()" in source
+
+
+def test_initial_prompt_load_is_single_flight_and_ignores_stale_responses():
+    source = ADMIN_JS.read_text(encoding="utf-8")
+    load_body = source.split("function loadPromptConfig()", 1)[1].split(
+        "async function refreshVersionSummaries", 1
+    )[0]
+
+    assert "let promptLoadPromise = null" in source
+    assert "let promptLoadRequestId = 0" in source
+    assert "if (promptLoadPromise)" in load_body
+    assert "return promptLoadPromise" in load_body
+    assert "const requestId = ++promptLoadRequestId" in load_body
+    assert "requestId !== promptLoadRequestId" in load_body
+
+
+def test_mutation_success_is_not_reclassified_when_history_refresh_fails():
+    source = ADMIN_JS.read_text(encoding="utf-8")
+    assert "async function refreshAfterMutation" in source
+    refresh_body = source.split(
+        "async function refreshAfterMutation", 1
+    )[1].split("async function saveDraft", 1)[0]
+
+    assert "版本列表同步失败" in refresh_body
+    assert '"warning"' in refresh_body
+    for start, end in (
+        ("async function aggregateDraft", "async function activatePreviewVersion"),
+        ("async function activatePreviewVersion", "async function viewVersion"),
+        ("async function activateHistoricalVersion", "function selectTab"),
+    ):
+        mutation_body = source.split(start, 1)[1].split(end, 1)[0]
+        assert "await refreshAfterMutation(" in mutation_body
+        assert "await refreshVersionSummaries()" not in mutation_body
+
+
 def test_prompt_admin_stylesheet_exists():
     assert ADMIN_CSS.read_text(encoding="utf-8").strip()

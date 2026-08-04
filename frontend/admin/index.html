@@ -182,12 +182,17 @@
   </header>
 
   <main>
-    <nav class="admin-tabs" aria-label="后台功能">
-      <button type="button" data-admin-tab="monitor" aria-selected="true">运行监控</button>
-      <button type="button" data-admin-tab="prompt" aria-selected="false">Prompt 管理</button>
+    <nav class="admin-tabs" role="tablist" aria-label="后台功能">
+      <button type="button" data-admin-tab="monitor"
+              id="admin-monitor-tab" role="tab" aria-controls="admin-monitor-panel"
+              aria-selected="true" tabindex="0">运行监控</button>
+      <button type="button" data-admin-tab="prompt"
+              id="admin-prompt-tab" role="tab" aria-controls="admin-prompt-panel"
+              aria-selected="false" tabindex="-1">Prompt 管理</button>
     </nav>
 
-    <section id="admin-monitor-panel" data-admin-panel="monitor">
+    <section id="admin-monitor-panel" data-admin-panel="monitor"
+             role="tabpanel" aria-labelledby="admin-monitor-tab">
     <!-- 核心实时指标 -->
     <div class="grid">
       <div class="card live">
@@ -271,7 +276,8 @@
     </div>
     </section>
 
-    <section id="admin-prompt-panel" data-admin-panel="prompt" hidden>
+    <section id="admin-prompt-panel" data-admin-panel="prompt"
+             role="tabpanel" aria-labelledby="admin-prompt-tab" hidden>
       <div class="prompt-toolbar">
         <div>
           <h2>Prompt 配置</h2>

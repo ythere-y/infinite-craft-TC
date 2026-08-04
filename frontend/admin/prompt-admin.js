@@ -6,9 +6,12 @@
   const activateButton = document.getElementById("prompt-activate");
   const saveButton = document.getElementById("prompt-save");
   const aggregateButton = document.getElementById("prompt-aggregate");
+  const adminTabs = Array.from(document.querySelectorAll("[data-admin-tab]"));
 
   let draft = null;
   let promptLoaded = false;
+  let promptLoadPromise = null;
+  let promptLoadRequestId = 0;
   let pendingVersionId = null;
   let idSequence = 0;
   const invalidJsonFields = new Set();
@@ -294,26 +297,55 @@
     history.replaceChildren(...versions.map(versionNode));
   }
 
-  async function loadPromptConfig() {
-    setStatus("正在加载 Prompt 配置…");
-    try {
-      const payload = await promptRequest("/api/admin/prompt/config");
-      draft = payload.config;
-      invalidJsonFields.clear();
-      renderDraft();
-      renderVersions(payload.versions);
-      promptLoaded = true;
-      const activeId = payload.active_version?.id || "未知";
-      setStatus(`配置已加载，当前生效版本：${activeId}`, "success");
-    } catch (error) {
-      setStatus(`配置加载失败：${error.message}`, "error");
+  function loadPromptConfig() {
+    if (promptLoadPromise) {
+      return promptLoadPromise;
     }
+    const requestId = ++promptLoadRequestId;
+    setStatus("正在加载 Prompt 配置…");
+    promptLoadPromise = (async () => {
+      try {
+        const payload = await promptRequest("/api/admin/prompt/config");
+        if (requestId !== promptLoadRequestId) {
+          return;
+        }
+        draft = payload.config;
+        invalidJsonFields.clear();
+        renderDraft();
+        renderVersions(payload.versions);
+        promptLoaded = true;
+        const activeId = payload.active_version?.id || "未知";
+        setStatus(`配置已加载，当前生效版本：${activeId}`, "success");
+      } catch (error) {
+        if (requestId !== promptLoadRequestId) {
+          return;
+        }
+        setStatus(`配置加载失败：${error.message}`, "error");
+      } finally {
+        if (requestId === promptLoadRequestId) {
+          promptLoadPromise = null;
+        }
+      }
+    })();
+    return promptLoadPromise;
   }
 
   async function refreshVersionSummaries() {
     const payload = await promptRequest("/api/admin/prompt/config");
     renderVersions(payload.versions);
     return payload;
+  }
+
+  async function refreshAfterMutation(successMessage) {
+    try {
+      await refreshVersionSummaries();
+      setStatus(successMessage, "success");
+    } catch (error) {
+      setStatus(
+        `${successMessage}；版本列表同步失败：${error.message}`,
+        "warning",
+      );
+    }
   }
 
   async function saveDraft() {
@@ -341,8 +373,9 @@
       });
       pendingVersionId = version.id;
       preview.value = version.preview || "";
-      await refreshVersionSummaries();
-      setStatus(`已聚合版本 ${version.id}，确认预览后可设为生效。`, "success");
+      await refreshAfterMutation(
+        `已聚合版本 ${version.id}，确认预览后可设为生效。`,
+      );
     } catch (error) {
       setStatus(`聚合失败：${error.message}`, "error");
     } finally {
@@ -363,8 +396,7 @@
         {method: "POST"},
       );
       pendingVersionId = null;
-      await refreshVersionSummaries();
-      setStatus(`版本 ${versionId} 已设为生效。`, "success");
+      await refreshAfterMutation(`版本 ${versionId} 已设为生效。`);
     } catch (error) {
       setStatus(`激活失败：${error.message}`, "error");
     } finally {
@@ -402,8 +434,7 @@
         {method: "POST"},
       );
       pendingVersionId = null;
-      await refreshVersionSummaries();
-      setStatus(`历史版本 ${versionId} 已设为生效。`, "success");
+      await refreshAfterMutation(`历史版本 ${versionId} 已设为生效。`);
     } catch (error) {
       setStatus(`历史版本激活失败：${error.message}`, "error");
     } finally {
@@ -412,8 +443,10 @@
   }
 
   function selectTab(name) {
-    for (const tab of document.querySelectorAll("[data-admin-tab]")) {
-      tab.setAttribute("aria-selected", String(tab.dataset.adminTab === name));
+    for (const tab of adminTabs) {
+      const selected = tab.dataset.adminTab === name;
+      tab.setAttribute("aria-selected", String(selected));
+      tab.tabIndex = selected ? 0 : -1;
     }
     for (const panel of document.querySelectorAll("[data-admin-panel]")) {
       panel.hidden = panel.dataset.adminPanel !== name;
@@ -423,9 +456,29 @@
     }
   }
 
-  for (const tab of document.querySelectorAll("[data-admin-tab]")) {
-    tab.addEventListener("click", () => selectTab(tab.dataset.adminTab));
+  function moveTabFocus(event, currentIndex) {
+    let nextIndex;
+    if (event.key === "ArrowRight") {
+      nextIndex = (currentIndex + 1) % adminTabs.length;
+    } else if (event.key === "ArrowLeft") {
+      nextIndex = (currentIndex - 1 + adminTabs.length) % adminTabs.length;
+    } else if (event.key === "Home") {
+      nextIndex = 0;
+    } else if (event.key === "End") {
+      nextIndex = adminTabs.length - 1;
+    } else {
+      return;
+    }
+    event.preventDefault();
+    const nextTab = adminTabs[nextIndex];
+    selectTab(nextTab.dataset.adminTab);
+    nextTab.focus();
   }
+
+  adminTabs.forEach((tab, index) => {
+    tab.addEventListener("click", () => selectTab(tab.dataset.adminTab));
+    tab.addEventListener("keydown", (event) => moveTabFocus(event, index));
+  });
 
   for (const button of promptPanel.querySelectorAll("[data-add-prompt-item]")) {
     button.addEventListener("click", () => {
