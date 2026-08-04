@@ -203,12 +203,12 @@ def _run_recipebook(tmp_path: Path, viewport: tuple[int, int]) -> dict[str, obje
           clientX: dragChipRect.left + dragChipRect.width / 2,
           clientY: dragChipRect.top + dragChipRect.height / 2
         }));
-        window.dispatchEvent(new PointerEvent("pointermove", {
+        dragChip.dispatchEvent(new PointerEvent("pointermove", {
           bubbles: true, cancelable: true, pointerId: 41, pointerType: "mouse",
           button: 0, buttons: 1,
           clientX: workspaceRect.left + 24, clientY: workspaceRect.top + 24
         }));
-        window.dispatchEvent(new PointerEvent("pointerup", {
+        dragChip.dispatchEvent(new PointerEvent("pointerup", {
           bubbles: true, cancelable: true, pointerId: 41, pointerType: "mouse",
           button: 0, buttons: 0,
           clientX: workspaceRect.left + 24, clientY: workspaceRect.top + 24

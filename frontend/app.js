@@ -460,14 +460,25 @@ function bindElementTap(
   let lastTap = 0;
   let lastX = 0;
   let lastY = 0;
+  let movedBeyondTap = false;
 
   el.addEventListener("pointerdown", (event) => {
     downX = event.clientX;
     downY = event.clientY;
+    movedBeyondTap = false;
+  });
+  el.addEventListener("pointermove", (event) => {
+    if (
+      Math.abs(event.clientX - downX) > 8 ||
+      Math.abs(event.clientY - downY) > 8
+    ) {
+      movedBeyondTap = true;
+    }
   });
   el.addEventListener("pointerup", (event) => {
     if (event.button !== 0) return;
     const moved =
+      movedBeyondTap ||
       Math.abs(event.clientX - downX) > 8 ||
       Math.abs(event.clientY - downY) > 8;
     if (moved) {
@@ -495,6 +506,7 @@ function bindElementTap(
     onClick(event);
   });
   el.addEventListener("pointercancel", () => {
+    movedBeyondTap = false;
     lastTap = 0;
   });
   el.addEventListener("dblclick", (event) => {
@@ -556,6 +568,7 @@ function onPointerDown(e, el, info, source) {
     offsetY,
     startX: e.clientX,
     startY: e.clientY,
+    moved: false,
   };
   document.body.classList.add("drag-active");
 
@@ -579,7 +592,20 @@ function bindGlobalPointerEvents() {
 
 function onPointerMove(e) {
   if (!drag.active) return;
-  const { ghost, offsetX, offsetY, sourceId } = drag.active;
+  const {
+    ghost,
+    offsetX,
+    offsetY,
+    sourceId,
+    startX,
+    startY,
+  } = drag.active;
+  if (
+    Math.abs(e.clientX - startX) > 8 ||
+    Math.abs(e.clientY - startY) > 8
+  ) {
+    drag.active.moved = true;
+  }
   ghost.style.left = (e.clientX - offsetX) + "px";
   ghost.style.top = (e.clientY - offsetY) + "px";
 
@@ -596,10 +622,17 @@ async function onPointerUp(e) {
   if (!drag.active) return;
   const cleaned = finishActiveDrag();
   if (!cleaned) return;
-  const { info, sourceId, startX, startY } = cleaned.active;
+  const {
+    info,
+    sourceId,
+    startX,
+    startY,
+    moved: movedDuringDrag,
+  } = cleaned.active;
   const { target } = cleaned;
   const clientX = e.clientX, clientY = e.clientY;
   const moved =
+    movedDuringDrag ||
     Math.abs(clientX - startX) > 8 ||
     Math.abs(clientY - startY) > 8;
   if (!moved) return;
@@ -1171,7 +1204,7 @@ function renderRecipebook(filter = "") {
     const resultInfo = elementInfoFor(r.result, r);
     const score = r.full_score || estimateFullScore(r.result);
 
-    // 让 chip 真正能拖和双击（和侧栏元素一样的行为）
+    // 配方 chip 只参与拖拽，不响应侧栏召唤或画布复制手势。
     const aChipEl = makeInteractiveRecipeChip(aInfo);
     const bChipEl = makeInteractiveRecipeChip(bInfo);
     const resEl = makeInteractiveRecipeChip(resultInfo, { isResult: true });

@@ -18,7 +18,7 @@ test("score and audio helpers load before consumers", async () => {
   assert.ok(html.indexOf("score-level.js") < html.indexOf("effects.js"));
   assert.ok(html.indexOf("score-level.js") < html.indexOf("app.js"));
   assert.ok(html.indexOf("audio-feedback.js") < html.indexOf("app.js"));
-  assert.match(html, /audio-feedback\.js\?v=20260804a/);
+  assert.match(html, /audio-feedback\.js\?v=20260804b/);
   assert.ok(html.indexOf("anime.iife.min.js") < html.indexOf("casino-mode.js"));
   assert.ok(html.indexOf("casino-round.js") < html.indexOf("casino-mode.js"));
   assert.ok(html.indexOf("effects.js") < html.indexOf("casino-mode.js"));
@@ -99,7 +99,7 @@ test("main game ships the opening stage in dependency order", async () => {
   );
   assert.match(
     html,
-    /<script src="\/app\.js\?v=20260804d"><\/script>/,
+    /<script src="\/app\.js\?v=20260804e"><\/script>/,
   );
   assert.match(
     html,

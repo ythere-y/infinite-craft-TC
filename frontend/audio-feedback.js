@@ -62,7 +62,7 @@
 
   function schedule(callback) {
     const audio = audioContext();
-    if (!audio || audio.state === "closed") return false;
+    if (!audio || audio.state !== "running") return false;
     try {
       callback(audio, audio.currentTime);
       return true;

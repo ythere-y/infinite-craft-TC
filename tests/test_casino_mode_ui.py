@@ -529,8 +529,8 @@ def _production_app_page() -> str:
             pointerId,
             1
           );
-          pointer("pointermove", window, x, y, pointerId, 1);
-          pointer("pointerup", window, x, y, pointerId, 0);
+          pointer("pointermove", source, x, y, pointerId, 1);
+          pointer("pointerup", source, x, y, pointerId, 0);
           await new Promise(function (resolve) { setTimeout(resolve, 20); });
         }
 
@@ -548,8 +548,8 @@ def _production_app_page() -> str:
           var targetX = targetRect.left + targetRect.width / 2;
           var targetY = targetRect.top + targetRect.height / 2;
           pointer("pointerdown", source, sourceX, sourceY, pointerId, 1);
-          pointer("pointermove", window, targetX, targetY, pointerId, 1);
-          pointer("pointerup", window, targetX, targetY, pointerId, 0);
+          pointer("pointermove", source, targetX, targetY, pointerId, 1);
+          pointer("pointerup", source, targetX, targetY, pointerId, 0);
           await new Promise(function (resolve) { setTimeout(resolve, 90); });
         }
 
@@ -712,13 +712,61 @@ def _production_app_page() -> str:
           var dragX = dragRect.left + dragRect.width / 2;
           var dragY = dragRect.top + dragRect.height / 2;
           pointer("pointerdown", summonedWater, dragX, dragY, 57, 1);
-          pointer("pointermove", window, dragX + 80, dragY + 60, 57, 1);
-          pointer("pointerup", window, dragX + 80, dragY + 60, 57, 0);
+          pointer("pointermove", summonedWater, dragX + 80, dragY + 60, 57, 1);
+          pointer("pointerup", summonedWater, dragX + 80, dragY + 60, 57, 0);
           await new Promise(function (resolve) { setTimeout(resolve, 20); });
           var dragAfter =
             summonedWater.style.left + "|" + summonedWater.style.top;
           canvasDragMoved = dragBefore !== dragAfter;
         }
+
+        var outAndBackChip = document.querySelector(
+          '#element-list .element[data-name="白昼泥浆"]'
+        );
+        var outAndBackBefore =
+          document.querySelectorAll("#workspace .element.on-canvas").length;
+        var outAndBackClicksBefore = window.__audioFeedback.clicks;
+        if (outAndBackChip) {
+          var outAndBackRect = outAndBackChip.getBoundingClientRect();
+          var outAndBackX =
+            outAndBackRect.left + outAndBackRect.width / 2;
+          var outAndBackY =
+            outAndBackRect.top + outAndBackRect.height / 2;
+          pointer(
+            "pointerdown",
+            outAndBackChip,
+            outAndBackX,
+            outAndBackY,
+            60,
+            1
+          );
+          pointer(
+            "pointermove",
+            outAndBackChip,
+            outAndBackX + 40,
+            outAndBackY,
+            60,
+            1
+          );
+          pointer(
+            "pointermove",
+            outAndBackChip,
+            outAndBackX,
+            outAndBackY,
+            60,
+            1
+          );
+          pointer(
+            "pointerup",
+            outAndBackChip,
+            outAndBackX,
+            outAndBackY,
+            60,
+            0
+          );
+        }
+        var outAndBackAfter =
+          document.querySelectorAll("#workspace .element.on-canvas").length;
 
         document.getElementById("btn-recipebook").click();
         var recipeResult = document.querySelector(
@@ -759,6 +807,10 @@ def _production_app_page() -> str:
                   firesAfterCanvasDouble.length - beforeCanvasDouble,
                 canvas_copy_offset: canvasCopyOffset,
                 canvas_drag_moved: canvasDragMoved,
+                out_and_back_canvas_delta:
+                  outAndBackAfter - outAndBackBefore,
+                out_and_back_sound_delta:
+                  window.__audioFeedback.clicks - outAndBackClicksBefore,
                 recipe_click_delta: recipeAfter - recipeBefore,
                 element_click_sounds: window.__audioFeedback.clicks
               },
@@ -970,6 +1022,8 @@ def test_element_pointer_interactions_are_action_specific(tmp_path):
     assert actual["canvas_double_delta"] == 1
     assert actual["canvas_copy_offset"] == {"x": 28, "y": 28}
     assert actual["canvas_drag_moved"] is True
+    assert actual["out_and_back_canvas_delta"] == 0
+    assert actual["out_and_back_sound_delta"] == 0
     assert actual["recipe_click_delta"] == 0
     assert actual["element_click_sounds"] == 4
 

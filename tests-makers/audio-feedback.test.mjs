@@ -139,6 +139,8 @@ test("a rejected AudioContext resume never escapes into gameplay", async () => {
   const audio = await loadAudioFeedback(context);
 
   assert.equal(await audio.unlock(), false);
-  assert.doesNotThrow(() => audio.playElementClick());
-  assert.doesNotThrow(() => audio.playCombineSuccess());
+  assert.equal(audio.playElementClick(), false);
+  assert.equal(audio.playCombineSuccess(), false);
+  assert.equal(context.oscillators.length, 0);
+  assert.equal(context.gains.length, 0);
 });
