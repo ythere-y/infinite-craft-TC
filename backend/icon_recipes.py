@@ -7,6 +7,7 @@ recipes are derived only from committed JSON rules and request context.
 from __future__ import annotations
 
 import json
+import unicodedata
 from pathlib import Path
 from typing import NotRequired, TypedDict
 
@@ -43,6 +44,7 @@ _RULES = _read_object(_RULES_PATH)
 _PRESETS = _read_object(_PRESET_PATH)
 _PALETTES = frozenset(_RULES.get("palettes", ()))
 _SOURCES = frozenset(_RULES.get("allowed_sources", ()))
+_STABLE_HASH_MODULUS = 2_147_483_647
 
 
 def normalize_icon(value: object) -> dict | None:
@@ -135,6 +137,25 @@ def _dynamic_badge(
     return None
 
 
+def _stable_pool_badge(*, name: str, pool: object, base: str) -> str | None:
+    if not isinstance(pool, list):
+        return None
+    candidates = [
+        badge
+        for badge in pool
+        if isinstance(badge, str) and badge and badge != base
+    ]
+    if not candidates:
+        return None
+
+    value = 0
+    for character in unicodedata.normalize("NFC", name):
+        value = (
+            value * 31 + ord(character)
+        ) % _STABLE_HASH_MODULUS
+    return candidates[value % len(candidates)]
+
+
 def resolve_icon_recipe(
     *,
     name: str,
@@ -176,6 +197,16 @@ def resolve_icon_recipe(
         chain=chain,
         base=base,
     )
+    if badge is None:
+        badge_pools = _RULES.get("category_badge_pools", {})
+        pool = (
+            badge_pools.get(category)
+            if isinstance(badge_pools, dict)
+            else None
+        )
+        if pool is None and isinstance(badge_pools, dict):
+            pool = badge_pools.get(chain)
+        badge = _stable_pool_badge(name=name, pool=pool, base=base)
     recipe: IconRecipe = {
         "base": base,
         "palette": palette,

@@ -394,7 +394,7 @@ test("LLM misses are cached in KV and reused without another model request", asy
     base: "☕",
     palette: "product",
     source: "generated",
-    badge: "🧠",
+    badge: "🧩",
   });
   assert.deepEqual(repeat.icon, first.icon);
   assert.equal(calls, 1);
@@ -554,7 +554,7 @@ test("legacy elements repair missing icons with one merged element write", async
   assert.deepEqual(writes, { canonical: 1, index: 1 });
   assert.deepEqual((await new KvStore(kv).getElement("待修复缓存")).icon, {
     base: "☕",
-    badge: "🧠",
+    badge: "⚡",
     palette: "product",
     source: "generated",
   });

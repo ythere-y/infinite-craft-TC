@@ -19,6 +19,40 @@ for (const fixture of cases) {
   });
 }
 
+test("stable pool fixtures are diverse and never repeat the base", () => {
+  const fallbackCases = cases.filter(
+    (fixture) => fixture.group === "stable-pool",
+  );
+
+  assert.ok(
+    new Set(fallbackCases.map((fixture) => fixture.expected.badge)).size >= 4,
+  );
+  for (const fixture of fallbackCases) {
+    assert.notEqual(fixture.expected.badge, fixture.emoji);
+  }
+});
+
+test("historic brain badge remains unchanged", () => {
+  const persisted = {
+    base: "☕",
+    badge: "🧠",
+    palette: "product",
+    source: "generated",
+  };
+
+  assert.deepEqual(
+    resolveIconRecipe({
+      name: "智能咖啡",
+      emoji: "☕",
+      category: "ai",
+      parents: ["AI", "咖啡"],
+      comment: "咖啡完成智能升级",
+      persisted,
+    }),
+    persisted,
+  );
+});
+
 test("valid persisted icon JSON wins over an exact preset", () => {
   const persisted = {
     base: "🪨",
