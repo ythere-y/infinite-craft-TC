@@ -98,7 +98,7 @@ test("main game ships the opening stage in dependency order", async () => {
   );
   assert.match(
     html,
-    /<link rel="stylesheet" href="\/style\.css\?v=20260804b" \/>/,
+    /<link rel="stylesheet" href="\/style\.css\?v=20260804c" \/>/,
   );
   assert.match(
     html,
@@ -503,6 +503,22 @@ test("phone layout keeps the workspace and element collection in vertical flow",
   assert.doesNotMatch(
     css.match(/\.guidance-board\s*\{[^}]*\}/s)?.[0] || "",
     /backdrop-filter|filter:/,
+  );
+  assert.match(
+    css,
+    /\.guidance-icon\s*\{[^}]*align-self:\s*center[^}]*align-items:\s*center[^}]*justify-content:\s*center/s,
+  );
+  assert.match(
+    css,
+    /\.guidance-icon\s*>\s*\.action-icon\s*\{[^}]*width:\s*100%[^}]*height:\s*100%/s,
+  );
+  assert.match(
+    css,
+    /\.guidance-icon\s*>\s*\.action-icon\s+img\s*\{[^}]*width:\s*34px[^}]*height:\s*34px/s,
+  );
+  assert.match(
+    css,
+    /@media\s*\(max-width:\s*780px\)[\s\S]*\.guidance-icon\s*>\s*\.action-icon\s+img\s*\{[^}]*width:\s*26px[^}]*height:\s*26px/s,
   );
   assert.match(css, /@media\s*\(max-width:\s*780px\)/);
   assert.match(css, /\.topbar\s*\{[^}]*grid-template-columns:/s);
