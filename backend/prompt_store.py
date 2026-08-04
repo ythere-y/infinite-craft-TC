@@ -58,7 +58,11 @@ class PromptStoreCorruptionError(RuntimeError):
 
 _WRITE_BUSY_TIMEOUT_SECONDS = 0.1
 _WRITE_BUSY_RETRY_DELAYS = (0.02, 0.05)
-_MAX_PROBABILITY_DECIMAL_PLACES = 1000
+_MAX_PROBABILITY_DECIMAL_PLACES = 6
+_MAX_PROBABILITY_EXPONENT = 1000
+_PROBABILITY_DECIMAL_PLACES_ERROR = (
+    "\u98ce\u683c\u6982\u7387\u7684\u5c0f\u6570\u4f4d\u6570\u4e0d\u80fd\u8d85\u8fc7 6"
+)
 _ECMASCRIPT_TRIM_WHITESPACE = "".join(
     sorted(PROMPT_WHITESPACE - frozenset("\u0085"))
 )
@@ -233,10 +237,9 @@ def _parse_probability_decimal(value: Any) -> Decimal:
         ) from None
     fraction = match.group("fraction") or match.group("leading_fraction") or ""
     scale = len(fraction) - exponent
-    if (
-        abs(exponent) > _MAX_PROBABILITY_DECIMAL_PLACES
-        or scale > _MAX_PROBABILITY_DECIMAL_PLACES
-    ):
+    if scale > _MAX_PROBABILITY_DECIMAL_PLACES:
+        raise PromptValidationError(_PROBABILITY_DECIMAL_PLACES_ERROR)
+    if abs(exponent) > _MAX_PROBABILITY_EXPONENT:
         raise PromptValidationError("风格概率的小数位数不能超过 1000")
     try:
         number = Decimal(text)
@@ -324,7 +327,9 @@ def _require_enabled_text(item: dict, field: str, label: str) -> None:
 def _probability_coefficient_and_scale(value: Decimal) -> tuple[int, int]:
     decimal_tuple = value.as_tuple()
     exponent = int(decimal_tuple.exponent)
-    if abs(exponent) > _MAX_PROBABILITY_DECIMAL_PLACES:
+    if exponent < -_MAX_PROBABILITY_DECIMAL_PLACES:
+        raise PromptValidationError(_PROBABILITY_DECIMAL_PLACES_ERROR)
+    if exponent > _MAX_PROBABILITY_EXPONENT:
         raise PromptValidationError("风格概率的小数位数不能超过 1000")
     coefficient = int("".join(str(digit) for digit in decimal_tuple.digits))
     if decimal_tuple.sign:

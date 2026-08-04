@@ -72,6 +72,7 @@ def test_prompt_admin_script_preserves_draft_workflow_contracts():
     assert "preview.value" in source
     assert "probability" in source
     assert "PromptDecimal.summarize" in source
+    assert "summary.error" in source
     assert "let draftRevision = null" in source
     assert '"If-Match"' in source
     assert "expected_revision: draftRevision" in source

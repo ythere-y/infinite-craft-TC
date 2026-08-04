@@ -137,6 +137,34 @@ def test_saved_draft_survives_store_reinitialization(isolated_prompt_db):
     assert _draft_state()["revision"] == saved["revision"]
 
 
+def test_probability_precision_limit_accepts_six_decimal_places(isolated_prompt_db):
+    prompt_store.init_prompt_store()
+    draft = prompt_store.get_draft()
+    _replace_style_probabilities(draft, ["99.999999", "0.000001"])
+
+    assert prompt_store.validate_draft(draft) == draft
+
+
+@pytest.mark.parametrize(
+    "probabilities",
+    [
+        ["99.9999999", "0.0000001"],
+        ["99.999999", "1e-7"],
+    ],
+)
+def test_probability_precision_limit_rejects_seven_decimal_places(
+    isolated_prompt_db, probabilities
+):
+    prompt_store.init_prompt_store()
+    draft = prompt_store.get_draft()
+    _replace_style_probabilities(draft, probabilities)
+
+    with pytest.raises(prompt_store.PromptValidationError) as error:
+        prompt_store.validate_draft(draft)
+
+    assert str(error.value) == "风格概率的小数位数不能超过 6"
+
+
 @pytest.mark.parametrize(
     ("mutate", "message"),
     [
@@ -244,7 +272,7 @@ def test_probability_total_rejects_a_sub_context_increment_above_100(
 ):
     prompt_store.init_prompt_store()
     draft = prompt_store.get_draft()
-    _replace_style_probabilities(draft, ["100", "1e-28"])
+    _replace_style_probabilities(draft, ["100", "1e-6"])
 
     with pytest.raises(
         prompt_store.PromptValidationError,
@@ -253,7 +281,7 @@ def test_probability_total_rejects_a_sub_context_increment_above_100(
         prompt_store.validate_draft(draft)
 
 
-def test_probability_total_accepts_an_exact_100_beyond_decimal_context_precision(
+def test_probability_total_accepts_an_exact_100_at_six_decimal_precision(
     isolated_prompt_db,
 ):
     prompt_store.init_prompt_store()
@@ -261,8 +289,8 @@ def test_probability_total_accepts_an_exact_100_beyond_decimal_context_precision
     _replace_style_probabilities(
         draft,
         [
-            "99.999999999999999999999999990",
-            *(["1e-27"] * 10),
+            "99.99999",
+            *(["1e-6"] * 10),
         ],
     )
 

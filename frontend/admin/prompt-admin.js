@@ -153,6 +153,11 @@
       enabled.map((style) => style.probability),
     );
     const feedback = document.getElementById("prompt-probability-total");
+    if (summary.error) {
+      feedback.textContent = summary.error;
+      feedback.dataset.valid = String(summary.valid);
+      return;
+    }
     feedback.textContent = `已启用概率合计：${summary.total}%（必须为 100%）`;
     feedback.dataset.valid = String(summary.valid);
   }
