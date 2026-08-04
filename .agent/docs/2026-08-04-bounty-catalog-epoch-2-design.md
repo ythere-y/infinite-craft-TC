@@ -92,7 +92,7 @@ content/tencent-bounty-catalog.json
 
 ```text
 backend/generated/bounty-content.json
-edge-functions/_lib/generated-bounty-content.js
+edge-functions/_generated/bounty-content.js
 ```
 
 现有 `backend/bounty.py` 和 `edge-functions/_lib/bounty.js` 改为薄适配层，不再手写白名单。生成产物需要提交到仓库，测试会重新生成并确认没有漂移。
