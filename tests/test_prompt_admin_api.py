@@ -345,6 +345,16 @@ def test_version_summaries_are_metadata_only_allowlisted_and_paginated(
     }
 
 
+def test_version_offset_rejects_values_outside_sqlite_integer_range(
+    authorized_client,
+):
+    response = authorized_client.get(
+        "/api/admin/prompt/config?version_offset=9223372036854775808"
+    )
+
+    assert response.status_code == 422
+
+
 class _RequestStub:
     def __init__(self, authorization):
         self.headers = {"authorization": authorization}

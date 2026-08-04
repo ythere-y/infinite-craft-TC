@@ -432,7 +432,11 @@ async def api_admin_stats():
 async def api_admin_prompt_config(
     response: Response,
     version_limit: int = Query(default=50, ge=1, le=100),
-    version_offset: int = Query(default=0, ge=0),
+    version_offset: int = Query(
+        default=0,
+        ge=0,
+        le=prompt_store.MAX_VERSION_OFFSET,
+    ),
 ):
     draft_state = prompt_store.get_draft_state()
     active = prompt_store.get_active_version_summary()

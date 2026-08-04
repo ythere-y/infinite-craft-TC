@@ -16,7 +16,7 @@ const FRONTEND = resolve(ROOT, "frontend");
 const OUTPUT = resolve(ROOT, "dist");
 const LOCAL_PROMPT_MARKERS = [
   "ASSETS",
-  "TAB",
+  "NAV",
   "PANEL",
   "TEMPLATES",
   "SCRIPTS",
@@ -82,6 +82,12 @@ function stripMarkedLocalPromptHtml(html) {
     }
     stripped = `${stripped.slice(0, startAt)}${stripped.slice(endAt + end.length)}`;
   }
+  const monitorTabSemantics =
+    /\s+role="tabpanel"\s+aria-labelledby="admin-monitor-tab"/gu;
+  if ([...stripped.matchAll(monitorTabSemantics)].length !== 1) {
+    throw new Error("Missing or duplicate local monitor tab semantics");
+  }
+  stripped = stripped.replace(monitorTabSemantics, "");
   return stripped;
 }
 

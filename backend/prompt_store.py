@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import json
 import random
+import re
 import sqlite3
 import time
 import uuid
@@ -14,6 +15,7 @@ from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 from . import archive
 from .prompt_spec import (
+    PROMPT_WHITESPACE,
     _strip_prompt_whitespace,
     build_prompt_messages_from_spec,
     load_prompt_spec,
@@ -56,6 +58,16 @@ class PromptStoreCorruptionError(RuntimeError):
 
 _WRITE_BUSY_TIMEOUT_SECONDS = 0.1
 _WRITE_BUSY_RETRY_DELAYS = (0.02, 0.05)
+_MAX_PROBABILITY_DECIMAL_PLACES = 1000
+_ECMASCRIPT_TRIM_WHITESPACE = "".join(
+    sorted(PROMPT_WHITESPACE - frozenset("\u0085"))
+)
+_PROBABILITY_DECIMAL_PATTERN = re.compile(
+    r"^[+-]?(?:(?:[0-9]+(?:\.(?P<fraction>[0-9]*))?)"
+    r"|(?:\.(?P<leading_fraction>[0-9]+)))"
+    r"(?:[eE](?P<exponent>[+-]?[0-9]+))?$"
+)
+MAX_VERSION_OFFSET = (1 << 63) - 1
 _T = TypeVar("_T")
 
 
@@ -206,15 +218,39 @@ def draft_from_canonical(spec: dict) -> dict:
     }
 
 
-def _probability(value: Any) -> float:
+def _parse_probability_decimal(value: Any) -> Decimal:
     if isinstance(value, bool):
-        raise ValueError("style probability must be a finite number")
+        raise PromptValidationError("风格概率必须是 0 到 100 的有限数字")
+    text = str(value).strip(_ECMASCRIPT_TRIM_WHITESPACE)
+    match = _PROBABILITY_DECIMAL_PATTERN.fullmatch(text)
+    if match is None:
+        raise PromptValidationError("风格概率必须是 0 到 100 的有限数字")
     try:
-        number = Decimal(str(value))
-    except (InvalidOperation, ValueError) as exc:
-        raise ValueError("style probability must be a finite number") from exc
+        exponent = int(match.group("exponent") or 0)
+    except ValueError:
+        raise PromptValidationError(
+            "风格概率必须是 0 到 100 的有限数字"
+        ) from None
+    fraction = match.group("fraction") or match.group("leading_fraction") or ""
+    scale = len(fraction) - exponent
+    if (
+        abs(exponent) > _MAX_PROBABILITY_DECIMAL_PLACES
+        or scale > _MAX_PROBABILITY_DECIMAL_PLACES
+    ):
+        raise PromptValidationError("风格概率的小数位数不能超过 1000")
+    try:
+        number = Decimal(text)
+    except (InvalidOperation, ValueError):
+        raise PromptValidationError(
+            "风格概率必须是 0 到 100 的有限数字"
+        ) from None
     if not number.is_finite():
-        raise ValueError("style probability must be a finite number")
+        raise PromptValidationError("风格概率必须是 0 到 100 的有限数字")
+    return number
+
+
+def _probability(value: Any) -> float:
+    number = _parse_probability_decimal(value)
     return float(number / Decimal("100"))
 
 
@@ -285,6 +321,29 @@ def _require_enabled_text(item: dict, field: str, label: str) -> None:
         raise PromptValidationError(f"已启用{label}的{field}不能为空")
 
 
+def _probability_coefficient_and_scale(value: Decimal) -> tuple[int, int]:
+    decimal_tuple = value.as_tuple()
+    exponent = int(decimal_tuple.exponent)
+    if abs(exponent) > _MAX_PROBABILITY_DECIMAL_PLACES:
+        raise PromptValidationError("风格概率的小数位数不能超过 1000")
+    coefficient = int("".join(str(digit) for digit in decimal_tuple.digits))
+    if decimal_tuple.sign:
+        coefficient = -coefficient
+    if exponent >= 0:
+        return coefficient * (10 ** exponent), 0
+    return coefficient, -exponent
+
+
+def _probabilities_sum_to_100(values: List[Decimal]) -> bool:
+    parts = [_probability_coefficient_and_scale(value) for value in values]
+    scale = max((part_scale for _coefficient, part_scale in parts), default=0)
+    total = sum(
+        coefficient * (10 ** (scale - part_scale))
+        for coefficient, part_scale in parts
+    )
+    return total == 100 * (10 ** scale)
+
+
 def _validate_managed_collection(
     draft: dict,
     field: str,
@@ -335,27 +394,19 @@ def validate_draft(value: object) -> dict:
     if not enabled_styles:
         raise PromptValidationError("至少启用一种风格")
 
+    enabled_probabilities: List[Decimal] = []
     for style in styles:
         value = style.get("probability")
-        if isinstance(value, bool):
-            raise PromptValidationError("风格概率必须是 0 到 100 的有限数字")
-        try:
-            probability = Decimal(str(value))
-        except (InvalidOperation, ValueError):
-            raise PromptValidationError(
-                "风格概率必须是 0 到 100 的有限数字"
-            ) from None
+        probability = _parse_probability_decimal(value)
         if not probability.is_finite() or not Decimal("0") <= probability <= Decimal(
             "100"
         ):
             raise PromptValidationError("风格概率必须是 0 到 100 的有限数字")
+        _probability_coefficient_and_scale(probability)
+        if style["enabled"]:
+            enabled_probabilities.append(probability)
 
-    enabled_total = sum(
-        Decimal(str(style["probability"]))
-        for style in styles
-        if style["enabled"]
-    )
-    if enabled_total != Decimal("100"):
+    if not _probabilities_sum_to_100(enabled_probabilities):
         raise PromptValidationError("已启用风格的概率总和必须等于 100%")
 
     try:
@@ -771,8 +822,8 @@ def activate_version(version_id: str) -> dict:
 def list_versions(*, limit: int = 50, offset: int = 0) -> List[dict]:
     if type(limit) is not int or not 1 <= limit <= 100:
         raise ValueError("version limit must be between 1 and 100")
-    if type(offset) is not int or offset < 0:
-        raise ValueError("version offset must be non-negative")
+    if type(offset) is not int or not 0 <= offset <= MAX_VERSION_OFFSET:
+        raise ValueError("version offset is outside SQLite integer range")
     con = archive._conn()
     try:
         rows = con.execute(

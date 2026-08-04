@@ -3,13 +3,14 @@
 
   const DECIMAL = /^([+-]?)(?:(\d+)(?:\.(\d*))?|\.(\d+))(?:[eE]([+-]?\d+))?$/;
   const INVALID = "\u65e0\u6548";
+  const MAX_DECIMAL_PLACES = 1_000;
 
   function parse(value) {
     const match = DECIMAL.exec(String(value).trim());
     if (!match) return null;
 
     const exponent = Number(match[5] || 0);
-    if (!Number.isSafeInteger(exponent) || Math.abs(exponent) > 1_000) {
+    if (!Number.isSafeInteger(exponent) || Math.abs(exponent) > MAX_DECIMAL_PLACES) {
       return null;
     }
 
@@ -18,6 +19,7 @@
     let coefficient = BigInt(`${integer}${fraction}`);
     if (match[1] === "-") coefficient = -coefficient;
     let scale = fraction.length - exponent;
+    if (scale > MAX_DECIMAL_PLACES) return null;
     if (scale < 0) {
       coefficient *= 10n ** BigInt(-scale);
       scale = 0;

@@ -45,6 +45,19 @@ def _aggregate_current(*, random_value=0):
     )
 
 
+def _replace_style_probabilities(draft, probabilities):
+    draft["styles"] = [
+        {
+            "id": f"exact-style-{index}",
+            "enabled": True,
+            "label": f"精确风格 {index}",
+            "guidance": f"精确引导 {index}",
+            "probability": probability,
+        }
+        for index, probability in enumerate(probabilities)
+    ]
+
+
 def test_bootstrap_imports_canonical_prompt_as_active_version(
     isolated_prompt_db, canonical_spec
 ):
@@ -224,6 +237,61 @@ def test_validate_draft_allows_blank_text_only_on_disabled_entries(
     ]
 
     assert prompt_store.validate_draft(draft) == draft
+
+
+def test_probability_total_rejects_a_sub_context_increment_above_100(
+    isolated_prompt_db,
+):
+    prompt_store.init_prompt_store()
+    draft = prompt_store.get_draft()
+    _replace_style_probabilities(draft, ["100", "1e-28"])
+
+    with pytest.raises(
+        prompt_store.PromptValidationError,
+        match="概率总和必须等于 100%",
+    ):
+        prompt_store.validate_draft(draft)
+
+
+def test_probability_total_accepts_an_exact_100_beyond_decimal_context_precision(
+    isolated_prompt_db,
+):
+    prompt_store.init_prompt_store()
+    draft = prompt_store.get_draft()
+    _replace_style_probabilities(
+        draft,
+        [
+            "99.999999999999999999999999990",
+            *(["1e-27"] * 10),
+        ],
+    )
+
+    assert prompt_store.validate_draft(draft) == draft
+
+
+@pytest.mark.parametrize(
+    ("invalid_probability", "companion_probability"),
+    [
+        ("5_0", "50"),
+        ("\uff15\uff10", "50"),
+        ("\u008550\u0085", "50"),
+        ("0." + ("0" * 1000) + "1e1001", "99"),
+    ],
+)
+def test_probability_rejects_values_outside_the_browser_decimal_grammar(
+    isolated_prompt_db,
+    invalid_probability,
+    companion_probability,
+):
+    prompt_store.init_prompt_store()
+    draft = prompt_store.get_draft()
+    _replace_style_probabilities(
+        draft,
+        [invalid_probability, companion_probability],
+    )
+
+    with pytest.raises(prompt_store.PromptValidationError):
+        prompt_store.validate_draft(draft)
 
 
 @pytest.mark.parametrize(

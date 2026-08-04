@@ -27,6 +27,17 @@ test("Prompt probability totals use the backend's exact decimal semantics", asyn
   const exact = decimal.summarize(["25", "25.0", "5e1"]);
   assert.equal(exact.total, "100");
   assert.equal(exact.valid, true);
+
+  const justAbove = decimal.summarize(["100", "1e-28"]);
+  assert.equal(justAbove.total, "100.0000000000000000000000000001");
+  assert.equal(justAbove.valid, false);
+
+  const contextBoundary = decimal.summarize([
+    "99.999999999999999999999999990",
+    ...Array(10).fill("1e-27"),
+  ]);
+  assert.equal(contextBoundary.total, "100");
+  assert.equal(contextBoundary.valid, true);
 });
 
 
