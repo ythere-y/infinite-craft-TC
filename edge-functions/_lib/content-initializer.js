@@ -23,10 +23,13 @@ const PHASES = [
 const PHASE_RANK = new Map(PHASES.map((phase, index) => [phase, index]));
 const SCAN_RANK = new Map([
   ["combinations", 0],
-  ["elements", 1],
-  ["done", 2],
+  ["recipes", 1],
+  ["elements", 2],
 ]);
-const INITIALIZATION_COORDINATORS = new WeakMap();
+const RECONCILIATION_SCANS = new Set(SCAN_RANK.keys());
+const MAX_STATE_CURSOR_BYTES = 512;
+const MAX_STATE_ERROR_CHARS = 500;
+let INITIALIZATION_COORDINATOR = Promise.resolve();
 const EPOCH_RESET_PHASES = new Set([
   "detect",
   "purge_runtime_data",
@@ -117,6 +120,10 @@ const RECIPES = Object.entries(BOUNTY_COMBINATIONS).map(([pair, info]) => ({
 const FIXED_PAIRS = new Set(
   RECIPES.map(({ record }) => normalizePair(record.a, record.b)),
 );
+const FIXED_RECIPE_IDENTITIES = new Set(
+  RECIPES.map(({ record }) =>
+    `${normalizePair(record.a, record.b)}\u0000${record.result}`),
+);
 const FIXED_ELEMENTS = new Set([
   ...STARTERS.map(({ name }) => name),
   ...ELEMENTS.map(({ name }) => name),
@@ -189,7 +196,10 @@ function validReadyState(state) {
     state?.mode === "ready" &&
     state?.phase === "ready" &&
     Number(state.epoch) === CONTENT_EPOCH &&
-    state.catalog_digest === CATALOG_DIGEST
+    state.catalog_digest === CATALOG_DIGEST &&
+    state?.cursor == null &&
+    state?.scan == null &&
+    Number(state?.index || 0) === 0
   );
 }
 
@@ -200,6 +210,10 @@ function validMigratingState(state) {
     state.catalog_digest === CATALOG_DIGEST
   );
   if (!common) return false;
+  const scanValid = state.phase === "rebuild_indexes"
+    ? state.scan == null || RECONCILIATION_SCANS.has(state.scan)
+    : state.scan == null;
+  if (!scanValid) return false;
   if (state.mode === "differential") {
     return DIFFERENTIAL_PHASES.has(state.phase);
   }
@@ -338,17 +352,20 @@ function nextPhase(state, phase, extras = {}) {
   };
 }
 
-function coordinateInitialization(kv, task) {
-  const previous = INITIALIZATION_COORDINATORS.get(kv) || Promise.resolve();
+function coordinateInitialization(task) {
+  // Makers KV exposes no compare-and-swap primitive. This coordinator closes
+  // same-isolate races (including separate namespace wrapper objects); durable
+  // replay remains responsible for cross-isolate eventual convergence.
+  const previous = INITIALIZATION_COORDINATOR;
   const run = previous.catch(() => undefined).then(task);
   const settled = run.then(
     () => undefined,
     () => undefined,
   );
-  INITIALIZATION_COORDINATORS.set(kv, settled);
+  INITIALIZATION_COORDINATOR = settled;
   return run.finally(() => {
-    if (INITIALIZATION_COORDINATORS.get(kv) === settled) {
-      INITIALIZATION_COORDINATORS.delete(kv);
+    if (INITIALIZATION_COORDINATOR === settled) {
+      INITIALIZATION_COORDINATOR = Promise.resolve();
     }
   });
 }
@@ -356,23 +373,72 @@ function coordinateInitialization(kv, task) {
 function parseStoredJson(raw) {
   if (raw == null || raw === "") return null;
   if (typeof raw !== "string") {
-    return raw && typeof raw === "object" ? raw : null;
+    return raw && typeof raw === "object" && !Array.isArray(raw)
+      ? raw
+      : null;
   }
   try {
     const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? parsed : null;
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? parsed
+      : null;
   } catch {
     return null;
   }
 }
 
-function isCurrentSeedRecord(raw) {
+function isCurrentCatalogRecord(raw) {
   const record = parseStoredJson(raw);
   return (
-    cleanText(record?.source) === "seed" &&
     Number(record?.content_epoch) === CONTENT_EPOCH &&
     record?.catalog_digest === CATALOG_DIGEST
   );
+}
+
+function cursorIsPersistable(cursor) {
+  return (
+    typeof cursor === "string" &&
+    cursor.length > 0 &&
+    new TextEncoder().encode(cursor).byteLength <= MAX_STATE_CURSOR_BYTES
+  );
+}
+
+function boundedText(value, maximum) {
+  return [...String(value ?? "")
+    .replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]+/gu, " ")
+    .replace(/\s+/gu, " ")
+    .trim()]
+    .slice(0, maximum)
+    .join("");
+}
+
+function errorSummary(error) {
+  const name = boundedText(error?.name || "Error", 64)
+    .replace(/[^A-Za-z0-9_.-]+/gu, "_") || "Error";
+  const message = boundedText(error?.message || String(error), 430);
+  return boundedText(`${name}: ${message}`, MAX_STATE_ERROR_CHARS);
+}
+
+function canonicalState(state) {
+  return {
+    epoch: Number(state?.epoch),
+    catalog_digest: cleanText(state?.catalog_digest),
+    catalog_version: cleanText(state?.catalog_version),
+    status: cleanText(state?.status),
+    mode: cleanText(state?.mode),
+    phase: cleanText(state?.phase),
+    cursor: cursorIsPersistable(state?.cursor) ? state.cursor : null,
+    index: Math.max(0, Number(state?.index) || 0),
+    scan: state?.scan == null ? null : cleanText(state.scan),
+    purge_pass: Math.max(0, Number(state?.purge_pass) || 0),
+    purge_deleted: Math.max(0, Number(state?.purge_deleted) || 0),
+    scan_pass: Math.max(0, Number(state?.scan_pass) || 0),
+    scan_deleted: Math.max(0, Number(state?.scan_deleted) || 0),
+    purge_completed: state?.purge_completed === true,
+    started_at: Number(state?.started_at) || null,
+    completed_at: Number(state?.completed_at) || null,
+    error: boundedText(state?.error, MAX_STATE_ERROR_CHARS),
+  };
 }
 
 function hasCurrentCatalogMetadata(record) {
@@ -449,13 +515,14 @@ export function createContentInitializer({
   }
 
   async function putState(candidate) {
+    candidate = canonicalState(candidate);
     const current = await readStatus();
     const selected = aheadState(current, candidate);
     if (selected === current) return current;
     await kv.put(STATE_KEY, JSON.stringify(selected));
 
-    // A second read prevents a slower initializer from silently regressing
-    // progress written by another instance between our read and write.
+    // Repair an interleaving that is observable on readback. Without a KV CAS
+    // this is not a strict cross-isolate linearizability guarantee.
     const observed = await readStatus();
     const preferred = aheadState(observed, selected);
     if (
@@ -468,28 +535,50 @@ export function createContentInitializer({
     return preferred || observed || selected;
   }
 
+  function restartPurge(state) {
+    return {
+      ...state,
+      cursor: null,
+      index: 0,
+      purge_pass: Math.max(0, Number(state.purge_pass) || 0) + 1,
+      purge_deleted: 0,
+      error: "",
+    };
+  }
+
   async function purgePage(state) {
+    if (state.cursor && !cursorIsPersistable(state.cursor)) {
+      return {
+        state: restartPurge(state),
+        restart: true,
+      };
+    }
     const page = await kv.list(
       listOptions(
         "",
-        Math.min(256, safeBatchSize + 1),
+        safeBatchSize,
         state.cursor,
       ),
     );
     const keys = (page?.keys || [])
       .map((item) => item?.key || item?.name)
-      .filter((key) => key && key !== STATE_KEY)
-      .slice(0, safeBatchSize);
+      .filter((key) => key && key !== STATE_KEY);
     let deleted = 0;
     for (const key of keys) {
       const raw = await kv.get(key);
-      if (isCurrentSeedRecord(raw)) continue;
+      if (isCurrentCatalogRecord(raw)) continue;
       await kv.delete(key);
       deleted += 1;
     }
     const passDeleted = Math.max(0, Number(state.purge_deleted) || 0) +
       deleted;
-    if (!page?.complete && page?.cursor) {
+    if (!page?.complete) {
+      if (!cursorIsPersistable(page?.cursor)) {
+        return {
+          state: restartPurge(state),
+          restart: true,
+        };
+      }
       return {
         state: {
           ...state,
@@ -511,14 +600,7 @@ export function createContentInitializer({
       };
     }
     return {
-      state: {
-        ...state,
-        cursor: null,
-        index: 0,
-        purge_pass: Math.max(0, Number(state.purge_pass) || 0) + 1,
-        purge_deleted: 0,
-        error: "",
-      },
+      state: restartPurge(state),
       restart: true,
     };
   }
@@ -546,8 +628,27 @@ export function createContentInitializer({
     };
   }
 
+  function restartScan(state, kind) {
+    return {
+      ...state,
+      cursor: null,
+      index: 0,
+      scan: kind,
+      scan_pass: Math.max(0, Number(state.scan_pass) || 0) + 1,
+      scan_deleted: 0,
+      error: "",
+    };
+  }
+
   async function scanOwnedRecords(state, kind) {
-    const prefix = kind === "combinations" ? "combo_" : "element_";
+    if (state.cursor && !cursorIsPersistable(state.cursor)) {
+      return restartScan(state, kind);
+    }
+    const prefix = kind === "combinations"
+      ? "combo_"
+      : kind === "recipes"
+        ? "recipe_"
+        : "element_";
     const page = await kv.list(
       listOptions(prefix, safeBatchSize, state.cursor),
     );
@@ -560,6 +661,21 @@ export function createContentInitializer({
       if (raw == null || raw === "") continue;
       const record = parseStoredJson(raw);
       if (!record) {
+        if (kind === "elements") {
+          await store.deleteIndexRecord("element", key);
+        }
+        await kv.delete(key);
+        deleted += 1;
+        continue;
+      }
+      const structurallyValid = kind === "elements"
+        ? Boolean(cleanText(record?.name))
+        : Boolean(
+          cleanText(record?.a) &&
+          cleanText(record?.b) &&
+          cleanText(record?.result),
+        );
+      if (!structurallyValid) {
         if (kind === "elements") {
           await store.deleteIndexRecord("element", key);
         }
@@ -586,6 +702,21 @@ export function createContentInitializer({
           await kv.delete(key);
           deleted += 1;
         }
+      } else if (kind === "recipes") {
+        const identity =
+          `${normalizePair(record?.a, record?.b)}\u0000${cleanText(record?.result)}`;
+        const expectedKey = await store.recipeKey(
+          record?.a,
+          record?.b,
+          record?.result,
+        );
+        if (
+          !FIXED_RECIPE_IDENTITIES.has(identity) ||
+          expectedKey !== key
+        ) {
+          await kv.delete(key);
+          deleted += 1;
+        }
       } else {
         const name = cleanText(record?.name);
         if (name && !FIXED_ELEMENTS.has(name)) {
@@ -603,19 +734,25 @@ export function createContentInitializer({
 
     const passDeleted = Math.max(0, Number(state.scan_deleted) || 0) +
       deleted;
-    if (page?.complete || !page?.cursor) {
+    if (!page?.complete && !cursorIsPersistable(page?.cursor)) {
+      return restartScan(state, kind);
+    }
+    if (page?.complete) {
       if (passDeleted > 0) {
+        return restartScan(state, kind);
+      }
+      if (kind === "combinations") {
         return {
           ...state,
           cursor: null,
           index: 0,
-          scan: kind,
-          scan_pass: Math.max(0, Number(state.scan_pass) || 0) + 1,
+          scan: "recipes",
+          scan_pass: 0,
           scan_deleted: 0,
           error: "",
         };
       }
-      if (kind === "combinations") {
+      if (kind === "recipes") {
         return {
           ...state,
           cursor: null,
@@ -639,10 +776,9 @@ export function createContentInitializer({
   }
 
   async function rebuildBatch(state) {
-    if (state.mode !== "differential") {
-      return nextPhase(state, "verify_catalog");
-    }
-    const scan = state.scan === "elements" ? "elements" : "combinations";
+    const scan = RECONCILIATION_SCANS.has(state.scan)
+      ? state.scan
+      : "combinations";
     return scanOwnedRecords({ ...state, scan }, scan);
   }
 
@@ -762,6 +898,9 @@ export function createContentInitializer({
 
     if (!validMigratingState(state)) {
       state = await putState(initialState(state, now));
+      if (hasNewerTarget(state)) {
+        return newerTargetResult(state);
+      }
     }
 
     try {
@@ -778,7 +917,13 @@ export function createContentInitializer({
         }
         const next = await processBatch(state);
         state = await putState(next);
+        if (hasNewerTarget(state)) {
+          return newerTargetResult(state);
+        }
         if (validReadyState(state)) break;
+      }
+      if (hasNewerTarget(state)) {
+        return newerTargetResult(state);
       }
       return stateResult(state);
     } catch (error) {
@@ -786,7 +931,7 @@ export function createContentInitializer({
       if (validMigratingState(current)) {
         await putState({
           ...current,
-          error: `${error?.name || "Error"}: ${error?.message || String(error)}`,
+          error: errorSummary(error),
         });
       }
       throw error;
@@ -794,7 +939,7 @@ export function createContentInitializer({
   }
 
   async function ensureInitialized() {
-    return coordinateInitialization(kv, ensureInitializedOnce);
+    return coordinateInitialization(ensureInitializedOnce);
   }
 
   return {

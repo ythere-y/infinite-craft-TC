@@ -354,11 +354,13 @@ export class KvStore {
     return this.getJson(await entityKey("combo", normalizePair(a, b)));
   }
 
-  async getRecipe(a, b, result) {
+  async recipeKey(a, b, result) {
     const pair = normalizePair(a, b);
-    const key =
-      `recipe_${await sha256Hex(cleanText(result))}_${await sha256Hex(pair)}`;
-    return this.getJson(key);
+    return `recipe_${await sha256Hex(cleanText(result))}_${await sha256Hex(pair)}`;
+  }
+
+  async getRecipe(a, b, result) {
+    return this.getJson(await this.recipeKey(a, b, result));
   }
 
   async putCombination(
@@ -534,10 +536,7 @@ export class KvStore {
 
   async rememberRecipe(record) {
     const result = cleanText(record.result);
-    const pair = normalizePair(record.a, record.b);
-    const resultHash = await sha256Hex(result);
-    const pairHash = await sha256Hex(pair);
-    const key = `recipe_${resultHash}_${pairHash}`;
+    const key = await this.recipeKey(record.a, record.b, result);
     await this.putJson(key, {
       a: record.a,
       b: record.b,
@@ -561,8 +560,7 @@ export class KvStore {
   async deleteCombination(a, b, result) {
     const pair = normalizePair(a, b);
     const comboKey = await entityKey("combo", pair);
-    const recipeKey =
-      `recipe_${await sha256Hex(cleanText(result))}_${await sha256Hex(pair)}`;
+    const recipeKey = await this.recipeKey(a, b, result);
     await this.kv.delete(recipeKey);
     await this.kv.delete(comboKey);
   }

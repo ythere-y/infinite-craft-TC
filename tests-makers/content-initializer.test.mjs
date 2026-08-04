@@ -163,6 +163,69 @@ test("same-epoch rolling deploys preserve a higher catalog semver", async () => 
   assert.ok(await kv.get("future_runtime_data"));
 });
 
+test("a newer target injected by the final state write remains blocked", async () => {
+  class FinalWriteFutureKV extends FakeKV {
+    async put(key, value) {
+      await super.put(key, value);
+      const state = key === "system_content_state"
+        ? JSON.parse(value)
+        : null;
+      if (
+        this.armed &&
+        !this.injected &&
+        state?.status === "ready" &&
+        state?.catalog_digest === CATALOG_DIGEST
+      ) {
+        this.injected = true;
+        await super.put(key, JSON.stringify({
+          ...state,
+          epoch: CONTENT_EPOCH + 1,
+          catalog_digest: "sha256:future-final-write",
+          catalog_version: "3.0.0",
+        }));
+      }
+    }
+  }
+
+  const kv = new FinalWriteFutureKV();
+  await runToReady(createContentInitializer({
+    kv,
+    batchSize: 256,
+    workBudget: 10_000,
+    now: () => NOW,
+  }));
+  await kv.put("system_content_state", JSON.stringify({
+    epoch: CONTENT_EPOCH,
+    catalog_digest: CATALOG_DIGEST,
+    catalog_version: BOUNTY_CONTENT.catalog.meta.version,
+    status: "migrating",
+    mode: "differential",
+    phase: "verify_catalog",
+    cursor: null,
+    index: 1_000_000,
+    scan: null,
+    started_at: NOW,
+    completed_at: null,
+    error: "",
+  }));
+  kv.armed = true;
+
+  const result = await createContentInitializer({
+    kv,
+    batchSize: 256,
+    workBudget: 1,
+    now: () => NOW,
+  }).ensureInitialized();
+
+  assert.equal(result.ready, false);
+  assert.equal(result.blocked_by_newer_target, true);
+  assert.equal(result.status.epoch, CONTENT_EPOCH + 1);
+  assert.equal(
+    JSON.parse(await kv.get("system_content_state")).epoch,
+    CONTENT_EPOCH + 1,
+  );
+});
+
 test("same epoch digest change preserves dynamic records", async () => {
   const kv = readyKv({ catalog_digest: "sha256:obsolete" });
   const store = new KvStore(kv, { now: () => NOW });
@@ -320,6 +383,90 @@ test("delayed state writes cannot regress ready content back to migrating", asyn
   assert.equal(JSON.parse(await kv.get(sampleKey)).result, "互联网");
 });
 
+test("different namespace wrappers over one backend share the isolate coordinator", async () => {
+  class DelayedMigrationBackend extends FakeKV {
+    constructor() {
+      super();
+      this.armed = false;
+      this.delayed = false;
+      this.readyObserved = new Promise((resolve) => {
+        this.resolveReadyObserved = resolve;
+      });
+    }
+
+    async put(key, value) {
+      const state = key === "system_content_state"
+        ? JSON.parse(value)
+        : null;
+      if (
+        this.armed &&
+        !this.delayed &&
+        state?.status === "migrating"
+      ) {
+        this.delayed = true;
+        await Promise.race([
+          this.readyObserved,
+          new Promise((resolve) => setTimeout(resolve, 1_000)),
+        ]);
+      }
+      await super.put(key, value);
+      if (this.armed && state?.status === "ready") {
+        this.resolveReadyObserved();
+      }
+    }
+  }
+
+  const backend = new DelayedMigrationBackend();
+  await runToReady(createContentInitializer({
+    kv: backend,
+    batchSize: 256,
+    workBudget: 10_000,
+    now: () => NOW,
+  }));
+  await backend.put("system_content_state", JSON.stringify({
+    epoch: CONTENT_EPOCH,
+    catalog_digest: CATALOG_DIGEST,
+    status: "migrating",
+    mode: "differential",
+    phase: "verify_catalog",
+    cursor: null,
+    index: 0,
+    scan: null,
+    started_at: NOW,
+    completed_at: null,
+    error: "",
+  }));
+  backend.armed = true;
+  const wrapper = () => ({
+    get: (...args) => backend.get(...args),
+    put: (...args) => backend.put(...args),
+    delete: (...args) => backend.delete(...args),
+    list: (...args) => backend.list(...args),
+  });
+  const slow = createContentInitializer({
+    kv: wrapper(),
+    batchSize: 1,
+    workBudget: 1,
+    now: () => NOW,
+  });
+  const fast = createContentInitializer({
+    kv: wrapper(),
+    batchSize: 256,
+    workBudget: 10_000,
+    now: () => NOW,
+  });
+
+  await Promise.all([
+    slow.ensureInitialized(),
+    fast.ensureInitialized(),
+  ]);
+
+  const status = JSON.parse(await backend.get("system_content_state"));
+  assert.equal(status.status, "ready");
+  assert.equal(status.mode, "ready");
+  assert.equal(status.phase, "ready");
+});
+
 test("replayed stale purge preserves already-current seed records", async () => {
   const kv = new FakeKV({
     system_content_state: JSON.stringify({
@@ -355,6 +502,50 @@ test("replayed stale purge preserves already-current seed records", async () => 
   }).ensureInitialized();
 
   assert.equal(JSON.parse(await kv.get(sampleKey)).result, "互联网");
+});
+
+test("epoch reset retires absent current-metadata seed records after seeding", async () => {
+  const kv = new FakeKV({
+    system_content_state: JSON.stringify({
+      epoch: CONTENT_EPOCH,
+      catalog_digest: CATALOG_DIGEST,
+      status: "migrating",
+      mode: "epoch_reset",
+      phase: "purge_runtime_data",
+      cursor: null,
+      index: 0,
+      purge_pass: 0,
+      purge_deleted: 0,
+      purge_completed: false,
+      started_at: NOW,
+      completed_at: null,
+      error: "",
+    }),
+  });
+  const store = new KvStore(kv, { now: () => NOW });
+  await store.putCombination("当前遗留甲", "当前遗留乙", {
+    result: "当前遗留结果",
+    emoji: "🧹",
+    source: "seed",
+    content_epoch: CONTENT_EPOCH,
+    catalog_digest: CATALOG_DIGEST,
+  });
+  const pair = normalizePair("当前遗留甲", "当前遗留乙");
+  const comboKey = await entityKey("combo", pair);
+  const recipeKey =
+    `recipe_${await sha256Hex("当前遗留结果")}_${await sha256Hex(pair)}`;
+  const elementKey = await entityKey("element", "当前遗留结果");
+
+  await runToReady(createContentInitializer({
+    kv,
+    batchSize: 23,
+    workBudget: 1,
+    now: () => NOW,
+  }));
+
+  assert.equal(await kv.get(comboKey), null);
+  assert.equal(await kv.get(recipeKey), null);
+  assert.equal(await kv.get(elementKey), null);
 });
 
 test("differential retirement preserves a shared LLM result and exact indexes", async () => {
@@ -587,6 +778,118 @@ test("failed purge persists an error and resumes idempotently", async () => {
   assert.equal(kv.values.has("first_legacy"), false);
 });
 
+test("oversized opaque cursors restart without exceeding the state value limit", async () => {
+  class SizeLimitedCursorKV extends FakeKV {
+    async put(key, value) {
+      if (
+        key === "system_content_state" &&
+        new TextEncoder().encode(value).byteLength > 1_200
+      ) {
+        throw new RangeError("state value exceeded test limit");
+      }
+      return super.put(key, value);
+    }
+
+    async list(options = {}) {
+      if (options.prefix === "combo_") {
+        return {
+          complete: false,
+          cursor: "x".repeat(10_000),
+          keys: [],
+        };
+      }
+      return super.list(options);
+    }
+  }
+
+  const kv = new SizeLimitedCursorKV({
+    system_content_state: JSON.stringify({
+      epoch: CONTENT_EPOCH,
+      catalog_digest: CATALOG_DIGEST,
+      status: "migrating",
+      mode: "differential",
+      phase: "rebuild_indexes",
+      cursor: null,
+      index: 0,
+      scan: "combinations",
+      scan_pass: 0,
+      scan_deleted: 0,
+      started_at: NOW,
+      completed_at: null,
+      error: "",
+    }),
+  });
+
+  const result = await createContentInitializer({
+    kv,
+    batchSize: 2,
+    workBudget: 1,
+    now: () => NOW,
+  }).ensureInitialized();
+  const raw = await kv.get("system_content_state");
+
+  assert.equal(result.status.cursor, null);
+  assert.equal(result.status.scan, "combinations");
+  assert.ok(new TextEncoder().encode(raw).byteLength <= 1_200);
+});
+
+test("persisted initialization errors are sanitized, bounded, and canonical", async () => {
+  class SizeLimitedErrorKV extends FakeKV {
+    async put(key, value) {
+      if (
+        key === "system_content_state" &&
+        new TextEncoder().encode(value).byteLength > 1_200
+      ) {
+        throw new RangeError("state value exceeded test limit");
+      }
+      return super.put(key, value);
+    }
+
+    async list() {
+      const error = new Error(`provider ${"x".repeat(10_000)}`);
+      error.name = "Provider\nFailure";
+      throw error;
+    }
+  }
+
+  const kv = new SizeLimitedErrorKV({
+    system_content_state: JSON.stringify({
+      epoch: CONTENT_EPOCH,
+      catalog_digest: CATALOG_DIGEST,
+      status: "migrating",
+      mode: "epoch_reset",
+      phase: "purge_runtime_data",
+      cursor: null,
+      index: 0,
+      purge_pass: 0,
+      purge_deleted: 0,
+      purge_completed: false,
+      started_at: NOW,
+      completed_at: null,
+      error: "",
+      oversized_unknown: "y".repeat(10_000),
+    }),
+  });
+  const initializer = createContentInitializer({
+    kv,
+    batchSize: 2,
+    workBudget: 1,
+    now: () => NOW,
+  });
+
+  await assert.rejects(
+    initializer.ensureInitialized(),
+    (error) => error.name === "Provider\nFailure",
+  );
+  const raw = await kv.get("system_content_state");
+  const state = JSON.parse(raw);
+
+  assert.ok(new TextEncoder().encode(raw).byteLength <= 1_200);
+  assert.ok(state.error.length <= 500);
+  assert.doesNotMatch(state.error, /[\r\n]/u);
+  assert.equal(Object.hasOwn(state, "oversized_unknown"), false);
+});
+
 test("legacy seed records without an epoch are reconciled", async () => {
   const kv = readyKv({ catalog_digest: "sha256:obsolete" });
   const store = new KvStore(kv, { now: () => NOW });
@@ -632,6 +935,58 @@ test("malformed combo and element JSON are quarantined without retry loops", asy
 
   assert.equal(await kv.get(comboKey), null);
   assert.equal(await kv.get(elementKey), null);
+});
+
+test("a corrupted stale combo cannot leave an orphan seed recipe", async () => {
+  const kv = readyKv({ catalog_digest: "sha256:obsolete" });
+  const store = new KvStore(kv, { now: () => NOW });
+  await store.putCombination("孤儿甲", "孤儿乙", {
+    result: "孤儿结果",
+    emoji: "🧹",
+    source: "seed",
+    content_epoch: CONTENT_EPOCH,
+    catalog_digest: "sha256:obsolete",
+  });
+  const pair = normalizePair("孤儿甲", "孤儿乙");
+  const comboKey = await entityKey("combo", pair);
+  const recipeKey =
+    `recipe_${await sha256Hex("孤儿结果")}_${await sha256Hex(pair)}`;
+  await kv.put(comboKey, "{broken combo");
+
+  await runToReady(createContentInitializer({
+    kv,
+    batchSize: 17,
+    workBudget: 1,
+    now: () => NOW,
+  }));
+
+  assert.equal(await kv.get(comboKey), null);
+  assert.equal(await kv.get(recipeKey), null);
+});
+
+test("recipe reconciliation deletes malformed seed data and preserves LLM recipes", async () => {
+  const malformedKey = `recipe_${"a".repeat(64)}_${"b".repeat(64)}`;
+  const kv = readyKv({ catalog_digest: "sha256:obsolete" });
+  const store = new KvStore(kv, { now: () => NOW });
+  await kv.put(malformedKey, "{broken recipe");
+  await store.putCombination("动态配方甲", "动态配方乙", {
+    result: "动态配方结果",
+    emoji: "✨",
+    source: "llm",
+  });
+  const dynamicPair = normalizePair("动态配方甲", "动态配方乙");
+  const dynamicRecipeKey =
+    `recipe_${await sha256Hex("动态配方结果")}_${await sha256Hex(dynamicPair)}`;
+
+  await runToReady(createContentInitializer({
+    kv,
+    batchSize: 19,
+    workBudget: 1,
+    now: () => NOW,
+  }));
+
+  assert.equal(await kv.get(malformedKey), null);
+  assert.ok(await kv.get(dynamicRecipeKey));
 });
 
 test("malformed persisted state conservatively restarts epoch reset", async () => {
@@ -700,6 +1055,48 @@ test("migrating state cannot claim the ready phase", async () => {
       error: "",
     }),
   });
+
+  const result = await createContentInitializer({
+    kv,
+    batchSize: 2,
+    workBudget: 1,
+    now: () => NOW,
+  }).ensureInitialized();
+
+  assert.equal(result.ready, false);
+  assert.notEqual(result.status.phase, "ready");
+});
+
+test("rebuild state rejects an unknown reconciliation scan", async () => {
+  const kv = new FakeKV({
+    system_content_state: JSON.stringify({
+      epoch: CONTENT_EPOCH,
+      catalog_digest: CATALOG_DIGEST,
+      status: "migrating",
+      mode: "differential",
+      phase: "rebuild_indexes",
+      cursor: null,
+      index: 40,
+      scan: "unknown_scan",
+      started_at: NOW,
+      completed_at: null,
+      error: "",
+    }),
+  });
+
+  const result = await createContentInitializer({
+    kv,
+    batchSize: 2,
+    workBudget: 1,
+    now: () => NOW,
+  }).ensureInitialized();
+
+  assert.equal(result.status.phase, "seed_starters");
+  assert.equal(result.status.scan, null);
+});
+
+test("ready state cannot retain an unfinished reconciliation scan", async () => {
+  const kv = readyKv({ scan: "recipes" });
 
   const result = await createContentInitializer({
     kv,
@@ -857,6 +1254,72 @@ test("one purge work unit never deletes more than batchSize records", async () =
   await initializer.ensureInitialized();
 
   assert.ok(kv.deleteCalls - beforeDeletes <= 2);
+});
+
+test("purge never advances past an unprocessed third key", async () => {
+  for (const cursorMode of ["key", "offset"]) {
+    const comboKey = `combo_${"a".repeat(64)}`;
+    const elementKey = `element_${"b".repeat(64)}`;
+    const runtimeKey = "runtime_third";
+    const kv = new FakeKV({
+      [comboKey]: JSON.stringify({
+        a: "当前甲",
+        b: "当前乙",
+        result: "当前结果",
+        source: "seed",
+        content_epoch: CONTENT_EPOCH,
+        catalog_digest: CATALOG_DIGEST,
+      }),
+      [elementKey]: JSON.stringify({
+        name: "共享当前结果",
+        emoji: "✨",
+        category: "ai",
+        source: "llm",
+        content_epoch: CONTENT_EPOCH,
+        catalog_digest: CATALOG_DIGEST,
+      }),
+      [runtimeKey]: JSON.stringify({ remove: true }),
+      system_content_state: JSON.stringify({
+        epoch: CONTENT_EPOCH,
+        catalog_digest: CATALOG_DIGEST,
+        status: "migrating",
+        mode: "epoch_reset",
+        phase: "purge_runtime_data",
+        cursor: null,
+        index: 0,
+        purge_pass: 0,
+        purge_deleted: 0,
+        purge_completed: false,
+        started_at: NOW,
+        completed_at: null,
+        error: "",
+      }),
+    }, { cursorMode });
+    const initializer = createContentInitializer({
+      kv,
+      batchSize: 2,
+      workBudget: 1,
+      now: () => NOW,
+    });
+
+    let result = await initializer.ensureInitialized();
+    for (
+      let attempt = 0;
+      attempt < 20 && result.status.purge_completed !== true;
+      attempt += 1
+    ) {
+      result = await initializer.ensureInitialized();
+    }
+
+    assert.equal(
+      result.status.purge_completed,
+      true,
+      `${cursorMode} purge never completed`,
+    );
+    assert.ok(await kv.get(comboKey), `${cursorMode} combo was deleted`);
+    assert.ok(await kv.get(elementKey), `${cursorMode} shared element was deleted`);
+    assert.equal(await kv.get(runtimeKey), null, `${cursorMode} runtime survived`);
+  }
 });
 
 test("epoch reset wins an interleaved migrating-mode conflict", async () => {
