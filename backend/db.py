@@ -290,6 +290,22 @@ def claim_nickname(name: str) -> bool:
 
 
 # ============================================================
+# 内容版本迁移
+# ============================================================
+def reset_runtime_data() -> None:
+    """Clear only the Redis logical database selected by REDIS_URL."""
+    get_client().flushdb()
+
+
+def delete_combo_keys(pair_keys: set[str]) -> None:
+    if not pair_keys:
+        return
+    pipe = get_client().pipeline()
+    pipe.delete(*(_combo_key(key) for key in sorted(pair_keys)))
+    pipe.execute()
+
+
+# ============================================================
 # 启动预热：SQLite → Redis
 # ============================================================
 def warm_up_from_archive() -> dict:

@@ -3,7 +3,15 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from backend import archive, community, content_catalog, db, depth, seed_loader
+from backend import (
+    archive,
+    community,
+    content_catalog,
+    content_epoch,
+    db,
+    depth,
+    seed_loader,
+)
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -22,6 +30,34 @@ class FakeRedis:
     def hset(self, key: str, mapping: dict[str, str]) -> int:
         self.hashes.setdefault(key, {}).update(mapping)
         return len(mapping)
+
+    def flushdb(self) -> bool:
+        self.hashes.clear()
+        return True
+
+    def delete(self, *keys: str) -> int:
+        deleted = 0
+        for key in keys:
+            if key in self.hashes:
+                del self.hashes[key]
+                deleted += 1
+        return deleted
+
+    def pipeline(self):
+        redis = self
+
+        class DeletePipeline:
+            def __init__(self) -> None:
+                self.keys: list[str] = []
+
+            def delete(self, *keys: str):
+                self.keys.extend(keys)
+                return self
+
+            def execute(self):
+                return [redis.delete(*self.keys)]
+
+        return DeletePipeline()
 
 
 class FakeDepthPipeline:
@@ -240,6 +276,38 @@ def test_seed_load_replaces_conflicting_stores_without_touching_dynamic_formulas
         "visibility": "hidden",
         "status": "active",
     }
+
+
+def test_retired_seed_pair_cannot_be_revived_by_archive_warmup(
+    tmp_path,
+    monkeypatch,
+):
+    monkeypatch.setattr(archive, "_DATA_DIR", tmp_path)
+    monkeypatch.setenv("APP_ENV", "test")
+    archive.init_archive()
+    community.init()
+    compiled = content_catalog.load_compiled_content()
+    retired_pair = compiled["retired_pairs"][0]
+    archive.complete_content_migration(
+        compiled["content_epoch"],
+        "sha256:" + "0" * 64,
+    )
+    archive.upsert_combination(
+        retired_pair,
+        "已退役结果",
+        "🧹",
+        "seed",
+        "generated",
+    )
+    fake = FakeRedis()
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+
+    decision = content_epoch.prepare_local()
+    warm = db.warm_up_from_archive()
+
+    assert decision.mode == "differential"
+    assert warm["combos"] == 0
+    assert f"combo:{retired_pair}" not in fake.hashes
 
 
 def test_homepage_guidance_keeps_advanced_operations_behind_help_toggle():

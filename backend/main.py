@@ -36,6 +36,7 @@ from . import (
     bounty as bounty_mod,
     community,
     content_catalog,
+    content_epoch,
     db,
     depth as depth_mod,
     kpi,
@@ -82,8 +83,12 @@ async def _startup() -> None:
     load_prompt_spec()
     db.init_db()  # 连 Redis + 建 SQLite 表
     community.init()
-    # 1) 从 SQLite 恢复历史数据到 Redis（重启不丢 AI 生成的长尾）
-    warm = db.warm_up_from_archive()
+    decision = content_epoch.prepare_local()
+    # 1) 仅在内容版本已就绪时从 SQLite 恢复历史数据到 Redis。
+    if decision.mode == "ready":
+        warm = db.warm_up_from_archive()
+    else:
+        warm = {"combos": 0, "firsts": 0, "nicks": 0}
     print(
         f"[warmup] restored from SQLite: combos={warm['combos']} firsts={warm['firsts']} nicks={warm['nicks']}"
     )
@@ -91,6 +96,7 @@ async def _startup() -> None:
     n_el, n_warmed = store.load()
     # 3) 计算元素深度（合成分数用）
     depth_table = depth_mod.warm_up_from_seed()
+    content_epoch.complete_local()
     env = os.environ.get("APP_ENV", "dev")
     redis_configured = "yes" if os.environ.get("REDIS_URL") else "default"
     print(f"[env] APP_ENV={env}  REDIS_URL={redis_configured}")
@@ -180,6 +186,7 @@ async def api_health():
         "redis_dbsize": 0,
         "sqlite": archive.db_path_str(),
         "app_env": os.environ.get("APP_ENV", "dev"),
+        "content": content_epoch.health_status(),
     }
     try:
         c = db.get_client()

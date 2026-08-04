@@ -1,0 +1,482 @@
+from __future__ import annotations
+
+import asyncio
+import sqlite3
+
+import pytest
+
+from backend import (
+    archive,
+    community,
+    content_catalog,
+    content_epoch,
+    db,
+    main,
+)
+
+
+GAMEPLAY_TABLES = (
+    "formula_votes",
+    "result_votes",
+    "formula_reproductions",
+    "formula_moderation",
+    "formula_versions",
+    "retired_combo_keys",
+    "combinations",
+    "elements",
+    "first_discoveries",
+    "kpi_events",
+    "nicknames",
+)
+
+
+class FakePipeline:
+    def __init__(self, redis: "FakeRedis") -> None:
+        self.redis = redis
+        self.commands: list[tuple[str, tuple[str, ...]]] = []
+
+    def delete(self, *keys: str) -> "FakePipeline":
+        self.commands.append(("delete", keys))
+        return self
+
+    def execute(self) -> list[int]:
+        return [
+            self.redis.delete(*keys)
+            for command, keys in self.commands
+            if command == "delete"
+        ]
+
+
+class FakeRedis:
+    def __init__(self) -> None:
+        self.values: dict[str, object] = {}
+        self.flush_count = 0
+
+    def ping(self) -> bool:
+        return True
+
+    def dbsize(self) -> int:
+        return len(self.values)
+
+    def flushdb(self) -> bool:
+        self.values.clear()
+        self.flush_count += 1
+        return True
+
+    def delete(self, *keys: str) -> int:
+        deleted = 0
+        for key in keys:
+            if key in self.values:
+                del self.values[key]
+                deleted += 1
+        return deleted
+
+    def pipeline(self) -> FakePipeline:
+        return FakePipeline(self)
+
+
+def use_temp_archive(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(archive, "_DATA_DIR", tmp_path)
+    monkeypatch.setenv("APP_ENV", "test")
+
+
+def current_catalog_state() -> tuple[int, str]:
+    compiled = content_catalog.load_compiled_content()
+    return compiled["content_epoch"], compiled["catalog_digest"]
+
+
+def table_counts() -> dict[str, int]:
+    con = archive._conn()
+    try:
+        return {
+            table: con.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+            for table in GAMEPLAY_TABLES
+        }
+    finally:
+        con.close()
+
+
+def test_legacy_data_is_hard_reset_once(tmp_path, monkeypatch):
+    use_temp_archive(tmp_path, monkeypatch)
+    archive.init_archive()
+    community.init()
+    archive.upsert_combination(
+        "打工鹅 + 时间", "美团", "🛵", "seed", "invest"
+    )
+    archive.upsert_element("美团", "🛵", "invest")
+    fake = FakeRedis()
+    fake.values["combo:打工鹅 + 时间"] = {"result": "美团"}
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+
+    decision = content_epoch.prepare_local()
+
+    assert decision.mode == "epoch_reset"
+    assert archive.all_combinations() == []
+    assert archive.all_elements() == []
+    assert fake.values == {}
+    assert fake.flush_count == 1
+    assert archive.content_state()["status"] == "migrating"
+    assert archive.content_state()["phase"] == "epoch_reset"
+
+    content_epoch.complete_local()
+    second = content_epoch.prepare_local()
+    assert second.mode == "ready"
+    assert fake.flush_count == 1
+
+
+def test_matching_epoch_and_digest_is_noop(tmp_path, monkeypatch):
+    use_temp_archive(tmp_path, monkeypatch)
+    archive.init_archive()
+    community.init()
+    epoch, digest = current_catalog_state()
+    archive.complete_content_migration(epoch, digest)
+    archive.upsert_combination("甲 + 乙", "动态结果", "📦", "llm", "ai")
+    fake = FakeRedis()
+    fake.values["combo:甲 + 乙"] = {"result": "动态结果"}
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+
+    decision = content_epoch.prepare_local()
+
+    assert decision.mode == "ready"
+    assert archive.all_combinations()[0]["result"] == "动态结果"
+    assert fake.values["combo:甲 + 乙"] == {"result": "动态结果"}
+    assert fake.flush_count == 0
+
+
+def test_empty_legacy_store_bootstraps_and_resets_redis(tmp_path, monkeypatch):
+    use_temp_archive(tmp_path, monkeypatch)
+    archive.init_archive()
+    community.init()
+    assert archive.content_state() is None
+    assert archive.has_gameplay_data() is False
+    fake = FakeRedis()
+    fake.values["stale"] = "runtime"
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+
+    decision = content_epoch.prepare_local()
+
+    assert decision.mode == "bootstrap"
+    assert fake.values == {}
+    assert fake.flush_count == 1
+    state = archive.content_state()
+    assert state["status"] == "migrating"
+    assert state["phase"] == "bootstrap"
+
+
+@pytest.mark.parametrize("persisted_epoch", [1, 3])
+def test_epoch_mismatch_resets_even_when_sqlite_is_empty(
+    tmp_path, monkeypatch, persisted_epoch
+):
+    use_temp_archive(tmp_path, monkeypatch)
+    archive.init_archive()
+    community.init()
+    _, digest = current_catalog_state()
+    archive.complete_content_migration(persisted_epoch, digest)
+    fake = FakeRedis()
+    fake.values["stale"] = persisted_epoch
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+
+    decision = content_epoch.prepare_local()
+
+    assert decision.mode == "epoch_reset"
+    assert fake.values == {}
+    assert fake.flush_count == 1
+    state = archive.content_state()
+    epoch, current_digest = current_catalog_state()
+    assert state["epoch"] == epoch
+    assert state["catalog_digest"] == current_digest
+    assert state["status"] == "migrating"
+
+
+def test_failed_seed_load_leaves_migration_resumable(tmp_path, monkeypatch):
+    use_temp_archive(tmp_path, monkeypatch)
+    archive.init_archive()
+    community.init()
+    archive.upsert_combination(
+        "旧左 + 旧右", "旧结果", "🧹", "llm", "ai"
+    )
+    fake = FakeRedis()
+    fake.values["combo:旧左 + 旧右"] = {"result": "旧结果"}
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+
+    first = content_epoch.prepare_local()
+    assert first.mode == "epoch_reset"
+    assert archive.content_state()["status"] == "migrating"
+
+    archive.upsert_combination(
+        "半成品左 + 半成品右", "半成品", "🚧", "seed", "test"
+    )
+    fake.values["combo:半成品左 + 半成品右"] = {"result": "半成品"}
+    resumed = content_epoch.prepare_local()
+
+    assert resumed.mode == "resume"
+    assert archive.all_combinations() == []
+    assert fake.values == {}
+    assert fake.flush_count == 2
+    assert archive.content_state()["status"] == "migrating"
+
+    content_epoch.complete_local()
+    state = archive.content_state()
+    epoch, digest = current_catalog_state()
+    assert state["status"] == "ready"
+    assert state["epoch"] == epoch
+    assert state["catalog_digest"] == digest
+
+
+def test_same_epoch_digest_change_retires_only_fixed_content(
+    tmp_path, monkeypatch
+):
+    use_temp_archive(tmp_path, monkeypatch)
+    archive.init_archive()
+    community.init()
+    compiled = content_catalog.load_compiled_content()
+    epoch = compiled["content_epoch"]
+    retired_seed_pair, retired_dynamic_pair = compiled["retired_pairs"][:2]
+    retired_element = compiled["retired_elements"][0]
+    archive.complete_content_migration(epoch, "sha256:" + "0" * 64)
+
+    archive.upsert_combination(
+        retired_seed_pair, "旧固定结果", "🧹", "seed", "generated"
+    )
+    archive.upsert_combination(
+        retired_dynamic_pair, "玩家结果", "🧑", "llm", "dynamic"
+    )
+    archive.upsert_combination(
+        "甲 + 乙", "保留结果", "📦", "seed", "base"
+    )
+    archive.upsert_element(retired_element, "🧹", "generated")
+    archive.upsert_element("玩家元素", "🧑", "dynamic")
+    formula = community.ensure_formula(
+        "玩家左 + 玩家右",
+        "玩家左",
+        "玩家右",
+        "玩家公式",
+        "🧑",
+        "保留用户内容",
+        "llm",
+        "玩家",
+    )
+
+    fake = FakeRedis()
+    for pair in (retired_seed_pair, retired_dynamic_pair, "甲 + 乙"):
+        fake.values[f"combo:{pair}"] = {"result": pair}
+    fake.values["nick:玩家"] = "1"
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+
+    decision = content_epoch.prepare_local()
+
+    assert decision.mode == "differential"
+    assert fake.flush_count == 0
+    assert f"combo:{retired_seed_pair}" not in fake.values
+    assert f"combo:{retired_dynamic_pair}" not in fake.values
+    assert fake.values["combo:甲 + 乙"] == {"result": "甲 + 乙"}
+    assert fake.values["nick:玩家"] == "1"
+
+    combinations = {row["key"]: row for row in archive.all_combinations()}
+    assert retired_seed_pair not in combinations
+    assert combinations[retired_dynamic_pair]["source"] == "llm"
+    assert combinations["甲 + 乙"]["source"] == "seed"
+    elements = {row["name"] for row in archive.all_elements()}
+    assert retired_element not in elements
+    assert "玩家元素" in elements
+    assert community.public_formula(formula["id"]) is None
+    con = archive._conn()
+    try:
+        assert con.execute(
+            "SELECT COUNT(*) FROM formula_versions WHERE id=?",
+            (formula["id"],),
+        ).fetchone()[0] == 1
+    finally:
+        con.close()
+    assert archive.content_state()["phase"] == "differential"
+    assert archive.content_state()["status"] == "migrating"
+
+
+def test_sqlite_reset_clears_every_gameplay_table_but_preserves_state_and_config(
+    tmp_path, monkeypatch
+):
+    use_temp_archive(tmp_path, monkeypatch)
+    archive.init_archive()
+    community.init()
+    epoch, digest = current_catalog_state()
+    archive.complete_content_migration(epoch, digest)
+    archive.upsert_combination("甲 + 乙", "结果", "📦", "llm", "ai")
+    archive.upsert_element("结果", "📦", "ai")
+    archive.record_first_archive("结果", "📦", "玩家", 1.0)
+    archive.kpi_archive("session", 10, "test")
+    archive.nickname_archive("玩家")
+    formula = community.ensure_formula(
+        "甲 + 乙", "甲", "乙", "结果", "📦", "点评", "llm", "玩家"
+    )
+    con = archive._conn()
+    try:
+        con.executescript(
+            """
+            CREATE TABLE app_config (name TEXT PRIMARY KEY, value TEXT NOT NULL);
+            INSERT INTO app_config VALUES ('keep', 'yes');
+            """
+        )
+        con.execute(
+            "INSERT INTO formula_reproductions VALUES (?, ?, ?)",
+            (formula["id"], "玩家", 1.0),
+        )
+        con.execute(
+            "INSERT INTO formula_votes VALUES (?, ?, ?, ?)",
+            (formula["id"], "玩家", 1, 1.0),
+        )
+        con.execute(
+            "INSERT INTO result_votes VALUES (?, ?, ?, ?)",
+            ("结果", "玩家", 1, 1.0),
+        )
+        con.execute(
+            """
+            INSERT INTO formula_moderation(
+                formula_id, actor, action, reason_code, note, created_at
+            ) VALUES (?, 'admin', 'keep', 'test', '', 1.0)
+            """,
+            (formula["id"],),
+        )
+        con.execute(
+            "INSERT INTO retired_combo_keys VALUES (?, ?, ?, ?)",
+            ("旧左 + 旧右", 1, "旧结果", 1.0),
+        )
+        con.commit()
+    finally:
+        con.close()
+    assert all(value > 0 for value in table_counts().values())
+
+    archive.reset_gameplay_data()
+
+    assert table_counts() == {table: 0 for table in GAMEPLAY_TABLES}
+    state = archive.content_state()
+    assert state["status"] == "ready"
+    assert state["epoch"] == epoch
+    con = archive._conn()
+    try:
+        assert con.execute(
+            "SELECT value FROM app_config WHERE name='keep'"
+        ).fetchone()[0] == "yes"
+    finally:
+        con.close()
+
+
+def test_reset_failure_rolls_back_gameplay_and_keeps_migrating_marker(
+    tmp_path, monkeypatch
+):
+    use_temp_archive(tmp_path, monkeypatch)
+    archive.init_archive()
+    community.init()
+    archive.upsert_combination("甲 + 乙", "结果", "📦", "llm", "ai")
+    formula = community.ensure_formula(
+        "甲 + 乙", "甲", "乙", "结果", "📦", "点评", "llm", "玩家"
+    )
+    con = archive._conn()
+    try:
+        con.execute(
+            "INSERT INTO formula_votes VALUES (?, ?, ?, ?)",
+            (formula["id"], "玩家", 1, 1.0),
+        )
+        con.execute(
+            """
+            CREATE TRIGGER abort_combination_delete
+            BEFORE DELETE ON combinations
+            BEGIN
+                SELECT RAISE(ABORT, 'simulated crash');
+            END
+            """
+        )
+        con.commit()
+    finally:
+        con.close()
+    fake = FakeRedis()
+    fake.values["combo:甲 + 乙"] = {"result": "结果"}
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+
+    with pytest.raises(sqlite3.IntegrityError, match="simulated crash"):
+        content_epoch.prepare_local()
+
+    assert archive.content_state()["status"] == "migrating"
+    assert archive.content_state()["phase"] == "epoch_reset"
+    counts = table_counts()
+    assert counts["formula_votes"] == 1
+    assert counts["combinations"] == 1
+    assert fake.flush_count == 0
+    assert fake.values["combo:甲 + 乙"] == {"result": "结果"}
+
+
+def test_startup_failure_resumes_before_marking_content_ready(
+    tmp_path, monkeypatch
+):
+    use_temp_archive(tmp_path, monkeypatch)
+    fake = FakeRedis()
+    fake.values["stale"] = "runtime"
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+    monkeypatch.setattr(main, "load_prompt_spec", lambda: {})
+    monkeypatch.setattr(
+        main.db,
+        "warm_up_from_archive",
+        lambda: (_ for _ in ()).throw(
+            AssertionError("migration startup must not warm archived content")
+        ),
+    )
+    monkeypatch.setattr(
+        main.store,
+        "load",
+        lambda: (_ for _ in ()).throw(RuntimeError("seed load failed")),
+    )
+
+    with pytest.raises(RuntimeError, match="seed load failed"):
+        asyncio.run(main._startup())
+
+    assert archive.content_state()["status"] == "migrating"
+    assert fake.flush_count == 1
+
+    monkeypatch.setattr(main.store, "load", lambda: (0, 0))
+    monkeypatch.setattr(main.depth_mod, "warm_up_from_seed", lambda: {})
+    asyncio.run(main._startup())
+
+    state = archive.content_state()
+    epoch, digest = current_catalog_state()
+    assert state["status"] == "ready"
+    assert state["epoch"] == epoch
+    assert state["catalog_digest"] == digest
+    assert fake.flush_count == 2
+
+
+def test_depth_replacement_failure_does_not_mark_content_ready(
+    tmp_path, monkeypatch
+):
+    use_temp_archive(tmp_path, monkeypatch)
+    fake = FakeRedis()
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+    monkeypatch.setattr(main, "load_prompt_spec", lambda: {})
+    monkeypatch.setattr(main.store, "load", lambda: (1, 1))
+    monkeypatch.setattr(
+        main.depth_mod,
+        "warm_up_from_seed",
+        lambda: (_ for _ in ()).throw(RuntimeError("depth replace failed")),
+    )
+
+    with pytest.raises(RuntimeError, match="depth replace failed"):
+        asyncio.run(main._startup())
+
+    state = archive.content_state()
+    assert state["status"] == "migrating"
+    assert state["phase"] == "bootstrap"
+
+
+def test_health_exposes_durable_content_state(tmp_path, monkeypatch):
+    use_temp_archive(tmp_path, monkeypatch)
+    archive.init_archive()
+    epoch, digest = current_catalog_state()
+    archive.complete_content_migration(epoch, digest)
+    fake = FakeRedis()
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+
+    result = asyncio.run(main.api_health())
+
+    assert result["content"] == {
+        "epoch": epoch,
+        "catalog_digest": digest,
+        "status": "ready",
+    }
