@@ -7,7 +7,9 @@ import { PROMPT_SPEC } from "../_generated/prompt-data.js";
 
 export function normalizeBountyAlias(value) {
   const clean = String(value ?? "").trim();
-  return BOUNTY_ALIASES[clean] || clean;
+  return Object.hasOwn(BOUNTY_ALIASES, clean)
+    ? BOUNTY_ALIASES[clean]
+    : clean;
 }
 
 function addFirstMetadata(item, first) {

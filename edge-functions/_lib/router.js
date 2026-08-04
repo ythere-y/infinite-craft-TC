@@ -213,7 +213,9 @@ export function createRouter({
 
   async function recipePayload(target) {
     const elements = await combinedElements();
-    const seeded = RECIPES_BY_RESULT[target] || [];
+    const seeded = Object.hasOwn(RECIPES_BY_RESULT, target)
+      ? RECIPES_BY_RESULT[target]
+      : [];
     const dynamic = await store.dynamicRecipes(target);
     const seen = new Set();
     const recipes = [];

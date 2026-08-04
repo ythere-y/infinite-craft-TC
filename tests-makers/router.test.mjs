@@ -165,6 +165,41 @@ test("aliases resolve before fixed formula lookup", async () => {
   ]);
 });
 
+test("prototype-named non-alias combine inputs remain strings", async () => {
+  const router = makeRouter();
+
+  for (const name of ["toString", "constructor", "__proto__"]) {
+    const response = await json(router, "/api/combine", {
+      method: "POST",
+      body: {
+        a: name,
+        b: "未知搭档",
+        discoverer: "测试鹅",
+        session_id: `prototype-combine-${name}`,
+      },
+    });
+
+    assert.equal(response.response.status, 200, name);
+    assert.equal(response.body.a, name);
+    assert.equal(typeof response.body.a, "string");
+  }
+});
+
+test("prototype-named non-alias recipe targets remain strings", async () => {
+  const router = makeRouter();
+
+  for (const name of ["toString", "constructor", "__proto__"]) {
+    const response = await json(
+      router,
+      `/api/element/${encodeURIComponent(name)}/recipes`,
+    );
+
+    assert.equal(response.response.status, 200, name);
+    assert.equal(response.body.result, name);
+    assert.ok(Array.isArray(response.body.recipes));
+  }
+});
+
 test("aliases stay canonical through model, KV, community and recipe lookups", async () => {
   const kv = new FakeKV();
   let modelBody;
