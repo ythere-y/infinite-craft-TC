@@ -142,6 +142,7 @@ def init_prompt_store() -> None:
                 ).fetchone()
                 if active_row is None:
                     raise ValueError("prompt store has no active version")
+                canonical_from_draft(_decode(active_row["snapshot_json"]))
                 validate_prompt_spec(_decode(active_row["effective_spec_json"]))
                 con.commit()
                 return

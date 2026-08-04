@@ -76,3 +76,20 @@ def test_saved_draft_survives_store_reinitialization(isolated_prompt_db):
     prompt_store.init_prompt_store()
 
     assert prompt_store.get_draft()["temperature"] == 0.25
+
+
+def test_reinitialization_rejects_corrupted_active_version_snapshot(
+    isolated_prompt_db,
+):
+    prompt_store.init_prompt_store()
+    version_id = prompt_store.get_active_version()["id"]
+    con = archive._conn()
+    con.execute(
+        "UPDATE prompt_versions SET snapshot_json = ? WHERE id = ?",
+        ('{"schema_version":999}', version_id),
+    )
+    con.commit()
+    con.close()
+
+    with pytest.raises(ValueError):
+        prompt_store.init_prompt_store()
