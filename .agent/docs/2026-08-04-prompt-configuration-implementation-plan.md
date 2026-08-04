@@ -677,7 +677,7 @@ git commit -m "feat: add prompt management to local admin"
 - Consumes: Tasks 1–5 的最终行为。
 - Produces: 本地管理员操作说明、通过的必需验证和可审阅提交历史。
 
-- [ ] **Step 1: 更新用户可见文档**
+- [x] **Step 1: 更新用户可见文档**
 
 在 README 本地部署段说明：
 
@@ -714,7 +714,7 @@ npm run build
 Expected: 三条命令全部以退出码 0 完成。若本机存在 EdgeOne CLI，再运行
 `npm run makers:build`；否则在 PR 中注明由部署维护者执行。
 
-- [ ] **Step 4: 检查差异和敏感信息**
+- [x] **Step 4: 检查差异和敏感信息**
 
 Run:
 
@@ -727,7 +727,7 @@ git log --oneline upstream/main..HEAD
 
 确认没有 `.env`、数据库、日志、运行时文件或无关改动。
 
-- [ ] **Step 5: 提交文档**
+- [x] **Step 5: 提交文档**
 
 ```text
 git add README.md backend/README.md .env.example .agent/docs/2026-08-04-prompt-configuration-implementation-plan.md
