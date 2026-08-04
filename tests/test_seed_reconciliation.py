@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from backend import archive, community, db, seed_loader
+from backend import archive, community, content_catalog, db, depth, seed_loader
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -22,6 +22,61 @@ class FakeRedis:
     def hset(self, key: str, mapping: dict[str, str]) -> int:
         self.hashes.setdefault(key, {}).update(mapping)
         return len(mapping)
+
+
+class FakeDepthPipeline:
+    def __init__(self, redis: "FakeDepthRedis") -> None:
+        self.redis = redis
+        self.operations: list[str] = []
+        self.commands: list[tuple[str, str, dict[str, str] | None]] = []
+
+    def delete(self, key: str):
+        self.operations.append("delete")
+        self.commands.append(("delete", key, None))
+        return self
+
+    def hset(self, key: str, mapping: dict[str, str]):
+        self.operations.append("hset")
+        self.commands.append(("hset", key, mapping))
+        return self
+
+    def execute(self):
+        self.operations.append("execute")
+        for command, key, mapping in self.commands:
+            if command == "delete":
+                self.redis.hashes.pop(key, None)
+            else:
+                assert mapping is not None
+                self.redis.hset(key, mapping=mapping)
+        return []
+
+
+class FakeDepthRedis(FakeRedis):
+    def __init__(self) -> None:
+        super().__init__()
+        self.last_pipeline: FakeDepthPipeline | None = None
+
+    def pipeline(self) -> FakeDepthPipeline:
+        self.last_pipeline = FakeDepthPipeline(self)
+        return self.last_pipeline
+
+
+def test_depth_warm_up_atomically_replaces_stale_hash(monkeypatch):
+    fake = FakeDepthRedis()
+    fake.hashes["element_depth"] = {
+        "水": "99",
+        "stale-input-only": "0",
+    }
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+
+    warmed = depth.warm_up_from_seed()
+
+    assert warmed == content_catalog.load_compiled_content()["depths"]
+    assert fake.hashes["element_depth"] == {
+        name: str(value) for name, value in warmed.items()
+    }
+    assert fake.last_pipeline is not None
+    assert fake.last_pipeline.operations == ["delete", "hset", "execute"]
 
 
 def test_seed_load_replaces_conflicting_stores_without_touching_dynamic_formulas(

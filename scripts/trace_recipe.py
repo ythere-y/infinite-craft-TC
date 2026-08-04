@@ -2,7 +2,7 @@
 管理员工具：查询任一元素的合成链路（纯命令行，不占玩家 UI）。
 
 数据源：
-  - 基础：backend/seed_elements.json + backend/seed_combinations.json（预设真相源）
+  - 基础：base seed + backend/generated/bounty-content.json（预设真相源）
   - 默认叠加：data/{APP_ENV}.db 中 source='llm' 的玩家触发 AI 配方 + 新元素
     （seed 条目优先，archive 只补充长尾；用 --no-llm 可关闭；--env dev 切换库）
 
@@ -28,7 +28,7 @@
 from __future__ import annotations
 
 import argparse
-import json
+from copy import deepcopy
 import os
 import sys
 from pathlib import Path
@@ -36,8 +36,9 @@ from typing import Dict, List, Optional, Set, Tuple
 
 # -------------------- 路径 & 数据 --------------------
 ROOT = Path(__file__).resolve().parent.parent
-ELEMENTS_PATH = ROOT / "backend" / "seed_elements.json"
-COMBOS_PATH = ROOT / "backend" / "seed_combinations.json"
+sys.path.insert(0, str(ROOT))
+
+from backend import content_catalog  # noqa: E402
 
 
 def _merge_archive(
@@ -115,10 +116,12 @@ def _merge_archive(
 
 
 def load_data(include_llm: bool = True, env: str = "prod", verbose: bool = True) -> Tuple[Dict, Dict]:
-    with open(ELEMENTS_PATH, encoding="utf-8") as f:
-        elems = json.load(f)
-    with open(COMBOS_PATH, encoding="utf-8") as f:
-        combos = json.load(f)["combinations"]
+    content = content_catalog.load_compiled_content()
+    elems = {
+        "starters": deepcopy(content["starters"]),
+        "elements": deepcopy(content["elements"]),
+    }
+    combos = deepcopy(content["combinations"])
     if include_llm:
         llm_n, elem_n, db_path = _merge_archive(elems, combos, env, verbose=verbose)
         if verbose and (llm_n or elem_n):
@@ -282,19 +285,12 @@ def cmd_trace(args, emoji_idx, starter_names, producers, depth, path) -> int:
 
 def cmd_bounty_report(emoji_idx, starter_names, depth) -> int:
     """列出悬赏榜所有目标的深度，按深度排序。"""
-    try:
-        sys.path.insert(0, str(ROOT / "backend"))
-        import bounty as bounty_mod  # noqa
-    except Exception as e:
-        print(f"加载 bounty.py 失败: {e}")
-        return 1
-
-    targets: Set[str] = set()
-    for p in bounty_mod.HALL_OF_FAME:
-        targets.add(p["real"])
-        targets.add(p["alias"])
-    for g in bounty_mod.GROUPS:
-        targets.update(g.get("whitelist", []))
+    content = content_catalog.load_compiled_content()
+    targets = {
+        name
+        for group in content["bounty"]["groups"]
+        for name in group["targets"]
+    }
 
     rows = []
     for t in sorted(targets):
@@ -345,7 +341,7 @@ def cmd_list_starters(emoji_idx, starter_names) -> int:
 def main():
     parser = argparse.ArgumentParser(
         prog="trace_recipe",
-        description="查询元素合成链路（管理员工具，纯读 seed JSON）",
+        description="查询元素合成链路（管理员工具，读取合并后的固定内容）",
     )
     parser.add_argument(
         "names",

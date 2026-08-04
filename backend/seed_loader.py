@@ -3,11 +3,10 @@
 种子公式是同键记录的权威来源；动态公式仍保持首次写入定型。
 """
 
-import json
 from pathlib import Path
 from typing import Dict, Tuple, List
 
-from . import db, archive, community
+from . import archive, community, content_catalog, db
 from .icon_recipes import attach_icon
 
 _HERE = Path(__file__).parent
@@ -23,8 +22,10 @@ class SeedStore:
         self.starters: List[Dict] = []
 
     def load(self) -> Tuple[int, int]:
-        with open(SEED_ELEMENTS_PATH, encoding="utf-8") as f:
-            data = json.load(f)
+        data = content_catalog._load_runtime_content(
+            SEED_ELEMENTS_PATH,
+            SEED_COMBINATIONS_PATH,
+        )
         self.starters = [
             attach_icon(starter["name"], starter)
             for starter in data.get("starters", [])
@@ -78,8 +79,6 @@ class SeedStore:
                 )
 
         # 合成规则
-        with open(SEED_COMBINATIONS_PATH, encoding="utf-8") as f:
-            data = json.load(f)
         combos = data.get("combinations", {})
 
         warmed = 0

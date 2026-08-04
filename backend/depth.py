@@ -14,29 +14,22 @@
 
 存储：
 - Redis Hash "element_depth"  field=元素名  value=depth(整数字符串)
-- 启动时：从 seed_combinations 做一次完整 BFS 预热
+- 启动时：用经过校验的严格 compiled depth map 原子替换
 - 运行时：每次 combine 成功后增量更新 result 的 depth（若更短）
 
 读取：
-- get_depth(name) 优先查 Redis；starter 识别自动返回 0；未知返回 None
+- get_depth(name) 查 Redis；显式 starter 在预热表中为 0；未知返回 None
 - score_for(depth, known_to_player) 计算分数
 """
 
 from __future__ import annotations
 
-import json
 import math
-from pathlib import Path
-from typing import Dict, Iterable, Optional, Set, Tuple
+from typing import Dict, Optional
 
-from . import db
+from . import content_catalog, db
 
 _DEPTH_KEY = "element_depth"
-
-_HERE = Path(__file__).parent
-SEED_ELEMENTS_PATH = _HERE / "seed_elements.json"
-SEED_COMBINATIONS_PATH = _HERE / "seed_combinations.json"
-
 
 # ============================================================
 # 读写
@@ -116,19 +109,15 @@ def score_for(depth: Optional[int], known_to_player: bool) -> int:
 
 
 # ============================================================
-# 启动预热：从 seed 做 BFS
+# 启动预热：读取并替换严格 compiled depth
 # ============================================================
 
-def _load_seed() -> Tuple[Set[str], Iterable[Tuple[str, str, str]]]:
+def _load_seed():
     """读取 seed，返回 (starter 名字集合, [(a, b, result), ...])。"""
-    with open(SEED_ELEMENTS_PATH, encoding="utf-8") as f:
-        data = json.load(f)
-    starters = {s["name"] for s in data.get("starters", [])}
-
-    with open(SEED_COMBINATIONS_PATH, encoding="utf-8") as f:
-        data = json.load(f)
+    data = content_catalog.load_compiled_content()
+    starters = {s["name"] for s in data["starters"]}
     rules = []
-    for raw_key, info in data.get("combinations", {}).items():
+    for raw_key, info in data["combinations"].items():
         parts = [p.strip() for p in raw_key.split("+")]
         if len(parts) != 2:
             continue
@@ -141,60 +130,14 @@ def _load_seed() -> Tuple[Set[str], Iterable[Tuple[str, str, str]]]:
 
 
 def warm_up_from_seed() -> Dict[str, int]:
-    """
-    从 seed 出发做 BFS（其实是反复 relax），计算所有可达元素的 depth。
-    幂等：再次运行只会让 depth 变得更小或不变（即使 Redis 里有历史值）。
-
-    孤岛处理：只作为 input 出现、从未被任何规则合成出来的元素，视为隐式 starter (depth=0)。
-    这样 seed 里像"雪山 / 狐狸 / 嘎子"这种基础素材词也能有合理 depth。
-    """
-    starters, rules = _load_seed()
-
-    # 统计 input-only 元素（只作为输入，从不作为输出）
-    all_inputs: Set[str] = set()
-    all_outputs: Set[str] = set()
-    for a, b, r in rules:
-        all_inputs.add(a)
-        all_inputs.add(b)
-        all_outputs.add(r)
-    implicit_starters = (all_inputs - all_outputs) | starters
-
-    # 1) 所有 implicit starter depth = 0
-    for s in implicit_starters:
-        try_shorten_depth(s, 0)
-
-    # 本地副本
-    depth: Dict[str, int] = {name: 0 for name in implicit_starters}
-    for name, d in all_depths().items():
-        if name not in depth or d < depth[name]:
-            depth[name] = d
-
-    # 2) 反复 relax 直到收敛
-    MAX_ROUNDS = max(20, len(rules) * 2)
-    for _ in range(MAX_ROUNDS):
-        changed = False
-        for a, b, r in rules:
-            da = depth.get(a)
-            db_ = depth.get(b)
-            if da is None or db_ is None:
-                continue
-            cand = max(da, db_) + 1
-            cur = depth.get(r)
-            if cur is None or cand < cur:
-                depth[r] = cand
-                changed = True
-        if not changed:
-            break
-
-    # 3) 写回 Redis（只写变更的）
+    """Replace Redis depth state with the exact compiled strict depth map."""
+    depth = dict(content_catalog.load_compiled_content()["depths"])
     client = db.get_client()
-    existing = {k: int(v) for k, v in client.hgetall(_DEPTH_KEY).items()}
     pipe = client.pipeline()
-    for name, d in depth.items():
-        if existing.get(name) != d:
-            pipe.hset(_DEPTH_KEY, name, str(d))
+    pipe.delete(_DEPTH_KEY)
+    if depth:
+        pipe.hset(_DEPTH_KEY, mapping={k: str(v) for k, v in depth.items()})
     pipe.execute()
-
     return depth
 
 

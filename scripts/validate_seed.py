@@ -1,5 +1,5 @@
 """
-校验 seed_combinations.json 与数据库（SQLite + Redis）中的配方一致性。
+校验合并后的固定配方与数据库（SQLite + Redis）中的配方一致性。
 
 使用：
   APP_ENV=dev  python scripts/validate_seed.py              # dry-run，只列冲突
@@ -17,10 +17,8 @@
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import sys
-import time
 from pathlib import Path
 
 # 让脚本从仓库根跑
@@ -29,9 +27,7 @@ sys.path.insert(0, str(ROOT))
 
 os.environ.setdefault("APP_ENV", "dev")
 
-from backend import archive, db  # noqa: E402
-
-SEED_COMBINATIONS_PATH = ROOT / "backend" / "seed_combinations.json"
+from backend import archive, content_catalog, db  # noqa: E402
 
 
 def normalize_key(a: str, b: str) -> str:
@@ -40,8 +36,7 @@ def normalize_key(a: str, b: str) -> str:
 
 def load_seed_combos() -> dict:
     """返回 {normalized_key: (result, emoji, chain)}"""
-    raw = json.load(open(SEED_COMBINATIONS_PATH, encoding="utf-8"))
-    combos = raw.get("combinations", {})
+    combos = content_catalog.merged_combinations()
     out = {}
     for k, v in combos.items():
         parts = [p.strip() for p in k.split("+")]
@@ -129,9 +124,20 @@ def apply_fix(conflicts: list, rewrite: bool = False) -> None:
         print(f"[rewrite] 已用 seed 值重写 {len(conflicts)} 条")
 
 
-def print_report(conflicts: list, total_seed: int, total_db: int) -> None:
+def print_report(
+    conflicts: list,
+    total_seed: int,
+    total_db: int,
+    *,
+    content_epoch: int | None = None,
+    catalog_digest: str | None = None,
+) -> None:
     print()
     print("=" * 70)
+    if content_epoch is not None:
+        print(f"content epoch:     {content_epoch}")
+    if catalog_digest is not None:
+        print(f"catalog digest:    {catalog_digest}")
     print(f"seed 配方总数:     {total_seed}")
     print(f"DB  combinations: {total_db}")
     print(f"冲突条目:          {len(conflicts)}")
@@ -172,6 +178,7 @@ def main():
 
     print(f"[env] APP_ENV={os.environ.get('APP_ENV')}  db={archive.db_path_str()}")
 
+    content = content_catalog.load_compiled_content()
     seed = load_seed_combos()
     live = load_db_combos()
     conflicts = find_conflicts(seed, live)
@@ -184,7 +191,13 @@ def main():
         if skipped:
             print(f"（过滤掉 {skipped} 条 source=llm 的差异。用 --include-llm 查看全部）")
 
-    print_report(conflicts, len(seed), len(live))
+    print_report(
+        conflicts,
+        len(seed),
+        len(live),
+        content_epoch=content["content_epoch"],
+        catalog_digest=content["catalog_digest"],
+    )
 
     if args.apply and conflicts:
         print()
