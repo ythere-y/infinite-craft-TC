@@ -767,6 +767,7 @@ async function combine(srcId, dstId, x, y) {
     removeCanvasEl(srcId);
     removeCanvasEl(dstId);
     const newRec = spawnOnCanvas(resultInfo, x, y);
+    window.AUDIO_FEEDBACK?.playCombineSuccess?.();
 
     // 记录玩家的配方图鉴（a + b → result）
     rememberRecipe(src, dst, resultInfo, {

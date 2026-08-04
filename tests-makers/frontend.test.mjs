@@ -99,7 +99,7 @@ test("main game ships the opening stage in dependency order", async () => {
   );
   assert.match(
     html,
-    /<script src="\/app\.js\?v=20260804c"><\/script>/,
+    /<script src="\/app\.js\?v=20260804d"><\/script>/,
   );
   assert.match(
     html,

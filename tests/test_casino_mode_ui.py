@@ -241,30 +241,49 @@ def _production_app_page() -> str:
         window.__uraEvents = [];
         window.__combineQueue = [
           {
-            result: "午夜蒸汽",
-            emoji: "💨",
-            chain: "test",
-            icon: null,
-            is_first: true,
-            depth: 2,
-            full_score: 40,
-            hit_count: 1,
-            comment: "测试点评",
-            source: "seed",
-            explode: false
+            ok: true,
+            payload: {
+              result: "午夜蒸汽",
+              emoji: "💨",
+              chain: "test",
+              icon: null,
+              is_first: true,
+              depth: 2,
+              full_score: 40,
+              hit_count: 1,
+              comment: "测试点评",
+              source: "seed",
+              explode: false
+            }
           },
           {
-            result: "白昼泥浆",
-            emoji: "🟤",
-            chain: "test",
-            icon: null,
-            is_first: true,
-            depth: 2,
-            full_score: 50,
-            hit_count: 1,
-            comment: "测试点评",
-            source: "seed",
-            explode: false
+            ok: true,
+            payload: {
+              result: "白昼泥浆",
+              emoji: "🟤",
+              chain: "test",
+              icon: null,
+              is_first: true,
+              depth: 2,
+              full_score: 50,
+              hit_count: 1,
+              comment: "测试点评",
+              source: "seed",
+              explode: false
+            }
+          },
+          {
+            ok: true,
+            payload: {
+              result: "fallback",
+              emoji: "❔",
+              source: "fallback"
+            }
+          },
+          {
+            ok: false,
+            status: 500,
+            payload: { detail: "测试失败" }
           }
         ];
         window.addEventListener("ura-mode-change", function (event) {
@@ -280,6 +299,10 @@ def _production_app_page() -> str:
         };
         window.fetch = function (url) {
           var path = String(url);
+          var combineResponse =
+            path.indexOf("/api/combine") >= 0
+              ? window.__combineQueue.shift()
+              : null;
           var payload =
             path.indexOf("emoji-icon-manifest") >= 0 ? {}
             : path.indexOf("element-icon-map") >= 0 ? {}
@@ -295,11 +318,12 @@ def _production_app_page() -> str:
                   "火": { emoji: "🔥", category: "classic", is_starter: true }
                 }
               }
-            : path.indexOf("/api/combine") >= 0
-              ? window.__combineQueue.shift()
+            : combineResponse
+              ? combineResponse.payload
             : { ok: true };
           return Promise.resolve({
-            ok: true,
+            ok: combineResponse ? combineResponse.ok : true,
+            status: combineResponse ? (combineResponse.status || 200) : 200,
             json: function () { return Promise.resolve(payload); }
           });
         };
@@ -582,6 +606,24 @@ def _production_app_page() -> str:
           tiers: JSON.parse(localStorage.getItem("ic_scores") || "[]")
             .map(function (event) { return event.tier; })
         };
+        var combinesAfterSuccess = window.__audioFeedback.combines;
+
+        await placeStarter(
+          "水",
+          workspaceRect.left + 210,
+          workspaceRect.top + 300,
+          44
+        );
+        await placeStarter(
+          "火",
+          workspaceRect.left + 430,
+          workspaceRect.top + 300,
+          45
+        );
+        await combineCanvasPair("水", "火", 46);
+        var combinesAfterFallback = window.__audioFeedback.combines;
+        await combineCanvasPair("水", "火", 47);
+        var combinesAfterError = window.__audioFeedback.combines;
 
         var waterChip = document.querySelector(
           '#element-list .element[data-name="水"]'
@@ -719,6 +761,12 @@ def _production_app_page() -> str:
                 canvas_drag_moved: canvasDragMoved,
                 recipe_click_delta: recipeAfter - recipeBefore,
                 element_click_sounds: window.__audioFeedback.clicks
+              },
+              audio: {
+                after_success: combinesAfterSuccess,
+                after_fallback: combinesAfterFallback,
+                after_error: combinesAfterError,
+                element_clicks: window.__audioFeedback.clicks
               },
               scoring: {
                 before_harvest: beforeHarvest,
@@ -924,6 +972,15 @@ def test_element_pointer_interactions_are_action_specific(tmp_path):
     assert actual["canvas_drag_moved"] is True
     assert actual["recipe_click_delta"] == 0
     assert actual["element_click_sounds"] == 4
+
+
+def test_audio_routes_only_completed_actions(tmp_path):
+    actual = _run_app_page(tmp_path)["audio"]
+
+    assert actual["after_success"] == 2
+    assert actual["after_fallback"] == 2
+    assert actual["after_error"] == 2
+    assert actual["element_clicks"] == 4
 
 
 def test_reset_control_is_replaced_by_reload_guidance(tmp_path):
