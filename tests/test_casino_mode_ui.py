@@ -52,8 +52,8 @@ def _production_controller_page(*, reduced_motion: bool = True) -> str:
     assert 'id="casino-hud"' in index, "production casino table is missing"
     index = re.sub(r'<link rel="stylesheet"[^>]+>', "", index)
     index = re.sub(r'<script src="[^"]+"></script>', "", index)
-    index = index.replace(
-        "<body>",
+    index = re.sub(
+        r"<body(?:\s[^>]*)?>",
         """<body class="ura-on">
         <script>
         window.__casinoReducedMotion = __CASINO_REDUCED_MOTION__;
@@ -66,7 +66,8 @@ def _production_controller_page(*, reduced_motion: bool = True) -> str:
         };
         localStorage.clear();
         </script>""",
-        1,
+        index,
+        count=1,
     )
     scripts = "\n".join(
         f"<script>{source.read_text(encoding='utf-8')}</script>"
@@ -230,8 +231,8 @@ def _production_app_page() -> str:
         )
     )
     index = index.replace("</head>", f"<style>{styles}</style></head>", 1)
-    index = index.replace(
-        "<body>",
+    index = re.sub(
+        r"<body(?:\s[^>]*)?>",
         """<body>
         <script>
         localStorage.clear();
@@ -303,7 +304,8 @@ def _production_app_page() -> str:
           });
         };
         </script>""",
-        1,
+        index,
+        count=1,
     )
 
     def inline_script(match: re.Match[str]) -> str:

@@ -52,6 +52,53 @@ test("vendored casino animation runtime keeps its license and adds no npm depend
   assert.equal(packageJson.devDependencies?.animejs, undefined);
 });
 
+test("main game ships the opening stage in dependency order", async () => {
+  const [html, build] = await Promise.all([
+    readFile("frontend/index.html", "utf8"),
+    readFile("scripts/build-makers.mjs", "utf8"),
+  ]);
+
+  assert.match(html, /<body class="opening-active">/);
+  assert.match(html, /id="opening-stage"/);
+  assert.match(html, /id="opening-identity-card"/);
+  assert.ok(
+    html.indexOf("icon-system.css") <
+      html.indexOf("opening-animation.css"),
+  );
+  assert.ok(
+    html.indexOf("anime.iife.min.js") <
+      html.indexOf("opening-animation.js"),
+  );
+  assert.ok(
+    html.indexOf("opening-animation.js") <
+      html.indexOf("app.js"),
+  );
+  assert.match(
+    html,
+    /<script src="\/app\.js\?v=20260804a"><\/script>/,
+  );
+  assert.match(build, /"opening-animation\.css"/);
+  assert.match(build, /"opening-animation\.js"/);
+});
+
+test("app delegates startup identity to the opening controller", async () => {
+  const app = await readFile("frontend/app.js", "utf8");
+  const init = app.match(
+    /async function init\(\)\s*\{([\s\S]*?)\n\}\n\nasync function /,
+  );
+
+  assert.ok(init, "init should remain a standalone async startup function");
+  assert.match(app, /function createOpeningIdentityAdapter\(\)/);
+  assert.match(
+    app,
+    /await window\.OPENING_ANIMATION\.start\(\{[\s\S]*identity:/,
+  );
+  assert.doesNotMatch(init[1], /await ensureNickname\(\)/);
+  assert.match(init[1], /await runOpeningIdentity\(\)/);
+  assert.match(app, /async function rerollNickname\(\)/);
+  assert.match(app, /openNickModal\(false\)/);
+});
+
 test("THUOCL notice names the canonical and generated nickname artifacts", async () => {
   const notices = await readFile("THIRD_PARTY_NOTICES.md", "utf8");
 

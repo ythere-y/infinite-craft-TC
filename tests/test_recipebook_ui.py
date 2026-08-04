@@ -43,8 +43,8 @@ def _production_page() -> str:
             return ""
         return f"<script>{(FRONTEND / filename).read_text(encoding='utf-8')}</script>"
 
-    index = index.replace(
-        "<body>",
+    index = re.sub(
+        r"<body(?:\s[^>]*)?>",
         """<body>
         <script>
         localStorage.setItem("ic_nick", "测试鹅");
@@ -73,6 +73,8 @@ def _production_page() -> str:
           return Promise.resolve({ ok: true, json: function () { return Promise.resolve(payload); } });
         };
         </script>""",
+        index,
+        count=1,
     )
     return re.sub(r'<script src="/([^"?]+)(?:\?[^\"]*)?"></script>', inline_script, index)
 

@@ -6,10 +6,72 @@
   <title>🐧+🐧=? · 鹅厂无限合成 ♾️</title>
   <link rel="icon" type="image/png" href="/assets/icons/generated/emoji/1f427.png">
   <link rel="stylesheet" href="/icon-system.css?v=20260803d" />
+  <link rel="stylesheet" href="/opening-animation.css?v=20260804a" />
   <link rel="stylesheet" href="/style.css?v=20260803d" />
   <link rel="stylesheet" href="/recipe-links.css?v=20260803d" />
 </head>
-<body>
+<body class="opening-active">
+  <section id="opening-stage"
+           class="opening-stage"
+           role="dialog"
+           aria-modal="true"
+           aria-labelledby="opening-card-title">
+    <div class="opening-ambient opening-ambient-a" aria-hidden="true"></div>
+    <div class="opening-ambient opening-ambient-b" aria-hidden="true"></div>
+    <div class="opening-grid" aria-hidden="true"></div>
+    <svg id="opening-vortex-svg"
+         class="opening-vortex-svg"
+         viewBox="0 0 1000 760"
+         preserveAspectRatio="xMidYMid meet"
+         aria-hidden="true">
+      <defs>
+        <linearGradient id="opening-path-gradient" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#f5a84d" stop-opacity=".16"/>
+          <stop offset=".48" stop-color="#30c7c4" stop-opacity=".88"/>
+          <stop offset="1" stop-color="#4b68dd" stop-opacity=".14"/>
+        </linearGradient>
+        <filter id="opening-core-glow" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="6" result="blur"/>
+          <feMerge>
+            <feMergeNode in="blur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+      <g id="opening-feed-paths"></g>
+      <g class="opening-core-rings" transform="translate(500 296)">
+        <circle r="112"></circle>
+        <circle r="84"></circle>
+        <circle r="55"></circle>
+      </g>
+      <g class="opening-infinity" transform="translate(500 296)">
+        <path class="opening-infinity-under"
+              d="M0 0C-55-78-168-78-168 0S-55 78 0 0C55-78 168-78 168 0S55 78 0 0Z"/>
+        <path id="opening-infinity-main"
+              class="opening-infinity-main"
+              d="M0 0C-55-78-168-78-168 0S-55 78 0 0C55-78 168-78 168 0S55 78 0 0Z"/>
+        <path id="opening-infinity-detail"
+              class="opening-infinity-detail"
+              d="M0 0C-55-78-168-78-168 0S-55 78 0 0C55-78 168-78 168 0S55 78 0 0Z"/>
+      </g>
+    </svg>
+    <div id="opening-token-layer" class="opening-layer" aria-hidden="true"></div>
+    <div id="opening-fragment-layer" class="opening-layer" aria-hidden="true"></div>
+    <div id="opening-birth-layer" class="opening-layer" aria-hidden="true"></div>
+    <div id="opening-identity-card"
+         class="opening-identity-card"
+         tabindex="-1">
+      <div class="opening-card-kicker">PLAYER IDENTITY INITIALIZATION</div>
+      <h1 id="opening-card-title">正在准备鹅厂身份</h1>
+      <p id="opening-card-subtitle"></p>
+      <div id="opening-card-body"></div>
+      <div id="opening-card-actions" class="opening-card-actions"></div>
+      <p id="opening-card-status"
+         class="opening-card-status"
+         role="status"
+         aria-live="polite"></p>
+    </div>
+  </section>
   <header class="topbar">
     <div class="title">🐧 鹅厂无限合成 <span class="title-inf">♾️</span></div>
     <!-- 里模式指示器（平时隐藏，开启时在顶栏中段显示）-->
@@ -43,7 +105,7 @@
 
   <main class="layout">
     <!-- 工作区 -->
-    <section id="workspace" class="workspace">
+    <section id="workspace" class="workspace" tabindex="-1">
       <div id="hint" class="hint">
         <div class="basic-guidance">
           <div class="hint-line desktop-only-help">👆 把右边的元素<b>拖</b>到工作区，再把一个元素<b>拖</b>到另一个元素上合成新玩意儿</div>
@@ -218,10 +280,11 @@
   <script src="/combine-feedback.js?v=20260803d"></script>
   <script src="/score-level.js?v=20260730b"></script>
   <script src="/vendor/anime.iife.min.js?v=20260803a"></script>
+  <script src="/opening-animation.js?v=20260804a"></script>
   <script src="/casino-round.js?v=20260803a"></script>
   <script src="/effects.js?v=20260803d"></script>
   <script src="/casino-mode.js?v=20260803a"></script>
   <script src="/recipe-links.js?v=20260803d"></script>
-  <script src="/app.js?v=20260803d"></script>
+  <script src="/app.js?v=20260804a"></script>
 </body>
 </html>

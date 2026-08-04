@@ -24,6 +24,8 @@ const REQUIRED_ENTRIES = [
   "effects.js",
   "icon-system.css",
   "icon-system.js",
+  "opening-animation.css",
+  "opening-animation.js",
   "score-level.js",
   "recipe-links.css",
   "recipe-links.js",

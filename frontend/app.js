@@ -46,6 +46,42 @@ function updateNickDisplay() {
   if (el) el.textContent = formatNickForDisplay();
 }
 
+async function peekNicknameCandidate() {
+  try {
+    const response = await fetch("/api/nickname/peek").then((value) =>
+      value.json()
+    );
+    return response.nickname;
+  } catch (_) {
+    return "神秘鹅_" + Math.random().toString(36).slice(2, 5);
+  }
+}
+
+async function claimNicknameCandidate(candidate) {
+  try {
+    const response = await fetch("/api/nickname/claim", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nickname: candidate }),
+    }).then((value) => value.json());
+    return {
+      accepted: response.ok !== false,
+      nickname: response.nickname || candidate,
+    };
+  } catch (_) {
+    return { accepted: true, nickname: candidate };
+  }
+}
+
+function persistNickname(nickname) {
+  NICKNAME = String(nickname);
+  NICK_ID = NICK_ID || generatePlayerId();
+  localStorage.setItem("ic_nick", NICKNAME);
+  localStorage.setItem("ic_nick_id", NICK_ID);
+  updateNickDisplay();
+  return { nickname: NICKNAME, playerId: NICK_ID };
+}
+
 // 首次或主动改名流程
 // - 首次：force=true，不显示"当前花名"和"取消"，必须确认才能关闭
 // - 主动：force=false，显示原名和取消按钮
@@ -63,14 +99,8 @@ async function openNickModal(force = false) {
 
   async function peek() {
     previewEl.textContent = "🎲 加载中…";
-    try {
-      const r = await fetch("/api/nickname/peek").then(x => x.json());
-      candidate = r.nickname;
-      previewEl.textContent = candidate;
-    } catch (_) {
-      candidate = "神秘鹅_" + Math.random().toString(36).slice(2, 5);
-      previewEl.textContent = candidate;
-    }
+    candidate = await peekNicknameCandidate();
+    previewEl.textContent = candidate;
   }
 
   if (NICKNAME && !force) {
@@ -94,28 +124,15 @@ async function openNickModal(force = false) {
     };
     const onConfirm = async () => {
       // 确认占用（若被抢了，后端会返回 fresh）
-      let finalName = candidate;
-      let finalId = NICK_ID || generatePlayerId();
-      try {
-        const r = await fetch("/api/nickname/claim", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nickname: candidate }),
-        }).then(x => x.json());
-        finalName = r.nickname;
-        if (!r.ok) {
-          previewEl.textContent = finalName;
-          alert(`⚠️ 上一个名字被抢了，已重抽：${finalName}`);
-          candidate = finalName;
-          return;  // 不关闭，让用户再确认一次
-        }
-      } catch (_) { /* 离线兜底：本地用 */ }
+      const claimed = await claimNicknameCandidate(candidate);
+      if (!claimed.accepted) {
+        previewEl.textContent = claimed.nickname;
+        alert(`⚠️ 上一个名字被抢了，已重抽：${claimed.nickname}`);
+        candidate = claimed.nickname;
+        return;  // 不关闭，让用户再确认一次
+      }
 
-      NICKNAME = finalName;
-      NICK_ID = finalId;
-      localStorage.setItem("ic_nick", NICKNAME);
-      localStorage.setItem("ic_nick_id", NICK_ID);
-      updateNickDisplay();
+      persistNickname(claimed.nickname);
       cleanup();
       modal.classList.remove("show");
       resolve({ changed: true, nickname: NICKNAME });
@@ -156,6 +173,28 @@ async function ensureNickname() {
 
 async function rerollNickname() {
   await openNickModal(false);
+}
+
+function createOpeningIdentityAdapter() {
+  return {
+    current() {
+      return { nickname: NICKNAME, playerId: NICK_ID };
+    },
+    peek: peekNicknameCandidate,
+    claim: claimNicknameCandidate,
+    async continueCurrent() {
+      if (!NICK_ID) persistNickname(NICKNAME);
+      try {
+        await fetch("/api/nickname/touch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nickname: NICKNAME }),
+        });
+      } catch (_) { /* best-effort touch */ }
+      return { nickname: NICKNAME, playerId: NICK_ID };
+    },
+    persist: persistNickname,
+  };
 }
 
 // ---- 状态 ----
@@ -270,7 +309,7 @@ async function init() {
   await loadElements();
   window.ICON_SYSTEM.hydrateActions(document);
   renderHomeLevel();
-  await ensureNickname();
+  await runOpeningIdentity();
   updateNickDisplay();
   bindSearch();
   bindButtons();
@@ -278,6 +317,36 @@ async function init() {
   // 初始化右下角图鉴按钮计数
   const c = document.getElementById("recipebook-btn-count");
   if (c) c.textContent = state.recipes.length;
+}
+
+async function runOpeningIdentity() {
+  if (!document.body.classList.contains("opening-active")) {
+    await ensureNickname();
+    return;
+  }
+  try {
+    const openingResult = await window.OPENING_ANIMATION.start({
+      document,
+      anime: window.anime,
+      iconSystem: window.ICON_SYSTEM,
+      starterElements: Object.values(state.elements).filter(
+        (element) => element.is_starter,
+      ),
+      identity: createOpeningIdentityAdapter(),
+      revealTargets: {
+        topbar: document.querySelector(".topbar"),
+        sidebar: document.querySelector(".sidebar"),
+        hint: document.getElementById("hint"),
+        workspace,
+      },
+    });
+    NICKNAME = openingResult.nickname;
+  } catch (error) {
+    console.error("opening animation unavailable", error);
+    document.body.classList.remove("opening-active", "opening-finalizing");
+    document.getElementById("opening-stage")?.remove();
+    await ensureNickname();
+  }
 }
 
 async function loadElements() {

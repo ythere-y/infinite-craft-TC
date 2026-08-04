@@ -70,7 +70,10 @@ def _run_score_effects(
 
 def _run_score_app(tmp_path: Path, script: str, setup: str = ""):
     index = INDEX_SOURCE.read_text(encoding="utf-8")
-    body = re.search(r"<body>([\s\S]*?)</body>", index).group(1)
+    body = re.search(
+        r"<body(?:\s[^>]*)?>([\s\S]*?)</body>",
+        index,
+    ).group(1)
     body = re.sub(r'<script\b[^>]*\bsrc="[^"]+"[^>]*></script>', "", body)
     styles = "".join(path.read_text(encoding="utf-8") for path in _production_stylesheet_paths())
     page = tmp_path / "score-runtime.html"
