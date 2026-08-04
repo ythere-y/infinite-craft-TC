@@ -6,6 +6,10 @@ const RELATIONSHIP_KINDS = new Set([
   "licensed_partner",
   "historical_association",
 ]);
+const BINDING_STARTERS = [
+  "水", "火", "风", "土", "企鹅", "人",
+  "时间", "AI", "电脑", "手机", "网络",
+];
 
 function canonicalJson(value) {
   if (Array.isArray(value)) {
@@ -88,6 +92,13 @@ function starterNames(seedElements) {
     return requireName(starter.name ?? starter.id, `starter ${index} name`);
   });
   if (new Set(names).size !== names.length) throw new Error("duplicate starter name");
+  const bindingSet = new Set(BINDING_STARTERS);
+  if (
+    names.length !== BINDING_STARTERS.length ||
+    names.some((name) => !bindingSet.has(name))
+  ) {
+    throw new Error("seedElements.starters must contain the exact eleven binding starters");
+  }
   return names;
 }
 
@@ -132,28 +143,14 @@ function normalizeGroups(catalog, targetNames) {
   }
 }
 
-function relationshipRecords(target, targetName) {
-  const values = [];
-  if (target.relationship != null) values.push(target.relationship);
-  if (target.relationships != null) values.push(...requireArray(target.relationships, `${targetName}.relationships`));
-  if (target.relationship_kind != null) values.push({ kind: target.relationship_kind });
-  return values;
-}
-
 function validateRelationships(target, targetName) {
-  for (const relationship of relationshipRecords(target, targetName)) {
-    const record = typeof relationship === "string"
-      ? { kind: relationship }
-      : requireRecord(relationship, `${targetName} relationship`);
-    const kind = requireName(record.kind, `${targetName} relationship kind`);
-    if (!RELATIONSHIP_KINDS.has(kind)) {
-      throw new Error(`invalid relationship kind ${kind} for ${targetName}`);
-    }
-    if (kind !== "historical_association") continue;
-    for (const field of ["as_of", "source_url", "source_title", "note"]) {
-      const value = record[field] ?? target[field];
-      requireName(value, `${targetName} historical association ${field}`);
-    }
+  const record = requireRecord(target.relationship, `${targetName} relationship record`);
+  const kind = requireName(record.kind, `${targetName} relationship kind`);
+  if (!RELATIONSHIP_KINDS.has(kind)) {
+    throw new Error(`invalid relationship kind ${kind} for ${targetName}`);
+  }
+  for (const field of ["as_of", "source_url", "source_title", "note"]) {
+    requireName(record[field], `${targetName} relationship ${field}`);
   }
 }
 
@@ -309,8 +306,17 @@ export function compileBountyContent({ catalog, seedElements, seedCombinations }
     if (depths[target] == null) throw new Error(`target ${target} is unreachable`);
     if (depths[target] === 0) throw new Error(`target ${target} cannot have depth 0`);
   }
+  const consumedSupportElements = new Set(
+    orderedRecipes
+      .filter((recipe) => recipe.source === "support" || recipe.source === "target")
+      .flatMap((recipe) => [recipe.a, recipe.b])
+      .filter((name) => supportNames.has(name)),
+  );
   for (const name of supportNames) {
     if (!supportResults.has(name)) throw new Error(`unused support element ${name}`);
+    if (!consumedSupportElements.has(name) && !targetNames.has(name)) {
+      throw new Error(`unused support element ${name}`);
+    }
   }
 
   const targetElements = Object.fromEntries(sortedEntries(targets).map(([name, target]) => {

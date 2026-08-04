@@ -29,6 +29,13 @@ function fixture() {
           emoji: "🐧",
           category: "qq_memory",
           aliases: [],
+          relationship: {
+            kind: "historical_association",
+            as_of: "2026-08-04",
+            source_url: "https://example.com/qq",
+            source_title: "QQ source",
+            note: "Fixture association source.",
+          },
           canonical_recipe: {
             a: "企鹅",
             b: "聊天",
@@ -90,5 +97,51 @@ test("catalog compiler rejects input-only shortcuts and unreachable targets", ()
   assert.throws(
     () => compileBountyContent(input),
     /unreachable.*聊天|QQ.*unreachable/iu,
+  );
+});
+
+test("catalog compiler requires the exact eleven binding starters", () => {
+  const input = fixture();
+  input.seedElements.starters = input.seedElements.starters
+    .filter((starter) => starter.name !== "电脑")
+    .concat({ id: "捷径", name: "捷径", emoji: "🧩", category: "classic" });
+  delete input.seedElements.elements.电脑;
+  input.seedElements.elements.捷径 = { emoji: "🧩", category: "classic" };
+  input.catalog.support_recipes["捷径 + 网络"] =
+    input.catalog.support_recipes["电脑 + 网络"];
+  delete input.catalog.support_recipes["电脑 + 网络"];
+
+  assert.throws(
+    () => compileBountyContent(input),
+    /exact.*binding starters|binding starters.*exact/iu,
+  );
+});
+
+test("catalog compiler requires source-backed relationship records", () => {
+  const missingRecord = fixture();
+  delete missingRecord.catalog.targets.QQ.relationship;
+  assert.throws(
+    () => compileBountyContent(missingRecord),
+    /QQ.*relationship.*record/iu,
+  );
+
+  const inheritedSource = fixture();
+  inheritedSource.catalog.targets.QQ.relationship = { kind: "subsidiary" };
+  assert.throws(
+    () => compileBountyContent(inheritedSource),
+    /relationship.*as_of/iu,
+  );
+});
+
+test("catalog compiler rejects reachable dead-end support elements", () => {
+  const input = fixture();
+  input.catalog.support_elements.孤岛 = { emoji: "🏝️", category: "internet" };
+  input.catalog.support_recipes["水 + 火"] = {
+    result: "孤岛", emoji: "🏝️", chain: "internet",
+  };
+
+  assert.throws(
+    () => compileBountyContent(input),
+    /unused support element 孤岛/iu,
   );
 });
