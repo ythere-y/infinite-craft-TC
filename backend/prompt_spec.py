@@ -109,6 +109,15 @@ def _validate_style(item: Any) -> str:
     return item_id
 
 
+def _validate_text_example(item: Any, field: str) -> str:
+    record = _require_record(item, f"{field} record")
+    item_id = _validate_id(record.get("id"), field)
+    _require_boolean(record.get("enabled"), f"{field} enabled")
+    if record["enabled"]:
+        _require_non_empty_string(record.get("content"), f"{field} content")
+    return item_id
+
+
 def validate_prompt_spec(value: Any) -> Dict[str, Any]:
     record = _require_record(value, "prompt spec")
     schema_version = record.get("schema_version")
@@ -127,6 +136,16 @@ def validate_prompt_spec(value: Any) -> Dict[str, Any]:
         if not isinstance(items, list):
             raise ValueError(f"{field} must be an array")
         ids = [validator(item) for item in items]
+        if len(set(ids)) != len(ids):
+            raise ValueError(f"duplicate {field} id")
+
+    for field in ("positive_examples", "negative_examples"):
+        if field not in record:
+            continue
+        items = record[field]
+        if not isinstance(items, list):
+            raise ValueError(f"{field} must be an array")
+        ids = [_validate_text_example(item, field) for item in items]
         if len(set(ids)) != len(ids):
             raise ValueError(f"duplicate {field} id")
 

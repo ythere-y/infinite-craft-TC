@@ -22,7 +22,10 @@ def test_admin_page_exposes_prompt_management_controls():
     assert 'id="prompt-aggregate"' in html
     assert 'id="prompt-activate"' in html
     assert 'id="prompt-preview"' in html
+    assert 'id="prompt-preview-title"' in html
+    assert 'aria-labelledby="prompt-preview-title"' in html
     assert 'id="prompt-version-history"' in html
+    assert 'src="/admin/prompt-decimal.js"' in html
     assert 'src="/admin/prompt-admin.js"' in html
     assert 'href="/admin/prompt-admin.css"' in html
 
@@ -68,9 +71,21 @@ def test_prompt_admin_script_preserves_draft_workflow_contracts():
     assert "window.confirm(" in source
     assert "preview.value" in source
     assert "probability" in source
+    assert "PromptDecimal.summarize" in source
+    assert "let draftRevision = null" in source
+    assert '"If-Match"' in source
+    assert "expected_revision: draftRevision" in source
     assert "editor.oninput =" in source
     assert '"positive_examples": "prompt-positive-examples"' in source
     assert '"negative_examples": "prompt-negative-examples"' in source
+
+
+def test_history_actions_have_version_specific_accessible_names():
+    source = ADMIN_JS.read_text(encoding="utf-8")
+
+    assert 'view.setAttribute("aria-label"' in source
+    assert 'activate.setAttribute("aria-label"' in source
+    assert "version.id" in source
 
 
 def test_prompt_admin_locks_editors_during_mutations_without_rebuilding_them():

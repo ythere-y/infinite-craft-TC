@@ -6,7 +6,9 @@
   <title>🎛️ 后台监控 · 鹅厂无限合成 ♾️</title>
   <link rel="icon" type="image/png" href="/assets/icons/generated/emoji/1f427.png">
   <link rel="stylesheet" href="/icon-system.css">
+  <!-- LOCAL_PROMPT_ADMIN_ASSETS_START -->
   <link rel="stylesheet" href="/admin/prompt-admin.css">
+  <!-- LOCAL_PROMPT_ADMIN_ASSETS_END -->
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     html, body {
@@ -186,9 +188,11 @@
       <button type="button" data-admin-tab="monitor"
               id="admin-monitor-tab" role="tab" aria-controls="admin-monitor-panel"
               aria-selected="true" tabindex="0">运行监控</button>
+      <!-- LOCAL_PROMPT_ADMIN_TAB_START -->
       <button type="button" data-admin-tab="prompt"
               id="admin-prompt-tab" role="tab" aria-controls="admin-prompt-panel"
               aria-selected="false" tabindex="-1">Prompt 管理</button>
+      <!-- LOCAL_PROMPT_ADMIN_TAB_END -->
     </nav>
 
     <section id="admin-monitor-panel" data-admin-panel="monitor"
@@ -276,6 +280,7 @@
     </div>
     </section>
 
+    <!-- LOCAL_PROMPT_ADMIN_PANEL_START -->
     <section id="admin-prompt-panel" data-admin-panel="prompt"
              role="tabpanel" aria-labelledby="admin-prompt-tab" hidden>
       <div class="prompt-toolbar">
@@ -366,8 +371,9 @@
 
         <aside class="prompt-sidebar">
           <section class="prompt-section">
-            <h3>聚合预览</h3>
+            <h3 id="prompt-preview-title">聚合预览</h3>
             <textarea id="prompt-preview" rows="22" readonly
+                      aria-labelledby="prompt-preview-title"
                       placeholder="聚合或查看历史版本后显示完整 Prompt。"></textarea>
           </section>
 
@@ -378,8 +384,10 @@
         </aside>
       </div>
     </section>
+    <!-- LOCAL_PROMPT_ADMIN_PANEL_END -->
   </main>
 
+  <!-- LOCAL_PROMPT_ADMIN_TEMPLATES_START -->
   <template id="prompt-module-template">
     <article class="prompt-item prompt-module">
       <div class="prompt-item-header">
@@ -428,13 +436,17 @@
       <label>内容 <textarea data-field="content" rows="4"></textarea></label>
     </article>
   </template>
+  <!-- LOCAL_PROMPT_ADMIN_TEMPLATES_END -->
 
   <footer>
     每 3 秒自动刷新 · 关闭页面即停止轮询 · 数据源 <code>/api/admin/stats</code>
   </footer>
 
   <script src="/icon-system.js"></script>
+  <!-- LOCAL_PROMPT_ADMIN_SCRIPTS_START -->
+  <script src="/admin/prompt-decimal.js"></script>
   <script src="/admin/prompt-admin.js"></script>
+  <!-- LOCAL_PROMPT_ADMIN_SCRIPTS_END -->
   <script>
     const REFRESH_SEC = 3;
     const ADMIN_TOKEN_KEY = "infinity_admin_token";

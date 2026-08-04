@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from copy import deepcopy
 from decimal import Decimal
+import json
+import sqlite3
+import time
 
 import pytest
 
@@ -22,6 +25,26 @@ def canonical_spec():
     return deepcopy(prompt_spec.load_prompt_spec())
 
 
+def _draft_state():
+    return prompt_store.get_draft_state()
+
+
+def _save_current(draft):
+    state = _draft_state()
+    return prompt_store.save_draft(
+        draft,
+        expected_revision=state["revision"],
+    )
+
+
+def _aggregate_current(*, random_value=0):
+    state = _draft_state()
+    return prompt_store.aggregate_draft(
+        expected_revision=state["revision"],
+        random_value=random_value,
+    )
+
+
 def test_bootstrap_imports_canonical_prompt_as_active_version(
     isolated_prompt_db, canonical_spec
 ):
@@ -39,12 +62,14 @@ def test_bootstrap_imports_canonical_prompt_as_active_version(
     assert prompt_store.get_active_spec() == canonical_spec
     assert draft["positive_examples"] == []
     assert draft["negative_examples"] == []
+    assert _draft_state()["revision"] == 1
+    assert active["preview"]
 
 
 def test_combine_uses_active_prompt_version(monkeypatch, isolated_prompt_db):
     """Default local LLM composition must render the published spec, not disk."""
     prompt_store.init_prompt_store()
-    generated = prompt_store.aggregate_draft(random_value=0)
+    generated = _aggregate_current()
     prompt_store.activate_version(generated["id"])
     captured = {}
 
@@ -91,11 +116,12 @@ def test_saved_draft_survives_store_reinitialization(isolated_prompt_db):
     prompt_store.init_prompt_store()
     draft = prompt_store.get_draft()
     draft["temperature"] = 0.25
-    prompt_store.save_draft(draft)
+    saved = _save_current(draft)
 
     prompt_store.init_prompt_store()
 
     assert prompt_store.get_draft()["temperature"] == 0.25
+    assert _draft_state()["revision"] == saved["revision"]
 
 
 @pytest.mark.parametrize(
@@ -119,7 +145,7 @@ def test_save_draft_rejects_invalid_configuration(
     draft = prompt_store.get_draft()
     mutate(draft)
     with pytest.raises(prompt_store.PromptValidationError, match=message):
-        prompt_store.save_draft(draft)
+        _save_current(draft)
 
 
 @pytest.mark.parametrize(
@@ -231,10 +257,13 @@ def test_aggregate_selects_style_at_probability_boundaries(
             "probability": "40",
         },
     ]
-    prompt_store.save_draft(draft)
+    saved = _save_current(draft)
 
     assert (
-        prompt_store.aggregate_draft(random_value=random_value)[
+        prompt_store.aggregate_draft(
+            expected_revision=saved["revision"],
+            random_value=random_value,
+        )[
             "selected_style"
         ]["id"]
         == expected
@@ -245,22 +274,32 @@ def test_aggregated_version_is_immutable_after_draft_changes(
     isolated_prompt_db,
 ):
     prompt_store.init_prompt_store()
-    version = prompt_store.aggregate_draft(random_value=0)
+    version = _aggregate_current()
     draft = prompt_store.get_draft()
     draft["system_modules"][0]["content"] = "后来修改"
-    prompt_store.save_draft(draft)
+    _save_current(draft)
 
     stored = prompt_store.get_version(version["id"])
 
     assert stored["snapshot"]["system_modules"][0]["content"] != "后来修改"
     assert "{{元素A}}" in stored["preview"]
-    assert stored in prompt_store.list_versions()
+    summary = next(
+        item for item in prompt_store.list_versions()
+        if item["id"] == version["id"]
+    )
+    assert set(summary) == {
+        "id",
+        "created_at",
+        "selected_style_id",
+        "selected_style_name",
+        "selected_style",
+    }
 
 
 def test_activate_can_publish_and_roll_back(isolated_prompt_db):
     prompt_store.init_prompt_store()
     initial = prompt_store.get_active_version()["id"]
-    generated = prompt_store.aggregate_draft(random_value=0)
+    generated = _aggregate_current()
     prompt_store.activate_version(generated["id"])
     assert prompt_store.get_active_version()["id"] == generated["id"]
     assert prompt_store.get_version(generated["id"]) == generated
@@ -275,7 +314,7 @@ def test_activate_rejects_corrupted_version_without_changing_active_state(
 ):
     prompt_store.init_prompt_store()
     initial = prompt_store.get_active_version()["id"]
-    generated = prompt_store.aggregate_draft(random_value=0)["id"]
+    generated = _aggregate_current()["id"]
     con = archive._conn()
     con.execute(
         "UPDATE prompt_versions SET snapshot_json = ? WHERE id = ?",
@@ -284,7 +323,7 @@ def test_activate_rejects_corrupted_version_without_changing_active_state(
     con.commit()
     con.close()
 
-    with pytest.raises(prompt_store.PromptValidationError):
+    with pytest.raises(prompt_store.PromptStoreCorruptionError):
         prompt_store.activate_version(generated)
 
     assert prompt_store.get_active_version()["id"] == initial
@@ -303,5 +342,148 @@ def test_reinitialization_rejects_corrupted_active_version_snapshot(
     con.commit()
     con.close()
 
-    with pytest.raises(ValueError):
+    with pytest.raises(prompt_store.PromptStoreCorruptionError):
         prompt_store.init_prompt_store()
+
+
+def test_archive_migrates_existing_prompt_draft_revision_once(tmp_path, monkeypatch):
+    monkeypatch.setattr(archive, "_DATA_DIR", tmp_path)
+    monkeypatch.setenv("APP_ENV", "test")
+    database = tmp_path / "test.db"
+    con = sqlite3.connect(database)
+    con.execute(
+        """
+        CREATE TABLE prompt_draft (
+            singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+            config_json TEXT NOT NULL,
+            updated_at REAL NOT NULL
+        )
+        """
+    )
+    con.execute(
+        "INSERT INTO prompt_draft(singleton, config_json, updated_at) VALUES (1, '{}', 1)"
+    )
+    con.commit()
+    con.close()
+
+    archive.init_archive()
+    migrated = archive._conn()
+    columns = {
+        row["name"] for row in migrated.execute("PRAGMA table_info(prompt_draft)")
+    }
+    assert "revision" in columns
+    assert migrated.execute(
+        "SELECT revision FROM prompt_draft WHERE singleton = 1"
+    ).fetchone()["revision"] == 1
+    migrated.execute(
+        "UPDATE prompt_draft SET revision = 7 WHERE singleton = 1"
+    )
+    migrated.commit()
+    migrated.close()
+
+    archive.init_archive()
+    reopened = archive._conn()
+    assert reopened.execute(
+        "SELECT revision FROM prompt_draft WHERE singleton = 1"
+    ).fetchone()["revision"] == 7
+    reopened.close()
+
+
+@pytest.mark.parametrize("operation_name", ["bootstrap", "save", "aggregate", "activate"])
+def test_prompt_write_transactions_fail_fast_with_a_typed_busy_error(
+    isolated_prompt_db,
+    monkeypatch,
+    operation_name,
+):
+    prompt_store.init_prompt_store()
+    state = _draft_state()
+    active_id = prompt_store.get_active_version()["id"]
+    operations = {
+        "bootstrap": prompt_store.init_prompt_store,
+        "save": lambda: prompt_store.save_draft(
+            state["config"],
+            expected_revision=state["revision"],
+        ),
+        "aggregate": lambda: prompt_store.aggregate_draft(
+            expected_revision=state["revision"],
+            random_value=0,
+        ),
+        "activate": lambda: prompt_store.activate_version(active_id),
+    }
+    operation = operations[operation_name]
+    if operation_name == "bootstrap":
+        monkeypatch.setattr(archive, "init_archive", lambda: None)
+    monkeypatch.setattr(
+        prompt_store,
+        "_WRITE_BUSY_TIMEOUT_SECONDS",
+        0.01,
+        raising=False,
+    )
+    monkeypatch.setattr(
+        prompt_store,
+        "_WRITE_BUSY_RETRY_DELAYS",
+        (0.0, 0.0),
+        raising=False,
+    )
+
+    blocker = sqlite3.connect(str(isolated_prompt_db), timeout=0)
+    blocker.execute("PRAGMA journal_mode=WAL")
+    blocker.execute("BEGIN IMMEDIATE")
+    started = time.monotonic()
+    try:
+        with pytest.raises(prompt_store.PromptStoreBusyError):
+            operation()
+    finally:
+        elapsed = time.monotonic() - started
+        blocker.rollback()
+        blocker.close()
+
+    assert elapsed < 0.5
+    operation()
+
+
+def test_activate_rejects_corrupted_effective_examples_without_switching_active(
+    isolated_prompt_db,
+):
+    prompt_store.init_prompt_store()
+    initial = prompt_store.get_active_version()["id"]
+    generated = _aggregate_current()
+    corrupted = deepcopy(generated["effective_spec"])
+    corrupted["positive_examples"] = [
+        {
+            "id": "positive",
+            "enabled": "yes",
+            "content": "PRIVATE_PROMPT_SENTINEL",
+        }
+    ]
+    con = archive._conn()
+    con.execute(
+        "UPDATE prompt_versions SET effective_spec_json = ? WHERE id = ?",
+        (json.dumps(corrupted), generated["id"]),
+    )
+    con.commit()
+    con.close()
+
+    with pytest.raises(prompt_store.PromptStoreCorruptionError):
+        prompt_store.activate_version(generated["id"])
+
+    assert prompt_store.get_active_version()["id"] == initial
+
+
+def test_runtime_rejects_corrupted_active_effective_examples(isolated_prompt_db):
+    prompt_store.init_prompt_store()
+    active = prompt_store.get_active_version()
+    corrupted = deepcopy(active["effective_spec"])
+    corrupted["negative_examples"] = [
+        {"id": "negative", "enabled": True, "content": ""}
+    ]
+    con = archive._conn()
+    con.execute(
+        "UPDATE prompt_versions SET effective_spec_json = ? WHERE id = ?",
+        (json.dumps(corrupted), active["id"]),
+    )
+    con.commit()
+    con.close()
+
+    with pytest.raises(prompt_store.PromptStoreCorruptionError):
+        prompt_store.get_active_spec()

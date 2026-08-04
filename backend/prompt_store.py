@@ -5,11 +5,12 @@ from __future__ import annotations
 import copy
 import json
 import random
+import sqlite3
 import time
 import uuid
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 from . import archive
 from .prompt_spec import (
@@ -24,15 +25,159 @@ class PromptValidationError(ValueError):
     """Raised when an editable prompt draft is not publishable."""
 
 
+class PromptRevisionConflict(RuntimeError):
+    """Raised when an administrator mutates a stale draft revision."""
+
+    def __init__(self, expected_revision: int, current_revision: int):
+        super().__init__("prompt draft has changed; reload before continuing")
+        self.expected_revision = expected_revision
+        self.current_revision = current_revision
+
+
+class PromptStoreBusyError(RuntimeError):
+    """Raised after the bounded SQLite busy retry budget is exhausted."""
+
+
+class PromptStoreCorruptionError(RuntimeError):
+    """Raised when persisted prompt data cannot be safely decoded or validated."""
+
+    def __init__(
+        self,
+        *,
+        record_type: str,
+        record_id: str,
+        error_type: str,
+    ):
+        super().__init__("persisted prompt data is invalid")
+        self.record_type = record_type
+        self.record_id = record_id
+        self.error_type = error_type
+
+
+_WRITE_BUSY_TIMEOUT_SECONDS = 0.1
+_WRITE_BUSY_RETRY_DELAYS = (0.02, 0.05)
+_T = TypeVar("_T")
+
+
 def _json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
 
 
-def _decode(value: str) -> Dict[str, Any]:
-    decoded = json.loads(value)
-    if not isinstance(decoded, dict):
-        raise ValueError("stored prompt value must be an object")
-    return decoded
+def _stored_corruption(
+    *,
+    record_type: str,
+    record_id: str,
+    error: BaseException,
+) -> PromptStoreCorruptionError:
+    return PromptStoreCorruptionError(
+        record_type=record_type,
+        record_id=record_id,
+        error_type=type(error).__name__,
+    )
+
+
+def _decode_stored(
+    value: str,
+    *,
+    record_type: str,
+    record_id: str,
+) -> Dict[str, Any]:
+    try:
+        decoded = json.loads(value)
+        if not isinstance(decoded, dict):
+            raise ValueError("stored prompt value must be an object")
+        return decoded
+    except (TypeError, ValueError) as exc:
+        raise _stored_corruption(
+            record_type=record_type,
+            record_id=record_id,
+            error=exc,
+        ) from None
+
+
+def _validate_stored_draft(
+    value: str,
+    *,
+    record_type: str,
+    record_id: str,
+) -> dict:
+    try:
+        decoded = _decode_stored(
+            value,
+            record_type=record_type,
+            record_id=record_id,
+        )
+        return validate_draft(decoded)
+    except PromptStoreCorruptionError:
+        raise
+    except (TypeError, ValueError) as exc:
+        raise _stored_corruption(
+            record_type=record_type,
+            record_id=record_id,
+            error=exc,
+        ) from None
+
+
+def _validate_stored_spec(
+    value: str,
+    *,
+    record_type: str,
+    record_id: str,
+) -> dict:
+    try:
+        decoded = _decode_stored(
+            value,
+            record_type=record_type,
+            record_id=record_id,
+        )
+        return validate_prompt_spec(decoded)
+    except PromptStoreCorruptionError:
+        raise
+    except (TypeError, ValueError) as exc:
+        raise _stored_corruption(
+            record_type=record_type,
+            record_id=record_id,
+            error=exc,
+        ) from None
+
+
+def _is_sqlite_busy(exc: sqlite3.OperationalError) -> bool:
+    code = getattr(exc, "sqlite_errorcode", None)
+    if isinstance(code, int):
+        primary_code = code & 0xFF
+        if primary_code in (sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED):
+            return True
+    message = str(exc).lower()
+    return "database is locked" in message or "database table is locked" in message
+
+
+def _write_transaction(callback: Callable[[sqlite3.Connection], _T]) -> _T:
+    """Run a write transaction with an up-front lock and finite busy retries."""
+    with archive._lock:
+        for attempt in range(len(_WRITE_BUSY_RETRY_DELAYS) + 1):
+            con: sqlite3.Connection | None = None
+            try:
+                con = archive._conn(timeout=_WRITE_BUSY_TIMEOUT_SECONDS)
+                con.execute("BEGIN IMMEDIATE")
+                result = callback(con)
+                con.commit()
+                return result
+            except sqlite3.OperationalError as exc:
+                if con is not None:
+                    con.rollback()
+                if not _is_sqlite_busy(exc):
+                    raise
+                if attempt >= len(_WRITE_BUSY_RETRY_DELAYS):
+                    raise PromptStoreBusyError() from None
+                time.sleep(_WRITE_BUSY_RETRY_DELAYS[attempt])
+            except Exception:
+                if con is not None:
+                    con.rollback()
+                raise
+            finally:
+                if con is not None:
+                    con.close()
+    raise AssertionError("unreachable prompt transaction state")
 
 
 def draft_from_canonical(spec: dict) -> dict:
@@ -220,111 +365,220 @@ def validate_draft(value: object) -> dict:
     return validated
 
 
+def _selected_style_from_row(row: Any) -> dict | None:
+    if row["selected_style_id"] is None:
+        return None
+    return {
+        "id": row["selected_style_id"],
+        "name": row["selected_style_name"],
+    }
+
+
 def _version_from_row(row: Any) -> dict:
-    selected_style = None
-    if row["selected_style_id"] is not None:
-        selected_style = {
-            "id": row["selected_style_id"],
-            "name": row["selected_style_name"],
-        }
+    version_id = str(row["id"])
+    return {
+        "id": version_id,
+        "created_at": row["created_at"],
+        "selected_style_id": row["selected_style_id"],
+        "selected_style_name": row["selected_style_name"],
+        "selected_style": _selected_style_from_row(row),
+        "snapshot": _validate_stored_draft(
+            row["snapshot_json"],
+            record_type="prompt_version_snapshot",
+            record_id=version_id,
+        ),
+        "effective_spec": _validate_stored_spec(
+            row["effective_spec_json"],
+            record_type="prompt_version_spec",
+            record_id=version_id,
+        ),
+        "preview": row["preview"],
+    }
+
+
+def _version_summary_from_row(row: Any) -> dict:
     return {
         "id": row["id"],
         "created_at": row["created_at"],
         "selected_style_id": row["selected_style_id"],
         "selected_style_name": row["selected_style_name"],
-        "selected_style": selected_style,
-        "snapshot": _decode(row["snapshot_json"]),
-        "effective_spec": _decode(row["effective_spec_json"]),
-        "preview": row["preview"],
+        "selected_style": _selected_style_from_row(row),
     }
 
 
+def _render_preview(spec: dict) -> str:
+    messages = build_prompt_messages_from_spec(
+        spec,
+        a="{{元素A}}",
+        b="{{元素B}}",
+        avoid_words=["{{近期结果}}"],
+        bounty_candidates=[],
+        community_examples=[],
+        style_value=0,
+    )
+    return _json(messages)
+
+
+def _missing_store_record(record_type: str, record_id: str) -> None:
+    raise PromptStoreCorruptionError(
+        record_type=record_type,
+        record_id=record_id,
+        error_type="MissingRecord",
+    )
+
+
+def _draft_state_from_row(row: Any) -> dict:
+    revision = row["revision"]
+    if type(revision) is not int or revision < 1:
+        raise PromptStoreCorruptionError(
+            record_type="prompt_draft",
+            record_id="singleton",
+            error_type="InvalidRevision",
+        )
+    return {
+        "config": _validate_stored_draft(
+            row["config_json"],
+            record_type="prompt_draft",
+            record_id="singleton",
+        ),
+        "revision": revision,
+    }
+
+
+def _validate_expected_revision(expected_revision: int) -> int:
+    if type(expected_revision) is not int or expected_revision < 1:
+        raise PromptValidationError("draft revision must be a positive integer")
+    return expected_revision
+
+
 def init_prompt_store() -> None:
-    """Create the initial draft and active version once, atomically."""
+    """Create or validate the initial draft and active version atomically."""
     archive.init_archive()
-    with archive._lock:
-        con = archive._conn()
-        try:
-            con.execute("BEGIN")
-            draft_row = con.execute(
-                "SELECT config_json FROM prompt_draft WHERE singleton = 1"
-            ).fetchone()
-            if draft_row is not None:
-                validate_draft(_decode(draft_row["config_json"]))
-                active_row = con.execute(
-                    """
-                    SELECT v.* FROM prompt_state AS state
-                    JOIN prompt_versions AS v ON v.id = state.active_version_id
-                    WHERE state.singleton = 1
-                    """
-                ).fetchone()
-                if active_row is None:
-                    raise ValueError("prompt store has no active version")
-                validate_draft(_decode(active_row["snapshot_json"]))
-                validate_prompt_spec(_decode(active_row["effective_spec_json"]))
-                con.commit()
-                return
 
-            canonical = load_prompt_spec()
-            draft = draft_from_canonical(canonical)
-            created_at = time.time()
-            version_id = "prompt-initial-" + datetime.now(timezone.utc).strftime(
-                "%Y%m%dT%H%M%S%fZ"
-            )
-            con.execute(
-                "INSERT INTO prompt_draft(singleton, config_json, updated_at) VALUES (1, ?, ?)",
-                (_json(draft), created_at),
-            )
-            con.execute(
+    def initialize(con: sqlite3.Connection) -> None:
+        draft_row = con.execute(
+            """
+            SELECT config_json, revision
+            FROM prompt_draft
+            WHERE singleton = 1
+            """
+        ).fetchone()
+        if draft_row is not None:
+            _draft_state_from_row(draft_row)
+            active_row = con.execute(
                 """
-                INSERT INTO prompt_versions(
-                    id, created_at, selected_style_id, selected_style_name,
-                    snapshot_json, effective_spec_json, preview
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                (version_id, created_at, None, None, _json(draft), _json(canonical), ""),
-            )
-            con.execute(
-                "INSERT INTO prompt_state(singleton, active_version_id) VALUES (1, ?)",
-                (version_id,),
-            )
-            con.commit()
-        except Exception:
-            con.rollback()
-            raise
-        finally:
-            con.close()
+                SELECT
+                    v.id, v.created_at, v.selected_style_id,
+                    v.selected_style_name, v.snapshot_json,
+                    v.effective_spec_json, v.preview
+                FROM prompt_state AS state
+                JOIN prompt_versions AS v ON v.id = state.active_version_id
+                WHERE state.singleton = 1
+                """
+            ).fetchone()
+            if active_row is None:
+                _missing_store_record("prompt_state", "singleton")
+            active = _version_from_row(active_row)
+            if not active["preview"]:
+                con.execute(
+                    "UPDATE prompt_versions SET preview = ? WHERE id = ?",
+                    (_render_preview(active["effective_spec"]), active["id"]),
+                )
+            return
+
+        canonical = load_prompt_spec()
+        draft = draft_from_canonical(canonical)
+        created_at = time.time()
+        version_id = "prompt-initial-" + datetime.now(timezone.utc).strftime(
+            "%Y%m%dT%H%M%S%fZ"
+        )
+        con.execute(
+            """
+            INSERT INTO prompt_draft(
+                singleton, config_json, updated_at, revision
+            ) VALUES (1, ?, ?, 1)
+            """,
+            (_json(draft), created_at),
+        )
+        con.execute(
+            """
+            INSERT INTO prompt_versions(
+                id, created_at, selected_style_id, selected_style_name,
+                snapshot_json, effective_spec_json, preview
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                version_id,
+                created_at,
+                None,
+                None,
+                _json(draft),
+                _json(canonical),
+                _render_preview(canonical),
+            ),
+        )
+        con.execute(
+            "INSERT INTO prompt_state(singleton, active_version_id) VALUES (1, ?)",
+            (version_id,),
+        )
+
+    _write_transaction(initialize)
 
 
-def get_draft() -> dict:
+def get_draft_state() -> dict:
     con = archive._conn()
     try:
         row = con.execute(
-            "SELECT config_json FROM prompt_draft WHERE singleton = 1"
+            """
+            SELECT config_json, revision
+            FROM prompt_draft
+            WHERE singleton = 1
+            """
         ).fetchone()
         if row is None:
-            raise RuntimeError("prompt store is not initialized")
-        draft = _decode(row["config_json"])
-        return validate_draft(draft)
+            _missing_store_record("prompt_draft", "singleton")
+        return _draft_state_from_row(row)
     finally:
         con.close()
 
 
-def save_draft(draft: dict) -> dict:
+def get_draft() -> dict:
+    return get_draft_state()["config"]
+
+
+def save_draft(draft: dict, *, expected_revision: int) -> dict:
+    expected = _validate_expected_revision(expected_revision)
     stored = validate_draft(draft)
-    with archive._lock:
-        con = archive._conn()
-        try:
-            cursor = con.execute(
-                "UPDATE prompt_draft SET config_json = ?, updated_at = ? WHERE singleton = 1",
-                (_json(stored), time.time()),
-            )
-            if cursor.rowcount != 1:
-                raise RuntimeError("prompt store is not initialized")
-            con.commit()
-        finally:
-            con.close()
-    return stored
+
+    def save(con: sqlite3.Connection) -> dict:
+        row = con.execute(
+            "SELECT revision FROM prompt_draft WHERE singleton = 1"
+        ).fetchone()
+        if row is None:
+            _missing_store_record("prompt_draft", "singleton")
+        current = row["revision"]
+        if type(current) is not int or current < 1:
+            _missing_store_record("prompt_draft_revision", "singleton")
+        if current != expected:
+            raise PromptRevisionConflict(expected, current)
+        cursor = con.execute(
+            """
+            UPDATE prompt_draft
+            SET config_json = ?, updated_at = ?, revision = revision + 1
+            WHERE singleton = 1 AND revision = ?
+            """,
+            (_json(stored), time.time(), expected),
+        )
+        if cursor.rowcount != 1:
+            refreshed = con.execute(
+                "SELECT revision FROM prompt_draft WHERE singleton = 1"
+            ).fetchone()
+            if refreshed is None:
+                _missing_store_record("prompt_draft", "singleton")
+            raise PromptRevisionConflict(expected, refreshed["revision"])
+        return {"config": stored, "revision": expected + 1}
+
+    return _write_transaction(save)
 
 
 def get_active_version() -> dict:
@@ -332,16 +586,38 @@ def get_active_version() -> dict:
     try:
         row = con.execute(
             """
-            SELECT v.* FROM prompt_state AS state
+            SELECT
+                v.id, v.created_at, v.selected_style_id,
+                v.selected_style_name, v.snapshot_json,
+                v.effective_spec_json, v.preview
+            FROM prompt_state AS state
             JOIN prompt_versions AS v ON v.id = state.active_version_id
             WHERE state.singleton = 1
             """
         ).fetchone()
         if row is None:
-            raise RuntimeError("prompt store is not initialized")
-        version = _version_from_row(row)
-        validate_prompt_spec(version["effective_spec"])
-        return version
+            _missing_store_record("prompt_state", "singleton")
+        return _version_from_row(row)
+    finally:
+        con.close()
+
+
+def get_active_version_summary() -> dict:
+    con = archive._conn()
+    try:
+        row = con.execute(
+            """
+            SELECT
+                v.id, v.created_at, v.selected_style_id,
+                v.selected_style_name
+            FROM prompt_state AS state
+            JOIN prompt_versions AS v ON v.id = state.active_version_id
+            WHERE state.singleton = 1
+            """
+        ).fetchone()
+        if row is None:
+            _missing_store_record("prompt_state", "singleton")
+        return _version_summary_from_row(row)
     finally:
         con.close()
 
@@ -373,119 +649,142 @@ def _select_draft_style(draft: dict, random_value: float | None) -> dict:
     return enabled[-1]
 
 
-def aggregate_draft(random_value: float | None = None) -> dict:
+def aggregate_draft(
+    *,
+    expected_revision: int,
+    random_value: float | None = None,
+) -> dict:
     """Persist an immutable, single-style snapshot of the current draft."""
-    with archive._lock:
-        con = archive._conn()
-        try:
-            con.execute("BEGIN")
-            row = con.execute(
-                "SELECT config_json FROM prompt_draft WHERE singleton = 1"
-            ).fetchone()
-            if row is None:
-                raise RuntimeError("prompt store is not initialized")
-            draft = validate_draft(_decode(row["config_json"]))
-            selected_style = _select_draft_style(draft, random_value)
-            effective_spec = canonical_from_draft(draft, selected_style["id"])
-            preview_messages = build_prompt_messages_from_spec(
-                effective_spec,
-                a="{{元素A}}",
-                b="{{元素B}}",
-                avoid_words=["{{近期结果}}"],
-                bounty_candidates=[],
-                community_examples=[],
-                style_value=0,
-            )
-            created_at = time.time()
-            version_id = (
-                "prompt-"
-                + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-                + "-"
-                + uuid.uuid4().hex[:8]
-            )
-            con.execute(
-                """
-                INSERT INTO prompt_versions(
-                    id, created_at, selected_style_id, selected_style_name,
-                    snapshot_json, effective_spec_json, preview
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    version_id,
-                    created_at,
-                    selected_style["id"],
-                    selected_style["label"],
-                    _json(draft),
-                    _json(effective_spec),
-                    _json(preview_messages),
-                ),
-            )
-            stored_row = con.execute(
-                "SELECT * FROM prompt_versions WHERE id = ?", (version_id,)
-            ).fetchone()
-            con.commit()
-            return _version_from_row(stored_row)
-        except Exception:
-            con.rollback()
-            raise
-        finally:
-            con.close()
+    expected = _validate_expected_revision(expected_revision)
+
+    def aggregate(con: sqlite3.Connection) -> dict:
+        row = con.execute(
+            """
+            SELECT config_json, revision
+            FROM prompt_draft
+            WHERE singleton = 1
+            """
+        ).fetchone()
+        if row is None:
+            _missing_store_record("prompt_draft", "singleton")
+        current = row["revision"]
+        if type(current) is not int or current < 1:
+            _missing_store_record("prompt_draft_revision", "singleton")
+        if current != expected:
+            raise PromptRevisionConflict(expected, current)
+        draft = _validate_stored_draft(
+            row["config_json"],
+            record_type="prompt_draft",
+            record_id="singleton",
+        )
+        selected_style = _select_draft_style(draft, random_value)
+        effective_spec = canonical_from_draft(draft, selected_style["id"])
+        created_at = time.time()
+        version_id = (
+            "prompt-"
+            + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+            + "-"
+            + uuid.uuid4().hex[:8]
+        )
+        con.execute(
+            """
+            INSERT INTO prompt_versions(
+                id, created_at, selected_style_id, selected_style_name,
+                snapshot_json, effective_spec_json, preview
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                version_id,
+                created_at,
+                selected_style["id"],
+                selected_style["label"],
+                _json(draft),
+                _json(effective_spec),
+                _render_preview(effective_spec),
+            ),
+        )
+        stored_row = con.execute(
+            """
+            SELECT
+                id, created_at, selected_style_id, selected_style_name,
+                snapshot_json, effective_spec_json, preview
+            FROM prompt_versions
+            WHERE id = ?
+            """,
+            (version_id,),
+        ).fetchone()
+        return _version_from_row(stored_row)
+
+    return _write_transaction(aggregate)
 
 
 def get_version(version_id: str) -> dict:
     con = archive._conn()
     try:
         row = con.execute(
-            "SELECT * FROM prompt_versions WHERE id = ?", (version_id,)
+            """
+            SELECT
+                id, created_at, selected_style_id, selected_style_name,
+                snapshot_json, effective_spec_json, preview
+            FROM prompt_versions
+            WHERE id = ?
+            """,
+            (version_id,),
         ).fetchone()
         if row is None:
             raise KeyError(f"unknown prompt version: {version_id}")
-        version = _version_from_row(row)
-        validate_draft(version["snapshot"])
-        validate_prompt_spec(version["effective_spec"])
-        return version
+        return _version_from_row(row)
     finally:
         con.close()
 
 
 def activate_version(version_id: str) -> dict:
     """Point the singleton active state at an existing immutable version."""
-    with archive._lock:
-        con = archive._conn()
-        try:
-            con.execute("BEGIN")
-            row = con.execute(
-                "SELECT * FROM prompt_versions WHERE id = ?", (version_id,)
-            ).fetchone()
-            if row is None:
-                raise KeyError(f"unknown prompt version: {version_id}")
-            version = _version_from_row(row)
-            validate_draft(version["snapshot"])
-            validate_prompt_spec(version["effective_spec"])
-            cursor = con.execute(
-                """
-                UPDATE prompt_state SET active_version_id = ?
-                WHERE singleton = 1
-                """,
-                (version_id,),
-            )
-            if cursor.rowcount != 1:
-                raise RuntimeError("prompt store is not initialized")
-            con.commit()
-        except Exception:
-            con.rollback()
-            raise
-        finally:
-            con.close()
-    return version
+    def activate(con: sqlite3.Connection) -> dict:
+        row = con.execute(
+            """
+            SELECT
+                id, created_at, selected_style_id, selected_style_name,
+                snapshot_json, effective_spec_json, preview
+            FROM prompt_versions
+            WHERE id = ?
+            """,
+            (version_id,),
+        ).fetchone()
+        if row is None:
+            raise KeyError(f"unknown prompt version: {version_id}")
+        version = _version_from_row(row)
+        cursor = con.execute(
+            """
+            UPDATE prompt_state SET active_version_id = ?
+            WHERE singleton = 1
+            """,
+            (version_id,),
+        )
+        if cursor.rowcount != 1:
+            _missing_store_record("prompt_state", "singleton")
+        return version
+
+    return _write_transaction(activate)
 
 
-def list_versions() -> List[dict]:
+def list_versions(*, limit: int = 50, offset: int = 0) -> List[dict]:
+    if type(limit) is not int or not 1 <= limit <= 100:
+        raise ValueError("version limit must be between 1 and 100")
+    if type(offset) is not int or offset < 0:
+        raise ValueError("version offset must be non-negative")
     con = archive._conn()
     try:
         rows = con.execute(
-            "SELECT * FROM prompt_versions ORDER BY created_at DESC, id DESC"
+            """
+            SELECT
+                id, created_at, selected_style_id, selected_style_name
+            FROM prompt_versions
+            ORDER BY created_at DESC, id DESC
+            LIMIT ? OFFSET ?
+            """,
+            (limit, offset),
         ).fetchall()
-        return [_version_from_row(row) for row in rows]
+        return [_version_summary_from_row(row) for row in rows]
     finally:
         con.close()

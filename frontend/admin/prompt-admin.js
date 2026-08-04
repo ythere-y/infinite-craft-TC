@@ -13,6 +13,7 @@
   let promptLoadPromise = null;
   let promptLoadRequestId = 0;
   let pendingVersionId = null;
+  let draftRevision = null;
   let idSequence = 0;
   const invalidJsonFields = new Set();
 
@@ -148,17 +149,12 @@
 
   function updateProbabilityFeedback() {
     const enabled = draft.styles.filter((style) => style.enabled);
-    const total = enabled.reduce(
-      (sum, style) => sum + Number(style.probability),
-      0,
+    const summary = PromptDecimal.summarize(
+      enabled.map((style) => style.probability),
     );
-    const valid = Number.isFinite(total) && Math.abs(total - 100) < 1e-9;
     const feedback = document.getElementById("prompt-probability-total");
-    const shownTotal = Number.isFinite(total)
-      ? Number(total.toFixed(4)).toString()
-      : "无效";
-    feedback.textContent = `已启用概率合计：${shownTotal}%（必须为 100%）`;
-    feedback.dataset.valid = String(valid);
+    feedback.textContent = `已启用概率合计：${summary.total}%（必须为 100%）`;
+    feedback.dataset.valid = String(summary.valid);
   }
 
   function newStableId(prefix, items) {
@@ -273,10 +269,13 @@
     const view = document.createElement("button");
     view.type = "button";
     view.textContent = "查看";
+    view.setAttribute("aria-label", `查看版本 ${version.id}`);
     view.addEventListener("click", () => viewVersion(version.id));
     const activate = document.createElement("button");
     activate.type = "button";
     activate.textContent = version.active ? "已生效" : "设为生效";
+    activate.setAttribute("aria-label",
+      version.active ? `版本 ${version.id} 已生效` : `将版本 ${version.id} 设为生效`);
     activate.disabled = version.active === true;
     activate.addEventListener("click", () => activateHistoricalVersion(version.id));
     actions.append(view, activate);
@@ -310,6 +309,7 @@
           return;
         }
         draft = payload.config;
+        draftRevision = payload.revision;
         invalidJsonFields.clear();
         renderDraft();
         renderVersions(payload.versions);
@@ -355,13 +355,18 @@
     if (invalidJsonFields.size > 0) {
       throw new Error("请先修正标记为无效的 JSON 字段");
     }
-    await promptRequest("/api/admin/prompt/config", {
+    if (!Number.isSafeInteger(draftRevision)) {
+      throw new Error("Prompt 配置版本尚未加载");
+    }
+    const saved = await promptRequest("/api/admin/prompt/config", {
       method: "PUT",
+      headers: {"If-Match": `"${draftRevision}"`},
       body: JSON.stringify({config: draft}),
     });
+    draftRevision = saved.revision;
     invalidJsonFields.clear();
     setStatus("草稿已保存。", "success");
-    return draft;
+    return saved.config;
   }
 
   async function aggregateDraft() {
@@ -370,6 +375,7 @@
       await saveDraft();
       const version = await promptRequest("/api/admin/prompt/aggregate", {
         method: "POST",
+        body: JSON.stringify({expected_revision: draftRevision}),
       });
       pendingVersionId = version.id;
       preview.value = version.preview || "";

@@ -82,6 +82,46 @@ def test_python_validation_accepts_capacity_boundaries():
     assert validated["limits"]["avoid_words"] == 10_000
 
 
+@pytest.mark.parametrize("field", ["positive_examples", "negative_examples"])
+@pytest.mark.parametrize(
+    "collection",
+    [
+        {},
+        [None],
+        [{"id": " ", "enabled": True, "content": "example"}],
+        [{"id": " padded ", "enabled": True, "content": "example"}],
+        [
+            {"id": "duplicate", "enabled": True, "content": "first"},
+            {"id": "duplicate", "enabled": False, "content": ""},
+        ],
+        [{"id": "strict-bool", "enabled": 1, "content": "example"}],
+        [{"id": "enabled-blank", "enabled": True, "content": "\ufeff"}],
+    ],
+)
+def test_prompt_spec_rejects_malformed_optional_text_examples(field, collection):
+    spec = copy.deepcopy(prompt_spec.load_prompt_spec())
+    spec[field] = collection
+
+    with pytest.raises(ValueError):
+        prompt_spec.validate_prompt_spec(spec)
+
+
+def test_prompt_spec_accepts_missing_or_disabled_blank_text_examples():
+    spec = copy.deepcopy(prompt_spec.load_prompt_spec())
+    validated_without_optional_fields = prompt_spec.validate_prompt_spec(spec)
+    spec["positive_examples"] = [
+        {"id": "positive-disabled", "enabled": False, "content": ""}
+    ]
+    spec["negative_examples"] = [
+        {"id": "negative-disabled", "enabled": False, "content": ""}
+    ]
+
+    assert "positive_examples" not in validated_without_optional_fields
+    assert prompt_spec.validate_prompt_spec(spec)["negative_examples"][0][
+        "enabled"
+    ] is False
+
+
 def test_renderer_adds_enabled_positive_and_negative_examples_before_community():
     spec = copy.deepcopy(prompt_spec.load_prompt_spec())
     spec["positive_examples"] = [

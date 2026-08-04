@@ -33,6 +33,7 @@ services:
       REDIS_URL: "redis://redis:6379/1"
       # DeepSeek 密钥仅从被 Git 忽略的本地 .env 注入。
       LLM_API_KEY: "${LLM_API_KEY:-}"
+      ADMIN_TOKEN: "${ADMIN_TOKEN:-}"
       LLM_BASE_URL: "${LLM_BASE_URL:-https://api.deepseek.com}"
       LLM_MODEL: "${LLM_MODEL:-deepseek-v4-flash}"
       LLM_TIMEOUT: "${LLM_TIMEOUT:-20}"

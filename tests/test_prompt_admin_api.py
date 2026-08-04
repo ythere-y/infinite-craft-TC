@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import json
+import logging
 
 import pytest
 from fastapi.testclient import TestClient
@@ -108,6 +110,8 @@ def test_admin_can_save_aggregate_preview_activate_and_roll_back(
     config_response = authorized_client.get("/api/admin/prompt/config")
     assert config_response.status_code == 200
     payload = config_response.json()
+    assert payload["revision"] == 1
+    assert config_response.headers["etag"] == '"1"'
     initial_id = payload["active_version"]["id"]
     assert payload["active_version"]["active"] is True
     assert any(
@@ -120,11 +124,17 @@ def test_admin_can_save_aggregate_preview_activate_and_roll_back(
     saved = authorized_client.put(
         "/api/admin/prompt/config",
         json={"config": config},
+        headers={"If-Match": config_response.headers["etag"]},
     )
     assert saved.status_code == 200
     assert saved.json()["config"]["temperature"] == 0.42
+    assert saved.json()["revision"] == 2
+    assert saved.headers["etag"] == '"2"'
 
-    generated_response = authorized_client.post("/api/admin/prompt/aggregate")
+    generated_response = authorized_client.post(
+        "/api/admin/prompt/aggregate",
+        json={"expected_revision": saved.json()["revision"]},
+    )
     assert generated_response.status_code == 200
     generated = generated_response.json()
     assert generated["active"] is False
@@ -161,6 +171,7 @@ def test_saving_invalid_prompt_draft_returns_422(
     response = authorized_client.put(
         "/api/admin/prompt/config",
         json={"config": invalid},
+        headers={"If-Match": '"1"'},
     )
 
     assert response.status_code == 422
@@ -180,3 +191,170 @@ def test_missing_prompt_version_returns_404(
     response = getattr(authorized_client, method)(path)
 
     assert response.status_code == 404
+
+
+def test_put_requires_a_draft_precondition(authorized_client):
+    payload = authorized_client.get("/api/admin/prompt/config").json()
+
+    response = authorized_client.put(
+        "/api/admin/prompt/config",
+        json={"config": payload["config"]},
+    )
+
+    assert response.status_code == 428
+
+
+def test_interleaved_admin_tabs_cannot_overwrite_or_aggregate_another_draft(
+    authorized_client,
+    initialized_prompt_store,
+):
+    tab_a = authorized_client.get("/api/admin/prompt/config")
+    tab_b = authorized_client.get("/api/admin/prompt/config")
+    assert tab_a.json()["revision"] == tab_b.json()["revision"] == 1
+
+    draft_a = tab_a.json()["config"]
+    draft_a["temperature"] = 0.31
+    saved_a = authorized_client.put(
+        "/api/admin/prompt/config",
+        json={"config": draft_a},
+        headers={"If-Match": tab_a.headers["etag"]},
+    )
+    assert saved_a.status_code == 200
+    assert saved_a.json()["revision"] == 2
+
+    stale_b = tab_b.json()["config"]
+    stale_b["temperature"] = 0.32
+    rejected_save = authorized_client.put(
+        "/api/admin/prompt/config",
+        json={"config": stale_b},
+        headers={"If-Match": tab_b.headers["etag"]},
+    )
+    assert rejected_save.status_code == 409
+    assert initialized_prompt_store.get_draft()["temperature"] == 0.31
+
+    refreshed_b = authorized_client.get("/api/admin/prompt/config")
+    draft_b = refreshed_b.json()["config"]
+    draft_b["temperature"] = 0.33
+    saved_b = authorized_client.put(
+        "/api/admin/prompt/config",
+        json={"config": draft_b},
+        headers={"If-Match": refreshed_b.headers["etag"]},
+    )
+    assert saved_b.status_code == 200
+    assert saved_b.json()["revision"] == 3
+
+    versions_before = len(initialized_prompt_store.list_versions())
+    rejected_aggregate = authorized_client.post(
+        "/api/admin/prompt/aggregate",
+        json={"expected_revision": saved_a.json()["revision"]},
+    )
+    assert rejected_aggregate.status_code == 409
+    assert len(initialized_prompt_store.list_versions()) == versions_before
+    assert initialized_prompt_store.get_draft()["temperature"] == 0.33
+
+
+def test_prompt_store_busy_maps_to_a_predictable_retryable_response(
+    authorized_client,
+    monkeypatch,
+):
+    revision = authorized_client.get("/api/admin/prompt/config").json()["revision"]
+
+    def busy(*args, **kwargs):
+        raise prompt_store.PromptStoreBusyError()
+
+    monkeypatch.setattr(prompt_store, "aggregate_draft", busy)
+    response = authorized_client.post(
+        "/api/admin/prompt/aggregate",
+        json={"expected_revision": revision},
+    )
+
+    assert response.status_code == 503
+    assert response.headers["retry-after"] == "1"
+    assert response.json() == {"detail": "Prompt store is busy"}
+
+
+def test_corrupted_persisted_spec_returns_sanitized_500_and_log(
+    authorized_client,
+    initialized_prompt_store,
+    caplog,
+):
+    active = initialized_prompt_store.get_active_version()
+    corrupted = deepcopy(active["effective_spec"])
+    corrupted["positive_examples"] = [
+        {
+            "id": "private",
+            "enabled": 1,
+            "content": "PRIVATE_PROMPT_SENTINEL",
+        }
+    ]
+    con = archive._conn()
+    con.execute(
+        "UPDATE prompt_versions SET effective_spec_json = ? WHERE id = ?",
+        (json.dumps(corrupted), active["id"]),
+    )
+    con.commit()
+    con.close()
+    caplog.set_level(logging.ERROR)
+
+    response = authorized_client.get(
+        f"/api/admin/prompt/versions/{active['id']}"
+    )
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Prompt store is unavailable"}
+    assert "prompt_store_corruption" in caplog.text
+    assert active["id"] in caplog.text
+    assert "PRIVATE_PROMPT_SENTINEL" not in caplog.text
+    assert "Bearer secret" not in caplog.text
+
+
+def test_version_summaries_are_metadata_only_allowlisted_and_paginated(
+    authorized_client,
+):
+    config = authorized_client.get("/api/admin/prompt/config").json()
+    first = authorized_client.post(
+        "/api/admin/prompt/aggregate",
+        json={"expected_revision": config["revision"]},
+    ).json()
+    authorized_client.post(
+        "/api/admin/prompt/aggregate",
+        json={"expected_revision": config["revision"]},
+    )
+    con = archive._conn()
+    con.execute(
+        "UPDATE prompt_versions SET snapshot_json = ? WHERE id = ?",
+        ("{", first["id"]),
+    )
+    con.commit()
+    con.close()
+
+    response = authorized_client.get(
+        "/api/admin/prompt/config?version_limit=1&version_offset=1"
+    )
+
+    assert response.status_code == 200
+    versions = response.json()["versions"]
+    assert len(versions) == 1
+    assert set(versions[0]) == {
+        "id",
+        "created_at",
+        "selected_style_id",
+        "selected_style_name",
+        "selected_style",
+        "active",
+    }
+
+
+class _RequestStub:
+    def __init__(self, authorization):
+        self.headers = {"authorization": authorization}
+
+
+def test_admin_token_comparison_handles_non_ascii_without_500(monkeypatch):
+    monkeypatch.setenv("ADMIN_TOKEN", "绠＄悊鍛橀攣馃攽")
+
+    main.require_admin_token(_RequestStub("Bearer 绠＄悊鍛橀攣馃攽"))
+    with pytest.raises(main.HTTPException) as caught:
+        main.require_admin_token(_RequestStub("Bearer 閿欒馃攽"))
+
+    assert caught.value.status_code == 401

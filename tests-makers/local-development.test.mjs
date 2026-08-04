@@ -32,6 +32,7 @@ test("Compose fixes the local runtime and supports source reload", async () => {
   assert.match(compose, /APP_ENV:\s*"dev"/u);
   assert.match(compose, /REDIS_URL:\s*"redis:\/\/redis:6379\/1"/u);
   assert.match(compose, /LLM_API_KEY:\s*"\$\{LLM_API_KEY:-\}"/u);
+  assert.match(compose, /ADMIN_TOKEN:\s*"\$\{ADMIN_TOKEN:-\}"/u);
   assert.match(compose, /LLM_BASE_URL:.*https:\/\/api\.deepseek\.com/u);
   assert.match(compose, /LLM_MODEL:.*deepseek-v4-flash/u);
   assert.match(compose, /\.\/backend:\/app\/backend:ro/u);

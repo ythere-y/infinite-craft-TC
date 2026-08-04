@@ -30,12 +30,13 @@ def _db_path() -> Path:
     return _DATA_DIR / f"{env}.db"
 
 
-def _conn() -> sqlite3.Connection:
+def _conn(*, timeout: float = 5.0) -> sqlite3.Connection:
     _DATA_DIR.mkdir(parents=True, exist_ok=True)
-    con = sqlite3.connect(str(_db_path()))
+    con = sqlite3.connect(str(_db_path()), timeout=timeout)
     con.row_factory = sqlite3.Row
     con.execute("PRAGMA journal_mode=WAL")  # 并发写友好
     con.execute("PRAGMA synchronous=NORMAL")
+    con.execute(f"PRAGMA busy_timeout={max(0, int(timeout * 1000))}")
     return con
 
 
@@ -89,7 +90,8 @@ def init_archive() -> None:
                 CREATE TABLE IF NOT EXISTS prompt_draft (
                     singleton   INTEGER PRIMARY KEY CHECK (singleton = 1),
                     config_json TEXT NOT NULL,
-                    updated_at  REAL NOT NULL
+                    updated_at  REAL NOT NULL,
+                    revision    INTEGER NOT NULL DEFAULT 1
                 );
 
                 CREATE TABLE IF NOT EXISTS prompt_versions (
@@ -133,6 +135,17 @@ def init_archive() -> None:
             }
             if "icon_json" not in element_columns:
                 con.execute("ALTER TABLE elements ADD COLUMN icon_json TEXT")
+            prompt_draft_columns = {
+                row["name"]
+                for row in con.execute(
+                    "PRAGMA table_info(prompt_draft)"
+                ).fetchall()
+            }
+            if "revision" not in prompt_draft_columns:
+                con.execute(
+                    "ALTER TABLE prompt_draft "
+                    "ADD COLUMN revision INTEGER NOT NULL DEFAULT 1"
+                )
             con.commit()
             print(f"[sqlite] archive ready: {_db_path()}")
         finally:
