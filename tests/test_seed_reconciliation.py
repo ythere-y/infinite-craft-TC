@@ -187,13 +187,14 @@ def test_seed_load_replaces_conflicting_stores_without_touching_dynamic_formulas
     }
 
 
-def test_homepage_guidance_omits_case_study_and_double_click_copy():
+def test_homepage_guidance_retains_case_study_and_desktop_double_click_copy():
     homepage = (ROOT / "frontend/index.html").read_text(encoding="utf-8")
 
     hint = homepage.split('<div id="hint" class="hint">', 1)[1].split(
         '<section id="casino-hud"',
         1,
     )[0]
-    assert "案例展示" not in hint
-    assert "case-step" not in hint
-    assert "双击" not in hint
+    assert "案例展示" in hint
+    assert "case-step" in hint
+    assert "desktop-only-help" in hint
+    assert "双击" in hint

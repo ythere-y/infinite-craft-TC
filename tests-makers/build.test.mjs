@@ -879,12 +879,21 @@ test("committed-only Makers fixture regenerates prompt data from the canonical s
   }
 });
 
-test("Compose resolves the shared prompt as a read-only web bind mount", async () => {
-  const { stdout } = await execFileAsync(
-    "docker",
-    ["compose", "config", "--format", "json"],
-    { cwd: ".", encoding: "utf8" },
-  );
+test("Compose resolves the shared prompt as a read-only web bind mount", async (t) => {
+  let stdout;
+  try {
+    ({ stdout } = await execFileAsync(
+      "docker",
+      ["compose", "config", "--format", "json"],
+      { cwd: ".", encoding: "utf8" },
+    ));
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      t.skip("Docker is not installed in this environment");
+      return;
+    }
+    throw error;
+  }
   const config = JSON.parse(stdout);
   const sharedMount = config.services.web.volumes.find(
     (volume) => volume.type === "bind" && volume.target === "/app/shared",
