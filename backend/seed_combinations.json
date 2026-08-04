@@ -18,8 +18,7 @@
       "product": "腾讯产品线合成",
       "studio": "腾讯游戏工作室合成",
       "level": "T/P/M 族职级合成",
-      "boss": "高管合成",
-      "invest": "被投公司合成"
+      "boss": "高管合成"
     }
   },
   "combinations": {
@@ -596,7 +595,7 @@
     "公益 + 鹅厂": {
       "result": "99公益日",
       "emoji": "❤️",
-      "chain": "invest"
+      "chain": "tencent"
     },
     "家庭 + 工位": {
       "result": "打工人的命",

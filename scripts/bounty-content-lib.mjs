@@ -12,6 +12,11 @@ const GAME_PROVENANCE_KINDS = new Set([
   "co_developed",
   "published",
 ]);
+const GAME_DEVELOPER_PLACEHOLDERS = new Set([
+  "Third-party developer",
+  "Korean developer",
+  "Tencent and a third-party developer",
+]);
 const BINDING_STARTERS = [
   "水", "火", "风", "土", "企鹅", "人",
   "时间", "AI", "电脑", "手机", "网络",
@@ -173,12 +178,14 @@ function validateGameFacts(target, targetName) {
   if (!GAME_PROVENANCE_KINDS.has(provenance)) {
     throw new Error(`invalid game provenance ${provenance} for ${targetName}`);
   }
-  for (const field of [
-    "developer",
-    "tencent_role",
-    "source_url",
-    "source_title",
-  ]) {
+  const developer = requireName(
+    record.developer,
+    `${targetName} factual metadata developer`,
+  );
+  if (GAME_DEVELOPER_PLACEHOLDERS.has(developer)) {
+    throw new Error(`placeholder developer metadata for ${targetName}`);
+  }
+  for (const field of ["tencent_role", "source_url", "source_title"]) {
     requireName(record[field], `${targetName} factual metadata ${field}`);
   }
 }

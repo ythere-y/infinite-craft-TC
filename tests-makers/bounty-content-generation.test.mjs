@@ -64,9 +64,9 @@ const SOURCE_BACKED_GAME_FACTS = {
     tencent_role: "in_house_game",
   },
   "金铲铲之战": {
-    provenance: "licensed",
-    developer: "Third-party developer",
-    tencent_role: "licensed_game",
+    provenance: "in_house",
+    developer: "Tencent",
+    tencent_role: "in_house_game",
   },
   "DNF": {
     provenance: "licensed",
@@ -83,6 +83,79 @@ const SOURCE_BACKED_GAME_FACTS = {
     developer: "第七大道",
     tencent_role: "licensed_mobile_game_publisher",
   },
+};
+const HIGH_RISK_GAME_FACTS = {
+  "寻仙": {
+    provenance: "licensed",
+    developer: "北京像素软件科技股份有限公司",
+    tencent_role: "licensed_china_operator",
+  },
+  "战地之王": {
+    provenance: "licensed",
+    developer: "Redduck, Inc.",
+    tencent_role: "licensed_china_operator",
+  },
+  "剑灵": {
+    provenance: "licensed",
+    developer: "NCSOFT",
+    tencent_role: "licensed_china_operator",
+  },
+  "上古世纪": {
+    provenance: "licensed",
+    developer: "XLGAMES",
+    tencent_role: "licensed_china_operator",
+  },
+  "NBA2K Online": {
+    provenance: "co_developed",
+    developer: "2K and Tencent",
+    tencent_role: "co_developed_game",
+  },
+  "FIFA Online": {
+    provenance: "licensed",
+    developer: "EA Spearhead",
+    tencent_role: "licensed_china_operator",
+  },
+  "英雄联盟": {
+    provenance: "licensed",
+    developer: "Riot Games",
+    tencent_role: "licensed_china_operator",
+  },
+  "金铲铲之战": {
+    provenance: "in_house",
+    developer: "Tencent",
+    tencent_role: "in_house_game",
+  },
+};
+const FORBIDDEN_GAME_DEVELOPERS = new Set([
+  "Third-party developer",
+  "Korean developer",
+  "Tencent and a third-party developer",
+]);
+const EXPECTED_CANONICAL_RECIPE_INPUTS = {
+  "中台": ["公司", "协作"],
+  "组织架构调整": ["中台", "转岗"],
+  "QQ空间": ["QQ", "社交"],
+  "朋友圈": ["微信", "朋友"],
+  "S Studio": ["工作室", "对战"],
+  "R Studio": ["工作室", "角色扮演"],
+  "TiKi Studio": ["工作室", "麻将"],
+  "腾讯视频": ["腾讯", "视频号"],
+  "电脑管家": ["电脑", "管家"],
+  "实习生": ["入职", "工牌"],
+  "早会": ["早高峰", "腾讯会议"],
+  "健身房": ["打工人", "跑步"],
+  "周会纪要": ["周五", "会议记录"],
+  "金地威新": ["大厦", "深圳"],
+};
+const KRAFTON_RELATIONSHIP = {
+  kind: "licensed_partner",
+  as_of: "2025-06-09",
+  source_url: "https://www.tencent.com/en-us/articles/2202101.html",
+  source_title:
+    "Tencent Games Joins the Playing for the Planet Alliance to Champion Green Gaming",
+  note:
+    "Tencent states that PUBG MOBILE was co-developed by LIGHTSPEED STUDIOS " +
+    "of Tencent Games and Krafton Inc.",
 };
 const TITLE_SPECIFIC_GAME_SOURCES = [
   "QQ堂", "自由幻想", "QQ音速", "Q宠大乐斗", "战地之王",
@@ -197,6 +270,17 @@ function asAssociationTarget(input) {
   return input;
 }
 
+function asGameTarget(input) {
+  input.catalog.groups[0] = {
+    ...input.catalog.groups[0],
+    key: "tencent_game",
+    category: "tencent_game",
+    label: "腾讯游戏",
+  };
+  input.catalog.targets.QQ.category = "tencent_game";
+  return input;
+}
+
 function associationRecord() {
   return {
     kind: "historical_association",
@@ -250,6 +334,24 @@ test("catalog compiler accepts an association target with complete relationship 
   const input = asAssociationTarget(fixture());
   input.catalog.targets.QQ.relationship = associationRecord();
   assert.doesNotThrow(() => compileBountyContent(input));
+});
+
+test("catalog compiler rejects placeholder game developer metadata", () => {
+  for (const developer of FORBIDDEN_GAME_DEVELOPERS) {
+    const input = asGameTarget(fixture());
+    input.catalog.targets.QQ.factual_metadata = {
+      provenance: "licensed",
+      developer,
+      tencent_role: "licensed_game",
+      source_url: "https://example.com/qq",
+      source_title: "QQ source",
+    };
+    assert.throws(
+      () => compileBountyContent(input),
+      /placeholder.*developer|developer.*placeholder/iu,
+      developer,
+    );
+  }
 });
 
 test("catalog compiler requires the exact eleven binding starters", () => {
@@ -326,6 +428,35 @@ test("committed epoch 2 catalog locks the approved roster", async () => {
       `${name} factual metadata`,
     );
   }
+  for (const [name, expected] of Object.entries(HIGH_RISK_GAME_FACTS)) {
+    const facts = artifact.elements[name]?.factual_metadata;
+    assert.deepEqual(
+      {
+        provenance: facts?.provenance,
+        developer: facts?.developer,
+        tencent_role: facts?.tencent_role,
+      },
+      expected,
+      `${name} high-risk factual metadata`,
+    );
+  }
+  for (const name of targetsFor("tencent_game")) {
+    const facts = artifact.elements[name]?.factual_metadata;
+    assert.ok(facts, `${name} factual metadata`);
+    assert.ok(!FORBIDDEN_GAME_DEVELOPERS.has(facts.developer), `${name} placeholder developer`);
+  }
+  for (const [name, expected] of Object.entries(EXPECTED_CANONICAL_RECIPE_INPUTS)) {
+    const recipe = artifact.canonical_recipes[name];
+    assert.deepEqual(
+      [recipe?.a, recipe?.b].sort(),
+      [...expected].sort(),
+      `${name} canonical recipe inputs`,
+    );
+  }
+  for (const [name, recipe] of Object.entries(artifact.canonical_recipes)) {
+    assert.notEqual(recipe.a, recipe.b, `${name} repeats one recipe input`);
+  }
+  assert.deepEqual(artifact.elements.KRAFTON.relationship, KRAFTON_RELATIONSHIP);
   for (const name of TITLE_SPECIFIC_GAME_SOURCES) {
     const facts = artifact.elements[name]?.factual_metadata;
     assert.ok(facts?.source_url, `${name} title-specific source_url`);
@@ -379,6 +510,35 @@ test("epoch 2 preserves every classic seed pair and result", async () => {
       .map(([pair, recipe]) => [pair, recipe.result]),
   );
   assert.deepEqual(classic, EXPECTED_CLASSIC_RECIPES);
+});
+
+test("epoch 2 exposes no invest category or recipe chain", async () => {
+  const [catalog, seedElements, seedCombinations, artifact] = await Promise.all([
+    readFile("content/tencent-bounty-catalog.json", "utf8").then(JSON.parse),
+    readFile("backend/seed_elements.json", "utf8").then(JSON.parse),
+    readFile("backend/seed_combinations.json", "utf8").then(JSON.parse),
+    readFile("backend/generated/bounty-content.json", "utf8").then(JSON.parse),
+  ]);
+  const sourceElements = [
+    ...Object.values(seedElements.elements),
+    ...Object.values(catalog.support_elements),
+    ...Object.values(catalog.targets),
+  ];
+  const sourceRecipes = [
+    ...Object.values(seedCombinations.combinations),
+    ...Object.values(catalog.support_recipes),
+    ...Object.values(catalog.targets).map((target) => target.canonical_recipe),
+  ];
+
+  assert.ok(sourceElements.every((element) => element.category !== "invest"));
+  assert.ok(sourceRecipes.every((recipe) => recipe.chain !== "invest"));
+  assert.equal(seedCombinations._meta?.chains?.invest, undefined);
+  assert.ok(
+    Object.values(artifact.elements).every((element) => element.category !== "invest"),
+  );
+  assert.ok(
+    Object.values(artifact.combinations).every((recipe) => recipe.chain !== "invest"),
+  );
 });
 
 test("committed epoch 2 artifacts exactly match all three sources", async () => {

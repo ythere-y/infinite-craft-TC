@@ -524,10 +524,10 @@
       "category": "tencent",
       "aliases": [],
       "canonical_recipe": {
-        "a": "工位",
-        "b": "打工人",
+        "a": "打工人",
+        "b": "跑步",
         "chain": "tencent",
-        "comment": "工位与打工人合成健身房。"
+        "comment": "打工人开始跑步锻炼，就来到健身房。"
       },
       "factual_metadata": {
         "scope": "culture",
@@ -629,10 +629,10 @@
       "category": "tencent",
       "aliases": [],
       "canonical_recipe": {
-        "a": "赛马",
-        "b": "赛马",
+        "a": "公司",
+        "b": "协作",
         "chain": "tencent",
-        "comment": "赛马与赛马合成中台。"
+        "comment": "公司沉淀跨团队协作能力，形成共享中台。"
       },
       "factual_metadata": {
         "scope": "culture",
@@ -660,9 +660,9 @@
       "aliases": [],
       "canonical_recipe": {
         "a": "中台",
-        "b": "中台",
+        "b": "转岗",
         "chain": "tencent",
-        "comment": "中台与中台合成组织架构调整。"
+        "comment": "中台重组伴随人员转岗，形成组织架构调整。"
       },
       "factual_metadata": {
         "scope": "culture",
@@ -884,10 +884,10 @@
       "category": "tencent",
       "aliases": [],
       "canonical_recipe": {
-        "a": "周五",
+        "a": "早高峰",
         "b": "腾讯会议",
         "chain": "tencent",
-        "comment": "周五与腾讯会议合成早会。"
+        "comment": "早高峰后的第一场腾讯会议，就是早会。"
       },
       "factual_metadata": {
         "scope": "culture",
@@ -929,10 +929,10 @@
       "category": "tencent",
       "aliases": [],
       "canonical_recipe": {
-        "a": "RTX",
-        "b": "周五",
+        "a": "周五",
+        "b": "会议记录",
         "chain": "tencent",
-        "comment": "RTX与周五合成周会纪要。"
+        "comment": "周五汇总本周的会议记录，形成周会纪要。"
       },
       "factual_metadata": {
         "scope": "culture",
@@ -1335,9 +1335,9 @@
       "aliases": [],
       "canonical_recipe": {
         "a": "QQ",
-        "b": "QQ",
+        "b": "社交",
         "chain": "qq_memory",
-        "comment": "QQ与QQ合成QQ空间。"
+        "comment": "QQ扩展社交内容主页，形成QQ空间。"
       },
       "factual_metadata": {
         "scope": "qq_memory",
@@ -2180,10 +2180,10 @@
       "factual_metadata": {
         "scope": "tencent_game",
         "provenance": "licensed",
-        "developer": "Third-party developer",
-        "tencent_role": "licensed_game",
-        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+        "developer": "北京像素软件科技股份有限公司",
+        "tencent_role": "licensed_china_operator",
+        "source_url": "https://www.pixelgame.net/pixelsoft/site/company",
+        "source_title": "像素软件官方网站：公司简介"
       }
     },
     "逆战": {
@@ -2218,10 +2218,10 @@
       "factual_metadata": {
         "scope": "tencent_game",
         "provenance": "licensed",
-        "developer": "Korean developer",
-        "tencent_role": "licensed_game",
-        "source_url": "https://static.www.tencent.com/storage/uploads/2019/11/09/57af991f6140c11022fe47be60116589.pdf",
-        "source_title": "Tencent Holdings Limited Interim Report 2009"
+        "developer": "Redduck, Inc.",
+        "tencent_role": "licensed_china_operator",
+        "source_url": "https://www.unrealengine.com/en-US/blog/redduck-licenses-epic-games-unreal-engine-3",
+        "source_title": "Redduck Licenses Epic Games’ Unreal Engine 3"
       }
     },
     "剑灵": {
@@ -2237,10 +2237,10 @@
       "factual_metadata": {
         "scope": "tencent_game",
         "provenance": "licensed",
-        "developer": "Third-party developer",
-        "tencent_role": "licensed_game",
-        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+        "developer": "NCSOFT",
+        "tencent_role": "licensed_china_operator",
+        "source_url": "https://about.ncsoft.com/en/news/article/news_update_250812_2",
+        "source_title": "NCSOFT Launches New Mobile Casual Division, Names European Mobile Games Industry Veteran as Senior VP"
       }
     },
     "上古世纪": {
@@ -2256,10 +2256,10 @@
       "factual_metadata": {
         "scope": "tencent_game",
         "provenance": "licensed",
-        "developer": "Third-party developer",
-        "tencent_role": "licensed_game",
-        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+        "developer": "XLGAMES",
+        "tencent_role": "licensed_china_operator",
+        "source_url": "https://www.xlgames.com/en/games",
+        "source_title": "Games | XLGAMES"
       }
     },
     "使命召唤Online": {
@@ -2294,10 +2294,10 @@
       "factual_metadata": {
         "scope": "tencent_game",
         "provenance": "co_developed",
-        "developer": "Tencent and a third-party developer",
+        "developer": "2K and Tencent",
         "tencent_role": "co_developed_game",
-        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+        "source_url": "https://ir.take2games.com/static-files/96e31fc2-b06b-4061-9928-ae7aea345a2c",
+        "source_title": "Take-Two Interactive Software, Inc. 2024 Annual Report"
       }
     },
     "FIFA Online": {
@@ -2313,10 +2313,10 @@
       "factual_metadata": {
         "scope": "tencent_game",
         "provenance": "licensed",
-        "developer": "Third-party developer",
-        "tencent_role": "licensed_game",
-        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+        "developer": "EA Spearhead",
+        "tencent_role": "licensed_china_operator",
+        "source_url": "https://www.nexon.co.jp/en/news/detail/?id=20180524-962e623a",
+        "source_title": "Highly Anticipated PC Sports Game FIFA Online 4 Launches in Korea"
       }
     },
     "天涯明月刀": {
@@ -2521,11 +2521,11 @@
       },
       "factual_metadata": {
         "scope": "tencent_game",
-        "provenance": "in_house",
-        "developer": "Tencent",
-        "tencent_role": "in_house_game",
-        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+        "provenance": "licensed",
+        "developer": "Riot Games",
+        "tencent_role": "licensed_china_operator",
+        "source_url": "https://static.www.tencent.com/storage/uploads/2019/11/09/7b7a52dbf0616864e5e25ff354b28aca.pdf",
+        "source_title": "Tencent Holdings Acquires Majority Stake in Game Publisher Riot Games"
       }
     },
     "王者荣耀": {
@@ -2580,11 +2580,11 @@
       },
       "factual_metadata": {
         "scope": "tencent_game",
-        "provenance": "licensed",
-        "developer": "Third-party developer",
-        "tencent_role": "licensed_game",
-        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+        "provenance": "in_house",
+        "developer": "Tencent",
+        "tencent_role": "in_house_game",
+        "source_url": "https://static.www.tencent.com/uploads/2025/08/13/453b68a3bf72c22bad300d166d461c2d.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet (2Q 2025)"
       }
     },
     "火影忍者手游": {
@@ -2732,9 +2732,9 @@
       "aliases": [],
       "canonical_recipe": {
         "a": "微信",
-        "b": "微信",
+        "b": "朋友",
         "chain": "product",
-        "comment": "微信与微信合成朋友圈。"
+        "comment": "微信连接朋友并分享动态，形成朋友圈。"
       },
       "factual_metadata": {
         "scope": "product",
@@ -2761,10 +2761,10 @@
       "category": "product",
       "aliases": [],
       "canonical_recipe": {
-        "a": "视频号",
+        "a": "腾讯",
         "b": "视频号",
         "chain": "product",
-        "comment": "视频号与视频号合成腾讯视频。"
+        "comment": "腾讯的视频服务与视频号相连，合成腾讯视频。"
       },
       "factual_metadata": {
         "scope": "product",
@@ -2896,10 +2896,10 @@
       "category": "product",
       "aliases": [],
       "canonical_recipe": {
-        "a": "AI",
-        "b": "打工人",
+        "a": "电脑",
+        "b": "管家",
         "chain": "product",
-        "comment": "AI与打工人合成电脑管家。"
+        "comment": "电脑配上系统管家，组成电脑管家。"
       },
       "factual_metadata": {
         "scope": "product",
@@ -3325,9 +3325,9 @@
       "aliases": [],
       "canonical_recipe": {
         "a": "工作室",
-        "b": "声音",
+        "b": "对战",
         "chain": "studio",
-        "comment": "工作室以声音的首字母 S 命名，指向 S Studio。"
+        "comment": "工作室与竞争对战品类合成S Studio。"
       },
       "factual_metadata": {
         "scope": "studio",
@@ -3340,9 +3340,9 @@
       "aliases": [],
       "canonical_recipe": {
         "a": "工作室",
-        "b": "速度",
+        "b": "角色扮演",
         "chain": "studio",
-        "comment": "工作室结合 Racing 的速度意象，指向 R Studio。"
+        "comment": "工作室专注角色扮演品类，合成R Studio。"
       },
       "factual_metadata": {
         "scope": "studio",
@@ -3355,9 +3355,9 @@
       "aliases": [],
       "canonical_recipe": {
         "a": "工作室",
-        "b": "魔法",
+        "b": "麻将",
         "chain": "studio",
-        "comment": "工作室结合 TiKi 的图腾与魔法意象，指向 TiKi Studio。"
+        "comment": "工作室与其棋牌产品合成TiKi Studio。"
       },
       "factual_metadata": {
         "scope": "studio",
@@ -3535,9 +3535,9 @@
       "aliases": [],
       "canonical_recipe": {
         "a": "大厦",
-        "b": "金属",
+        "b": "深圳",
         "chain": "building",
-        "comment": "大厦与金属合成金地威新。"
+        "comment": "深圳的办公大厦合成金地威新。"
       },
       "factual_metadata": {
         "scope": "campus",
@@ -3624,10 +3624,10 @@
       "category": "level",
       "aliases": [],
       "canonical_recipe": {
-        "a": "工牌",
-        "b": "微信",
+        "a": "入职",
+        "b": "工牌",
         "chain": "level",
-        "comment": "工牌与微信合成实习生。"
+        "comment": "办理入职并领到工牌，成为实习生。"
       },
       "factual_metadata": {
         "scope": "level",
@@ -4563,10 +4563,10 @@
       },
       "relationship": {
         "kind": "licensed_partner",
-        "as_of": "2026-08-04",
-        "source_url": "https://intl.cloud.tencent.com/en/render/wggtf",
-        "source_title": "Where Great Games Take Flight",
-        "note": "Tencent's official case study records PUBG Mobile licensing and joint development with PUBG Corporation."
+        "as_of": "2025-06-09",
+        "source_url": "https://www.tencent.com/en-us/articles/2202101.html",
+        "source_title": "Tencent Games Joins the Playing for the Planet Alliance to Champion Green Gaming",
+        "note": "Tencent states that PUBG MOBILE was co-developed by LIGHTSPEED STUDIOS of Tencent Games and Krafton Inc."
       }
     },
     "NCSoft": {
@@ -4604,6 +4604,10 @@
     "聊天": {
       "emoji": "💬",
       "category": "social"
+    },
+    "会议记录": {
+      "emoji": "📋",
+      "category": "abstract"
     },
     "腾讯": {
       "emoji": "🐧",
@@ -4707,6 +4711,10 @@
     },
     "对战": {
       "emoji": "🧩",
+      "category": "abstract"
+    },
+    "角色扮演": {
+      "emoji": "🎭",
       "category": "abstract"
     },
     "梦": {
@@ -4955,6 +4963,18 @@
     }
   },
   "support_recipes": {
+    "时间 + 聊天": {
+      "result": "会议记录",
+      "emoji": "📋",
+      "chain": "tencent",
+      "comment": "聊天内容随时间沉淀为会议记录。"
+    },
+    "身份 + 游戏": {
+      "result": "角色扮演",
+      "emoji": "🎭",
+      "chain": "studio",
+      "comment": "游戏赋予玩家新的身份，形成角色扮演品类。"
+    },
     "人 + 电脑": {
       "result": "工位",
       "emoji": "🪑",

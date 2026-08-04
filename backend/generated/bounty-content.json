@@ -1,6 +1,6 @@
 {
   "content_epoch": 2,
-  "catalog_digest": "sha256:76ea8ff4f2fedf0390476314d84c07272cb575113b0da28e6370365102524944",
+  "catalog_digest": "sha256:1c7fb9d6660854f4375e775e5b18fa9898baa67cf0b1b7e00384f60412e26361",
   "catalog": {
     "meta": {
       "content_epoch": 2,
@@ -527,10 +527,10 @@
         "category": "tencent",
         "aliases": [],
         "canonical_recipe": {
-          "a": "工位",
-          "b": "打工人",
+          "a": "打工人",
+          "b": "跑步",
           "chain": "tencent",
-          "comment": "工位与打工人合成健身房。"
+          "comment": "打工人开始跑步锻炼，就来到健身房。"
         },
         "factual_metadata": {
           "scope": "culture",
@@ -632,10 +632,10 @@
         "category": "tencent",
         "aliases": [],
         "canonical_recipe": {
-          "a": "赛马",
-          "b": "赛马",
+          "a": "公司",
+          "b": "协作",
           "chain": "tencent",
-          "comment": "赛马与赛马合成中台。"
+          "comment": "公司沉淀跨团队协作能力，形成共享中台。"
         },
         "factual_metadata": {
           "scope": "culture",
@@ -663,9 +663,9 @@
         "aliases": [],
         "canonical_recipe": {
           "a": "中台",
-          "b": "中台",
+          "b": "转岗",
           "chain": "tencent",
-          "comment": "中台与中台合成组织架构调整。"
+          "comment": "中台重组伴随人员转岗，形成组织架构调整。"
         },
         "factual_metadata": {
           "scope": "culture",
@@ -887,10 +887,10 @@
         "category": "tencent",
         "aliases": [],
         "canonical_recipe": {
-          "a": "周五",
+          "a": "早高峰",
           "b": "腾讯会议",
           "chain": "tencent",
-          "comment": "周五与腾讯会议合成早会。"
+          "comment": "早高峰后的第一场腾讯会议，就是早会。"
         },
         "factual_metadata": {
           "scope": "culture",
@@ -932,10 +932,10 @@
         "category": "tencent",
         "aliases": [],
         "canonical_recipe": {
-          "a": "RTX",
-          "b": "周五",
+          "a": "周五",
+          "b": "会议记录",
           "chain": "tencent",
-          "comment": "RTX与周五合成周会纪要。"
+          "comment": "周五汇总本周的会议记录，形成周会纪要。"
         },
         "factual_metadata": {
           "scope": "culture",
@@ -1338,9 +1338,9 @@
         "aliases": [],
         "canonical_recipe": {
           "a": "QQ",
-          "b": "QQ",
+          "b": "社交",
           "chain": "qq_memory",
-          "comment": "QQ与QQ合成QQ空间。"
+          "comment": "QQ扩展社交内容主页，形成QQ空间。"
         },
         "factual_metadata": {
           "scope": "qq_memory",
@@ -2183,10 +2183,10 @@
         "factual_metadata": {
           "scope": "tencent_game",
           "provenance": "licensed",
-          "developer": "Third-party developer",
-          "tencent_role": "licensed_game",
-          "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-          "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+          "developer": "北京像素软件科技股份有限公司",
+          "tencent_role": "licensed_china_operator",
+          "source_url": "https://www.pixelgame.net/pixelsoft/site/company",
+          "source_title": "像素软件官方网站：公司简介"
         }
       },
       "逆战": {
@@ -2221,10 +2221,10 @@
         "factual_metadata": {
           "scope": "tencent_game",
           "provenance": "licensed",
-          "developer": "Korean developer",
-          "tencent_role": "licensed_game",
-          "source_url": "https://static.www.tencent.com/storage/uploads/2019/11/09/57af991f6140c11022fe47be60116589.pdf",
-          "source_title": "Tencent Holdings Limited Interim Report 2009"
+          "developer": "Redduck, Inc.",
+          "tencent_role": "licensed_china_operator",
+          "source_url": "https://www.unrealengine.com/en-US/blog/redduck-licenses-epic-games-unreal-engine-3",
+          "source_title": "Redduck Licenses Epic Games’ Unreal Engine 3"
         }
       },
       "剑灵": {
@@ -2240,10 +2240,10 @@
         "factual_metadata": {
           "scope": "tencent_game",
           "provenance": "licensed",
-          "developer": "Third-party developer",
-          "tencent_role": "licensed_game",
-          "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-          "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+          "developer": "NCSOFT",
+          "tencent_role": "licensed_china_operator",
+          "source_url": "https://about.ncsoft.com/en/news/article/news_update_250812_2",
+          "source_title": "NCSOFT Launches New Mobile Casual Division, Names European Mobile Games Industry Veteran as Senior VP"
         }
       },
       "上古世纪": {
@@ -2259,10 +2259,10 @@
         "factual_metadata": {
           "scope": "tencent_game",
           "provenance": "licensed",
-          "developer": "Third-party developer",
-          "tencent_role": "licensed_game",
-          "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-          "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+          "developer": "XLGAMES",
+          "tencent_role": "licensed_china_operator",
+          "source_url": "https://www.xlgames.com/en/games",
+          "source_title": "Games | XLGAMES"
         }
       },
       "使命召唤Online": {
@@ -2297,10 +2297,10 @@
         "factual_metadata": {
           "scope": "tencent_game",
           "provenance": "co_developed",
-          "developer": "Tencent and a third-party developer",
+          "developer": "2K and Tencent",
           "tencent_role": "co_developed_game",
-          "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-          "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+          "source_url": "https://ir.take2games.com/static-files/96e31fc2-b06b-4061-9928-ae7aea345a2c",
+          "source_title": "Take-Two Interactive Software, Inc. 2024 Annual Report"
         }
       },
       "FIFA Online": {
@@ -2316,10 +2316,10 @@
         "factual_metadata": {
           "scope": "tencent_game",
           "provenance": "licensed",
-          "developer": "Third-party developer",
-          "tencent_role": "licensed_game",
-          "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-          "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+          "developer": "EA Spearhead",
+          "tencent_role": "licensed_china_operator",
+          "source_url": "https://www.nexon.co.jp/en/news/detail/?id=20180524-962e623a",
+          "source_title": "Highly Anticipated PC Sports Game FIFA Online 4 Launches in Korea"
         }
       },
       "天涯明月刀": {
@@ -2524,11 +2524,11 @@
         },
         "factual_metadata": {
           "scope": "tencent_game",
-          "provenance": "in_house",
-          "developer": "Tencent",
-          "tencent_role": "in_house_game",
-          "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-          "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+          "provenance": "licensed",
+          "developer": "Riot Games",
+          "tencent_role": "licensed_china_operator",
+          "source_url": "https://static.www.tencent.com/storage/uploads/2019/11/09/7b7a52dbf0616864e5e25ff354b28aca.pdf",
+          "source_title": "Tencent Holdings Acquires Majority Stake in Game Publisher Riot Games"
         }
       },
       "王者荣耀": {
@@ -2583,11 +2583,11 @@
         },
         "factual_metadata": {
           "scope": "tencent_game",
-          "provenance": "licensed",
-          "developer": "Third-party developer",
-          "tencent_role": "licensed_game",
-          "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-          "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+          "provenance": "in_house",
+          "developer": "Tencent",
+          "tencent_role": "in_house_game",
+          "source_url": "https://static.www.tencent.com/uploads/2025/08/13/453b68a3bf72c22bad300d166d461c2d.pdf",
+          "source_title": "Tencent PC and Mobile Games Public Information Sheet (2Q 2025)"
         }
       },
       "火影忍者手游": {
@@ -2735,9 +2735,9 @@
         "aliases": [],
         "canonical_recipe": {
           "a": "微信",
-          "b": "微信",
+          "b": "朋友",
           "chain": "product",
-          "comment": "微信与微信合成朋友圈。"
+          "comment": "微信连接朋友并分享动态，形成朋友圈。"
         },
         "factual_metadata": {
           "scope": "product",
@@ -2764,10 +2764,10 @@
         "category": "product",
         "aliases": [],
         "canonical_recipe": {
-          "a": "视频号",
+          "a": "腾讯",
           "b": "视频号",
           "chain": "product",
-          "comment": "视频号与视频号合成腾讯视频。"
+          "comment": "腾讯的视频服务与视频号相连，合成腾讯视频。"
         },
         "factual_metadata": {
           "scope": "product",
@@ -2899,10 +2899,10 @@
         "category": "product",
         "aliases": [],
         "canonical_recipe": {
-          "a": "AI",
-          "b": "打工人",
+          "a": "电脑",
+          "b": "管家",
           "chain": "product",
-          "comment": "AI与打工人合成电脑管家。"
+          "comment": "电脑配上系统管家，组成电脑管家。"
         },
         "factual_metadata": {
           "scope": "product",
@@ -3328,9 +3328,9 @@
         "aliases": [],
         "canonical_recipe": {
           "a": "工作室",
-          "b": "声音",
+          "b": "对战",
           "chain": "studio",
-          "comment": "工作室以声音的首字母 S 命名，指向 S Studio。"
+          "comment": "工作室与竞争对战品类合成S Studio。"
         },
         "factual_metadata": {
           "scope": "studio",
@@ -3343,9 +3343,9 @@
         "aliases": [],
         "canonical_recipe": {
           "a": "工作室",
-          "b": "速度",
+          "b": "角色扮演",
           "chain": "studio",
-          "comment": "工作室结合 Racing 的速度意象，指向 R Studio。"
+          "comment": "工作室专注角色扮演品类，合成R Studio。"
         },
         "factual_metadata": {
           "scope": "studio",
@@ -3358,9 +3358,9 @@
         "aliases": [],
         "canonical_recipe": {
           "a": "工作室",
-          "b": "魔法",
+          "b": "麻将",
           "chain": "studio",
-          "comment": "工作室结合 TiKi 的图腾与魔法意象，指向 TiKi Studio。"
+          "comment": "工作室与其棋牌产品合成TiKi Studio。"
         },
         "factual_metadata": {
           "scope": "studio",
@@ -3538,9 +3538,9 @@
         "aliases": [],
         "canonical_recipe": {
           "a": "大厦",
-          "b": "金属",
+          "b": "深圳",
           "chain": "building",
-          "comment": "大厦与金属合成金地威新。"
+          "comment": "深圳的办公大厦合成金地威新。"
         },
         "factual_metadata": {
           "scope": "campus",
@@ -3627,10 +3627,10 @@
         "category": "level",
         "aliases": [],
         "canonical_recipe": {
-          "a": "工牌",
-          "b": "微信",
+          "a": "入职",
+          "b": "工牌",
           "chain": "level",
-          "comment": "工牌与微信合成实习生。"
+          "comment": "办理入职并领到工牌，成为实习生。"
         },
         "factual_metadata": {
           "scope": "level",
@@ -4566,10 +4566,10 @@
         },
         "relationship": {
           "kind": "licensed_partner",
-          "as_of": "2026-08-04",
-          "source_url": "https://intl.cloud.tencent.com/en/render/wggtf",
-          "source_title": "Where Great Games Take Flight",
-          "note": "Tencent's official case study records PUBG Mobile licensing and joint development with PUBG Corporation."
+          "as_of": "2025-06-09",
+          "source_url": "https://www.tencent.com/en-us/articles/2202101.html",
+          "source_title": "Tencent Games Joins the Playing for the Planet Alliance to Champion Green Gaming",
+          "note": "Tencent states that PUBG MOBILE was co-developed by LIGHTSPEED STUDIOS of Tencent Games and Krafton Inc."
         }
       },
       "NCSoft": {
@@ -4607,6 +4607,10 @@
       "聊天": {
         "emoji": "💬",
         "category": "social"
+      },
+      "会议记录": {
+        "emoji": "📋",
+        "category": "abstract"
       },
       "腾讯": {
         "emoji": "🐧",
@@ -4710,6 +4714,10 @@
       },
       "对战": {
         "emoji": "🧩",
+        "category": "abstract"
+      },
+      "角色扮演": {
+        "emoji": "🎭",
         "category": "abstract"
       },
       "梦": {
@@ -5694,6 +5702,14 @@
         "a": "时间",
         "b": "经验"
       },
+      "时间 + 聊天": {
+        "result": "会议记录",
+        "emoji": "📋",
+        "chain": "tencent",
+        "comment": "聊天内容随时间沉淀为会议记录。",
+        "a": "时间",
+        "b": "聊天"
+      },
       "时间 + 风": {
         "result": "速度",
         "emoji": "🧩",
@@ -5861,6 +5877,14 @@
         "comment": "聊天文字覆盖视频，形成弹幕。",
         "a": "聊天",
         "b": "视频"
+      },
+      "游戏 + 身份": {
+        "result": "角色扮演",
+        "emoji": "🎭",
+        "chain": "studio",
+        "comment": "游戏赋予玩家新的身份，形成角色扮演品类。",
+        "a": "身份",
+        "b": "游戏"
       },
       "速度 + 金属": {
         "result": "汽车",
@@ -7047,7 +7071,7 @@
     },
     "99公益日": {
       "emoji": "❤️",
-      "category": "invest"
+      "category": "tencent"
     },
     "游戏": {
       "emoji": "🎮",
@@ -8065,6 +8089,10 @@
       "emoji": "💬",
       "category": "social"
     },
+    "会议记录": {
+      "emoji": "📋",
+      "category": "abstract"
+    },
     "腾讯": {
       "emoji": "🐧",
       "category": "tencent"
@@ -8167,6 +8195,10 @@
     },
     "对战": {
       "emoji": "🧩",
+      "category": "abstract"
+    },
+    "角色扮演": {
+      "emoji": "🎭",
       "category": "abstract"
     },
     "梦": {
@@ -8571,10 +8603,10 @@
       "factual_metadata": {
         "scope": "tencent_game",
         "provenance": "licensed",
-        "developer": "Third-party developer",
-        "tencent_role": "licensed_game",
-        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+        "developer": "EA Spearhead",
+        "tencent_role": "licensed_china_operator",
+        "source_url": "https://www.nexon.co.jp/en/news/detail/?id=20180524-962e623a",
+        "source_title": "Highly Anticipated PC Sports Game FIFA Online 4 Launches in Korea"
       }
     },
     "Funcom": {
@@ -8678,10 +8710,10 @@
       },
       "relationship": {
         "kind": "licensed_partner",
-        "as_of": "2026-08-04",
-        "source_url": "https://intl.cloud.tencent.com/en/render/wggtf",
-        "source_title": "Where Great Games Take Flight",
-        "note": "Tencent's official case study records PUBG Mobile licensing and joint development with PUBG Corporation."
+        "as_of": "2025-06-09",
+        "source_url": "https://www.tencent.com/en-us/articles/2202101.html",
+        "source_title": "Tencent Games Joins the Playing for the Planet Alliance to Champion Green Gaming",
+        "note": "Tencent states that PUBG MOBILE was co-developed by LIGHTSPEED STUDIOS of Tencent Games and Krafton Inc."
       }
     },
     "LIGHTSPEED LA": {
@@ -8734,10 +8766,10 @@
       "factual_metadata": {
         "scope": "tencent_game",
         "provenance": "co_developed",
-        "developer": "Tencent and a third-party developer",
+        "developer": "2K and Tencent",
         "tencent_role": "co_developed_game",
-        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+        "source_url": "https://ir.take2games.com/static-files/96e31fc2-b06b-4061-9928-ae7aea345a2c",
+        "source_title": "Take-Two Interactive Software, Inc. 2024 Annual Report"
       }
     },
     "NCSoft": {
@@ -9528,10 +9560,10 @@
       "factual_metadata": {
         "scope": "tencent_game",
         "provenance": "licensed",
-        "developer": "Third-party developer",
-        "tencent_role": "licensed_game",
-        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+        "developer": "XLGAMES",
+        "tencent_role": "licensed_china_operator",
+        "source_url": "https://www.xlgames.com/en/games",
+        "source_title": "Games | XLGAMES"
       }
     },
     "上海总部": {
@@ -9738,10 +9770,10 @@
       "factual_metadata": {
         "scope": "tencent_game",
         "provenance": "licensed",
-        "developer": "Third-party developer",
-        "tencent_role": "licensed_game",
-        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+        "developer": "NCSOFT",
+        "tencent_role": "licensed_china_operator",
+        "source_url": "https://about.ncsoft.com/en/news/article/news_update_250812_2",
+        "source_title": "NCSOFT Launches New Mobile Casual Division, Names European Mobile Games Industry Veteran as Senior VP"
       }
     },
     "北京总部": {
@@ -9933,10 +9965,10 @@
       "factual_metadata": {
         "scope": "tencent_game",
         "provenance": "licensed",
-        "developer": "Third-party developer",
-        "tencent_role": "licensed_game",
-        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+        "developer": "北京像素软件科技股份有限公司",
+        "tencent_role": "licensed_china_operator",
+        "source_url": "https://www.pixelgame.net/pixelsoft/site/company",
+        "source_title": "像素软件官方网站：公司简介"
       }
     },
     "小程序": {
@@ -10155,10 +10187,10 @@
       "factual_metadata": {
         "scope": "tencent_game",
         "provenance": "licensed",
-        "developer": "Korean developer",
-        "tencent_role": "licensed_game",
-        "source_url": "https://static.www.tencent.com/storage/uploads/2019/11/09/57af991f6140c11022fe47be60116589.pdf",
-        "source_title": "Tencent Holdings Limited Interim Report 2009"
+        "developer": "Redduck, Inc.",
+        "tencent_role": "licensed_china_operator",
+        "source_url": "https://www.unrealengine.com/en-US/blog/redduck-licenses-epic-games-unreal-engine-3",
+        "source_title": "Redduck Licenses Epic Games’ Unreal Engine 3"
       }
     },
     "手机QQ": {
@@ -10861,11 +10893,11 @@
       "aliases": [],
       "factual_metadata": {
         "scope": "tencent_game",
-        "provenance": "in_house",
-        "developer": "Tencent",
-        "tencent_role": "in_house_game",
-        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+        "provenance": "licensed",
+        "developer": "Riot Games",
+        "tencent_role": "licensed_china_operator",
+        "source_url": "https://static.www.tencent.com/storage/uploads/2019/11/09/7b7a52dbf0616864e5e25ff354b28aca.pdf",
+        "source_title": "Tencent Holdings Acquires Majority Stake in Game Publisher Riot Games"
       }
     },
     "英雄联盟手游": {
@@ -10999,11 +11031,11 @@
       ],
       "factual_metadata": {
         "scope": "tencent_game",
-        "provenance": "licensed",
-        "developer": "Third-party developer",
-        "tencent_role": "licensed_game",
-        "source_url": "https://static.www.tencent.com/uploads/2023/08/16/1e0a88fd7fe3c67f2e407e5885e76324.pdf",
-        "source_title": "Tencent PC and Mobile Games Public Information Sheet"
+        "provenance": "in_house",
+        "developer": "Tencent",
+        "tencent_role": "in_house_game",
+        "source_url": "https://static.www.tencent.com/uploads/2025/08/13/453b68a3bf72c22bad300d166d461c2d.pdf",
+        "source_title": "Tencent PC and Mobile Games Public Information Sheet (2Q 2025)"
       }
     },
     "阅文集团": {
@@ -11248,15 +11280,6 @@
       "a": "AI",
       "b": "手机",
       "source": "seed"
-    },
-    "AI + 打工人": {
-      "a": "AI",
-      "b": "打工人",
-      "chain": "product",
-      "comment": "AI与打工人合成电脑管家。",
-      "result": "电脑管家",
-      "emoji": "🛡️",
-      "source": "target"
     },
     "AI + 打工鹅": {
       "result": "被AI替代",
@@ -11745,15 +11768,6 @@
       "emoji": "🤝",
       "source": "target"
     },
-    "QQ + QQ": {
-      "a": "QQ",
-      "b": "QQ",
-      "chain": "qq_memory",
-      "comment": "QQ与QQ合成QQ空间。",
-      "result": "QQ空间",
-      "emoji": "🌌",
-      "source": "target"
-    },
     "QQ + 下载": {
       "a": "QQ",
       "b": "下载",
@@ -11905,6 +11919,15 @@
       "comment": "QQ与游戏合成QQ游戏。",
       "result": "QQ游戏",
       "emoji": "💬",
+      "source": "target"
+    },
+    "QQ + 社交": {
+      "a": "QQ",
+      "b": "社交",
+      "chain": "qq_memory",
+      "comment": "QQ扩展社交内容主页，形成QQ空间。",
+      "result": "QQ空间",
+      "emoji": "🌌",
       "source": "target"
     },
     "QQ + 离线": {
@@ -12247,15 +12270,6 @@
       "b": "创始人",
       "source": "seed"
     },
-    "RTX + 周五": {
-      "a": "RTX",
-      "b": "周五",
-      "chain": "tencent",
-      "comment": "RTX与周五合成周会纪要。",
-      "result": "周会纪要",
-      "emoji": "📋",
-      "source": "target"
-    },
     "RTX + 打工人": {
       "result": "全员",
       "emoji": "👥",
@@ -12550,11 +12564,11 @@
       "b": "土堆",
       "source": "seed"
     },
-    "中台 + 中台": {
+    "中台 + 转岗": {
       "a": "中台",
-      "b": "中台",
+      "b": "转岗",
       "chain": "tencent",
-      "comment": "中台与中台合成组织架构调整。",
+      "comment": "中台重组伴随人员转岗，形成组织架构调整。",
       "result": "组织架构调整",
       "emoji": "🔄",
       "source": "target"
@@ -13514,6 +13528,15 @@
       "emoji": "📹",
       "source": "target"
     },
+    "会议记录 + 周五": {
+      "a": "周五",
+      "b": "会议记录",
+      "chain": "tencent",
+      "comment": "周五汇总本周的会议记录，形成周会纪要。",
+      "result": "周会纪要",
+      "emoji": "📋",
+      "source": "target"
+    },
     "体育 + 土": {
       "result": "足球",
       "emoji": "⚽",
@@ -13714,6 +13737,15 @@
       "emoji": "🕹️",
       "source": "target"
     },
+    "入职 + 工牌": {
+      "a": "入职",
+      "b": "工牌",
+      "chain": "level",
+      "comment": "办理入职并领到工牌，成为实习生。",
+      "result": "实习生",
+      "emoji": "🔰",
+      "source": "target"
+    },
     "入职 + 毕业": {
       "a": "入职",
       "b": "毕业",
@@ -13765,6 +13797,15 @@
       "a": "公司",
       "b": "公司",
       "source": "support"
+    },
+    "公司 + 协作": {
+      "a": "公司",
+      "b": "协作",
+      "chain": "tencent",
+      "comment": "公司沉淀跨团队协作能力，形成共享中台。",
+      "result": "中台",
+      "emoji": "🏗️",
+      "source": "target"
     },
     "公司 + 工位": {
       "result": "成本",
@@ -13877,7 +13918,7 @@
     "公益 + 鹅厂": {
       "result": "99公益日",
       "emoji": "❤️",
-      "chain": "invest",
+      "chain": "tencent",
       "a": "公益",
       "b": "鹅厂",
       "source": "seed"
@@ -14637,15 +14678,6 @@
       "b": "欢乐",
       "source": "seed"
     },
-    "周五 + 腾讯会议": {
-      "a": "周五",
-      "b": "腾讯会议",
-      "chain": "tencent",
-      "comment": "周五与腾讯会议合成早会。",
-      "result": "早会",
-      "emoji": "🌅",
-      "source": "target"
-    },
     "周五 + 需求变更": {
       "result": "发疯",
       "emoji": "🤯",
@@ -15203,15 +15235,6 @@
       "emoji": "🤝",
       "source": "target"
     },
-    "声音 + 工作室": {
-      "a": "工作室",
-      "b": "声音",
-      "chain": "studio",
-      "comment": "工作室以声音的首字母 S 命名，指向 S Studio。",
-      "result": "S Studio",
-      "emoji": "🕹️",
-      "source": "target"
-    },
     "声音 + 手机": {
       "result": "震动",
       "emoji": "🧩",
@@ -15289,6 +15312,15 @@
       "emoji": "🌆",
       "source": "target"
     },
+    "大厦 + 深圳": {
+      "a": "大厦",
+      "b": "深圳",
+      "chain": "building",
+      "comment": "深圳的办公大厦合成金地威新。",
+      "result": "金地威新",
+      "emoji": "🏬",
+      "source": "target"
+    },
     "大厦 + 游戏": {
       "result": "堡垒之夜",
       "emoji": "🏰",
@@ -15304,15 +15336,6 @@
       "a": "大厦",
       "b": "绿植",
       "source": "seed"
-    },
-    "大厦 + 金属": {
-      "a": "大厦",
-      "b": "金属",
-      "chain": "building",
-      "comment": "大厦与金属合成金地威新。",
-      "result": "金地威新",
-      "emoji": "🏬",
-      "source": "target"
     },
     "大厦 + 鹅厂": {
       "result": "鹅厂大楼",
@@ -15503,6 +15526,15 @@
       "a": "家庭",
       "b": "邻里",
       "source": "seed"
+    },
+    "对战 + 工作室": {
+      "a": "工作室",
+      "b": "对战",
+      "chain": "studio",
+      "comment": "工作室与竞争对战品类合成S Studio。",
+      "result": "S Studio",
+      "emoji": "🕹️",
+      "source": "target"
     },
     "对齐 + 对齐": {
       "result": "闭环",
@@ -15710,15 +15742,6 @@
       "b": "手机",
       "source": "seed"
     },
-    "工位 + 打工人": {
-      "a": "工位",
-      "b": "打工人",
-      "chain": "tencent",
-      "comment": "工位与打工人合成健身房。",
-      "result": "健身房",
-      "emoji": "🏋️",
-      "source": "target"
-    },
     "工位 + 按摩椅": {
       "a": "工位",
       "b": "按摩椅",
@@ -15873,11 +15896,11 @@
       "emoji": "🕹️",
       "source": "target"
     },
-    "工作室 + 速度": {
+    "工作室 + 角色扮演": {
       "a": "工作室",
-      "b": "速度",
+      "b": "角色扮演",
       "chain": "studio",
-      "comment": "工作室结合 Racing 的速度意象，指向 R Studio。",
+      "comment": "工作室专注角色扮演品类，合成R Studio。",
       "result": "R Studio",
       "emoji": "🕹️",
       "source": "target"
@@ -15891,11 +15914,11 @@
       "emoji": "🕹️",
       "source": "target"
     },
-    "工作室 + 魔法": {
+    "工作室 + 麻将": {
       "a": "工作室",
-      "b": "魔法",
+      "b": "麻将",
       "chain": "studio",
-      "comment": "工作室结合 TiKi 的图腾与魔法意象，指向 TiKi Studio。",
+      "comment": "工作室与其棋牌产品合成TiKi Studio。",
       "result": "TiKi Studio",
       "emoji": "🕹️",
       "source": "target"
@@ -15907,15 +15930,6 @@
       "a": "工牌",
       "b": "工牌",
       "source": "seed"
-    },
-    "工牌 + 微信": {
-      "a": "工牌",
-      "b": "微信",
-      "chain": "level",
-      "comment": "工牌与微信合成实习生。",
-      "result": "实习生",
-      "emoji": "🔰",
-      "source": "target"
     },
     "工牌 + 打工人": {
       "result": "职级证",
@@ -16168,11 +16182,11 @@
       "emoji": "🎮",
       "source": "target"
     },
-    "微信 + 微信": {
+    "微信 + 朋友": {
       "a": "微信",
-      "b": "微信",
+      "b": "朋友",
       "chain": "product",
-      "comment": "微信与微信合成朋友圈。",
+      "comment": "微信连接朋友并分享动态，形成朋友圈。",
       "result": "朋友圈",
       "emoji": "🔵",
       "source": "target"
@@ -16709,6 +16723,15 @@
       "b": "资历",
       "source": "seed"
     },
+    "打工人 + 跑步": {
+      "a": "打工人",
+      "b": "跑步",
+      "chain": "tencent",
+      "comment": "打工人开始跑步锻炼，就来到健身房。",
+      "result": "健身房",
+      "emoji": "🏋️",
+      "source": "target"
+    },
     "打工人 + 钟声": {
       "result": "下班",
       "emoji": "🏃",
@@ -16971,6 +16994,15 @@
       "emoji": "🕰️",
       "source": "target"
     },
+    "早高峰 + 腾讯会议": {
+      "a": "早高峰",
+      "b": "腾讯会议",
+      "chain": "tencent",
+      "comment": "早高峰后的第一场腾讯会议，就是早会。",
+      "result": "早会",
+      "emoji": "🌅",
+      "source": "target"
+    },
     "早高峰 + 通勤": {
       "result": "沙丁鱼罐头",
       "emoji": "🥫",
@@ -17054,6 +17086,15 @@
       "a": "时间",
       "b": "老板",
       "source": "seed"
+    },
+    "时间 + 聊天": {
+      "result": "会议记录",
+      "emoji": "📋",
+      "chain": "tencent",
+      "comment": "聊天内容随时间沉淀为会议记录。",
+      "a": "时间",
+      "b": "聊天",
+      "source": "support"
     },
     "时间 + 自由": {
       "result": "梦想",
@@ -17783,6 +17824,15 @@
       "emoji": "🎮",
       "source": "target"
     },
+    "游戏 + 身份": {
+      "result": "角色扮演",
+      "emoji": "🎭",
+      "chain": "studio",
+      "comment": "游戏赋予玩家新的身份，形成角色扮演品类。",
+      "a": "身份",
+      "b": "游戏",
+      "source": "support"
+    },
     "游戏 + 轩辕": {
       "a": "游戏",
       "b": "轩辕",
@@ -18096,6 +18146,15 @@
       "b": "策略",
       "source": "support"
     },
+    "电脑 + 管家": {
+      "a": "电脑",
+      "b": "管家",
+      "chain": "product",
+      "comment": "电脑配上系统管家，组成电脑管家。",
+      "result": "电脑管家",
+      "emoji": "🛡️",
+      "source": "target"
+    },
     "电脑 + 网络": {
       "result": "互联网",
       "emoji": "🌐",
@@ -18298,15 +18357,6 @@
       "emoji": "🤝",
       "source": "target"
     },
-    "视频号 + 视频号": {
-      "a": "视频号",
-      "b": "视频号",
-      "chain": "product",
-      "comment": "视频号与视频号合成腾讯视频。",
-      "result": "腾讯视频",
-      "emoji": "📺",
-      "source": "target"
-    },
     "视频号 + 钱包": {
       "result": "广告",
       "emoji": "📢",
@@ -18457,6 +18507,15 @@
       "emoji": "💻",
       "source": "target"
     },
+    "腾讯 + 视频号": {
+      "a": "腾讯",
+      "b": "视频号",
+      "chain": "product",
+      "comment": "腾讯的视频服务与视频号相连，合成腾讯视频。",
+      "result": "腾讯视频",
+      "emoji": "📺",
+      "source": "target"
+    },
     "腾讯 + 腾讯云": {
       "a": "腾讯",
       "b": "腾讯云",
@@ -18578,15 +18637,6 @@
       "a": "赋能",
       "b": "闭环",
       "source": "seed"
-    },
-    "赛马 + 赛马": {
-      "a": "赛马",
-      "b": "赛马",
-      "chain": "tencent",
-      "comment": "赛马与赛马合成中台。",
-      "result": "中台",
-      "emoji": "🏗️",
-      "source": "target"
     },
     "身份 + 鹅厂": {
       "a": "身份",
@@ -19032,17 +19082,6 @@
         "a": "手机",
         "b": "打工人",
         "source": "seed"
-      }
-    ],
-    "电脑管家": [
-      {
-        "a": "AI",
-        "b": "打工人",
-        "chain": "product",
-        "comment": "AI与打工人合成电脑管家。",
-        "result": "电脑管家",
-        "emoji": "🛡️",
-        "source": "target"
       }
     ],
     "被AI替代": [
@@ -19752,17 +19791,6 @@
         "source": "target"
       }
     ],
-    "QQ空间": [
-      {
-        "a": "QQ",
-        "b": "QQ",
-        "chain": "qq_memory",
-        "comment": "QQ与QQ合成QQ空间。",
-        "result": "QQ空间",
-        "emoji": "🌌",
-        "source": "target"
-      }
-    ],
     "QQ旋风": [
       {
         "a": "QQ",
@@ -19947,6 +19975,17 @@
         "comment": "QQ与游戏合成QQ游戏。",
         "result": "QQ游戏",
         "emoji": "💬",
+        "source": "target"
+      }
+    ],
+    "QQ空间": [
+      {
+        "a": "QQ",
+        "b": "社交",
+        "chain": "qq_memory",
+        "comment": "QQ扩展社交内容主页，形成QQ空间。",
+        "result": "QQ空间",
+        "emoji": "🌌",
         "source": "target"
       }
     ],
@@ -20364,17 +20403,6 @@
         "a": "RTX",
         "b": "创始人",
         "source": "seed"
-      }
-    ],
-    "周会纪要": [
-      {
-        "a": "RTX",
-        "b": "周五",
-        "chain": "tencent",
-        "comment": "RTX与周五合成周会纪要。",
-        "result": "周会纪要",
-        "emoji": "📋",
-        "source": "target"
       }
     ],
     "全员": [
@@ -20828,9 +20856,9 @@
     "组织架构调整": [
       {
         "a": "中台",
-        "b": "中台",
+        "b": "转岗",
         "chain": "tencent",
-        "comment": "中台与中台合成组织架构调整。",
+        "comment": "中台重组伴随人员转岗，形成组织架构调整。",
         "result": "组织架构调整",
         "emoji": "🔄",
         "source": "target"
@@ -22116,6 +22144,17 @@
         "source": "target"
       }
     ],
+    "周会纪要": [
+      {
+        "a": "周五",
+        "b": "会议记录",
+        "chain": "tencent",
+        "comment": "周五汇总本周的会议记录，形成周会纪要。",
+        "result": "周会纪要",
+        "emoji": "📋",
+        "source": "target"
+      }
+    ],
     "足球": [
       {
         "result": "足球",
@@ -22376,6 +22415,17 @@
         "source": "target"
       }
     ],
+    "实习生": [
+      {
+        "a": "入职",
+        "b": "工牌",
+        "chain": "level",
+        "comment": "办理入职并领到工牌，成为实习生。",
+        "result": "实习生",
+        "emoji": "🔰",
+        "source": "target"
+      }
+    ],
     "应届生": [
       {
         "a": "入职",
@@ -22454,6 +22504,17 @@
         "a": "公司",
         "b": "公司",
         "source": "support"
+      }
+    ],
+    "中台": [
+      {
+        "a": "公司",
+        "b": "协作",
+        "chain": "tencent",
+        "comment": "公司沉淀跨团队协作能力，形成共享中台。",
+        "result": "中台",
+        "emoji": "🏗️",
+        "source": "target"
       }
     ],
     "外包": [
@@ -22591,7 +22652,7 @@
       {
         "result": "99公益日",
         "emoji": "❤️",
-        "chain": "invest",
+        "chain": "tencent",
         "a": "公益",
         "b": "鹅厂",
         "source": "seed"
@@ -23522,17 +23583,6 @@
         "source": "seed"
       }
     ],
-    "早会": [
-      {
-        "a": "周五",
-        "b": "腾讯会议",
-        "chain": "tencent",
-        "comment": "周五与腾讯会议合成早会。",
-        "result": "早会",
-        "emoji": "🌅",
-        "source": "target"
-      }
-    ],
     "月报": [
       {
         "result": "月报",
@@ -24212,17 +24262,6 @@
         "source": "target"
       }
     ],
-    "S Studio": [
-      {
-        "a": "工作室",
-        "b": "声音",
-        "chain": "studio",
-        "comment": "工作室以声音的首字母 S 命名，指向 S Studio。",
-        "result": "S Studio",
-        "emoji": "🕹️",
-        "source": "target"
-      }
-    ],
     "震动": [
       {
         "result": "震动",
@@ -24323,6 +24362,17 @@
         "source": "target"
       }
     ],
+    "金地威新": [
+      {
+        "a": "大厦",
+        "b": "深圳",
+        "chain": "building",
+        "comment": "深圳的办公大厦合成金地威新。",
+        "result": "金地威新",
+        "emoji": "🏬",
+        "source": "target"
+      }
+    ],
     "人类丰容": [
       {
         "result": "人类丰容",
@@ -24339,17 +24389,6 @@
         "a": "工位",
         "b": "绿植",
         "source": "seed"
-      }
-    ],
-    "金地威新": [
-      {
-        "a": "大厦",
-        "b": "金属",
-        "chain": "building",
-        "comment": "大厦与金属合成金地威新。",
-        "result": "金地威新",
-        "emoji": "🏬",
-        "source": "target"
       }
     ],
     "鹅厂大楼": [
@@ -24588,6 +24627,17 @@
         "a": "邻里",
         "b": "邻里",
         "source": "seed"
+      }
+    ],
+    "S Studio": [
+      {
+        "a": "工作室",
+        "b": "对战",
+        "chain": "studio",
+        "comment": "工作室与竞争对战品类合成S Studio。",
+        "result": "S Studio",
+        "emoji": "🕹️",
+        "source": "target"
       }
     ],
     "闭环": [
@@ -24837,17 +24887,6 @@
         "source": "seed"
       }
     ],
-    "健身房": [
-      {
-        "a": "工位",
-        "b": "打工人",
-        "chain": "tencent",
-        "comment": "工位与打工人合成健身房。",
-        "result": "健身房",
-        "emoji": "🏋️",
-        "source": "target"
-      }
-    ],
     "带薪养生": [
       {
         "a": "工位",
@@ -25016,9 +25055,9 @@
     "R Studio": [
       {
         "a": "工作室",
-        "b": "速度",
+        "b": "角色扮演",
         "chain": "studio",
-        "comment": "工作室结合 Racing 的速度意象，指向 R Studio。",
+        "comment": "工作室专注角色扮演品类，合成R Studio。",
         "result": "R Studio",
         "emoji": "🕹️",
         "source": "target"
@@ -25038,9 +25077,9 @@
     "TiKi Studio": [
       {
         "a": "工作室",
-        "b": "魔法",
+        "b": "麻将",
         "chain": "studio",
-        "comment": "工作室结合 TiKi 的图腾与魔法意象，指向 TiKi Studio。",
+        "comment": "工作室与其棋牌产品合成TiKi Studio。",
         "result": "TiKi Studio",
         "emoji": "🕹️",
         "source": "target"
@@ -25054,17 +25093,6 @@
         "a": "工牌",
         "b": "工牌",
         "source": "seed"
-      }
-    ],
-    "实习生": [
-      {
-        "a": "工牌",
-        "b": "微信",
-        "chain": "level",
-        "comment": "工牌与微信合成实习生。",
-        "result": "实习生",
-        "emoji": "🔰",
-        "source": "target"
       }
     ],
     "职级证": [
@@ -25327,9 +25355,9 @@
     "朋友圈": [
       {
         "a": "微信",
-        "b": "微信",
+        "b": "朋友",
         "chain": "product",
-        "comment": "微信与微信合成朋友圈。",
+        "comment": "微信连接朋友并分享动态，形成朋友圈。",
         "result": "朋友圈",
         "emoji": "🔵",
         "source": "target"
@@ -25852,6 +25880,17 @@
         "source": "seed"
       }
     ],
+    "健身房": [
+      {
+        "a": "打工人",
+        "b": "跑步",
+        "chain": "tencent",
+        "comment": "打工人开始跑步锻炼，就来到健身房。",
+        "result": "健身房",
+        "emoji": "🏋️",
+        "source": "target"
+      }
+    ],
     "下班": [
       {
         "result": "下班",
@@ -26132,6 +26171,17 @@
         "source": "target"
       }
     ],
+    "早会": [
+      {
+        "a": "早高峰",
+        "b": "腾讯会议",
+        "chain": "tencent",
+        "comment": "早高峰后的第一场腾讯会议，就是早会。",
+        "result": "早会",
+        "emoji": "🌅",
+        "source": "target"
+      }
+    ],
     "沙丁鱼罐头": [
       {
         "result": "沙丁鱼罐头",
@@ -26221,6 +26271,17 @@
         "comment": "经验随时间累积为经验值。",
         "a": "时间",
         "b": "经验",
+        "source": "support"
+      }
+    ],
+    "会议记录": [
+      {
+        "result": "会议记录",
+        "emoji": "📋",
+        "chain": "tencent",
+        "comment": "聊天内容随时间沉淀为会议记录。",
+        "a": "时间",
+        "b": "聊天",
         "source": "support"
       }
     ],
@@ -27039,6 +27100,17 @@
         "source": "target"
       }
     ],
+    "角色扮演": [
+      {
+        "result": "角色扮演",
+        "emoji": "🎭",
+        "chain": "studio",
+        "comment": "游戏赋予玩家新的身份，形成角色扮演品类。",
+        "a": "身份",
+        "b": "游戏",
+        "source": "support"
+      }
+    ],
     "轩辕传奇": [
       {
         "a": "游戏",
@@ -27354,6 +27426,17 @@
         "source": "support"
       }
     ],
+    "电脑管家": [
+      {
+        "a": "电脑",
+        "b": "管家",
+        "chain": "product",
+        "comment": "电脑配上系统管家，组成电脑管家。",
+        "result": "电脑管家",
+        "emoji": "🛡️",
+        "source": "target"
+      }
+    ],
     "互联网": [
       {
         "result": "互联网",
@@ -27551,17 +27634,6 @@
         "source": "target"
       }
     ],
-    "腾讯视频": [
-      {
-        "a": "视频号",
-        "b": "视频号",
-        "chain": "product",
-        "comment": "视频号与视频号合成腾讯视频。",
-        "result": "腾讯视频",
-        "emoji": "📺",
-        "source": "target"
-      }
-    ],
     "科兴科学园": [
       {
         "a": "科兴",
@@ -27677,6 +27749,17 @@
         "source": "target"
       }
     ],
+    "腾讯视频": [
+      {
+        "a": "腾讯",
+        "b": "视频号",
+        "chain": "product",
+        "comment": "腾讯的视频服务与视频号相连，合成腾讯视频。",
+        "result": "腾讯视频",
+        "emoji": "📺",
+        "source": "target"
+      }
+    ],
     "CSIG": [
       {
         "a": "腾讯",
@@ -27775,17 +27858,6 @@
         "a": "赋能",
         "b": "闭环",
         "source": "seed"
-      }
-    ],
-    "中台": [
-      {
-        "a": "赛马",
-        "b": "赛马",
-        "chain": "tencent",
-        "comment": "赛马与赛马合成中台。",
-        "result": "中台",
-        "emoji": "🏗️",
-        "source": "target"
       }
     ],
     "工牌": [
@@ -28342,9 +28414,9 @@
     },
     "QQ空间": {
       "a": "QQ",
-      "b": "QQ",
+      "b": "社交",
       "chain": "qq_memory",
-      "comment": "QQ与QQ合成QQ空间。",
+      "comment": "QQ扩展社交内容主页，形成QQ空间。",
       "result": "QQ空间"
     },
     "QQ等级": {
@@ -28412,9 +28484,9 @@
     },
     "R Studio": {
       "a": "工作室",
-      "b": "速度",
+      "b": "角色扮演",
       "chain": "studio",
-      "comment": "工作室结合 Racing 的速度意象，指向 R Studio。",
+      "comment": "工作室专注角色扮演品类，合成R Studio。",
       "result": "R Studio"
     },
     "Reddit": {
@@ -28447,9 +28519,9 @@
     },
     "S Studio": {
       "a": "工作室",
-      "b": "声音",
+      "b": "对战",
       "chain": "studio",
-      "comment": "工作室以声音的首字母 S 命名，指向 S Studio。",
+      "comment": "工作室与竞争对战品类合成S Studio。",
       "result": "S Studio"
     },
     "Sea": {
@@ -28552,9 +28624,9 @@
     },
     "TiKi Studio": {
       "a": "工作室",
-      "b": "魔法",
+      "b": "麻将",
       "chain": "studio",
-      "comment": "工作室结合 TiKi 的图腾与魔法意象，指向 TiKi Studio。",
+      "comment": "工作室与其棋牌产品合成TiKi Studio。",
       "result": "TiKi Studio"
     },
     "TIM": {
@@ -28663,10 +28735,10 @@
       "result": "个性签名"
     },
     "中台": {
-      "a": "赛马",
-      "b": "赛马",
+      "a": "公司",
+      "b": "协作",
       "chain": "tencent",
-      "comment": "赛马与赛马合成中台。",
+      "comment": "公司沉淀跨团队协作能力，形成共享中台。",
       "result": "中台"
     },
     "乐享": {
@@ -28705,10 +28777,10 @@
       "result": "使命召唤Online"
     },
     "健身房": {
-      "a": "工位",
-      "b": "打工人",
+      "a": "打工人",
+      "b": "跑步",
       "chain": "tencent",
-      "comment": "工位与打工人合成健身房。",
+      "comment": "打工人开始跑步锻炼，就来到健身房。",
       "result": "健身房"
     },
     "偷菜": {
@@ -28824,10 +28896,10 @@
       "result": "周会"
     },
     "周会纪要": {
-      "a": "RTX",
-      "b": "周五",
+      "a": "周五",
+      "b": "会议记录",
       "chain": "tencent",
-      "comment": "RTX与周五合成周会纪要。",
+      "comment": "周五汇总本周的会议记录，形成周会纪要。",
       "result": "周会纪要"
     },
     "和平精英": {
@@ -28901,10 +28973,10 @@
       "result": "太阳号"
     },
     "实习生": {
-      "a": "工牌",
-      "b": "微信",
+      "a": "入职",
+      "b": "工牌",
       "chain": "level",
-      "comment": "工牌与微信合成实习生。",
+      "comment": "办理入职并领到工牌，成为实习生。",
       "result": "实习生"
     },
     "寻仙": {
@@ -29132,10 +29204,10 @@
       "result": "斗战神"
     },
     "早会": {
-      "a": "周五",
+      "a": "早高峰",
       "b": "腾讯会议",
       "chain": "tencent",
-      "comment": "周五与腾讯会议合成早会。",
+      "comment": "早高峰后的第一场腾讯会议，就是早会。",
       "result": "早会"
     },
     "晚班": {
@@ -29154,9 +29226,9 @@
     },
     "朋友圈": {
       "a": "微信",
-      "b": "微信",
+      "b": "朋友",
       "chain": "product",
-      "comment": "微信与微信合成朋友圈。",
+      "comment": "微信连接朋友并分享动态，形成朋友圈。",
       "result": "朋友圈"
     },
     "朋友网": {
@@ -29307,10 +29379,10 @@
       "result": "电梯"
     },
     "电脑管家": {
-      "a": "AI",
-      "b": "打工人",
+      "a": "电脑",
+      "b": "管家",
       "chain": "product",
-      "comment": "AI与打工人合成电脑管家。",
+      "comment": "电脑配上系统管家，组成电脑管家。",
       "result": "电脑管家"
     },
     "留言板": {
@@ -29399,9 +29471,9 @@
     },
     "组织架构调整": {
       "a": "中台",
-      "b": "中台",
+      "b": "转岗",
       "chain": "tencent",
-      "comment": "中台与中台合成组织架构调整。",
+      "comment": "中台重组伴随人员转岗，形成组织架构调整。",
       "result": "组织架构调整"
     },
     "续命鹅": {
@@ -29510,10 +29582,10 @@
       "result": "腾讯新闻"
     },
     "腾讯视频": {
-      "a": "视频号",
+      "a": "腾讯",
       "b": "视频号",
       "chain": "product",
-      "comment": "视频号与视频号合成腾讯视频。",
+      "comment": "腾讯的视频服务与视频号相连，合成腾讯视频。",
       "result": "腾讯视频"
     },
     "腾讯翻译君": {
@@ -29630,9 +29702,9 @@
     },
     "金地威新": {
       "a": "大厦",
-      "b": "金属",
+      "b": "深圳",
       "chain": "building",
-      "comment": "大厦与金属合成金地威新。",
+      "comment": "深圳的办公大厦合成金地威新。",
       "result": "金地威新"
     },
     "金铲铲之战": {
@@ -29808,7 +29880,7 @@
     "QQ": 3,
     "QQ三国": 4,
     "QQ会员": 4,
-    "QQ农场": 5,
+    "QQ农场": 6,
     "QQ分组": 4,
     "QQ华夏": 4,
     "QQ堂": 4,
@@ -29820,9 +29892,9 @@
     "QQ游戏": 4,
     "QQ游戏大厅": 5,
     "QQ炫舞": 4,
-    "QQ牧场": 5,
+    "QQ牧场": 6,
     "QQ秀": 5,
-    "QQ空间": 4,
+    "QQ空间": 5,
     "QQ等级": 6,
     "QQ邮箱": 4,
     "QQ音乐": 4,
@@ -29892,7 +29964,7 @@
     "专家": 7,
     "丘陵": 2,
     "个性签名": 7,
-    "中台": 6,
+    "中台": 11,
     "乐享": 4,
     "事故复盘": 7,
     "云": 2,
@@ -29911,6 +29983,7 @@
     "企业通讯": 6,
     "企鹅": 0,
     "会议": 7,
+    "会议记录": 3,
     "体育": 8,
     "你是GG还是MM": 4,
     "使命召唤": 2,
@@ -29918,7 +29991,7 @@
     "信号": 1,
     "修bug": 6,
     "健身房": 6,
-    "偷菜": 6,
+    "偷菜": 7,
     "僵尸": 2,
     "元宝": 5,
     "元梦之星": 4,
@@ -30139,7 +30212,7 @@
     "承诺": 11,
     "抓手": 10,
     "投资": 5,
-    "抢车位": 5,
+    "抢车位": 6,
     "拉通": 4,
     "拼团": 5,
     "拼多多": 6,
@@ -30322,7 +30395,7 @@
     "紧急拉会": 7,
     "纺织机械厂": 3,
     "紫钻": 5,
-    "组织架构调整": 7,
+    "组织架构调整": 12,
     "经济特区": 5,
     "经验": 5,
     "经验值": 6,
@@ -30391,6 +30464,7 @@
     "裁员": 5,
     "裁神爷": 6,
     "装扮": 4,
+    "角色扮演": 2,
     "订阅": 4,
     "许晨晔": 11,
     "论坛": 6,
@@ -30409,7 +30483,7 @@
     "跑步": 2,
     "跑路": 7,
     "跨部门扯皮": 5,
-    "踩空间": 5,
+    "踩空间": 6,
     "身份": 1,
     "身材": 7,
     "躺平": 10,
@@ -30488,7 +30562,7 @@
     "鹿晗穿红": 8,
     "麦克风": 3,
     "麻将": 5,
-    "黄钻": 5,
+    "黄钻": 6,
     "黑化酱板鸭": 9,
     "黑屏挂机": 9,
     "黑板墙": 5,
