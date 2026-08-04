@@ -468,6 +468,30 @@ def _production_app_page() -> str:
           }));
         }
 
+        function tapElement(target, pointerId) {
+          var rect = target.getBoundingClientRect();
+          var x = rect.left + rect.width / 2;
+          var y = rect.top + rect.height / 2;
+          pointer("pointerdown", target, x, y, pointerId, 1);
+          pointer("pointerup", target, x, y, pointerId, 0);
+        }
+
+        window.__audioFeedback = { unlocks: 0, clicks: 0, combines: 0 };
+        window.AUDIO_FEEDBACK = {
+          unlock: function () {
+            window.__audioFeedback.unlocks += 1;
+            return Promise.resolve(true);
+          },
+          playElementClick: function () {
+            window.__audioFeedback.clicks += 1;
+            return true;
+          },
+          playCombineSuccess: function () {
+            window.__audioFeedback.combines += 1;
+            return true;
+          }
+        };
+
         async function placeStarter(name, x, y, pointerId) {
           var source = document.querySelector(
             '#element-list .element[data-name="' + name + '"]'
@@ -558,17 +582,114 @@ def _production_app_page() -> str:
           tiers: JSON.parse(localStorage.getItem("ic_scores") || "[]")
             .map(function (event) { return event.tier; })
         };
-        var beforeDoubleClick =
+
+        var waterChip = document.querySelector(
+          '#element-list .element[data-name="水"]'
+        );
+        var fireChip = document.querySelector(
+          '#element-list .element[data-name="火"]'
+        );
+        var originalRandom = Math.random;
+        Math.random = function () { return 0; };
+
+        var watersBeforeListClick = new Set(document.querySelectorAll(
+          '#workspace .element.on-canvas[data-name="水"]'
+        ));
+        var beforeListClick =
           document.querySelectorAll("#workspace .element.on-canvas").length;
-        document.querySelector('#element-list .element[data-name="水"]')
-          .dispatchEvent(new MouseEvent("dblclick", {
-            bubbles: true,
-            cancelable: true
-          }));
-        await new Promise(function (resolve) { setTimeout(resolve, 20); });
-        var doubleClickRetained =
-          document.querySelectorAll("#workspace .element.on-canvas").length
-          === beforeDoubleClick + 1;
+        tapElement(waterChip, 51);
+        var afterListClick =
+          document.querySelectorAll("#workspace .element.on-canvas").length;
+        var summonedWater = Array.from(document.querySelectorAll(
+          '#workspace .element.on-canvas[data-name="水"]'
+        )).find(function (element) {
+          return !watersBeforeListClick.has(element);
+        });
+        var listRandomPosition = summonedWater ? {
+          left: parseFloat(summonedWater.style.left),
+          top: parseFloat(summonedWater.style.top)
+        } : null;
+
+        var beforeListDouble = afterListClick;
+        var firesBeforeListDouble = new Set(document.querySelectorAll(
+          '#workspace .element.on-canvas[data-name="火"]'
+        ));
+        tapElement(fireChip, 52);
+        tapElement(fireChip, 53);
+        var afterListDouble =
+          document.querySelectorAll("#workspace .element.on-canvas").length;
+        var summonedFire = Array.from(document.querySelectorAll(
+          '#workspace .element.on-canvas[data-name="火"]'
+        )).find(function (element) {
+          return !firesBeforeListDouble.has(element);
+        });
+        Math.random = originalRandom;
+
+        var canvasSingleUnchanged = false;
+        if (summonedWater) {
+          var waterBefore = {
+            left: summonedWater.style.left,
+            top: summonedWater.style.top
+          };
+          tapElement(summonedWater, 54);
+          canvasSingleUnchanged =
+            summonedWater.style.left === waterBefore.left
+            && summonedWater.style.top === waterBefore.top;
+        }
+
+        var beforeCanvasDouble = document.querySelectorAll(
+          '#workspace .element.on-canvas[data-name="火"]'
+        ).length;
+        var firesBeforeCanvasDouble = new Set(document.querySelectorAll(
+          '#workspace .element.on-canvas[data-name="火"]'
+        ));
+        var fireBefore = summonedFire ? {
+          left: parseFloat(summonedFire.style.left),
+          top: parseFloat(summonedFire.style.top)
+        } : null;
+        if (summonedFire) {
+          tapElement(summonedFire, 55);
+          tapElement(summonedFire, 56);
+        }
+        var firesAfterCanvasDouble = Array.from(document.querySelectorAll(
+          '#workspace .element.on-canvas[data-name="火"]'
+        ));
+        var copiedFire = firesAfterCanvasDouble.find(function (element) {
+          return !firesBeforeCanvasDouble.has(element);
+        });
+        var canvasCopyOffset = copiedFire && fireBefore ? {
+          x: parseFloat(copiedFire.style.left) - fireBefore.left,
+          y: parseFloat(copiedFire.style.top) - fireBefore.top
+        } : null;
+
+        var canvasDragMoved = false;
+        if (summonedWater) {
+          var dragBefore =
+            summonedWater.style.left + "|" + summonedWater.style.top;
+          var dragRect = summonedWater.getBoundingClientRect();
+          var dragX = dragRect.left + dragRect.width / 2;
+          var dragY = dragRect.top + dragRect.height / 2;
+          pointer("pointerdown", summonedWater, dragX, dragY, 57, 1);
+          pointer("pointermove", window, dragX + 80, dragY + 60, 57, 1);
+          pointer("pointerup", window, dragX + 80, dragY + 60, 57, 0);
+          await new Promise(function (resolve) { setTimeout(resolve, 20); });
+          var dragAfter =
+            summonedWater.style.left + "|" + summonedWater.style.top;
+          canvasDragMoved = dragBefore !== dragAfter;
+        }
+
+        document.getElementById("btn-recipebook").click();
+        var recipeResult = document.querySelector(
+          "#recipebook .recipe-result"
+        );
+        var recipeBefore =
+          document.querySelectorAll("#workspace .element.on-canvas").length;
+        if (recipeResult) {
+          tapElement(recipeResult, 58);
+          tapElement(recipeResult, 59);
+        }
+        var recipeAfter =
+          document.querySelectorAll("#workspace .element.on-canvas").length;
 
         document.getElementById("casino-app-result").textContent =
           JSON.stringify({
@@ -585,8 +706,19 @@ def _production_app_page() -> str:
                 initial_guidance: initialGuidance,
                 expanded_guidance: expandedGuidance,
                 collapsed_guidance: collapsedGuidance,
-                midnight_topbar: midnightTopbar,
-                double_click_retained: doubleClickRetained
+                midnight_topbar: midnightTopbar
+              },
+              interactions: {
+                list_single_delta: afterListClick - beforeListClick,
+                list_double_delta: afterListDouble - beforeListDouble,
+                list_random_position: listRandomPosition,
+                canvas_single_unchanged: canvasSingleUnchanged,
+                canvas_double_delta:
+                  firesAfterCanvasDouble.length - beforeCanvasDouble,
+                canvas_copy_offset: canvasCopyOffset,
+                canvas_drag_moved: canvasDragMoved,
+                recipe_click_delta: recipeAfter - recipeBefore,
+                element_click_sounds: window.__audioFeedback.clicks
               },
               scoring: {
                 before_harvest: beforeHarvest,
@@ -771,7 +903,6 @@ def test_midnight_toast_is_dark_and_advanced_guidance_toggles(
         "expanded": "false",
         "visible_text": actual["initial_guidance"]["visible_text"],
     }
-    assert actual["double_click_retained"] is True
     assert midnight["backgroundImage"] != light["backgroundImage"]
     assert midnight["color"] != light["color"]
     assert midnight["resultColor"] != light["resultColor"]
@@ -779,6 +910,20 @@ def test_midnight_toast_is_dark_and_advanced_guidance_toggles(
     assert midnight["dividerColor"] != light["dividerColor"]
     assert midnight["buttonBackground"] != light["buttonBackground"]
     assert midnight["buttonColor"] != light["buttonColor"]
+
+
+def test_element_pointer_interactions_are_action_specific(tmp_path):
+    actual = _run_app_page(tmp_path)["interactions"]
+
+    assert actual["list_single_delta"] == 1
+    assert actual["list_double_delta"] == 1
+    assert actual["list_random_position"] == {"left": 10, "top": 16}
+    assert actual["canvas_single_unchanged"] is True
+    assert actual["canvas_double_delta"] == 1
+    assert actual["canvas_copy_offset"] == {"x": 28, "y": 28}
+    assert actual["canvas_drag_moved"] is True
+    assert actual["recipe_click_delta"] == 0
+    assert actual["element_click_sounds"] == 4
 
 
 def test_reset_control_is_replaced_by_reload_guidance(tmp_path):
