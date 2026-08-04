@@ -141,6 +141,7 @@ function normalizeGroups(catalog, targetNames) {
       throw new Error(`target ${target} category must match its primary group`);
     }
   }
+  return primaryGroups;
 }
 
 function validateRelationships(target, targetName) {
@@ -256,7 +257,7 @@ export function compileBountyContent({ catalog, seedElements, seedCombinations }
     if (supportNames.has(name)) throw new Error(`canonical element ${name} is duplicated`);
     if (starterSet.has(name)) throw new Error(`target ${name} cannot be a starter`);
   }
-  normalizeGroups(catalog, targetNames);
+  const primaryGroups = normalizeGroups(catalog, targetNames);
 
   const canonicalNames = new Set([...elementNames, ...supportNames, ...targetNames]);
   validateAliases(targets, canonicalNames, starterSet);
@@ -285,7 +286,13 @@ export function compileBountyContent({ catalog, seedElements, seedCombinations }
   }
   for (const [targetName, target] of sortedEntries(targets)) {
     requireRecord(target, `target ${targetName}`);
-    validateRelationships(target, targetName);
+    const primaryGroup = primaryGroups.get(targetName);
+    if (
+      primaryGroup.key === "association" ||
+      primaryGroup.category === "association"
+    ) {
+      validateRelationships(target, targetName);
+    }
     const recipe = requireRecord(target.canonical_recipe, `${targetName} canonical recipe`);
     const a = requireName(recipe.a, `${targetName} canonical recipe a`);
     const b = requireName(recipe.b, `${targetName} canonical recipe b`);

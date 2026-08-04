@@ -29,13 +29,6 @@ function fixture() {
           emoji: "🐧",
           category: "qq_memory",
           aliases: [],
-          relationship: {
-            kind: "historical_association",
-            as_of: "2026-08-04",
-            source_url: "https://example.com/qq",
-            source_title: "QQ source",
-            note: "Fixture association source.",
-          },
           canonical_recipe: {
             a: "企鹅",
             b: "聊天",
@@ -73,6 +66,27 @@ function fixture() {
   };
 }
 
+function asAssociationTarget(input) {
+  input.catalog.groups[0] = {
+    ...input.catalog.groups[0],
+    key: "association",
+    category: "association",
+    label: "关联企业",
+  };
+  input.catalog.targets.QQ.category = "association";
+  return input;
+}
+
+function associationRecord() {
+  return {
+    kind: "historical_association",
+    as_of: "2026-08-04",
+    source_url: "https://example.com/qq",
+    source_title: "QQ source",
+    note: "Fixture association source.",
+  };
+}
+
 test("catalog compiler normalizes pairs and proves strict reachability", () => {
   const compiled = compileBountyContent(fixture());
   assert.equal(normalizePair("网络", "电脑"), "电脑 + 网络");
@@ -100,6 +114,24 @@ test("catalog compiler rejects input-only shortcuts and unreachable targets", ()
   );
 });
 
+test("catalog compiler permits a non-association QQ target without relationship metadata", () => {
+  assert.doesNotThrow(() => compileBountyContent(fixture()));
+});
+
+test("catalog compiler requires relationship metadata for association targets", () => {
+  const input = asAssociationTarget(fixture());
+  assert.throws(
+    () => compileBountyContent(input),
+    /QQ.*relationship.*record/iu,
+  );
+});
+
+test("catalog compiler accepts an association target with complete relationship metadata", () => {
+  const input = asAssociationTarget(fixture());
+  input.catalog.targets.QQ.relationship = associationRecord();
+  assert.doesNotThrow(() => compileBountyContent(input));
+});
+
 test("catalog compiler requires the exact eleven binding starters", () => {
   const input = fixture();
   input.seedElements.starters = input.seedElements.starters
@@ -118,14 +150,14 @@ test("catalog compiler requires the exact eleven binding starters", () => {
 });
 
 test("catalog compiler requires source-backed relationship records", () => {
-  const missingRecord = fixture();
+  const missingRecord = asAssociationTarget(fixture());
   delete missingRecord.catalog.targets.QQ.relationship;
   assert.throws(
     () => compileBountyContent(missingRecord),
     /QQ.*relationship.*record/iu,
   );
 
-  const inheritedSource = fixture();
+  const inheritedSource = asAssociationTarget(fixture());
   inheritedSource.catalog.targets.QQ.relationship = { kind: "subsidiary" };
   assert.throws(
     () => compileBountyContent(inheritedSource),
