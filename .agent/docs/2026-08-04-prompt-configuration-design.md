@@ -184,6 +184,33 @@ For a live combination request:
 
 Draft edits and newly aggregated but inactive versions never enter this path.
 
+## Historical Version Management
+
+Historical versions remain immutable. Editing an existing version in place
+would make its identifier, preview, rollback behavior, and audit history
+untrustworthy. Administrators instead receive two explicit management actions:
+
+- **Copy to draft** replaces the current draft with the selected version's
+  stored snapshot. The request includes the draft revision currently displayed
+  by the administrator; a stale revision returns `409` and does not overwrite
+  newer work from another tab. The UI warns that unsaved draft work will be
+  replaced, reloads the returned draft after success, and scrolls to the editor.
+  Copying never aggregates or activates a version automatically.
+- **Delete** permanently removes an inactive, non-initial historical version
+  after a confirmation that names the version and states that deletion cannot
+  be undone. The active version and the bootstrap initial version are protected
+  and return `409`; a missing version returns `404`.
+
+The API surface is:
+
+- `POST /api/admin/prompt/versions/{version_id}/copy-to-draft`, with the
+  expected draft revision in the request body;
+- `DELETE /api/admin/prompt/versions/{version_id}`.
+
+Both operations use the existing Admin bearer authentication and SQLite write
+transaction/retry behavior. Makers output continues to exclude all local
+Prompt-management UI and API clients.
+
 ## Testing
 
 Automated coverage will verify:
@@ -196,6 +223,8 @@ Automated coverage will verify:
   value;
 - immutable aggregation snapshots and preview completeness;
 - explicit activation, historical rollback, and missing-version errors;
+- copying a version snapshot to the draft, stale-revision conflicts, protected
+  version deletion, successful deletion, and missing-version deletion;
 - live combination requests reading the active version rather than the draft;
 - the main Admin controls, error presentation, and API calls;
 - existing Python/Makers prompt parity for the unchanged canonical static
