@@ -27,7 +27,11 @@ class PromptValidationError(ValueError):
     """Raised when an editable prompt draft is not publishable."""
 
 
-class PromptRevisionConflict(RuntimeError):
+class PromptStoreConflictError(RuntimeError):
+    """Raised when a protected prompt-store mutation cannot proceed."""
+
+
+class PromptRevisionConflict(PromptStoreConflictError):
     """Raised when an administrator mutates a stale draft revision."""
 
     def __init__(self, expected_revision: int, current_revision: int):
@@ -792,6 +796,83 @@ def get_version(version_id: str) -> dict:
         return _version_from_row(row)
     finally:
         con.close()
+
+
+def copy_version_to_draft(
+    version_id: str,
+    *,
+    expected_revision: int,
+) -> dict:
+    """Replace the draft with an immutable version snapshot using CAS."""
+    if type(expected_revision) is not int or expected_revision < 0:
+        raise PromptValidationError(
+            "draft revision must be a non-negative integer"
+        )
+    expected = expected_revision
+
+    def copy_to_draft(con: sqlite3.Connection) -> dict:
+        version = con.execute(
+            "SELECT snapshot_json FROM prompt_versions WHERE id = ?",
+            (version_id,),
+        ).fetchone()
+        if version is None:
+            raise KeyError(f"unknown prompt version: {version_id}")
+        snapshot = _validate_stored_draft(
+            version["snapshot_json"],
+            record_type="prompt_version_snapshot",
+            record_id=version_id,
+        )
+        draft = con.execute(
+            "SELECT revision FROM prompt_draft WHERE singleton = 1"
+        ).fetchone()
+        if draft is None:
+            _missing_store_record("prompt_draft", "singleton")
+        current = draft["revision"]
+        if type(current) is not int or current < 1:
+            _missing_store_record("prompt_draft_revision", "singleton")
+        if current != expected:
+            raise PromptRevisionConflict(expected, current)
+        cursor = con.execute(
+            """
+            UPDATE prompt_draft
+            SET config_json = ?, updated_at = ?, revision = revision + 1
+            WHERE singleton = 1 AND revision = ?
+            """,
+            (_json(snapshot), time.time(), expected),
+        )
+        if cursor.rowcount != 1:
+            refreshed = con.execute(
+                "SELECT revision FROM prompt_draft WHERE singleton = 1"
+            ).fetchone()
+            if refreshed is None:
+                _missing_store_record("prompt_draft", "singleton")
+            raise PromptRevisionConflict(expected, refreshed["revision"])
+        return {"config": copy.deepcopy(snapshot), "revision": expected + 1}
+
+    return _write_transaction(copy_to_draft)
+
+
+def delete_version(version_id: str) -> None:
+    """Permanently remove an inactive non-initial prompt version."""
+    def delete(con: sqlite3.Connection) -> None:
+        active = con.execute(
+            "SELECT active_version_id FROM prompt_state WHERE singleton = 1"
+        ).fetchone()
+        if active is None:
+            _missing_store_record("prompt_state", "singleton")
+        version = con.execute(
+            "SELECT id FROM prompt_versions WHERE id = ?",
+            (version_id,),
+        ).fetchone()
+        if version is None:
+            raise KeyError(f"unknown prompt version: {version_id}")
+        if version_id.startswith("prompt-initial-"):
+            raise PromptStoreConflictError("initial prompt version is protected")
+        if version_id == active["active_version_id"]:
+            raise PromptStoreConflictError("active prompt version is protected")
+        con.execute("DELETE FROM prompt_versions WHERE id = ?", (version_id,))
+
+    _write_transaction(delete)
 
 
 def activate_version(version_id: str) -> dict:

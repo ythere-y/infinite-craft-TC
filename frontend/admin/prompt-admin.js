@@ -31,6 +31,9 @@
       const body = await response.json().catch(() => ({}));
       throw new Error(body.detail || `HTTP ${response.status}`);
     }
+    if (response.status === 204) {
+      return null;
+    }
     return response.json();
   }
 
@@ -283,7 +286,20 @@
       version.active ? `版本 ${version.id} 已生效` : `将版本 ${version.id} 设为生效`);
     activate.disabled = version.active === true;
     activate.addEventListener("click", () => activateHistoricalVersion(version.id));
-    actions.append(view, activate);
+    const copy = document.createElement("button");
+    copy.type = "button";
+    copy.textContent = "复制为草稿";
+    copy.setAttribute("aria-label", `复制版本 ${version.id} 为草稿`);
+    copy.addEventListener("click", () => copyVersionToDraft(version));
+    actions.append(view, activate, copy);
+    if (!version.active && !version.id.startsWith("prompt-initial-")) {
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "删除";
+      remove.setAttribute("aria-label", `删除版本 ${version.id}`);
+      remove.addEventListener("click", () => deleteVersion(version));
+      actions.append(remove);
+    }
 
     wrapper.append(heading, meta, actions);
     return wrapper;
@@ -448,6 +464,55 @@
       await refreshAfterMutation(`历史版本 ${versionId} 已设为生效。`);
     } catch (error) {
       setStatus(`历史版本激活失败：${error.message}`, "error");
+    } finally {
+      setOperationDisabled(false);
+    }
+  }
+
+  async function copyVersionToDraft(version) {
+    if (!window.confirm(`当前草稿将被覆盖。确定复制版本 ${version.id} 吗？`)) {
+      return;
+    }
+    setOperationDisabled(true);
+    try {
+      const copied = await promptRequest(
+        `/api/admin/prompt/versions/${encodeURIComponent(version.id)}/copy-to-draft`,
+        {
+          method: "POST",
+          body: JSON.stringify({expected_revision: draftRevision}),
+        },
+      );
+      draft = copied.config;
+      draftRevision = copied.revision;
+      pendingVersionId = null;
+      preview.value = "";
+      invalidJsonFields.clear();
+      renderDraft();
+      document.querySelector(".prompt-editor").scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      setStatus(`版本 ${version.id} 已复制为草稿，请保存并重新聚合后再设为生效。`, "success");
+    } catch (error) {
+      setStatus(`复制历史版本失败：${error.message}`, "error");
+    } finally {
+      setOperationDisabled(false);
+    }
+  }
+
+  async function deleteVersion(version) {
+    if (!window.confirm(`永久删除版本 ${version.id}？删除后无法恢复。`)) {
+      return;
+    }
+    setOperationDisabled(true);
+    try {
+      await promptRequest(
+        `/api/admin/prompt/versions/${encodeURIComponent(version.id)}`,
+        {method: "DELETE"},
+      );
+      await refreshAfterMutation(`版本 ${version.id} 已删除。`);
+    } catch (error) {
+      setStatus(`删除历史版本失败：${error.message}`, "error");
     } finally {
       setOperationDisabled(false);
     }

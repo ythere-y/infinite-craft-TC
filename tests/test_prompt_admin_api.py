@@ -41,6 +41,8 @@ def authorized_client(initialized_prompt_store, monkeypatch):
         ("post", "/api/admin/prompt/aggregate"),
         ("get", "/api/admin/prompt/versions/missing"),
         ("post", "/api/admin/prompt/versions/missing/activate"),
+        ("post", "/api/admin/prompt/versions/missing/copy-to-draft"),
+        ("delete", "/api/admin/prompt/versions/missing"),
     ],
 )
 def test_prompt_admin_routes_require_token(client, method, path, monkeypatch):
@@ -179,18 +181,83 @@ def test_saving_invalid_prompt_draft_returns_422(
 
 
 @pytest.mark.parametrize(
-    ("method", "path"),
+    ("method", "path", "payload"),
     [
-        ("get", "/api/admin/prompt/versions/missing"),
-        ("post", "/api/admin/prompt/versions/missing/activate"),
+        ("get", "/api/admin/prompt/versions/missing", None),
+        ("post", "/api/admin/prompt/versions/missing/activate", None),
+        (
+            "post",
+            "/api/admin/prompt/versions/missing/copy-to-draft",
+            {"expected_revision": 1},
+        ),
+        ("delete", "/api/admin/prompt/versions/missing", None),
     ],
 )
 def test_missing_prompt_version_returns_404(
-    authorized_client, method, path
+    authorized_client, method, path, payload
 ):
-    response = getattr(authorized_client, method)(path)
+    kwargs = {} if payload is None else {"json": payload}
+    response = getattr(authorized_client, method)(path, **kwargs)
 
     assert response.status_code == 404
+
+
+def test_admin_copies_version_to_draft_with_revision(
+    authorized_client, initialized_prompt_store
+):
+    state = authorized_client.get("/api/admin/prompt/config").json()
+    generated = authorized_client.post(
+        "/api/admin/prompt/aggregate",
+        json={"expected_revision": state["revision"]},
+    ).json()
+    response = authorized_client.post(
+        f"/api/admin/prompt/versions/{generated['id']}/copy-to-draft",
+        json={"expected_revision": state["revision"]},
+    )
+    assert response.status_code == 200
+    assert response.json()["config"] == generated["snapshot"]
+
+
+def test_admin_rejects_stale_copy_and_protected_delete(
+    authorized_client, initialized_prompt_store
+):
+    state = authorized_client.get("/api/admin/prompt/config").json()
+    generated = authorized_client.post(
+        "/api/admin/prompt/aggregate",
+        json={"expected_revision": state["revision"]},
+    ).json()
+    changed = deepcopy(state["config"])
+    changed["temperature"] = 0.25
+    authorized_client.put(
+        "/api/admin/prompt/config",
+        headers={"if-match": f'"{state["revision"]}"'},
+        json={"config": changed},
+    )
+    assert authorized_client.post(
+        f"/api/admin/prompt/versions/{generated['id']}/copy-to-draft",
+        json={"expected_revision": state["revision"]},
+    ).status_code == 409
+    active_id = state["active_version"]["id"]
+    assert authorized_client.delete(
+        f"/api/admin/prompt/versions/{active_id}"
+    ).status_code == 409
+
+
+def test_admin_treats_zero_copy_revision_as_a_stale_cas_value(
+    authorized_client,
+):
+    state = authorized_client.get("/api/admin/prompt/config").json()
+    generated = authorized_client.post(
+        "/api/admin/prompt/aggregate",
+        json={"expected_revision": state["revision"]},
+    ).json()
+
+    response = authorized_client.post(
+        f"/api/admin/prompt/versions/{generated['id']}/copy-to-draft",
+        json={"expected_revision": 0},
+    )
+
+    assert response.status_code == 409
 
 
 def test_put_requires_a_draft_precondition(authorized_client):

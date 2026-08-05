@@ -159,6 +159,14 @@ class PromptAggregateReq(BaseModel):
     expected_revision: int = Field(strict=True, ge=1)
 
 
+class PromptVersionCopyReq(BaseModel):
+    expected_revision: int = Field(
+        strict=True,
+        ge=0,
+        le=prompt_store.MAX_VERSION_OFFSET,
+    )
+
+
 # ============================================================
 # API
 # ============================================================
@@ -527,6 +535,46 @@ async def api_admin_prompt_activate(version_id: str):
     except KeyError as exc:
         raise _prompt_version_not_found(exc) from exc
     return _prompt_version_response(version, version["id"])
+
+
+@app.post(
+    "/api/admin/prompt/versions/{version_id}/copy-to-draft",
+    dependencies=[Depends(require_admin_token)],
+)
+async def api_copy_prompt_version(
+    version_id: str,
+    body: PromptVersionCopyReq,
+):
+    try:
+        return prompt_store.copy_version_to_draft(
+            version_id,
+            expected_revision=body.expected_revision,
+        )
+    except KeyError as exc:
+        raise _prompt_version_not_found(exc) from exc
+    except prompt_store.PromptRevisionConflict as exc:
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc),
+            headers={"ETag": _prompt_etag(exc.current_revision)},
+        ) from exc
+    except prompt_store.PromptValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.delete(
+    "/api/admin/prompt/versions/{version_id}",
+    status_code=204,
+    dependencies=[Depends(require_admin_token)],
+)
+async def api_delete_prompt_version(version_id: str):
+    try:
+        prompt_store.delete_version(version_id)
+    except KeyError as exc:
+        raise _prompt_version_not_found(exc) from exc
+    except prompt_store.PromptStoreConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return Response(status_code=204)
 
 
 @app.get("/admin")

@@ -89,6 +89,17 @@ def test_history_actions_have_version_specific_accessible_names():
     assert "version.id" in source
 
 
+def test_history_exposes_copy_and_delete_contracts():
+    source = ADMIN_JS.read_text(encoding="utf-8")
+
+    assert "/copy-to-draft" in source
+    assert 'method: "DELETE"' in source
+    assert "expected_revision" in source
+    assert "删除后无法恢复" in source
+    assert "当前草稿将被覆盖" in source
+    assert "scrollIntoView" in source
+
+
 def test_prompt_admin_locks_editors_during_mutations_without_rebuilding_them():
     source = ADMIN_JS.read_text(encoding="utf-8")
     save_body = source.split("async function saveDraft()", 1)[1].split(

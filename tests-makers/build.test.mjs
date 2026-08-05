@@ -517,6 +517,8 @@ test("Makers build excludes the local Prompt administration UI and assets", asyn
     assert.doesNotMatch(adminHtml, /data-admin-tab="prompt"/u);
     assert.doesNotMatch(adminHtml, /class="admin-tabs"/u);
     assert.doesNotMatch(adminHtml, /\/api\/admin\/prompt/u);
+    assert.doesNotMatch(adminHtml, /\/copy-to-draft/u);
+    assert.doesNotMatch(adminHtml, /method:\s*["']DELETE["']/u);
     assert.doesNotMatch(adminHtml, /prompt-(?:admin|decimal)\.(?:js|css)/u);
     assert.doesNotMatch(
       adminHtml,

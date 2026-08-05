@@ -405,6 +405,59 @@ def test_activate_can_publish_and_roll_back(isolated_prompt_db):
     assert prompt_store.get_active_version()["id"] == initial
 
 
+def test_copy_version_to_draft_uses_revision_cas(isolated_prompt_db):
+    prompt_store.init_prompt_store()
+    initial = prompt_store.get_draft_state()
+    generated = prompt_store.aggregate_draft(
+        expected_revision=initial["revision"], random_value=0
+    )
+    changed = deepcopy(initial["config"])
+    changed["temperature"] = 0.25
+    saved = prompt_store.save_draft(
+        changed, expected_revision=initial["revision"]
+    )
+
+    with pytest.raises(prompt_store.PromptStoreConflictError):
+        prompt_store.copy_version_to_draft(
+            generated["id"], expected_revision=initial["revision"]
+        )
+
+    copied = prompt_store.copy_version_to_draft(
+        generated["id"], expected_revision=saved["revision"]
+    )
+    assert copied["config"] == generated["snapshot"]
+    assert copied["revision"] == saved["revision"] + 1
+    assert prompt_store.get_active_version()["id"] != generated["id"]
+
+
+def test_delete_version_protects_active_and_initial_versions(isolated_prompt_db):
+    prompt_store.init_prompt_store()
+    initial = prompt_store.get_active_version()["id"]
+    with pytest.raises(prompt_store.PromptStoreConflictError):
+        prompt_store.delete_version(initial)
+
+    draft = prompt_store.get_draft_state()
+    generated = prompt_store.aggregate_draft(
+        expected_revision=draft["revision"], random_value=0
+    )
+    prompt_store.activate_version(generated["id"])
+    with pytest.raises(prompt_store.PromptStoreConflictError):
+        prompt_store.delete_version(generated["id"])
+    with pytest.raises(prompt_store.PromptStoreConflictError):
+        prompt_store.delete_version(initial)
+
+
+def test_delete_inactive_non_initial_version(isolated_prompt_db):
+    prompt_store.init_prompt_store()
+    draft = prompt_store.get_draft_state()
+    generated = prompt_store.aggregate_draft(
+        expected_revision=draft["revision"], random_value=0
+    )
+    prompt_store.delete_version(generated["id"])
+    with pytest.raises(KeyError):
+        prompt_store.get_version(generated["id"])
+
+
 def test_activate_rejects_corrupted_version_without_changing_active_state(
     isolated_prompt_db,
 ):
