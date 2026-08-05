@@ -213,6 +213,8 @@ test("model request uses Makers environment variables and OpenAI endpoint", asyn
   const body = JSON.parse(captured.init.body);
   assert.equal(body.model, "demo-model");
   assert.equal(body.temperature, 0.85);
+  assert.deepEqual(body.thinking, { type: "disabled" });
+  assert.equal(body.max_tokens, 128);
   assert.equal(body.messages.length, 2);
   assert.match(body.messages[1].content, /旧结果/);
   assert.match(body.messages[0].content, /【多样性硬要求】/);
@@ -221,6 +223,44 @@ test("model request uses Makers environment variables and OpenAI endpoint", asyn
   assert.match(body.messages[1].content, /优先组合常见字/);
   assert.match(body.messages[1].content, /悬赏候选/);
   assert.equal(randomCalls, 1);
+});
+
+test("model request sends the same bounded contract to official DeepSeek", async () => {
+  let captured;
+  await requestModelCombination({
+    a: "AI",
+    b: "咖啡",
+    env: {
+      MAKERS_USE_OWN_DEEPSEEK: "1",
+      MAKERS_DEEPSEEK_API_KEY: "direct-secret",
+      MAKERS_MODELS_KEY: "makers-secret",
+    },
+    fetchImpl: async (url, init) => {
+      captured = { url, init };
+      return new Response(
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: '{"name":"直连咖啡","emoji":"☕"}',
+              },
+            },
+          ],
+        }),
+        { status: 200 },
+      );
+    },
+  });
+
+  assert.equal(captured.url, "https://api.deepseek.com/chat/completions");
+  assert.equal(
+    captured.init.headers.authorization,
+    "Bearer direct-secret",
+  );
+  const body = JSON.parse(captured.init.body);
+  assert.equal(body.model, "deepseek-v4-flash");
+  assert.deepEqual(body.thinking, { type: "disabled" });
+  assert.equal(body.max_tokens, 128);
 });
 
 test("model request selects weighted style hints at fixed boundaries", async () => {

@@ -123,6 +123,8 @@ export async function requestModelCombination({
       body: JSON.stringify({
         model: config.model,
         temperature: messages.temperature,
+        thinking: { type: "disabled" },
+        max_tokens: 128,
         messages: [
           { role: "system", content: messages.system },
           { role: "user", content: messages.user },
