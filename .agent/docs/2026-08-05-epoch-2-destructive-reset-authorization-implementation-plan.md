@@ -31,7 +31,7 @@
 
 ### Steps
 
-- [ ] Add failing compiler tests showing that Epoch 2 accepts exactly:
+- [x] Add failing compiler tests showing that Epoch 2 accepts exactly:
 
   ```js
   meta: {
@@ -43,7 +43,7 @@
 
   The tests must reject a missing field, duplicate values, `0`, the target epoch, a higher epoch, non-safe integers, booleans, blank strings, and strings other than `"legacy"`.
 
-- [ ] Add failing serialization assertions for:
+- [x] Add failing serialization assertions for:
 
   ```js
   compiled.destructive_reset_from
@@ -53,29 +53,29 @@
     BOUNTY_CONTENT.destructive_reset_from;
   ```
 
-- [ ] Add a failing Python catalog-validation test that rejects an artifact whose top-level policy does not exactly match `catalog.meta.destructive_reset_from`.
+- [x] Add a failing Python catalog-validation test that rejects an artifact whose top-level policy does not exactly match `catalog.meta.destructive_reset_from`.
 
-- [ ] Run the focused red tests:
+- [x] Run the focused red tests:
 
   ```bash
   node --test --test-name-pattern="destructive reset" tests-makers/bounty-content-generation.test.mjs
   python3 -m pytest tests/test_content_catalog.py -q
   ```
 
-- [ ] Implement a compiler helper that:
+- [x] Implement a compiler helper that:
 
   1. requires an array;
   2. accepts the literal `"legacy"` or a positive safe integer strictly below `content_epoch`;
   3. rejects duplicates without coercion; and
   4. returns a cloned canonical array in source order.
 
-- [ ] Include the canonical policy at both `catalog.meta.destructive_reset_from` and top-level `destructive_reset_from`, then export it from the Edge artifact.
+- [x] Include the canonical policy at both `catalog.meta.destructive_reset_from` and top-level `destructive_reset_from`, then export it from the Edge artifact.
 
-- [ ] Add `"destructive_reset_from": ["legacy", 1]` to the editable Epoch 2 catalog metadata.
+- [x] Add `"destructive_reset_from": ["legacy", 1]` to the editable Epoch 2 catalog metadata.
 
-- [ ] Extend `backend/content_catalog.py::_validate_compiled_content` to validate the exact types, bounds, uniqueness, and equality of the top-level and catalog metadata policies. In Python, explicitly reject `bool`, because it is an `int` subclass.
+- [x] Extend `backend/content_catalog.py::_validate_compiled_content` to validate the exact types, bounds, uniqueness, and equality of the top-level and catalog metadata policies. In Python, explicitly reject `bool`, because it is an `int` subclass.
 
-- [ ] Regenerate and run the focused green tests:
+- [x] Regenerate and run the focused green tests:
 
   ```bash
   npm run generate:bounty-content
@@ -83,7 +83,7 @@
   python3 -m pytest tests/test_content_catalog.py -q
   ```
 
-- [ ] Commit:
+- [x] Commit:
 
   ```bash
   git add content/tencent-bounty-catalog.json scripts/bounty-content-lib.mjs tests-makers/bounty-content-generation.test.mjs backend/generated/bounty-content.json edge-functions/_generated/bounty-content.js backend/content_catalog.py tests/test_content_catalog.py

@@ -29,6 +29,80 @@ def test_compiled_content_has_exact_starters_and_aliases():
     assert content_catalog.normalize_alias("微信") == "微信"
 
 
+def test_compiled_content_publishes_destructive_reset_authorization():
+    compiled = content_catalog.load_compiled_content()
+
+    assert compiled["destructive_reset_from"] == ["legacy", 1]
+    assert compiled["catalog"]["meta"]["destructive_reset_from"] == [
+        "legacy",
+        1,
+    ]
+    assert content_catalog.destructive_reset_from() == ("legacy", 1)
+
+
+@pytest.mark.parametrize(
+    "policy",
+    [
+        None,
+        [],
+        ["legacy", "legacy"],
+        [1, 1],
+        [0],
+        [2],
+        [3],
+        [True],
+        [1.5],
+        [2**53],
+        [""],
+        ["epoch-1"],
+    ],
+)
+def test_compiled_content_rejects_invalid_destructive_reset_authorization(
+    policy,
+):
+    compiled = deepcopy(content_catalog.load_compiled_content())
+    seed_elements = json.loads(
+        content_catalog.SEED_ELEMENTS_PATH.read_text(encoding="utf-8")
+    )
+    seed_combinations = json.loads(
+        content_catalog.SEED_COMBINATIONS_PATH.read_text(encoding="utf-8")
+    )
+    compiled["destructive_reset_from"] = policy
+    compiled["catalog"]["meta"]["destructive_reset_from"] = policy
+    compiled["catalog_digest"] = content_catalog._canonical_digest(
+        content_catalog._digest_source(
+            compiled["catalog"],
+            seed_elements,
+            seed_combinations,
+        )
+    )
+
+    with pytest.raises(ValueError, match="destructive_reset_from"):
+        content_catalog._validate_compiled_content(
+            compiled,
+            seed_elements,
+            seed_combinations,
+        )
+
+
+def test_compiled_content_rejects_reset_authorization_projection_drift():
+    compiled = deepcopy(content_catalog.load_compiled_content())
+    seed_elements = json.loads(
+        content_catalog.SEED_ELEMENTS_PATH.read_text(encoding="utf-8")
+    )
+    seed_combinations = json.loads(
+        content_catalog.SEED_COMBINATIONS_PATH.read_text(encoding="utf-8")
+    )
+    compiled["destructive_reset_from"] = ["legacy"]
+
+    with pytest.raises(ValueError, match="destructive_reset_from"):
+        content_catalog._validate_compiled_content(
+            compiled,
+            seed_elements,
+            seed_combinations,
+        )
+
+
 def test_every_bounty_target_is_strictly_reachable():
     content = content_catalog.load_compiled_content()
     targets = {

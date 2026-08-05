@@ -337,6 +337,34 @@ def _validate_compiled_content(
         raise ValueError("compiled catalog must be an object")
     if catalog.get("meta", {}).get("content_epoch") != _CONTENT_EPOCH:
         raise ValueError("compiled catalog epoch does not match content_epoch")
+    catalog_policy = catalog.get("meta", {}).get("destructive_reset_from")
+    compiled_policy = compiled.get("destructive_reset_from")
+    if (
+        not isinstance(catalog_policy, list)
+        or not catalog_policy
+        or compiled_policy != catalog_policy
+    ):
+        raise ValueError(
+            "compiled destructive_reset_from must exactly match catalog metadata"
+        )
+    seen_policy_entries: set[str | int] = set()
+    for entry in compiled_policy:
+        valid_legacy = entry == "legacy"
+        valid_epoch = (
+            isinstance(entry, int)
+            and not isinstance(entry, bool)
+            and 0 < entry < _CONTENT_EPOCH
+        )
+        if not valid_legacy and not valid_epoch:
+            raise ValueError(
+                "compiled destructive_reset_from entries must be legacy "
+                "or lower positive epochs"
+            )
+        if entry in seen_policy_entries:
+            raise ValueError(
+                "compiled destructive_reset_from entries must be unique"
+            )
+        seen_policy_entries.add(entry)
 
     digest = compiled.get("catalog_digest")
     if not isinstance(digest, str) or not _DIGEST_PATTERN.fullmatch(digest):
@@ -426,6 +454,10 @@ def merged_combinations() -> dict[str, dict]:
 
 def starters() -> list[dict]:
     return load_compiled_content()["starters"]
+
+
+def destructive_reset_from() -> tuple[str | int, ...]:
+    return tuple(load_compiled_content()["destructive_reset_from"])
 
 
 def normalize_alias(name: str) -> str:

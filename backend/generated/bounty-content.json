@@ -1,10 +1,18 @@
 {
   "content_epoch": 2,
-  "catalog_digest": "sha256:12dcf92fd83534147420e9e90396fd44f89b182147eed89728714de37e1338be",
+  "destructive_reset_from": [
+    "legacy",
+    1
+  ],
+  "catalog_digest": "sha256:816085d810536a2567d695ffaa9564c0869ff48d9ca0d8db3eed12d0b3c0b93b",
   "catalog": {
     "meta": {
       "content_epoch": 2,
-      "version": "2.0.0"
+      "version": "2.0.0",
+      "destructive_reset_from": [
+        "legacy",
+        1
+      ]
     },
     "tabs": [
       {

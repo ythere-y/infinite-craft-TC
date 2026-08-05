@@ -209,7 +209,11 @@ const REQUIRED_RETIRED_PAIRS = [
 function fixture() {
   return {
     catalog: {
-      meta: { content_epoch: 2, version: "2.0.0" },
+      meta: {
+        content_epoch: 2,
+        version: "2.0.0",
+        destructive_reset_from: ["legacy", 1],
+      },
       tabs: [{ key: "tencent", label: "腾讯互联网", emoji: "🐧" }],
       groups: [{
         key: "qq_memory",
@@ -300,6 +304,54 @@ test("catalog compiler normalizes pairs and proves strict reachability", () => {
   assert.equal(compiled.depths.QQ, 3);
   assert.equal(compiled.combinations["企鹅 + 聊天"].result, "QQ");
   assert.match(compiled.catalog_digest, /^sha256:[a-f0-9]{64}$/u);
+});
+
+test("catalog compiler publishes the destructive reset authorization", () => {
+  const compiled = compileBountyContent(fixture());
+
+  assert.deepEqual(compiled.destructive_reset_from, ["legacy", 1]);
+  assert.deepEqual(
+    compiled.catalog.meta.destructive_reset_from,
+    ["legacy", 1],
+  );
+  assert.match(
+    serializeEdgeArtifact(compiled),
+    /export const DESTRUCTIVE_RESET_FROM =\s*BOUNTY_CONTENT\.destructive_reset_from;/u,
+  );
+  assert.deepEqual(
+    JSON.parse(serializePythonArtifact(compiled)).destructive_reset_from,
+    ["legacy", 1],
+  );
+});
+
+test("catalog compiler rejects invalid destructive reset authorization", () => {
+  const invalidPolicies = [
+    undefined,
+    [],
+    ["legacy", "legacy"],
+    [1, 1],
+    [0],
+    [2],
+    [3],
+    [Number.MAX_SAFE_INTEGER + 1],
+    [true],
+    [""],
+    ["epoch-1"],
+  ];
+
+  for (const policy of invalidPolicies) {
+    const input = fixture();
+    if (policy === undefined) {
+      delete input.catalog.meta.destructive_reset_from;
+    } else {
+      input.catalog.meta.destructive_reset_from = policy;
+    }
+    assert.throws(
+      () => compileBountyContent(input),
+      /destructive_reset_from/u,
+      JSON.stringify(policy),
+    );
+  }
 });
 
 test("catalog compiler rejects duplicate groups, aliases, and pair results", () => {
