@@ -24,6 +24,7 @@ const LOCAL_PROMPT_MARKERS = [
 const LOCAL_PROMPT_ASSETS = [
   "prompt-admin.css",
   "prompt-admin.js",
+  "prompt-admin-model.js",
   "prompt-decimal.js",
 ];
 const REQUIRED_ENTRIES = [

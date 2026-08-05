@@ -6,6 +6,8 @@
   const MAX_DECIMAL_PLACES = 6;
   const MAX_EXPONENT = 1_000;
   const DECIMAL_PLACES_ERROR = "\u98ce\u683c\u6982\u7387\u7684\u5c0f\u6570\u4f4d\u6570\u4e0d\u80fd\u8d85\u8fc7 6";
+  const RANGE_ERROR = "\u98ce\u683c\u6982\u7387\u5fc5\u987b\u5728 0 \u5230 100 \u4e4b\u95f4";
+  const VALUE_ERROR = "\u98ce\u683c\u6982\u7387\u5fc5\u987b\u662f\u6709\u6548\u6570\u5b57";
 
   function parse(value) {
     const match = DECIMAL.exec(String(value).trim());
@@ -39,15 +41,31 @@
     return `${negative ? "-" : ""}${fraction ? `${integer}.${fraction}` : integer}`;
   }
 
-  function summarize(values) {
+  function validate(values) {
     const decimals = values.map(parse);
     const invalid = decimals.find((decimal) => decimal === null || decimal.error);
     if (invalid !== undefined) {
       if (invalid !== null && invalid.error) {
-        return {total: INVALID, valid: false, error: invalid.error};
+        return {error: invalid.error};
       }
-      return {total: INVALID, valid: false};
+      return {error: VALUE_ERROR};
     }
+    const outOfRange = decimals.some((decimal) => (
+      decimal.coefficient < 0n ||
+      decimal.coefficient > 100n * (10n ** BigInt(decimal.scale))
+    ));
+    if (outOfRange) {
+      return {error: RANGE_ERROR};
+    }
+    return {decimals};
+  }
+
+  function summarize(values) {
+    const validation = validate(values);
+    if (validation.error) {
+      return {total: INVALID, valid: false, error: validation.error};
+    }
+    const {decimals} = validation;
     const scale = Math.max(0, ...decimals.map((decimal) => decimal.scale));
     const total = decimals.reduce(
       (sum, decimal) => sum + decimal.coefficient * (10n ** BigInt(scale - decimal.scale)),
@@ -57,5 +75,17 @@
     return {total: shown, valid: shown === "100"};
   }
 
-  globalThis.PromptDecimal = Object.freeze({summarize});
+  function summarizeStyles(styles) {
+    const validation = validate(styles.map((style) => style.probability));
+    if (validation.error) {
+      return {total: INVALID, valid: false, error: validation.error};
+    }
+    return summarize(
+      styles
+        .filter((style) => style.enabled)
+        .map((style) => style.probability),
+    );
+  }
+
+  globalThis.PromptDecimal = Object.freeze({summarize, summarizeStyles});
 })();

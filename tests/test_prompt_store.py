@@ -137,6 +137,36 @@ def test_saved_draft_survives_store_reinitialization(isolated_prompt_db):
     assert _draft_state()["revision"] == saved["revision"]
 
 
+@pytest.mark.parametrize("temperature", [-0.01, 2.01])
+def test_save_draft_rejects_temperature_outside_provider_range(
+    isolated_prompt_db,
+    temperature,
+):
+    prompt_store.init_prompt_store()
+    draft = prompt_store.get_draft()
+    draft["temperature"] = temperature
+
+    with pytest.raises(
+        prompt_store.PromptValidationError,
+        match="temperature",
+    ):
+        _save_current(draft)
+
+
+@pytest.mark.parametrize("temperature", [0, 2])
+def test_save_draft_accepts_temperature_provider_boundaries(
+    isolated_prompt_db,
+    temperature,
+):
+    prompt_store.init_prompt_store()
+    draft = prompt_store.get_draft()
+    draft["temperature"] = temperature
+
+    saved = _save_current(draft)
+
+    assert saved["config"]["temperature"] == temperature
+
+
 def test_probability_precision_limit_accepts_six_decimal_places(isolated_prompt_db):
     prompt_store.init_prompt_store()
     draft = prompt_store.get_draft()
@@ -364,6 +394,32 @@ def test_aggregate_selects_style_at_probability_boundaries(
         ]["id"]
         == expected
     )
+
+
+def test_version_page_reaches_history_older_than_fifty_and_active_version(
+    isolated_prompt_db,
+):
+    prompt_store.init_prompt_store()
+    active_id = prompt_store.get_active_version()["id"]
+    revision = _draft_state()["revision"]
+    for _ in range(51):
+        prompt_store.aggregate_draft(
+            expected_revision=revision,
+            random_value=0,
+        )
+
+    first = prompt_store.list_version_page(limit=50, offset=0)
+    second = prompt_store.list_version_page(
+        limit=50,
+        offset=first["next_offset"],
+    )
+
+    assert len(first["versions"]) == 50
+    assert first["has_more"] is True
+    assert first["next_offset"] == 50
+    assert active_id not in {version["id"] for version in first["versions"]}
+    assert second["has_more"] is False
+    assert active_id in {version["id"] for version in second["versions"]}
 
 
 def test_aggregated_version_is_immutable_after_draft_changes(

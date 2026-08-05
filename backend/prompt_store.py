@@ -925,3 +925,36 @@ def list_versions(*, limit: int = 50, offset: int = 0) -> List[dict]:
         return [_version_summary_from_row(row) for row in rows]
     finally:
         con.close()
+
+
+def list_version_page(*, limit: int = 50, offset: int = 0) -> dict:
+    if type(limit) is not int or not 1 <= limit <= 100:
+        raise ValueError("version limit must be between 1 and 100")
+    if type(offset) is not int or not 0 <= offset <= MAX_VERSION_OFFSET:
+        raise ValueError("version offset is outside SQLite integer range")
+    con = archive._conn()
+    try:
+        rows = con.execute(
+            """
+            SELECT
+                id, created_at, selected_style_id, selected_style_name
+            FROM prompt_versions
+            ORDER BY created_at DESC, id DESC
+            LIMIT ? OFFSET ?
+            """,
+            (limit + 1, offset),
+        ).fetchall()
+        has_more = len(rows) > limit
+        versions = [
+            _version_summary_from_row(row)
+            for row in rows[:limit]
+        ]
+        return {
+            "versions": versions,
+            "limit": limit,
+            "offset": offset,
+            "next_offset": offset + len(versions) if has_more else None,
+            "has_more": has_more,
+        }
+    finally:
+        con.close()

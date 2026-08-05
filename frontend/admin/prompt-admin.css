@@ -226,6 +226,14 @@
   color: #ff9aa8;
 }
 
+.prompt-field-error {
+  display: block;
+  min-height: 18px;
+  margin-top: 4px;
+  color: #ff9aa8;
+  font-size: 11px;
+}
+
 .prompt-version-history {
   display: grid;
   gap: 10px;
@@ -270,6 +278,11 @@
 .prompt-empty {
   color: #777f94;
   font-size: 12px;
+}
+
+#prompt-load-more {
+  width: 100%;
+  margin-top: 10px;
 }
 
 @media (max-width: 980px) {

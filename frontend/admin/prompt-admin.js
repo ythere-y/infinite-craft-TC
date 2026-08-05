@@ -6,7 +6,10 @@
   const activateButton = document.getElementById("prompt-activate");
   const saveButton = document.getElementById("prompt-save");
   const aggregateButton = document.getElementById("prompt-aggregate");
+  const loadMoreButton = document.getElementById("prompt-load-more");
+  const viewActiveButton = document.getElementById("prompt-view-active");
   const adminTabs = Array.from(document.querySelectorAll("[data-admin-tab]"));
+  const HISTORY_LIMIT = 50;
 
   let draft = null;
   let promptLoaded = false;
@@ -14,6 +17,10 @@
   let promptLoadRequestId = 0;
   let pendingVersionId = null;
   let draftRevision = null;
+  let activeVersion = null;
+  let versionHistory = [];
+  let historyHasMore = false;
+  let historyNextOffset = 0;
   let idSequence = 0;
   const invalidJsonFields = new Set();
 
@@ -41,6 +48,10 @@
     const status = document.getElementById("prompt-status");
     status.textContent = message;
     status.dataset.tone = tone;
+  }
+
+  function promptConfigPath(offset) {
+    return `/api/admin/prompt/config?version_limit=${HISTORY_LIMIT}&version_offset=${offset}`;
   }
 
   function setOperationDisabled(disabled) {
@@ -151,10 +162,7 @@
   }
 
   function updateProbabilityFeedback() {
-    const enabled = draft.styles.filter((style) => style.enabled);
-    const summary = PromptDecimal.summarize(
-      enabled.map((style) => style.probability),
-    );
+    const summary = PromptDecimal.summarizeStyles(draft.styles);
     const feedback = document.getElementById("prompt-probability-total");
     if (summary.error) {
       feedback.textContent = summary.error;
@@ -227,15 +235,29 @@
     };
   }
 
+  function validateTemperatureInput({focus = false} = {}) {
+    const input = document.getElementById("prompt-temperature");
+    const message = PromptAdminModel.temperatureError(input.value);
+    input.setCustomValidity(message);
+    input.setAttribute("aria-invalid", String(Boolean(message)));
+    document.getElementById("prompt-temperature-error").textContent = message;
+    if (message && focus) {
+      input.focus();
+    }
+    return message;
+  }
+
   function renderDraft() {
     document.getElementById("prompt-schema-version").value =
       draft.schema_version ?? "";
     const temperature = document.getElementById("prompt-temperature");
     temperature.value = draft.temperature ?? "";
     temperature.oninput = () => {
-      draft.temperature = Number(temperature.value);
+      draft.temperature = temperature.valueAsNumber;
+      validateTemperatureInput();
       markDraftDirty();
     };
+    validateTemperatureInput();
 
     renderManagedCollection("system_modules");
     renderManagedCollection("styles");
@@ -317,6 +339,34 @@
     history.replaceChildren(...versions.map(versionNode));
   }
 
+  function renderActiveVersion(version) {
+    const summary = document.getElementById("prompt-active-version");
+    if (!version) {
+      summary.textContent = "尚未加载。";
+      viewActiveButton.disabled = true;
+      return;
+    }
+    summary.textContent = version.id;
+    viewActiveButton.disabled = false;
+    viewActiveButton.setAttribute("aria-label", `查看当前生效版本 ${version.id}`);
+  }
+
+  function applyVersionPage(payload, reset) {
+    const page = PromptAdminModel.mergeVersionPage(
+      versionHistory,
+      payload,
+      reset,
+    );
+    versionHistory = page.versions;
+    historyHasMore = page.hasMore;
+    historyNextOffset = page.nextOffset;
+    activeVersion = payload.active_version || activeVersion;
+    renderActiveVersion(activeVersion);
+    renderVersions(versionHistory);
+    loadMoreButton.hidden = !historyHasMore;
+    loadMoreButton.disabled = !historyHasMore;
+  }
+
   function loadPromptConfig() {
     if (promptLoadPromise) {
       return promptLoadPromise;
@@ -325,7 +375,7 @@
     setStatus("正在加载 Prompt 配置…");
     promptLoadPromise = (async () => {
       try {
-        const payload = await promptRequest("/api/admin/prompt/config");
+        const payload = await promptRequest(promptConfigPath(0));
         if (requestId !== promptLoadRequestId) {
           return;
         }
@@ -333,7 +383,7 @@
         draftRevision = payload.revision;
         invalidJsonFields.clear();
         renderDraft();
-        renderVersions(payload.versions);
+        applyVersionPage(payload, true);
         promptLoaded = true;
         const activeId = payload.active_version?.id || "未知";
         setStatus(`配置已加载，当前生效版本：${activeId}`, "success");
@@ -352,9 +402,25 @@
   }
 
   async function refreshVersionSummaries() {
-    const payload = await promptRequest("/api/admin/prompt/config");
-    renderVersions(payload.versions);
+    const payload = await promptRequest(promptConfigPath(0));
+    applyVersionPage(payload, true);
     return payload;
+  }
+
+  async function loadMoreVersions() {
+    if (!historyHasMore || historyNextOffset === null) {
+      return;
+    }
+    setOperationDisabled(true);
+    try {
+      const payload = await promptRequest(promptConfigPath(historyNextOffset));
+      applyVersionPage(payload, false);
+      setStatus(`已加载 ${versionHistory.length} 个历史版本。`, "success");
+    } catch (error) {
+      setStatus(`加载更多历史版本失败：${error.message}`, "error");
+    } finally {
+      setOperationDisabled(false);
+    }
   }
 
   async function refreshAfterMutation(successMessage) {
@@ -375,6 +441,10 @@
     }
     if (invalidJsonFields.size > 0) {
       throw new Error("请先修正标记为无效的 JSON 字段");
+    }
+    const temperatureError = validateTemperatureInput({focus: true});
+    if (temperatureError) {
+      throw new Error(temperatureError);
     }
     if (!Number.isSafeInteger(draftRevision)) {
       throw new Error("Prompt 配置版本尚未加载");
@@ -510,6 +580,14 @@
         `/api/admin/prompt/versions/${encodeURIComponent(version.id)}`,
         {method: "DELETE"},
       );
+      const reconciled = PromptAdminModel.reconcileDeletedVersion(
+        pendingVersionId,
+        version.id,
+      );
+      pendingVersionId = reconciled.pendingVersionId;
+      if (reconciled.clearPreview) {
+        preview.value = "";
+      }
       await refreshAfterMutation(`版本 ${version.id} 已删除。`);
     } catch (error) {
       setStatus(`删除历史版本失败：${error.message}`, "error");
@@ -576,4 +654,10 @@
   });
   aggregateButton.addEventListener("click", aggregateDraft);
   activateButton.addEventListener("click", activatePreviewVersion);
+  loadMoreButton.addEventListener("click", loadMoreVersions);
+  viewActiveButton.addEventListener("click", () => {
+    if (activeVersion?.id) {
+      viewVersion(activeVersion.id);
+    }
+  });
 })();

@@ -518,8 +518,13 @@ test("Makers build excludes the local Prompt administration UI and assets", asyn
     assert.doesNotMatch(adminHtml, /class="admin-tabs"/u);
     assert.doesNotMatch(adminHtml, /\/api\/admin\/prompt/u);
     assert.doesNotMatch(adminHtml, /\/copy-to-draft/u);
+    assert.doesNotMatch(adminHtml, /version_offset/u);
     assert.doesNotMatch(adminHtml, /method:\s*["']DELETE["']/u);
-    assert.doesNotMatch(adminHtml, /prompt-(?:admin|decimal)\.(?:js|css)/u);
+    assert.doesNotMatch(
+      adminHtml,
+      /prompt-(?:admin|admin-model|decimal)\.(?:js|css)/u,
+    );
+    assert.doesNotMatch(adminHtml, /id="prompt-(?:load-more|view-active)"/u);
     assert.doesNotMatch(
       adminHtml,
       /id="prompt-(?:module|style|example)-template"/u,
@@ -539,6 +544,10 @@ test("Makers build excludes the local Prompt administration UI and assets", asyn
     );
     await assert.rejects(
       access(join(root, "dist/admin/prompt-decimal.js")),
+      { code: "ENOENT" },
+    );
+    await assert.rejects(
+      access(join(root, "dist/admin/prompt-admin-model.js")),
       { code: "ENOENT" },
     );
 

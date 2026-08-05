@@ -82,6 +82,14 @@ def test_python_validation_accepts_capacity_boundaries():
     assert validated["limits"]["avoid_words"] == 10_000
 
 
+@pytest.mark.parametrize("temperature", [0, 2])
+def test_python_validation_accepts_temperature_provider_boundaries(temperature):
+    spec = copy.deepcopy(prompt_spec.load_prompt_spec())
+    spec["temperature"] = temperature
+
+    assert prompt_spec.validate_prompt_spec(spec)["temperature"] == temperature
+
+
 @pytest.mark.parametrize("field", ["positive_examples", "negative_examples"])
 @pytest.mark.parametrize(
     "collection",

@@ -100,6 +100,9 @@ export function validatePromptSpec(value) {
   if (!Number.isFinite(value.temperature)) {
     throw new Error("temperature must be finite");
   }
+  if (value.temperature < 0 || value.temperature > 2) {
+    throw new Error("temperature must be between 0 and 2");
+  }
   const validators = {
     system_modules: validateSystemModule,
     examples: validateExample,

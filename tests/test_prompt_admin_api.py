@@ -180,6 +180,44 @@ def test_saving_invalid_prompt_draft_returns_422(
     assert "至少启用一种风格" in response.json()["detail"]
 
 
+@pytest.mark.parametrize("temperature", [-0.01, 2.01])
+def test_saving_temperature_outside_provider_range_returns_422(
+    authorized_client,
+    initialized_prompt_store,
+    temperature,
+):
+    invalid = deepcopy(initialized_prompt_store.get_draft())
+    invalid["temperature"] = temperature
+
+    response = authorized_client.put(
+        "/api/admin/prompt/config",
+        json={"config": invalid},
+        headers={"If-Match": '"1"'},
+    )
+
+    assert response.status_code == 422
+    assert "temperature" in response.json()["detail"]
+
+
+@pytest.mark.parametrize("temperature", [0, 2])
+def test_saving_temperature_provider_boundary_returns_200(
+    authorized_client,
+    initialized_prompt_store,
+    temperature,
+):
+    config = deepcopy(initialized_prompt_store.get_draft())
+    config["temperature"] = temperature
+
+    response = authorized_client.put(
+        "/api/admin/prompt/config",
+        json={"config": config},
+        headers={"If-Match": '"1"'},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["config"]["temperature"] == temperature
+
+
 @pytest.mark.parametrize(
     ("method", "path", "payload"),
     [
@@ -410,6 +448,47 @@ def test_version_summaries_are_metadata_only_allowlisted_and_paginated(
         "selected_style",
         "active",
     }
+
+
+def test_version_pages_expose_all_history_when_active_is_older_than_fifty(
+    authorized_client,
+    initialized_prompt_store,
+):
+    state = initialized_prompt_store.get_draft_state()
+    active_id = initialized_prompt_store.get_active_version()["id"]
+    for _ in range(51):
+        initialized_prompt_store.aggregate_draft(
+            expected_revision=state["revision"],
+            random_value=0,
+        )
+
+    first_response = authorized_client.get(
+        "/api/admin/prompt/config?version_limit=50&version_offset=0"
+    )
+    assert first_response.status_code == 200
+    first = first_response.json()
+    assert first["version_page"] == {
+        "limit": 50,
+        "offset": 0,
+        "next_offset": 50,
+        "has_more": True,
+    }
+    assert active_id not in {version["id"] for version in first["versions"]}
+    assert first["active_version"]["id"] == active_id
+
+    second_response = authorized_client.get(
+        "/api/admin/prompt/config?version_limit=50&version_offset=50"
+    )
+    assert second_response.status_code == 200
+    second = second_response.json()
+    assert second["version_page"]["has_more"] is False
+    assert active_id in {version["id"] for version in second["versions"]}
+
+    active_detail = authorized_client.get(
+        f"/api/admin/prompt/versions/{active_id}"
+    )
+    assert active_detail.status_code == 200
+    assert active_detail.json()["id"] == active_id
 
 
 def test_version_offset_rejects_values_outside_sqlite_integer_range(

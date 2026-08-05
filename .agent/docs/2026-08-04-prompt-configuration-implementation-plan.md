@@ -31,7 +31,7 @@
 - Consumes: `backend.prompt_spec.load_prompt_spec()` 和 `validate_prompt_spec(spec)`。
 - Produces: `init_prompt_store() -> None`、`get_draft() -> dict`、`save_draft(draft: dict) -> dict`、`get_active_spec() -> dict`。
 
-- [ ] **Step 1: 写入初始导入失败测试**
+- [x] **Step 1: 写入初始导入失败测试**
 
 ```python
 def test_bootstrap_imports_canonical_prompt_as_active_version(
@@ -56,7 +56,7 @@ def test_bootstrap_imports_canonical_prompt_as_active_version(
 测试夹具通过 monkeypatch 将 `archive._DATA_DIR` 指向 `tmp_path`，设置
 `APP_ENV=test`，调用 `archive.init_archive()`，并在每个测试后恢复环境。
 
-- [ ] **Step 2: 运行测试并确认按预期失败**
+- [x] **Step 2: 运行测试并确认按预期失败**
 
 Run:
 
@@ -66,7 +66,7 @@ python -m pytest tests/test_prompt_store.py::test_bootstrap_imports_canonical_pr
 
 Expected: FAIL，原因是 `backend.prompt_store` 或 Prompt 数据表尚不存在。
 
-- [ ] **Step 3: 在 SQLite 初始化中建立管理表**
+- [x] **Step 3: 在 SQLite 初始化中建立管理表**
 
 向 `archive.init_archive()` 的同一个 `executescript` 增加：
 
@@ -96,7 +96,7 @@ CREATE INDEX IF NOT EXISTS idx_prompt_versions_created
 ON prompt_versions(created_at DESC);
 ```
 
-- [ ] **Step 4: 实现标准规范与管理草稿的双向转换**
+- [x] **Step 4: 实现标准规范与管理草稿的双向转换**
 
 在 `backend/prompt_store.py` 中实现：
 
@@ -132,7 +132,7 @@ def draft_from_canonical(spec: dict) -> dict:
 标准风格及其原始比例；指定风格时只输出该风格且权重为 `1.0`。初始版本直接保存未经变形的
 `load_prompt_spec()` 结果，保证严格兼容。
 
-- [ ] **Step 5: 实现幂等初始化和基础读写**
+- [x] **Step 5: 实现幂等初始化和基础读写**
 
 `init_prompt_store()` 在 `_lock` 和单个 SQLite 事务中：
 
@@ -150,7 +150,7 @@ def draft_from_canonical(spec: dict) -> dict:
 json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
 ```
 
-- [ ] **Step 6: 添加幂等和持久化测试**
+- [x] **Step 6: 添加幂等和持久化测试**
 
 ```python
 def test_bootstrap_is_idempotent(isolated_prompt_db):
@@ -170,7 +170,7 @@ def test_saved_draft_survives_store_reinitialization(isolated_prompt_db):
     assert prompt_store.get_draft()["temperature"] == 0.25
 ```
 
-- [ ] **Step 7: 运行 Prompt Store 测试**
+- [x] **Step 7: 运行 Prompt Store 测试**
 
 Run:
 
@@ -180,7 +180,7 @@ python -m pytest tests/test_prompt_store.py -q
 
 Expected: PASS。
 
-- [ ] **Step 8: 提交**
+- [x] **Step 8: 提交**
 
 ```text
 git add backend/archive.py backend/prompt_store.py tests/test_prompt_store.py
@@ -201,7 +201,7 @@ git commit -m "feat: persist local prompt drafts and versions"
 - Consumes: Task 1 的 `get_draft()` 和 SQLite 表。
 - Produces: `validate_draft(value: object) -> dict`、`aggregate_draft(random_value: float | None = None) -> dict`、`get_version(version_id: str) -> dict`、`activate_version(version_id: str) -> dict`、`list_versions() -> list[dict]`。
 
-- [ ] **Step 1: 写入非法概率和重复 ID 测试**
+- [x] **Step 1: 写入非法概率和重复 ID 测试**
 
 ```python
 @pytest.mark.parametrize(
@@ -228,7 +228,7 @@ def test_save_draft_rejects_invalid_configuration(
         prompt_store.save_draft(draft)
 ```
 
-- [ ] **Step 2: 运行测试并确认失败**
+- [x] **Step 2: 运行测试并确认失败**
 
 Run:
 
@@ -238,7 +238,7 @@ python -m pytest tests/test_prompt_store.py -k rejects_invalid -q
 
 Expected: FAIL，原因是管理草稿校验尚未实现。
 
-- [ ] **Step 3: 实现十进制概率和模块校验**
+- [x] **Step 3: 实现十进制概率和模块校验**
 
 使用 `Decimal(str(value))` 校验每个概率在 `0..100`，并使用：
 
@@ -256,7 +256,7 @@ if enabled_total != Decimal("100"):
 列表类型、稳定非空 ID、ID 唯一性、布尔 `enabled`，以及已启用条目的非空文本。
 最后调用 `validate_prompt_spec(canonical_from_draft(validated))` 复用现有参数和结构化案例校验。
 
-- [ ] **Step 4: 写入确定性概率边界测试**
+- [x] **Step 4: 写入确定性概率边界测试**
 
 ```python
 @pytest.mark.parametrize(
@@ -292,7 +292,7 @@ def test_aggregate_selects_style_at_probability_boundaries(
     )
 ```
 
-- [ ] **Step 5: 扩展渲染器支持正负纯文本章节**
+- [x] **Step 5: 扩展渲染器支持正负纯文本章节**
 
 `build_prompt_messages_from_spec()` 在结构化示例之后、动态社区示例之前追加可选章节：
 
@@ -310,7 +310,7 @@ negative_examples = [
 正面章节标题为 `【正面案例】`，负面章节标题为 `【负面案例】`。字段缺失时输出必须与
 现有规范完全一致，以保持 Makers parity 测试不变。
 
-- [ ] **Step 6: 实现聚合、预览、读取和激活**
+- [x] **Step 6: 实现聚合、预览、读取和激活**
 
 风格选择将注入值限制到 `[0, 1]`，按启用风格的累计百分比选择，`1.0` 明确落到最后一个
 启用风格。版本 ID 使用 `prompt-<UTC basic timestamp>-<uuid前8位>`。
@@ -330,7 +330,7 @@ negative_examples = [
 
 `activate_version()` 只更新 `prompt_state.active_version_id`，不得复制或改写版本。
 
-- [ ] **Step 7: 添加版本不可变、预览和回滚测试**
+- [x] **Step 7: 添加版本不可变、预览和回滚测试**
 
 ```python
 def test_aggregated_version_is_immutable_after_draft_changes(isolated_prompt_db):
@@ -354,7 +354,7 @@ def test_activate_can_publish_and_roll_back(isolated_prompt_db):
     assert prompt_store.get_active_version()["id"] == initial
 ```
 
-- [ ] **Step 8: 运行相关测试并提交**
+- [x] **Step 8: 运行相关测试并提交**
 
 ```text
 python -m pytest tests/test_prompt_store.py tests/test_prompt_validation.py tests/test_prompt_parity.py -q
@@ -377,7 +377,7 @@ git commit -m "feat: aggregate immutable prompt versions"
 - Consumes: `prompt_store.init_prompt_store()` 和 `prompt_store.get_active_spec()`。
 - Produces: 启动阶段完成 Prompt Store 初始化；所有未显式传入 `prompt_spec` 的本地在线合成使用当前生效版本。
 
-- [ ] **Step 1: 写入在线链路失败测试**
+- [x] **Step 1: 写入在线链路失败测试**
 
 ```python
 def test_combine_uses_active_prompt_version(monkeypatch, isolated_prompt_db):
@@ -400,7 +400,7 @@ def test_combine_uses_active_prompt_version(monkeypatch, isolated_prompt_db):
     assert captured["spec"] == generated["effective_spec"]
 ```
 
-- [ ] **Step 2: 运行并确认测试失败**
+- [x] **Step 2: 运行并确认测试失败**
 
 Run:
 
@@ -410,7 +410,7 @@ python -m pytest tests/test_prompt_store.py::test_combine_uses_active_prompt_ver
 
 Expected: FAIL，捕获到的是静态文件规范。
 
-- [ ] **Step 3: 接入启动和运行时读取**
+- [x] **Step 3: 接入启动和运行时读取**
 
 在 `_startup()` 中保持静态规范先校验的顺序，然后：
 
@@ -428,7 +428,7 @@ spec = prompt_spec if prompt_spec is not None else prompt_store.get_active_spec(
 
 保留测试和内部调用显式传入 `prompt_spec` 的能力。
 
-- [ ] **Step 4: 验证显式规范优先且启动失败顺序明确**
+- [x] **Step 4: 验证显式规范优先且启动失败顺序明确**
 
 扩展现有启动测试，断言顺序为：
 
@@ -438,7 +438,7 @@ assert events == ["canonical", "db", "prompt_store"]
 
 新增测试确认 `prompt_spec=custom` 时不会调用 `get_active_spec()`。
 
-- [ ] **Step 5: 运行 LLM 与评论链路测试并提交**
+- [x] **Step 5: 运行 LLM 与评论链路测试并提交**
 
 ```text
 python -m pytest tests/test_llm.py tests/test_comments.py tests/test_prompt_store.py tests/test_prompt_validation.py -q
@@ -458,7 +458,7 @@ git commit -m "feat: serve active prompt version to local LLM"
 - Consumes: Task 2 的 Prompt Store 接口。
 - Produces: 五个 `/api/admin/prompt/*` JSON API 和共享 `require_admin_token(request)`。
 
-- [ ] **Step 1: 写入各接口鉴权失败测试**
+- [x] **Step 1: 写入各接口鉴权失败测试**
 
 ```python
 @pytest.mark.parametrize(
@@ -477,7 +477,7 @@ def test_prompt_admin_routes_require_token(client, method, path, monkeypatch):
     assert response.status_code == 401
 ```
 
-- [ ] **Step 2: 运行测试并确认失败**
+- [x] **Step 2: 运行测试并确认失败**
 
 Run:
 
@@ -487,7 +487,7 @@ python -m pytest tests/test_prompt_admin_api.py -q
 
 Expected: FAIL，接口返回 404。
 
-- [ ] **Step 3: 实现共享常量时间鉴权**
+- [x] **Step 3: 实现共享常量时间鉴权**
 
 ```python
 def require_admin_token(request: Request) -> None:
@@ -500,7 +500,7 @@ def require_admin_token(request: Request) -> None:
 
 现有 `/api/admin/stats` 同样调用该函数，使监控页与 Prompt 页行为一致。
 
-- [ ] **Step 4: 定义 DTO 和路由错误映射**
+- [x] **Step 4: 定义 DTO 和路由错误映射**
 
 使用 Pydantic 根对象接收完整草稿：
 
@@ -520,7 +520,7 @@ class PromptDraftReq(BaseModel):
 }
 ```
 
-- [ ] **Step 5: 添加保存、聚合、查看、激活和回滚 API 测试**
+- [x] **Step 5: 添加保存、聚合、查看、激活和回滚 API 测试**
 
 ```python
 def test_admin_can_save_aggregate_preview_and_activate(
@@ -543,7 +543,7 @@ def test_admin_can_save_aggregate_preview_and_activate(
     assert activated["active"] is True
 ```
 
-- [ ] **Step 6: 运行 API 测试并提交**
+- [x] **Step 6: 运行 API 测试并提交**
 
 ```text
 python -m pytest tests/test_prompt_admin_api.py tests/test_prompt_store.py -q
@@ -565,7 +565,7 @@ git commit -m "feat: expose authenticated prompt admin API"
 - Consumes: Task 4 的 API，复用 sessionStorage 键 `infinity_admin_token`。
 - Produces: “运行监控 / Prompt 管理”页签、完整草稿编辑、聚合预览、激活和历史版本交互。
 
-- [ ] **Step 1: 写入页面结构失败测试**
+- [x] **Step 1: 写入页面结构失败测试**
 
 ```python
 def test_admin_page_exposes_prompt_management_controls():
@@ -582,7 +582,7 @@ def test_admin_page_exposes_prompt_management_controls():
     assert 'src="/admin/prompt-admin.js"' in html
 ```
 
-- [ ] **Step 2: 运行并确认测试失败**
+- [x] **Step 2: 运行并确认测试失败**
 
 Run:
 
@@ -592,7 +592,7 @@ python -m pytest tests/test_prompt_admin_ui.py -q
 
 Expected: FAIL，缺少 Prompt 管理 DOM。
 
-- [ ] **Step 3: 增加页签和语义化编辑区域**
+- [x] **Step 3: 增加页签和语义化编辑区域**
 
 保留现有监控内容，外包为：
 
@@ -608,7 +608,7 @@ Expected: FAIL，缺少 Prompt 管理 DOM。
 Prompt 面板使用 `<template>` 定义模块、风格和案例行，所有动态文本使用
 `textContent`/表单 `value`，禁止用配置内容拼接 `innerHTML`。
 
-- [ ] **Step 4: 实现共享鉴权请求和草稿编辑**
+- [x] **Step 4: 实现共享鉴权请求和草稿编辑**
 
 `prompt-admin.js` 提供：
 
@@ -634,7 +634,7 @@ async function promptRequest(path, options = {}) {
 维护单个内存 `draft`，DOM 修改先回写 draft；保存时发送完整
 `PUT /api/admin/prompt/config`。概率总计只提供即时反馈，不在前端自动改值。
 
-- [ ] **Step 5: 实现聚合、预览、激活和历史版本**
+- [x] **Step 5: 实现聚合、预览、激活和历史版本**
 
 - “聚合”先确保草稿已保存，再调用 aggregate。
 - 返回版本后将完整 preview 写入只读 `<textarea>`，记录待激活版本 ID。
@@ -642,7 +642,7 @@ async function promptRequest(path, options = {}) {
 - 历史版本“查看”读取详情，“设为生效”要求一次 `window.confirm()`。
 - 修改草稿后清除待激活状态并提示必须重新聚合。
 
-- [ ] **Step 6: 添加静态安全与交互契约测试**
+- [x] **Step 6: 添加静态安全与交互契约测试**
 
 ```python
 def test_prompt_admin_script_uses_bearer_auth_and_safe_text_updates():
@@ -655,7 +655,7 @@ def test_prompt_admin_script_uses_bearer_auth_and_safe_text_updates():
     assert "/activate" in source
 ```
 
-- [ ] **Step 7: 运行 UI 测试并提交**
+- [x] **Step 7: 运行 UI 测试并提交**
 
 ```text
 python -m pytest tests/test_prompt_admin_ui.py -q
@@ -691,7 +691,7 @@ git commit -m "feat: add prompt management to local admin"
 
 明确说明 Makers 构建不读取本地 SQLite Prompt 配置。
 
-- [ ] **Step 2: 运行针对性 Python 测试**
+- [x] **Step 2: 运行针对性 Python 测试**
 
 Run:
 
@@ -734,7 +734,7 @@ git add README.md backend/README.md .env.example .agent/docs/2026-08-04-prompt-c
 git commit -m "docs: explain local prompt publishing workflow"
 ```
 
-- [ ] **Step 6: 请求代码审查并修复发现的问题**
+- [x] **Step 6: 请求代码审查并修复发现的问题**
 
 使用 `requesting-code-review` 技能，对照 issue #22、设计文档、提交范围和验证结果检查。
 任何修改必须重新运行受影响测试及三条仓库必需验证。
@@ -773,7 +773,7 @@ git commit -m "docs: explain local prompt publishing workflow"
 - Consumes: 现有 draft revision/CAS、`PromptStoreConflictError`、写事务 busy 重试和版本详情读取。
 - Produces: `copy_version_to_draft(version_id: str, *, expected_revision: int) -> dict`、`delete_version(version_id: str) -> None`、`POST /api/admin/prompt/versions/{version_id}/copy-to-draft` 和 `DELETE /api/admin/prompt/versions/{version_id}`。
 
-- [ ] **Step 1: 写入 Store RED 测试**
+- [x] **Step 1: 写入 Store RED 测试**
 
 ```python
 def test_copy_version_to_draft_uses_revision_cas(isolated_prompt_db):
@@ -829,7 +829,7 @@ def test_delete_inactive_non_initial_version(isolated_prompt_db):
         prompt_store.get_version(generated["id"])
 ```
 
-- [ ] **Step 2: 运行 Store 测试并确认失败**
+- [x] **Step 2: 运行 Store 测试并确认失败**
 
 Run:
 
@@ -839,7 +839,7 @@ python -m pytest tests/test_prompt_store.py -k "copy_version or delete_version" 
 
 Expected: FAIL，原因是两个 Store 接口尚不存在。
 
-- [ ] **Step 3: 实现事务化复制与删除**
+- [x] **Step 3: 实现事务化复制与删除**
 
 `copy_version_to_draft()` 在现有 `_write_transaction()` 内：
 
@@ -859,7 +859,7 @@ Expected: FAIL，原因是两个 Store 接口尚不存在。
 5. 执行参数化 `DELETE FROM prompt_versions WHERE id = ?`；
 6. 不修改草稿和 active pointer。
 
-- [ ] **Step 4: 写入 API RED 测试**
+- [x] **Step 4: 写入 API RED 测试**
 
 ```python
 def test_admin_copies_version_to_draft_with_revision(
@@ -903,7 +903,7 @@ def test_admin_rejects_stale_copy_and_protected_delete(
     ).status_code == 409
 ```
 
-- [ ] **Step 5: 增加 DTO、路由和错误映射**
+- [x] **Step 5: 增加 DTO、路由和错误映射**
 
 使用严格非负整数：
 
@@ -938,7 +938,7 @@ def api_delete_prompt_version(
 复用现有 `KeyError -> 404`、conflict `-> 409`、busy `-> 503` 和 corruption
 `-> 500` 映射，不在响应或日志中输出 Prompt 快照。
 
-- [ ] **Step 6: 写入 UI RED 测试**
+- [x] **Step 6: 写入 UI RED 测试**
 
 ```python
 def test_history_exposes_copy_and_delete_contracts():
@@ -954,7 +954,7 @@ def test_history_exposes_copy_and_delete_contracts():
 Makers 真实构建测试必须继续断言 `dist/admin/index.html`、对应脚本或生成产物中
 不存在 `/copy-to-draft`、Prompt 删除 API 或本地 Prompt 管理控件。
 
-- [ ] **Step 7: 实现前端管理按钮**
+- [x] **Step 7: 实现前端管理按钮**
 
 每个版本行：
 
@@ -991,7 +991,7 @@ window.confirm(`永久删除版本 ${version.id}？删除后无法恢复。`)
 
 DELETE 成功后重新加载版本摘要；失败时保留当前列表并显示服务端中文错误。
 
-- [ ] **Step 8: 运行定向验证并提交**
+- [x] **Step 8: 运行定向验证并提交**
 
 ```text
 python -m pytest tests/test_prompt_store.py tests/test_prompt_admin_api.py tests/test_prompt_admin_ui.py -q

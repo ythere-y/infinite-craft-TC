@@ -448,7 +448,7 @@ async def api_admin_prompt_config(
 ):
     draft_state = prompt_store.get_draft_state()
     active = prompt_store.get_active_version_summary()
-    versions = prompt_store.list_versions(
+    version_page = prompt_store.list_version_page(
         limit=version_limit,
         offset=version_offset,
     )
@@ -459,8 +459,14 @@ async def api_admin_prompt_config(
         "active_version": _prompt_version_summary(active, active["id"]),
         "versions": [
             _prompt_version_summary(version, active["id"])
-            for version in versions
+            for version in version_page["versions"]
         ],
+        "version_page": {
+            "limit": version_page["limit"],
+            "offset": version_page["offset"],
+            "next_offset": version_page["next_offset"],
+            "has_more": version_page["has_more"],
+        },
     }
 
 

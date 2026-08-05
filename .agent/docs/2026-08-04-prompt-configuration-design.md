@@ -35,7 +35,6 @@ using the repository's static prompt specification at build time.
 - Cloud multi-tenant prompt management.
 - Runtime prompt management for Makers/EdgeOne.
 - Rich-text editing or a visual prompt workflow builder.
-- Deleting historical prompt versions.
 
 ## Chosen Approach
 
@@ -106,7 +105,8 @@ Draft validation rejects:
 - blank or duplicate IDs;
 - blank style names or guidance;
 - blank enabled fixed modules or text examples;
-- invalid temperature, capacities, or limits;
+- temperature outside the inclusive `0..2` provider range, or invalid
+  capacities or limits;
 - malformed structured examples.
 
 Probability calculations use decimal-safe validation to avoid floating-point
@@ -134,7 +134,8 @@ All endpoints under `/api/admin/prompt/*` require the same bearer
 `ADMIN_TOKEN` used by the existing admin monitor.
 
 - `GET /api/admin/prompt/config` returns the draft, current active-version
-  summary, and version summaries.
+  summary, and one bounded page of version summaries with `has_more` and
+  `next_offset` metadata.
 - `PUT /api/admin/prompt/config` validates and atomically replaces the whole
   draft.
 - `POST /api/admin/prompt/aggregate` generates and persists one preview version.
@@ -155,7 +156,8 @@ same session-scoped bearer token.
 
 The Prompt tab provides:
 
-- active-version metadata and a view action;
+- active-version metadata and an independent view action that remains
+  available even when the active version is older than the loaded history;
 - ordered fixed-module editors with enable controls;
 - temperature, capacities, and prompt-limit fields;
 - style rows supporting add, edit, delete, enable/disable, and percentage
@@ -165,12 +167,16 @@ The Prompt tab provides:
 - explicit draft save;
 - aggregate action and complete preview;
 - explicit activation of the previewed version;
-- read-only historical versions with view and reactivate actions.
+- immutable historical versions with view, reactivate, copy-to-draft, and
+  protected delete actions;
+- bounded history pages with a “load more” action, so every retained version
+  remains accessible without requesting an unbounded result set.
 
 Errors appear next to the relevant section and in an operation summary. The UI
 does not silently normalize invalid probabilities. Potentially destructive
-draft actions require direct user intent, while version history remains
-recoverable.
+draft and history actions require direct user intent; immutable versions are
+retained unless an administrator explicitly confirms deletion of an inactive,
+non-initial version.
 
 ## Runtime Data Flow
 
@@ -225,6 +231,8 @@ Automated coverage will verify:
 - explicit activation, historical rollback, and missing-version errors;
 - copying a version snapshot to the draft, stale-revision conflicts, protected
   version deletion, successful deletion, and missing-version deletion;
+- history pagination beyond 50 versions and independent access to an older
+  active version;
 - live combination requests reading the active version rather than the draft;
 - the main Admin controls, error presentation, and API calls;
 - existing Python/Makers prompt parity for the unchanged canonical static

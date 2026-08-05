@@ -120,6 +120,14 @@ test("prompt validation accepts capacity boundaries", async () => {
   assert.equal(validated.limits.avoid_words, 10_000);
 });
 
+test("prompt validation accepts temperature provider boundaries", async () => {
+  const spec = await loadPromptSpec("shared/combine-prompt.json");
+  for (const temperature of [0, 2]) {
+    spec.temperature = temperature;
+    assert.equal(validatePromptSpec(spec).temperature, temperature);
+  }
+});
+
 test("prompt validation rejects string style weights", async () => {
   const spec = await loadPromptSpec("shared/combine-prompt.json");
   spec.styles[0].weight = "0.3";

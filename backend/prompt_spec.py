@@ -123,8 +123,11 @@ def validate_prompt_spec(value: Any) -> Dict[str, Any]:
     schema_version = record.get("schema_version")
     if not _is_finite_number(schema_version) or schema_version != 1:
         raise ValueError("unsupported prompt schema version")
-    if not _is_finite_number(record.get("temperature")):
+    temperature = record.get("temperature")
+    if not _is_finite_number(temperature):
         raise ValueError("temperature must be finite")
+    if not 0 <= temperature <= 2:
+        raise ValueError("temperature must be between 0 and 2")
 
     validators = {
         "system_modules": _validate_system_module,

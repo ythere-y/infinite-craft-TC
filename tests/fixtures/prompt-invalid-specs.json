@@ -4,6 +4,8 @@
   {"name":"schema version rejects booleans","op":"set","path":["schema_version"],"value":true},
   {"name":"temperature must be numeric","op":"set","path":["temperature"],"value":"0.85"},
   {"name":"temperature rejects booleans","op":"set","path":["temperature"],"value":true},
+  {"name":"temperature must not be below provider minimum","op":"set","path":["temperature"],"value":-0.01},
+  {"name":"temperature must not exceed provider maximum","op":"set","path":["temperature"],"value":2.01},
   {"name":"strict JSON rejects NaN","op":"raw_replace","target":"\"temperature\": 0.85","replacement":"\"temperature\": NaN"},
   {"name":"strict JSON rejects Infinity","op":"raw_replace","target":"\"temperature\": 0.85","replacement":"\"temperature\": Infinity"},
   {"name":"system modules must be an array","op":"set","path":["system_modules"],"value":{}},

@@ -24,8 +24,12 @@ def test_admin_page_exposes_prompt_management_controls():
     assert 'id="prompt-preview"' in html
     assert 'id="prompt-preview-title"' in html
     assert 'aria-labelledby="prompt-preview-title"' in html
+    assert 'id="prompt-active-version"' in html
+    assert 'id="prompt-view-active"' in html
     assert 'id="prompt-version-history"' in html
+    assert 'id="prompt-load-more"' in html
     assert 'src="/admin/prompt-decimal.js"' in html
+    assert 'src="/admin/prompt-admin-model.js"' in html
     assert 'src="/admin/prompt-admin.js"' in html
     assert 'href="/admin/prompt-admin.css"' in html
 
@@ -71,7 +75,7 @@ def test_prompt_admin_script_preserves_draft_workflow_contracts():
     assert "window.confirm(" in source
     assert "preview.value" in source
     assert "probability" in source
-    assert "PromptDecimal.summarize" in source
+    assert "PromptDecimal.summarizeStyles" in source
     assert "summary.error" in source
     assert "let draftRevision = null" in source
     assert '"If-Match"' in source
@@ -98,6 +102,25 @@ def test_history_exposes_copy_and_delete_contracts():
     assert "删除后无法恢复" in source
     assert "当前草稿将被覆盖" in source
     assert "scrollIntoView" in source
+    assert "PromptAdminModel.reconcileDeletedVersion" in source
+
+
+def test_history_loads_additional_pages_and_active_has_independent_view_action():
+    source = ADMIN_JS.read_text(encoding="utf-8")
+
+    assert "PromptAdminModel.mergeVersionPage" in source
+    assert "version_offset" in source
+    assert "loadMoreButton" in source
+    assert "viewActiveButton" in source
+    assert "activeVersion.id" in source
+
+
+def test_temperature_is_validated_before_draft_save():
+    source = ADMIN_JS.read_text(encoding="utf-8")
+
+    assert "PromptAdminModel.temperatureError" in source
+    assert "prompt-temperature-error" in source
+    assert 'setAttribute("aria-invalid"' in source
 
 
 def test_prompt_admin_locks_editors_during_mutations_without_rebuilding_them():
