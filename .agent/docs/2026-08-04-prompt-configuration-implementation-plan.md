@@ -755,3 +755,261 @@ git commit -m "docs: explain local prompt publishing workflow"
 
 不得自行合并。向需求方提供本地测试步骤和 PR 地址；只有收到明确确认后，才使用 GitHub
 合并到 `upstream/main`，随后检查合并状态和 issue 关闭状态。
+
+---
+
+### Task 7: 历史版本复制为草稿与受保护删除
+
+**Files:**
+- Modify: `backend/prompt_store.py`
+- Modify: `backend/main.py`
+- Modify: `frontend/admin/prompt-admin.js`
+- Modify: `tests/test_prompt_store.py`
+- Modify: `tests/test_prompt_admin_api.py`
+- Modify: `tests/test_prompt_admin_ui.py`
+- Modify: `tests-makers/build.test.mjs`
+
+**Interfaces:**
+- Consumes: 现有 draft revision/CAS、`PromptStoreConflictError`、写事务 busy 重试和版本详情读取。
+- Produces: `copy_version_to_draft(version_id: str, *, expected_revision: int) -> dict`、`delete_version(version_id: str) -> None`、`POST /api/admin/prompt/versions/{version_id}/copy-to-draft` 和 `DELETE /api/admin/prompt/versions/{version_id}`。
+
+- [ ] **Step 1: 写入 Store RED 测试**
+
+```python
+def test_copy_version_to_draft_uses_revision_cas(isolated_prompt_db):
+    prompt_store.init_prompt_store()
+    initial = prompt_store.get_draft_record()
+    generated = prompt_store.aggregate_draft(
+        expected_revision=initial["revision"], random_value=0
+    )
+    changed = copy.deepcopy(initial["config"])
+    changed["temperature"] = 0.25
+    saved = prompt_store.save_draft(
+        changed, expected_revision=initial["revision"]
+    )
+
+    with pytest.raises(prompt_store.PromptStoreConflictError):
+        prompt_store.copy_version_to_draft(
+            generated["id"], expected_revision=initial["revision"]
+        )
+
+    copied = prompt_store.copy_version_to_draft(
+        generated["id"], expected_revision=saved["revision"]
+    )
+    assert copied["config"] == generated["snapshot"]
+    assert copied["revision"] == saved["revision"] + 1
+    assert prompt_store.get_active_version()["id"] != generated["id"]
+
+
+def test_delete_version_protects_active_and_initial_versions(isolated_prompt_db):
+    prompt_store.init_prompt_store()
+    initial = prompt_store.get_active_version()["id"]
+    with pytest.raises(prompt_store.PromptStoreConflictError):
+        prompt_store.delete_version(initial)
+
+    draft = prompt_store.get_draft_record()
+    generated = prompt_store.aggregate_draft(
+        expected_revision=draft["revision"], random_value=0
+    )
+    prompt_store.activate_version(generated["id"])
+    with pytest.raises(prompt_store.PromptStoreConflictError):
+        prompt_store.delete_version(generated["id"])
+    with pytest.raises(prompt_store.PromptStoreConflictError):
+        prompt_store.delete_version(initial)
+
+
+def test_delete_inactive_non_initial_version(isolated_prompt_db):
+    prompt_store.init_prompt_store()
+    draft = prompt_store.get_draft_record()
+    generated = prompt_store.aggregate_draft(
+        expected_revision=draft["revision"], random_value=0
+    )
+    prompt_store.delete_version(generated["id"])
+    with pytest.raises(KeyError):
+        prompt_store.get_version(generated["id"])
+```
+
+- [ ] **Step 2: 运行 Store 测试并确认失败**
+
+Run:
+
+```text
+python -m pytest tests/test_prompt_store.py -k "copy_version or delete_version" -q
+```
+
+Expected: FAIL，原因是两个 Store 接口尚不存在。
+
+- [ ] **Step 3: 实现事务化复制与删除**
+
+`copy_version_to_draft()` 在现有 `_write_transaction()` 内：
+
+1. 读取版本，不存在抛 `KeyError`；
+2. 解码并校验版本 `snapshot_json`，损坏使用 `PromptStoreCorruptionError`；
+3. 读取当前 draft revision；
+4. revision 不一致抛 `PromptStoreConflictError`；
+5. 使用 `UPDATE ... WHERE revision = ?` 替换 `config_json` 并将 revision 加一；
+6. 返回防御性复制的 `{config, revision}`，不修改 active pointer。
+
+`delete_version()` 在相同写事务内：
+
+1. 查询版本和当前 active pointer；
+2. 不存在抛 `KeyError`；
+3. ID 以 `prompt-initial-` 开头时抛 `PromptStoreConflictError`；
+4. ID 等于 active pointer 时抛 `PromptStoreConflictError`；
+5. 执行参数化 `DELETE FROM prompt_versions WHERE id = ?`；
+6. 不修改草稿和 active pointer。
+
+- [ ] **Step 4: 写入 API RED 测试**
+
+```python
+def test_admin_copies_version_to_draft_with_revision(
+    authorized_client, initialized_prompt_store
+):
+    state = authorized_client.get("/api/admin/prompt/config").json()
+    generated = authorized_client.post(
+        "/api/admin/prompt/aggregate",
+        json={"expected_revision": state["revision"]},
+    ).json()
+    response = authorized_client.post(
+        f"/api/admin/prompt/versions/{generated['id']}/copy-to-draft",
+        json={"expected_revision": state["revision"]},
+    )
+    assert response.status_code == 200
+    assert response.json()["config"] == generated["snapshot"]
+
+
+def test_admin_rejects_stale_copy_and_protected_delete(
+    authorized_client, initialized_prompt_store
+):
+    state = authorized_client.get("/api/admin/prompt/config").json()
+    generated = authorized_client.post(
+        "/api/admin/prompt/aggregate",
+        json={"expected_revision": state["revision"]},
+    ).json()
+    changed = copy.deepcopy(state["config"])
+    changed["temperature"] = 0.25
+    authorized_client.put(
+        "/api/admin/prompt/config",
+        headers={"if-match": f'"{state["revision"]}"'},
+        json={"config": changed},
+    )
+    assert authorized_client.post(
+        f"/api/admin/prompt/versions/{generated['id']}/copy-to-draft",
+        json={"expected_revision": state["revision"]},
+    ).status_code == 409
+    active_id = state["active_version"]["id"]
+    assert authorized_client.delete(
+        f"/api/admin/prompt/versions/{active_id}"
+    ).status_code == 409
+```
+
+- [ ] **Step 5: 增加 DTO、路由和错误映射**
+
+使用严格非负整数：
+
+```python
+class PromptVersionCopyReq(BaseModel):
+    expected_revision: int = Field(ge=0, le=SQLITE_INT64_MAX)
+```
+
+新增路由：
+
+```python
+@app.post("/api/admin/prompt/versions/{version_id}/copy-to-draft")
+def api_copy_prompt_version(
+    version_id: str,
+    body: PromptVersionCopyReq,
+    _: None = Depends(require_admin_token),
+):
+    return prompt_store.copy_version_to_draft(
+        version_id, expected_revision=body.expected_revision
+    )
+
+
+@app.delete("/api/admin/prompt/versions/{version_id}", status_code=204)
+def api_delete_prompt_version(
+    version_id: str,
+    _: None = Depends(require_admin_token),
+):
+    prompt_store.delete_version(version_id)
+    return Response(status_code=204)
+```
+
+复用现有 `KeyError -> 404`、conflict `-> 409`、busy `-> 503` 和 corruption
+`-> 500` 映射，不在响应或日志中输出 Prompt 快照。
+
+- [ ] **Step 6: 写入 UI RED 测试**
+
+```python
+def test_history_exposes_copy_and_delete_contracts():
+    source = ADMIN_JS.read_text(encoding="utf-8")
+    assert "/copy-to-draft" in source
+    assert 'method: "DELETE"' in source
+    assert "expected_revision" in source
+    assert "删除后无法恢复" in source
+    assert "当前草稿将被覆盖" in source
+    assert "scrollIntoView" in source
+```
+
+Makers 真实构建测试必须继续断言 `dist/admin/index.html`、对应脚本或生成产物中
+不存在 `/copy-to-draft`、Prompt 删除 API 或本地 Prompt 管理控件。
+
+- [ ] **Step 7: 实现前端管理按钮**
+
+每个版本行：
+
+- 所有版本显示“复制为草稿”；
+- 当前生效版本显示禁用的“已生效”，不显示删除；
+- 初始版本不显示删除；
+- 其他未生效版本显示“删除”。
+
+复制流程：
+
+```javascript
+if (!window.confirm(`当前草稿将被覆盖。确定复制版本 ${version.id} 吗？`)) return;
+const copied = await promptRequest(
+  `/api/admin/prompt/versions/${encodeURIComponent(version.id)}/copy-to-draft`,
+  {
+    method: "POST",
+    body: JSON.stringify({expected_revision: draftRevision}),
+  },
+);
+draft = copied.config;
+draftRevision = copied.revision;
+renderPromptEditor();
+document.querySelector("#prompt-editor").scrollIntoView({
+  behavior: "smooth",
+  block: "start",
+});
+```
+
+删除流程必须确认：
+
+```javascript
+window.confirm(`永久删除版本 ${version.id}？删除后无法恢复。`)
+```
+
+DELETE 成功后重新加载版本摘要；失败时保留当前列表并显示服务端中文错误。
+
+- [ ] **Step 8: 运行定向验证并提交**
+
+```text
+python -m pytest tests/test_prompt_store.py tests/test_prompt_admin_api.py tests/test_prompt_admin_ui.py -q
+node --test tests-makers/build.test.mjs tests-makers/prompt-admin.test.mjs
+node --check frontend/admin/prompt-admin.js
+npm run build
+git diff --check
+git add backend/prompt_store.py backend/main.py frontend/admin/prompt-admin.js tests/test_prompt_store.py tests/test_prompt_admin_api.py tests/test_prompt_admin_ui.py tests-makers/build.test.mjs .agent/docs/2026-08-04-prompt-configuration-implementation-plan.md
+git commit -m "feat: manage prompt version history"
+```
+
+- [ ] **Step 9: 更新 Draft PR 并等待人工验证**
+
+推送当前分支，使 PR #23 包含新增提交。PR 正文补充：
+
+- 非生效、非初始版本可永久删除；
+- 任意版本可通过 revision 安全复制为草稿；
+- 当前生效版本和初始版本受保护；
+- 复制不会自动聚合或发布。
+
+向需求方提供手工测试步骤，明确等待确认后才合并。
