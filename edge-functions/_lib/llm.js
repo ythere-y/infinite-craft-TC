@@ -4,18 +4,36 @@ import { buildPromptMessagesFromSpec } from "./prompt.js";
 
 const DEFAULT_BASE_URL = "https://ai-gateway.edgeone.link/v1";
 const DEFAULT_MODEL = "@makers/deepseek-v4-flash";
+const DIRECT_DEEPSEEK_BASE_URL = "https://api.deepseek.com";
+const DIRECT_DEEPSEEK_MODEL = "deepseek-v4-flash";
+const TRUE_VALUES = new Set(["1", "true", "yes", "on"]);
+
+function enabled(value) {
+  return TRUE_VALUES.has(String(value ?? "").trim().toLowerCase());
+}
 
 export function llmConfiguration(env = {}) {
-  const apiKey = env.MAKERS_MODELS_KEY || "";
-  const baseUrl =
-    env.AI_GATEWAY_BASE_URL || DEFAULT_BASE_URL;
-  const model = env.AI_GATEWAY_MODEL || DEFAULT_MODEL;
+  const useOwnDeepSeek = enabled(env.MAKERS_USE_OWN_DEEPSEEK);
+  const apiKey = String(
+    useOwnDeepSeek
+      ? env.MAKERS_DEEPSEEK_API_KEY || ""
+      : env.MAKERS_MODELS_KEY || "",
+  ).trim();
+  const baseUrl = useOwnDeepSeek
+    ? DIRECT_DEEPSEEK_BASE_URL
+    : env.AI_GATEWAY_BASE_URL || DEFAULT_BASE_URL;
+  const model = useOwnDeepSeek
+    ? DIRECT_DEEPSEEK_MODEL
+    : env.AI_GATEWAY_MODEL || DEFAULT_MODEL;
   const timeoutSeconds = Math.max(
     1,
     Math.min(60, Number(env.AI_GATEWAY_TIMEOUT) || 15),
   );
   return {
     configured: Boolean(apiKey),
+    provider: useOwnDeepSeek
+      ? "deepseek-direct"
+      : "edgeone-makers-models",
     apiKey,
     baseUrl: String(baseUrl).replace(/\/+$/, ""),
     model,

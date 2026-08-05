@@ -121,9 +121,40 @@ test("Makers configuration ignores local DeepSeek variables", () => {
   });
 
   assert.equal(config.configured, false);
+  assert.equal(config.provider, "edgeone-makers-models");
   assert.equal(config.baseUrl, "https://ai-gateway.edgeone.link/v1");
   assert.equal(config.model, "@makers/deepseek-v4-flash");
   assert.equal(config.timeoutSeconds, 15);
+});
+
+test("Makers configuration selects the official DeepSeek route explicitly", () => {
+  for (const flag of ["1", "true", "TRUE", "yes", "on"]) {
+    const config = llmConfiguration({
+      MAKERS_USE_OWN_DEEPSEEK: flag,
+      MAKERS_DEEPSEEK_API_KEY: "direct-secret",
+      MAKERS_MODELS_KEY: "makers-secret",
+      AI_GATEWAY_BASE_URL: "https://wrong.example/v1",
+      AI_GATEWAY_MODEL: "wrong-model",
+    });
+
+    assert.equal(config.configured, true);
+    assert.equal(config.provider, "deepseek-direct");
+    assert.equal(config.apiKey, "direct-secret");
+    assert.equal(config.baseUrl, "https://api.deepseek.com");
+    assert.equal(config.model, "deepseek-v4-flash");
+  }
+});
+
+test("selected official DeepSeek route never falls back to the Makers key", () => {
+  const config = llmConfiguration({
+    MAKERS_USE_OWN_DEEPSEEK: "1",
+    MAKERS_DEEPSEEK_API_KEY: "   ",
+    MAKERS_MODELS_KEY: "makers-secret",
+  });
+
+  assert.equal(config.configured, false);
+  assert.equal(config.provider, "deepseek-direct");
+  assert.equal(config.apiKey, "");
 });
 
 test("model request uses Makers environment variables and OpenAI endpoint", async () => {
