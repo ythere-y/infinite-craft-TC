@@ -440,7 +440,7 @@ export function createRouter({
         llm: config.configured ? "configured" : "not_configured",
         llm_config: {
           configured: config.configured,
-          provider: "edgeone-makers-models",
+          provider: config.provider,
           base_url: config.baseUrl,
           model: config.model,
         },

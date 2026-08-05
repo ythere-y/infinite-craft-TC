@@ -276,6 +276,8 @@ Makers 控制台环境变量：
 
 ```dotenv
 MAKERS_MODELS_KEY=控制台中的MakersModels密钥
+MAKERS_USE_OWN_DEEPSEEK=1
+MAKERS_DEEPSEEK_API_KEY=DeepSeek官方API密钥
 AI_GATEWAY_BASE_URL=https://ai-gateway.edgeone.link/v1
 AI_GATEWAY_MODEL=@makers/deepseek-v4-flash
 MODEL_CALLS_PER_MINUTE=20
@@ -283,8 +285,16 @@ ADMIN_TOKEN=随机长字符串
 DASHBOARD_PUBLIC=0
 ```
 
-`MAKERS_MODELS_KEY` 与本地 `LLM_API_KEY` 是两套独立凭据。前者只在 Makers
-运行时注入，后者只存在于成员电脑的 `.env`。
+`MAKERS_USE_OWN_DEEPSEEK` 设置为 `1`、`true`、`yes` 或 `on` 时，生产
+Edge Function 使用 `MAKERS_DEEPSEEK_API_KEY` 直连
+`https://api.deepseek.com` 的 `deepseek-v4-flash`；其他值继续使用
+`MAKERS_MODELS_KEY` 与 Makers Models。直连路由开启但对应 Key 缺失时会按
+未配置模型降级，不会静默回退并消耗 Makers 免费额度。两条路由均关闭 thinking，
+并将单次模型输出限制为 128 Token。
+
+`MAKERS_MODELS_KEY`、`MAKERS_DEEPSEEK_API_KEY` 与本地 `LLM_API_KEY`
+是相互独立的凭据。前两者只配置在 Makers 控制台，后者只存在于成员电脑被 Git
+忽略的 `.env`；不要把任一真实 Key 写入仓库。
 
 ### 自动发布边界
 

@@ -134,6 +134,31 @@ test("static, health and rank routes keep their public contracts", async () => {
   });
 });
 
+test("health reports direct DeepSeek routing without credentials", async () => {
+  const router = createRouter({
+    kv: new FakeKV(),
+    env: {
+      MAKERS_USE_OWN_DEEPSEEK: "1",
+      MAKERS_DEEPSEEK_API_KEY: "health-secret",
+      MAKERS_MODELS_KEY: "makers-secret",
+    },
+  });
+
+  const health = await json(router, "/api/health");
+
+  assert.equal(health.body.llm, "configured");
+  assert.deepEqual(health.body.llm_config, {
+    configured: true,
+    provider: "deepseek-direct",
+    base_url: "https://api.deepseek.com",
+    model: "deepseek-v4-flash",
+  });
+  assert.doesNotMatch(
+    JSON.stringify(health.body),
+    /health-secret|makers-secret/u,
+  );
+});
+
 test("aliases resolve before fixed formula lookup", async () => {
   const kv = new FakeKV();
   const router = makeRouter({ kv });
