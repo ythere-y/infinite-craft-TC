@@ -1300,6 +1300,93 @@ test("health remains available when an initialization batch throws", async () =>
   }
 });
 
+test("health reports reset authorization failure while gameplay stays closed", async () => {
+  const kv = new FakeKV({
+    system_content_state: JSON.stringify({
+      epoch: CONTENT_EPOCH + 1,
+      catalog_digest: "sha256:future-secret",
+      catalog_version: "3.0.0",
+      status: "ready",
+      mode: "ready",
+      phase: "ready",
+      error: "",
+    }),
+    future_runtime_data: JSON.stringify({ keep: true }),
+  });
+  globalThis.test = kv;
+  try {
+    const { onRequest } = await import("../edge-functions/api/[[default]].js");
+    const health = await onRequest({
+      request: request("/api/health"),
+      env: {},
+    });
+    const healthBody = await health.json();
+
+    assert.equal(health.status, 200);
+    assert.equal(
+      healthBody.content.error_code,
+      "CONTENT_RESET_NOT_AUTHORIZED",
+    );
+    assert.equal(healthBody.content.error, "内容初始化暂时失败");
+    assert.doesNotMatch(JSON.stringify(healthBody), /future-secret/u);
+
+    const combine = await onRequest({
+      request: request("/api/combine", {
+        method: "POST",
+        body: { a: "水", b: "火" },
+      }),
+      env: {},
+    });
+    const combineBody = await combine.json();
+    assert.equal(combine.status, 503);
+    assert.equal(combineBody.code, "CONTENT_INITIALIZING");
+    assert.equal(
+      combineBody.details.content.error_code,
+      "CONTENT_RESET_NOT_AUTHORIZED",
+    );
+    assert.equal(kv.putCalls, 0);
+    assert.equal(kv.deleteCalls, 0);
+  } finally {
+    delete globalThis.test;
+  }
+});
+
+test("health reports an invalid reset receipt without exposing receipt data", async () => {
+  const receiptKey = `system_content_reset_receipt_${CONTENT_EPOCH}`;
+  const kv = new FakeKV({
+    [receiptKey]: JSON.stringify({
+      target_epoch: String(CONTENT_EPOCH),
+      source_epoch: "legacy",
+      catalog_digest: CATALOG_DIGEST,
+      status: "in_progress",
+      started_at: 1_700_000_000_000,
+      completed_at: null,
+      secret: "receipt-secret",
+    }),
+    player_runtime_data: JSON.stringify({ keep: true }),
+  });
+  globalThis.test = kv;
+  try {
+    const { onRequest } = await import("../edge-functions/api/[[default]].js");
+    const health = await onRequest({
+      request: request("/api/health"),
+      env: {},
+    });
+    const body = await health.json();
+
+    assert.equal(health.status, 200);
+    assert.equal(
+      body.content.error_code,
+      "CONTENT_RESET_RECEIPT_INVALID",
+    );
+    assert.doesNotMatch(JSON.stringify(body), /receipt-secret|started_at/u);
+    assert.equal(kv.putCalls, 0);
+    assert.equal(kv.deleteCalls, 0);
+  } finally {
+    delete globalThis.test;
+  }
+});
+
 test("failed epoch 2 persistence never exposes an epoch 1 ready tuple", async () => {
   const staleDigest =
     "sha256:0000000000000000000000000000000000000000000000000000000000000000";
@@ -1456,6 +1543,7 @@ test("router health sanitizes an injected durable error and cursor", async () =>
       cursor: "secret-provider-cursor",
       index: 3,
       error: "secret-token https://internal-kv.example.invalid",
+      error_code: "SECRET_PROVIDER_FAILURE",
     },
   });
 
@@ -1469,6 +1557,31 @@ test("router health sanitizes an injected durable error and cursor", async () =>
   );
   assert.equal("cursor" in health.body.content, false);
   assert.doesNotMatch(serialized, /secret-token|internal-kv|provider-cursor/u);
+  assert.doesNotMatch(serialized, /SECRET_PROVIDER_FAILURE/u);
+});
+
+test("router health preserves only allowlisted reset policy error codes", async () => {
+  const router = makeRouter({
+    contentStatus: {
+      epoch: CONTENT_EPOCH,
+      catalog_digest: CATALOG_DIGEST,
+      status: "migrating",
+      mode: "unknown",
+      phase: "detect",
+      error: "internal detail",
+      error_code: "CONTENT_RESET_NOT_AUTHORIZED",
+    },
+  });
+
+  const health = await json(router, "/api/health");
+
+  assert.equal(health.response.status, 200);
+  assert.equal(
+    health.body.content.error_code,
+    "CONTENT_RESET_NOT_AUTHORIZED",
+  );
+  assert.equal(health.body.content.error, "内容初始化暂时失败");
+  assert.doesNotMatch(JSON.stringify(health.body), /internal detail/u);
 });
 
 test("router health never exposes a provider-controlled KV error name", async () => {

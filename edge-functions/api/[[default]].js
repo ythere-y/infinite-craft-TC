@@ -28,6 +28,11 @@ function isReadyContentState(status) {
   );
 }
 
+const PUBLIC_INITIALIZATION_ERROR_CODES = new Set([
+  "CONTENT_RESET_NOT_AUTHORIZED",
+  "CONTENT_RESET_RECEIPT_INVALID",
+]);
+
 export async function onRequest({ request, env }) {
   const runtime = resolveRuntimeKv({
     request,
@@ -47,10 +52,16 @@ export async function onRequest({ request, env }) {
 
   let initializer = null;
   let initialization;
+  let initializationErrorCode = "";
   try {
     initializer = createContentInitializer({ kv: runtime.kv });
     initialization = await initializer.ensureInitialized();
   } catch (error) {
+    initializationErrorCode = PUBLIC_INITIALIZATION_ERROR_CODES.has(
+      error?.code,
+    )
+      ? error.code
+      : "";
     let status = null;
     if (initializer) {
       try {
@@ -81,6 +92,7 @@ export async function onRequest({ request, env }) {
   }
   const publicStatus = publicContentStatus(initialization.status, {
     initializationFailed: initialization.failed === true,
+    initializationErrorCode,
   });
   const path = new URL(request.url).pathname.replace(/\/+$/u, "") || "/";
   if (!initialization.ready && !isReadyContentState(initialization.status)) {

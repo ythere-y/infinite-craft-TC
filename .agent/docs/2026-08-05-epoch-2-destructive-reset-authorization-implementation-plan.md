@@ -267,22 +267,22 @@
 
 ### Steps
 
-- [ ] Add failing route tests asserting:
+- [x] Add failing route tests asserting:
 
   - `/api/health` remains HTTP 200 and reports the allowlisted `CONTENT_RESET_NOT_AUTHORIZED` or `CONTENT_RESET_RECEIPT_INVALID`;
   - gameplay APIs stay HTTP 503 while content is not ready;
   - exception text, cursors, raw receipt JSON, provider names, and stack data never appear publicly;
   - arbitrary internal error codes continue to collapse to `CONTENT_INITIALIZATION_FAILED`.
 
-- [ ] Run the focused red tests:
+- [x] Run the focused red tests:
 
   ```bash
   node --test --test-name-pattern="reset authorization|reset receipt|initialization batch throws|sanitizes" tests-makers/router.test.mjs
   ```
 
-- [ ] In the API entry point, capture only allowlisted initialization-policy codes from thrown errors and attach the safe code to the in-memory initialization status used for that request.
+- [x] In the API entry point, capture only allowlisted initialization-policy codes from thrown errors and attach the safe code to the in-memory initialization status used for that request.
 
-- [ ] In `publicContentStatus`, allow only:
+- [x] In `publicContentStatus`, allow only:
 
   ```js
   new Set([
@@ -300,16 +300,16 @@
   }
   ```
 
-- [ ] Keep health HTTP availability and the existing fail-closed gameplay response behavior.
+- [x] Keep health HTTP availability and the existing fail-closed gameplay response behavior.
 
-- [ ] Run the focused and full router tests:
+- [x] Run the focused and full router tests:
 
   ```bash
   node --test --test-name-pattern="reset authorization|reset receipt|initialization batch throws|sanitizes" tests-makers/router.test.mjs
   node --test tests-makers/router.test.mjs
   ```
 
-- [ ] Commit:
+- [x] Commit:
 
   ```bash
   git add edge-functions/api/'[[default]].js' edge-functions/_lib/router.js tests-makers/router.test.mjs

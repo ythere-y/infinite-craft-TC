@@ -59,9 +59,14 @@ import {
 const VERIFY_READ_BATCH = 20;
 const PUBLIC_CONTENT_MODES = new Set([
   "ready",
+  "bootstrap",
   "epoch_reset",
   "differential",
   "unknown",
+]);
+const PUBLIC_CONTENT_ERROR_CODES = new Set([
+  "CONTENT_RESET_NOT_AUTHORIZED",
+  "CONTENT_RESET_RECEIPT_INVALID",
 ]);
 const PUBLIC_CONTENT_PHASES = new Set([
   "detect",
@@ -75,7 +80,10 @@ const PUBLIC_CONTENT_PHASES = new Set([
 ]);
 export function publicContentStatus(
   value,
-  { initializationFailed = false } = {},
+  {
+    initializationFailed = false,
+    initializationErrorCode = "",
+  } = {},
 ) {
   const epoch = Number(value?.epoch);
   const rawStatus = cleanText(value?.status);
@@ -84,6 +92,12 @@ export function publicContentStatus(
   const rawDigest = cleanText(value?.catalog_digest);
   const index = Number(value?.index);
   const hasError = initializationFailed || Boolean(cleanText(value?.error));
+  const requestedErrorCode = cleanText(
+    initializationErrorCode || value?.error_code,
+  );
+  const publicErrorCode = PUBLIC_CONTENT_ERROR_CODES.has(requestedErrorCode)
+    ? requestedErrorCode
+    : "CONTENT_INITIALIZATION_FAILED";
   const currentTarget = (
     epoch === CONTENT_EPOCH &&
     rawDigest === CATALOG_DIGEST
@@ -121,7 +135,7 @@ export function publicContentStatus(
     ...(hasError
       ? {
           error: "内容初始化暂时失败",
-          error_code: "CONTENT_INITIALIZATION_FAILED",
+          error_code: publicErrorCode,
         }
       : {}),
   };
