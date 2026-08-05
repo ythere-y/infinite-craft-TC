@@ -78,6 +78,7 @@ Automated tests will verify:
 4. local `LLM_*` variables remain ignored by the Makers runtime;
 5. outbound requests on both routes disable thinking and set
    `max_tokens` to 128;
-6. health reports the selected provider without exposing credentials;
-7. developer documentation describes the console configuration.
+6. health reports the selected provider without exposing credentials.
 
+The developer documentation will be reviewed alongside the implementation;
+human-facing prose is not protected by a source-text assertion.
