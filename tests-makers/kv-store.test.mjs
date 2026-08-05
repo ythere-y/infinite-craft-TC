@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   entityKey,
   normalizePair,
+  sha256Hex,
 } from "../edge-functions/_lib/keys.js";
 import { DEFAULT_COMMENT } from "../edge-functions/_lib/comments.js";
 import { PROMPT_SPEC } from "../edge-functions/_generated/prompt-data.js";
@@ -61,6 +62,156 @@ test("dynamic combinations are created as JSON records", async () => {
     hit_count: 0,
     ts: 1_700_000_000,
   });
+});
+
+test("seed ownership is stored on combinations and remembered result elements", async () => {
+  const kv = new FakeKV();
+  const store = new KvStore(kv, { now: () => 1_700_000_000_000 });
+
+  await store.putCombination("电脑", "网络", {
+    result: "互联网",
+    emoji: "🌐",
+    comment: "固定目录内容。",
+    source: "seed",
+    chain: "internet",
+    content_epoch: 2,
+    catalog_digest: "sha256:catalog",
+  });
+
+  assert.deepEqual(
+    await store.getCombination("网络", "电脑"),
+    {
+      a: "电脑",
+      b: "网络",
+      result: "互联网",
+      emoji: "🌐",
+      comment: "固定目录内容。",
+      source: "seed",
+      chain: "internet",
+      content_epoch: 2,
+      catalog_digest: "sha256:catalog",
+      hit_count: 0,
+      ts: 1_700_000_000,
+    },
+  );
+  assert.deepEqual(
+    await store.getElement("互联网"),
+    {
+      emoji: "🌐",
+      category: "internet",
+      source: "seed",
+      content_epoch: 2,
+      catalog_digest: "sha256:catalog",
+    },
+  );
+});
+
+test("seed writes preserve explicit non-seed ownership for a shared result element", async () => {
+  const kv = new FakeKV();
+  const store = new KvStore(kv, { now: () => 1_700_000_000_000 });
+  await store.rememberElement("共享结果", {
+    emoji: "✨",
+    category: "ai",
+    source: "llm",
+  });
+
+  await store.putCombination("固定甲", "固定乙", {
+    result: "共享结果",
+    emoji: "🧹",
+    source: "seed",
+    chain: "legacy",
+    content_epoch: 2,
+    catalog_digest: "sha256:catalog",
+  });
+
+  const elementKey = await entityKey("element", "共享结果");
+  const indexKey = store.indexKey(
+    "element",
+    store.shardForCanonicalKey("element", elementKey),
+  );
+  assert.deepEqual(
+    await store.getElement("共享结果"),
+    {
+      emoji: "🧹",
+      category: "legacy",
+      source: "llm",
+      content_epoch: 2,
+      catalog_digest: "sha256:catalog",
+    },
+  );
+  const indexed = JSON.parse(await kv.get(indexKey)).items[elementKey];
+  assert.equal(indexed.source, "llm");
+  assert.equal(indexed.content_epoch, 2);
+  assert.equal(indexed.catalog_digest, "sha256:catalog");
+});
+
+test("explicit non-seed ownership supersedes earlier seed ownership", async () => {
+  const kv = new FakeKV();
+  const store = new KvStore(kv, { now: () => 1_700_000_000_000 });
+  await store.rememberElement("反向共享结果", {
+    emoji: "🧹",
+    category: "legacy",
+    source: "seed",
+    content_epoch: 2,
+    catalog_digest: "sha256:catalog",
+  });
+
+  await store.rememberElement("反向共享结果", {
+    emoji: "✨",
+    category: "ai",
+    source: "llm",
+  });
+
+  assert.deepEqual(
+    await store.getElement("反向共享结果"),
+    {
+      emoji: "✨",
+      category: "ai",
+      source: "llm",
+      content_epoch: 2,
+      catalog_digest: "sha256:catalog",
+    },
+  );
+});
+
+test("exact deletion removes canonical records, recipe, and element index only", async () => {
+  const kv = new FakeKV();
+  const store = new KvStore(kv, { now: () => 1_700_000_000_000 });
+  await store.putCombination("甲", "乙", {
+    result: "共同结果",
+    emoji: "✨",
+    source: "seed",
+  });
+  await store.putCombination("丙", "丁", {
+    result: "共同结果",
+    emoji: "✨",
+    source: "llm",
+  });
+
+  const comboKey = await entityKey("combo", normalizePair("甲", "乙"));
+  const elementKey = await entityKey("element", "共同结果");
+  const recipeKey =
+    `recipe_${await sha256Hex("共同结果")}_${await sha256Hex(normalizePair("甲", "乙"))}`;
+  const indexKey = store.indexKey(
+    "element",
+    store.shardForCanonicalKey("element", elementKey),
+  );
+
+  await store.deleteCombination("乙", "甲", "共同结果");
+  await store.deleteElement("共同结果");
+
+  assert.equal(await kv.get(comboKey), null);
+  assert.equal(await kv.get(recipeKey), null);
+  assert.equal(await kv.get(elementKey), null);
+  assert.equal(
+    Object.hasOwn(
+      JSON.parse(await kv.get(indexKey)).items,
+      elementKey,
+    ),
+    false,
+  );
+  assert.ok(await store.getCombination("丙", "丁"));
+  assert.equal((await store.dynamicRecipes("共同结果")).length, 1);
 });
 
 test("rememberElement never replaces an existing valid icon recipe", async () => {

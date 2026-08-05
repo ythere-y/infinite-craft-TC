@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import {
+  CATALOG_DIGEST,
+  CONTENT_EPOCH,
+} from "../edge-functions/_generated/bounty-content.js";
 import { KvStore } from "../edge-functions/_lib/kv-store.js";
 import { createRouter } from "../edge-functions/_lib/router.js";
 import {
@@ -23,9 +27,32 @@ function request(path, { method = "GET", body, headers = {} } = {}) {
   });
 }
 
-function makeRouter() {
+function makeRouter({
+  kv = new FakeKV(),
+  contentStatus = {
+    epoch: CONTENT_EPOCH,
+    catalog_digest: CATALOG_DIGEST,
+    status: "ready",
+    mode: "ready",
+    phase: "ready",
+  },
+  fetchImpl = async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content:
+                '{"name":"边缘咖啡","emoji":"☕","comment":"边缘一杯，灵感起飞。"}',
+            },
+          },
+        ],
+      }),
+      { status: 200 },
+    ),
+} = {}) {
   return createRouter({
-    kv: new FakeKV(),
+    kv,
     env: {
       APP_ENV: "test",
       DASHBOARD_PUBLIC: "1",
@@ -36,20 +63,8 @@ function makeRouter() {
     },
     now: () => 1_700_000_000_000,
     random: () => 0,
-    fetchImpl: async () =>
-      new Response(
-        JSON.stringify({
-          choices: [
-            {
-              message: {
-                content:
-                  '{"name":"边缘咖啡","emoji":"☕","comment":"边缘一杯，灵感起飞。"}',
-              },
-            },
-          ],
-        }),
-        { status: 200 },
-      ),
+    fetchImpl,
+    contentStatus,
   });
 }
 
@@ -63,7 +78,7 @@ test("static, health and rank routes keep their public contracts", async () => {
 
   const starters = await json(router, "/api/starters");
   assert.equal(starters.response.status, 200);
-  assert.equal(starters.body.starters.length, 10);
+  assert.equal(starters.body.starters.length, 11);
   assert.deepEqual(
     starters.body.starters.find((item) => item.name === "水")?.icon,
     {
@@ -110,6 +125,160 @@ test("static, health and rank routes keep their public contracts", async () => {
   assert.equal("apiKey" in health.body.llm_config, false);
   assert.equal(health.body.security.dashboard, "public");
   assert.equal(health.body.security.model_calls_per_minute, 20);
+  assert.deepEqual(health.body.content, {
+    epoch: CONTENT_EPOCH,
+    catalog_digest: CATALOG_DIGEST,
+    status: "ready",
+    mode: "ready",
+    phase: "ready",
+  });
+});
+
+test("aliases resolve before fixed formula lookup", async () => {
+  const kv = new FakeKV();
+  const router = makeRouter({ kv });
+  const response = await json(router, "/api/combine", {
+    method: "POST",
+    body: {
+      a: "地下城与勇士",
+      b: "会员",
+      discoverer: "测试鹅",
+      session_id: "alias-test",
+    },
+  });
+
+  assert.equal(response.body.result, "黑钻");
+  assert.equal(response.body.a, "DNF");
+  assert.equal(response.body.b, "会员");
+
+  const store = new KvStore(kv, { now: () => 1_700_000_000_000 });
+  const stored = await store.getCombination("DNF", "会员");
+  assert.equal(stored.a, "DNF");
+  assert.equal(
+    await store.getCombination("地下城与勇士", "会员"),
+    null,
+  );
+  const analytics = await json(router, "/api/analytics/combinations");
+  assert.equal(analytics.body.items[0].key, "DNF + 会员");
+
+  const verified = await json(router, "/api/recipes/verify", {
+    method: "POST",
+    body: {
+      recipes: [
+        {
+          a: "地下城与勇士",
+          b: "会员",
+          result: "黑钻",
+          emoji: "💬",
+        },
+      ],
+    },
+  });
+  assert.deepEqual(verified.body.valid, [
+    {
+      a: "DNF",
+      b: "会员",
+      result: "黑钻",
+      emoji: "💬",
+    },
+  ]);
+});
+
+test("prototype-named non-alias combine inputs remain strings", async () => {
+  const router = makeRouter();
+
+  for (const name of ["toString", "constructor", "__proto__"]) {
+    const response = await json(router, "/api/combine", {
+      method: "POST",
+      body: {
+        a: name,
+        b: "未知搭档",
+        discoverer: "测试鹅",
+        session_id: `prototype-combine-${name}`,
+      },
+    });
+
+    assert.equal(response.response.status, 200, name);
+    assert.equal(response.body.a, name);
+    assert.equal(typeof response.body.a, "string");
+  }
+});
+
+test("prototype-named non-alias recipe targets remain strings", async () => {
+  const router = makeRouter();
+
+  for (const name of ["toString", "constructor", "__proto__"]) {
+    const response = await json(
+      router,
+      `/api/element/${encodeURIComponent(name)}/recipes`,
+    );
+
+    assert.equal(response.response.status, 200, name);
+    assert.equal(response.body.result, name);
+    assert.ok(Array.isArray(response.body.recipes));
+  }
+});
+
+test("aliases stay canonical through model, KV, community and recipe lookups", async () => {
+  const kv = new FakeKV();
+  let modelBody;
+  const router = makeRouter({
+    kv,
+    fetchImpl: async (_url, init) => {
+      modelBody = JSON.parse(init.body);
+      return new Response(
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content:
+                  '{"name":"宠物搭档","emoji":"🎮","comment":"宠物也找到了并肩作战的搭档。"}',
+              },
+            },
+          ],
+        }),
+        { status: 200 },
+      );
+    },
+  });
+
+  const response = await json(router, "/api/combine", {
+    method: "POST",
+    body: {
+      a: "Q宠大乱斗",
+      b: "未知搭档",
+      discoverer: "测试鹅",
+      session_id: "alias-model-test",
+    },
+  });
+
+  assert.equal(response.body.a, "Q宠大乐斗");
+  assert.equal(response.body.b, "未知搭档");
+  assert.match(modelBody.messages.at(-1).content, /Q宠大乐斗/u);
+  assert.doesNotMatch(modelBody.messages.at(-1).content, /Q宠大乱斗/u);
+
+  const store = new KvStore(kv, { now: () => 1_700_000_000_000 });
+  const stored = await store.getCombination("Q宠大乐斗", "未知搭档");
+  assert.equal(stored.a, "Q宠大乐斗");
+  assert.equal(
+    await store.getCombination("Q宠大乱斗", "未知搭档"),
+    null,
+  );
+  const formula = JSON.parse(
+    kv.values.get(`community_formula_${response.body.formula_id}`),
+  );
+  assert.equal(formula.a, "Q宠大乐斗");
+  assert.equal(formula.b, "未知搭档");
+  const analytics = await json(router, "/api/analytics/combinations");
+  assert.equal(analytics.body.items[0].key, "Q宠大乐斗 + 未知搭档");
+
+  const recipes = await json(
+    router,
+    `/api/element/${encodeURIComponent("Q宠大乱斗")}/recipes`,
+  );
+  assert.equal(recipes.body.result, "Q宠大乐斗");
+  assert.equal(recipes.body.count, 1);
+  assert.equal(recipes.body.recipes[0].a, "QQ宠物");
 });
 
 test("dynamic KV metadata never overwrites authoritative seed elements", async () => {
@@ -146,7 +315,7 @@ test("legacy KV elements gain response icons across element projections", async 
   const router = createRouter({ kv, env: {} });
   const expected = {
     base: "☕",
-    badge: "🧠",
+    badge: "🧩",
     palette: "product",
     source: "generated",
   };
@@ -271,7 +440,7 @@ test("nickname, combine, wall, bounty and admin routes share KV state", async ()
   assert.ok(Array.isArray(bounty.body.groups));
   const riot = bounty.body.groups
     .flatMap((group) => group.items)
-    .find((item) => item.name === "Riot");
+    .find((item) => item.name === "Riot Games");
   assert.deepEqual(riot.icon, {
     base: "👊",
     badge: "🎮",
@@ -288,7 +457,7 @@ test("nickname, combine, wall, bounty and admin routes share KV state", async ()
   assert.deepEqual(admin.body.recent_firsts[0].icon, combine.body.icon);
 });
 
-test("non-seed community flow keeps formula, player, pagination and admin contracts", async () => {
+test("merged fixed community flow keeps formula, player, pagination and admin contracts", async () => {
   const router = makeRouter();
   const combined = await json(router, "/api/combine", {
     method: "POST",
@@ -300,7 +469,7 @@ test("non-seed community flow keeps formula, player, pagination and admin contra
     },
   });
   assert.equal(combined.response.status, 200);
-  assert.equal(combined.body.result, "边缘咖啡");
+  assert.equal(combined.body.result, "光");
   assert.equal(typeof combined.body.formula_id, "string");
   const playerCookie = combined.response.headers.get("set-cookie");
   assert.match(playerCookie, /^craft_player=/);
@@ -321,7 +490,7 @@ test("non-seed community flow keeps formula, player, pagination and admin contra
     },
     {
       id: formulaId,
-      result: "边缘咖啡",
+      result: "光",
       version: 1,
       net_score: 0,
       my_vote: null,
@@ -344,7 +513,7 @@ test("non-seed community flow keeps formula, player, pagination and admin contra
     },
     {
       id: formulaId,
-      result: "边缘咖啡",
+      result: "光",
       version: 1,
       net_score: 1,
       my_vote: 1,
@@ -366,7 +535,7 @@ test("non-seed community flow keeps formula, player, pagination and admin contra
     },
     {
       id: formulaId,
-      result: "边缘咖啡",
+      result: "光",
       version: 1,
       net_score: 1,
       my_vote: null,
@@ -387,7 +556,7 @@ test("non-seed community flow keeps formula, player, pagination and admin contra
     },
     {
       id: formulaId,
-      result: "边缘咖啡",
+      result: "光",
       version: 1,
       net_score: 1,
       my_vote: 1,
@@ -1032,8 +1201,428 @@ test("router returns safe JSON errors, CORS preflight and stream shutdown", asyn
   assert.equal(stream.status, 204);
 });
 
+test("health reports migration while gameplay fails closed", async () => {
+  const kv = new FakeKV({
+    combo_legacy: JSON.stringify({
+      a: "旧",
+      b: "公式",
+      result: "旧结果",
+      source: "seed",
+    }),
+  });
+  globalThis.test = kv;
+  try {
+    const { onRequest } = await import("../edge-functions/api/[[default]].js");
+
+    const health = await onRequest({
+      request: request("/api/health/?probe=migration"),
+      env: {},
+    });
+    const healthBody = await health.json();
+    assert.equal(health.status, 200);
+    assert.equal(healthBody.content.epoch, CONTENT_EPOCH);
+    assert.equal(healthBody.content.catalog_digest, CATALOG_DIGEST);
+    assert.equal(healthBody.content.status, "migrating");
+
+    const combine = await onRequest({
+      request: request("/api/combine/?probe=migration", {
+        method: "POST",
+        body: { a: "水", b: "火" },
+      }),
+      env: {},
+    });
+    const combineBody = await combine.json();
+    assert.equal(combine.status, 503);
+    assert.equal(combineBody.code, "CONTENT_INITIALIZING");
+    assert.equal(combineBody.details.content.status, "migrating");
+    assert.equal(
+      [...kv.values.keys()].some((key) =>
+        /^(first_|session_|formula_|community_)/u.test(key)),
+      false,
+    );
+  } finally {
+    delete globalThis.test;
+  }
+});
+
+test("health remains available when an initialization batch throws", async () => {
+  class FailingDeleteKV extends FakeKV {
+    async delete(key) {
+      if (key === "combo_legacy") {
+        throw new Error(
+          "secret-token from https://internal-kv.example.invalid",
+        );
+      }
+      return super.delete(key);
+    }
+  }
+
+  const kv = new FailingDeleteKV({
+    combo_legacy: JSON.stringify({
+      a: "旧",
+      b: "公式",
+      result: "旧结果",
+      source: "seed",
+    }),
+  });
+  globalThis.test = kv;
+  try {
+    const { onRequest } = await import("../edge-functions/api/[[default]].js");
+    const health = await onRequest({
+      request: request("/api/health"),
+      env: {},
+    });
+    const body = await health.json();
+
+    assert.equal(health.status, 200);
+    assert.equal(body.content.epoch, CONTENT_EPOCH);
+    assert.equal(body.content.status, "migrating");
+    assert.equal(body.content.error, "内容初始化暂时失败");
+    assert.equal(
+      body.content.error_code,
+      "CONTENT_INITIALIZATION_FAILED",
+    );
+    assert.doesNotMatch(JSON.stringify(body), /secret-token|internal-kv/u);
+
+    const combine = await onRequest({
+      request: request("/api/combine", {
+        method: "POST",
+        body: { a: "水", b: "火" },
+      }),
+      env: {},
+    });
+    const combineText = await combine.text();
+    assert.equal(combine.status, 503);
+    assert.match(combineText, /CONTENT_INITIALIZING/u);
+    assert.doesNotMatch(combineText, /secret-token|internal-kv/u);
+  } finally {
+    delete globalThis.test;
+  }
+});
+
+test("health reports reset authorization failure while gameplay stays closed", async () => {
+  const kv = new FakeKV({
+    system_content_state: JSON.stringify({
+      epoch: CONTENT_EPOCH + 1,
+      catalog_digest: "sha256:future-secret",
+      catalog_version: "3.0.0",
+      status: "ready",
+      mode: "ready",
+      phase: "ready",
+      error: "",
+    }),
+    future_runtime_data: JSON.stringify({ keep: true }),
+  });
+  globalThis.test = kv;
+  try {
+    const { onRequest } = await import("../edge-functions/api/[[default]].js");
+    const health = await onRequest({
+      request: request("/api/health"),
+      env: {},
+    });
+    const healthBody = await health.json();
+
+    assert.equal(health.status, 200);
+    assert.equal(
+      healthBody.content.error_code,
+      "CONTENT_RESET_NOT_AUTHORIZED",
+    );
+    assert.equal(healthBody.content.error, "内容初始化暂时失败");
+    assert.doesNotMatch(JSON.stringify(healthBody), /future-secret/u);
+
+    const combine = await onRequest({
+      request: request("/api/combine", {
+        method: "POST",
+        body: { a: "水", b: "火" },
+      }),
+      env: {},
+    });
+    const combineBody = await combine.json();
+    assert.equal(combine.status, 503);
+    assert.equal(combineBody.code, "CONTENT_INITIALIZING");
+    assert.equal(
+      combineBody.details.content.error_code,
+      "CONTENT_RESET_NOT_AUTHORIZED",
+    );
+    assert.equal(kv.putCalls, 0);
+    assert.equal(kv.deleteCalls, 0);
+  } finally {
+    delete globalThis.test;
+  }
+});
+
+test("health reports an invalid reset receipt without exposing receipt data", async () => {
+  const receiptKey = `system_content_reset_receipt_${CONTENT_EPOCH}`;
+  const kv = new FakeKV({
+    [receiptKey]: JSON.stringify({
+      target_epoch: String(CONTENT_EPOCH),
+      source_epoch: "legacy",
+      catalog_digest: CATALOG_DIGEST,
+      status: "in_progress",
+      started_at: 1_700_000_000_000,
+      completed_at: null,
+      secret: "receipt-secret",
+    }),
+    player_runtime_data: JSON.stringify({ keep: true }),
+  });
+  globalThis.test = kv;
+  try {
+    const { onRequest } = await import("../edge-functions/api/[[default]].js");
+    const health = await onRequest({
+      request: request("/api/health"),
+      env: {},
+    });
+    const body = await health.json();
+
+    assert.equal(health.status, 200);
+    assert.equal(
+      body.content.error_code,
+      "CONTENT_RESET_RECEIPT_INVALID",
+    );
+    assert.doesNotMatch(JSON.stringify(body), /receipt-secret|started_at/u);
+    assert.equal(kv.putCalls, 0);
+    assert.equal(kv.deleteCalls, 0);
+  } finally {
+    delete globalThis.test;
+  }
+});
+
+test("failed epoch 2 persistence never exposes an epoch 1 ready tuple", async () => {
+  const staleDigest =
+    "sha256:0000000000000000000000000000000000000000000000000000000000000000";
+  class FailingCurrentStateKV extends FakeKV {
+    async put(key, value) {
+      if (key === "system_content_state") {
+        const candidate = JSON.parse(value);
+        if (candidate.epoch === 2) {
+          throw new Error("secret epoch 2 persistence failure");
+        }
+      }
+      return super.put(key, value);
+    }
+  }
+  const kv = new FailingCurrentStateKV({
+    system_content_state: JSON.stringify({
+      epoch: 1,
+      catalog_digest: staleDigest,
+      status: "ready",
+      mode: "ready",
+      phase: "ready",
+      error: "",
+    }),
+  });
+  globalThis.test = kv;
+  try {
+    const { onRequest } = await import("../edge-functions/api/[[default]].js");
+    const health = await onRequest({
+      request: request("/api/health"),
+      env: {},
+    });
+    const healthBody = await health.json();
+
+    assert.equal(health.status, 200);
+    assert.equal(healthBody.content.epoch, 2);
+    assert.equal(healthBody.content.catalog_digest, CATALOG_DIGEST);
+    assert.equal(healthBody.content.status, "migrating");
+    assert.equal(healthBody.content.mode, "unknown");
+    assert.equal(healthBody.content.phase, "detect");
+    assert.equal(
+      healthBody.content.error_code,
+      "CONTENT_INITIALIZATION_FAILED",
+    );
+
+    const combine = await onRequest({
+      request: request("/api/combine", {
+        method: "POST",
+        body: { a: "水", b: "火" },
+      }),
+      env: {},
+    });
+    const combineBody = await combine.json();
+
+    assert.equal(combine.status, 503);
+    assert.equal(combineBody.code, "CONTENT_INITIALIZING");
+    assert.equal(combineBody.details.content.epoch, 2);
+    assert.equal(
+      combineBody.details.content.catalog_digest,
+      CATALOG_DIGEST,
+    );
+    assert.equal(combineBody.details.content.status, "migrating");
+    assert.equal(combineBody.details.content.mode, "unknown");
+    assert.equal(combineBody.details.content.phase, "detect");
+    assert.equal(
+      combineBody.details.content.error_code,
+      "CONTENT_INITIALIZATION_FAILED",
+    );
+    assert.doesNotMatch(
+      JSON.stringify({ healthBody, combineBody }),
+      /secret epoch 2|sha256:000000/u,
+    );
+  } finally {
+    delete globalThis.test;
+  }
+});
+
+test("malformed truthy KV bindings return structured safe errors", async () => {
+  globalThis.test = {};
+  try {
+    const { onRequest } = await import("../edge-functions/api/[[default]].js");
+    for (const target of ["/api/health", "/api/combine"]) {
+      const response = await onRequest({
+        request: request(target, target.endsWith("combine")
+          ? {
+              method: "POST",
+              body: { a: "水", b: "火" },
+            }
+          : {}),
+        env: {},
+      });
+      const body = await response.json();
+      assert.equal(response.status, 500);
+      assert.equal(body.code, "KV_BINDING_INVALID");
+      assert.match(body.detail, /KV/u);
+      assert.doesNotMatch(JSON.stringify(body), /TypeError|get is not/u);
+    }
+  } finally {
+    delete globalThis.test;
+  }
+});
+
+test("a ready reread after an initializer error routes normally", async () => {
+  const readyState = {
+    epoch: CONTENT_EPOCH,
+    catalog_digest: CATALOG_DIGEST,
+    status: "ready",
+    mode: "ready",
+    phase: "ready",
+    cursor: null,
+    index: 0,
+    started_at: 1_700_000_000_000,
+    completed_at: 1_700_000_000_000,
+    error: "",
+  };
+  class ConcurrentReadyKV extends FakeKV {
+    async delete(key) {
+      if (key === "combo_legacy") {
+        this.values.set(
+          "system_content_state",
+          JSON.stringify(readyState),
+        );
+        throw new Error("stale initializer lost the race");
+      }
+      return super.delete(key);
+    }
+  }
+  const kv = new ConcurrentReadyKV({
+    combo_legacy: JSON.stringify({ source: "seed" }),
+  });
+  globalThis.test = kv;
+  try {
+    const { onRequest } = await import("../edge-functions/api/[[default]].js");
+    const response = await onRequest({
+      request: request("/api/tiers"),
+      env: {},
+    });
+    const body = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(body.tiers, []);
+  } finally {
+    delete globalThis.test;
+  }
+});
+
+test("router health sanitizes an injected durable error and cursor", async () => {
+  const router = makeRouter({
+    contentStatus: {
+      epoch: CONTENT_EPOCH,
+      catalog_digest: CATALOG_DIGEST,
+      status: "migrating",
+      mode: "epoch_reset",
+      phase: "purge_runtime_data",
+      cursor: "secret-provider-cursor",
+      index: 3,
+      error: "secret-token https://internal-kv.example.invalid",
+      error_code: "SECRET_PROVIDER_FAILURE",
+    },
+  });
+
+  const health = await json(router, "/api/health?full=1");
+  const serialized = JSON.stringify(health.body);
+  assert.equal(health.response.status, 200);
+  assert.equal(health.body.content.error, "内容初始化暂时失败");
+  assert.equal(
+    health.body.content.error_code,
+    "CONTENT_INITIALIZATION_FAILED",
+  );
+  assert.equal("cursor" in health.body.content, false);
+  assert.doesNotMatch(serialized, /secret-token|internal-kv|provider-cursor/u);
+  assert.doesNotMatch(serialized, /SECRET_PROVIDER_FAILURE/u);
+});
+
+test("router health preserves only allowlisted reset policy error codes", async () => {
+  const router = makeRouter({
+    contentStatus: {
+      epoch: CONTENT_EPOCH,
+      catalog_digest: CATALOG_DIGEST,
+      status: "migrating",
+      mode: "unknown",
+      phase: "detect",
+      error: "internal detail",
+      error_code: "CONTENT_RESET_NOT_AUTHORIZED",
+    },
+  });
+
+  const health = await json(router, "/api/health");
+
+  assert.equal(health.response.status, 200);
+  assert.equal(
+    health.body.content.error_code,
+    "CONTENT_RESET_NOT_AUTHORIZED",
+  );
+  assert.equal(health.body.content.error, "内容初始化暂时失败");
+  assert.doesNotMatch(JSON.stringify(health.body), /internal detail/u);
+});
+
+test("router health never exposes a provider-controlled KV error name", async () => {
+  class SecretNamedHealthKV extends FakeKV {
+    async get(key, options) {
+      if (key === "snapshot_health") {
+        const error = new Error("provider detail");
+        error.name = "SecretTenantKvFailure";
+        throw error;
+      }
+      return super.get(key, options);
+    }
+  }
+  const health = await json(
+    makeRouter({ kv: new SecretNamedHealthKV() }),
+    "/api/health",
+  );
+
+  assert.equal(health.response.status, 200);
+  assert.equal(health.body.kv, "error: KVError");
+  assert.doesNotMatch(
+    JSON.stringify(health.body),
+    /SecretTenantKvFailure|provider detail/u,
+  );
+});
+
 test("Edge Function entry uses only the production KV global", async () => {
-  const productionKv = new FakeKV();
+  const productionKv = new FakeKV({
+    system_content_state: JSON.stringify({
+      epoch: CONTENT_EPOCH,
+      catalog_digest: CATALOG_DIGEST,
+      status: "ready",
+      mode: "ready",
+      phase: "ready",
+      cursor: null,
+      index: 0,
+      started_at: 1_700_000_000_000,
+      completed_at: 1_700_000_000_000,
+      error: "",
+    }),
+  });
   globalThis.test = productionKv;
   try {
     const { onRequest } = await import("../edge-functions/api/[[default]].js");
@@ -1043,8 +1632,12 @@ test("Edge Function entry uses only the production KV global", async () => {
       env: { APP_ENV: "dev" },
     });
     assert.equal(production.status, 200);
-    assert.equal((await production.json()).app_env, "makers");
-    assert.equal(productionKv.getCalls, 1);
+    const productionBody = await production.json();
+    assert.equal(productionBody.app_env, "makers");
+    assert.equal(productionBody.content.status, "ready");
+    assert.equal(productionBody.content.epoch, CONTENT_EPOCH);
+    const productionReads = productionKv.getCalls;
+    assert.ok(productionReads >= 2);
 
     const local = await onRequest({
       request: new Request("http://127.0.0.1:8088/api/health"),
@@ -1052,7 +1645,7 @@ test("Edge Function entry uses only the production KV global", async () => {
     });
     assert.equal(local.status, 500);
     assert.match((await local.json()).detail, /npm run dev/u);
-    assert.equal(productionKv.getCalls, 1);
+    assert.equal(productionKv.getCalls, productionReads);
   } finally {
     delete globalThis.test;
   }

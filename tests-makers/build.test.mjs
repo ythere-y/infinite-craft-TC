@@ -32,6 +32,7 @@ const REQUIRED_FILES = [
   "dist/THIRD_PARTY_NOTICES.md",
   "dist/index.html",
   "dist/app.js",
+  "dist/audio-feedback.js",
   "dist/casino-mode.js",
   "dist/casino-round.js",
   "dist/combine-feedback.js",
@@ -58,13 +59,20 @@ const REQUIRED_FILES = [
 const COMMITTED_BUILD_INPUTS = [
   "THIRD_PARTY_NOTICES.md",
   "package.json",
+  "content/tencent-bounty-catalog.json",
+  "backend/generated/bounty-content.json",
   "backend/icon_knowledge.json",
+  "backend/icon_rules.json",
   "backend/seed_combinations.json",
   "backend/seed_elements.json",
+  "edge-functions/_generated/bounty-content.js",
   "edge-functions/_generated/icon-data.js",
   "frontend",
   "scripts/audit-icon-map.mjs",
+  "scripts/bounty-content-lib.mjs",
   "scripts/build-makers.mjs",
+  "scripts/generate-bounty-content.mjs",
+  "scripts/generate-icon-data.mjs",
   "scripts/generate-makers-data.mjs",
   "scripts/generate-makers-nickname-data.mjs",
   "scripts/generate-makers-prompt-data.mjs",
@@ -83,7 +91,7 @@ async function copyCommittedBuildFixture(
   {
     sourceRoot = ".",
     inputs = COMMITTED_BUILD_INPUTS,
-    sourceRevision = "HEAD",
+    sourceRevision = "index",
   } = {},
 ) {
   const useIndex = sourceRevision === "index";
@@ -375,6 +383,7 @@ test("build fixture reads tracked input bytes from Git HEAD", async () => {
     await copyCommittedBuildFixture(fixtureRoot, {
       sourceRoot,
       inputs: ["shared/combine-prompt.json"],
+      sourceRevision: "HEAD",
     });
 
     assert.equal(
@@ -395,7 +404,7 @@ test("normal build rejects drift between browser and Makers icon recipes", async
     await copyCommittedBuildFixture(root);
     await appendFile(
       join(root, "edge-functions/_generated/icon-data.js"),
-      '\nELEMENT_ICONS.Riot.icon.base = "⚡";\n',
+      '\nELEMENT_ICONS["Riot Games"].icon.base = "⚡";\n',
     );
 
     const result = await runFixtureBuild(root);
@@ -403,7 +412,7 @@ test("normal build rejects drift between browser and Makers icon recipes", async
     assert.notEqual(result.code, 0, "a drifted Makers artifact must fail the build");
     assert.match(
       `${result.stdout}\n${result.stderr}`,
-      /icon recipe drift.*Riot/i,
+      /icon recipe drift.*Riot Games/i,
     );
   } finally {
     await rm(root, { force: true, recursive: true });
@@ -441,7 +450,7 @@ test("normal build rejects a non-empty mutation to a referenced icon asset", asy
 test("normal build needs no words checkout and ships only local icon assets", async () => {
   const root = await mkdtemp(join(tmpdir(), "icon-build-committed-"));
   try {
-    await copyCommittedBuildFixture(root);
+    await copyCommittedBuildFixture(root, { sourceRevision: "index" });
     await assert.rejects(access(join(root, "words")), { code: "ENOENT" });
 
     const result = await runFixtureBuild(root);
@@ -466,6 +475,23 @@ test("normal build needs no words checkout and ships only local icon assets", as
       "the built helper must load before its effects consumer",
     );
     await access(join(root, "dist/score-level.js"));
+
+    const compiled = JSON.parse(
+      await readFile(
+        join(root, "backend/generated/bounty-content.json"),
+        "utf8",
+      ),
+    );
+    const builtIconMap = JSON.parse(
+      await readFile(
+        join(root, "dist/assets/icons/generated/element-icon-map.json"),
+        "utf8",
+      ),
+    );
+    assert.deepEqual(
+      new Set(Object.keys(builtIconMap)),
+      new Set(Object.keys(compiled.elements)),
+    );
 
     const manifest = JSON.parse(
       await readFile(

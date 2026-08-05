@@ -105,7 +105,7 @@ test("nickname generator uses the committed shared corpus", async () => {
   });
 });
 
-test("bounty hides role group while retaining starter discoveries and first metadata", () => {
+test("bounty hides role and starter targets while retaining first metadata", () => {
   const bounty = buildBounty({
     elements: ELEMENTS,
     starters: STARTERS,
@@ -124,7 +124,10 @@ test("bounty hides role group while retaining starter discoveries and first meta
   assert.ok(!bounty.groups.some((group) => group.category === "boss"));
   assert.ok(!bounty.groups.some((group) => group.label === "角色"));
   const tencent = bounty.groups.find((group) => group.category === "tencent");
-  assert.ok(tencent.items.find((item) => item.name === "企鹅").discovered);
+  assert.equal(
+    tencent.items.find((item) => item.name === "企鹅"),
+    undefined,
+  );
   const buildings = bounty.groups.find((group) => group.category === "building");
   const tower = buildings.items.find((item) => item.name === "腾讯大厦");
   assert.equal(tower.discoverer, "测试鹅");

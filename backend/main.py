@@ -34,12 +34,14 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from . import (
-    db,
-    kpi,
     archive,
-    community,
-    depth as depth_mod,
     bounty as bounty_mod,
+    community,
+    content_catalog,
+    content_epoch,
+    db,
+    depth as depth_mod,
+    kpi,
     prompt_store,
 )
 from .community_api import (
@@ -86,15 +88,24 @@ async def _startup() -> None:
     db.init_db()  # 连 Redis + 建 SQLite 表
     prompt_store.init_prompt_store()
     community.init()
-    # 1) 从 SQLite 恢复历史数据到 Redis（重启不丢 AI 生成的长尾）
-    warm = db.warm_up_from_archive()
-    print(
-        f"[warmup] restored from SQLite: combos={warm['combos']} firsts={warm['firsts']} nicks={warm['nicks']}"
-    )
-    # 2) 加载 seed（会补齐 SQLite 没有的那些）
-    n_el, n_warmed = store.load()
-    # 3) 计算元素深度（合成分数用）
-    depth_table = depth_mod.warm_up_from_seed()
+    try:
+        decision = content_epoch.prepare_local()
+        # 1) ready/reconcile 会保留并恢复 SQLite 中的动态长尾。
+        if decision.mode == "ready" or decision.phase == "reconcile":
+            warm = db.warm_up_from_archive()
+        else:
+            warm = {"combos": 0, "firsts": 0, "nicks": 0}
+        print(
+            f"[warmup] restored from SQLite: combos={warm['combos']} firsts={warm['firsts']} nicks={warm['nicks']}"
+        )
+        # 2) 加载 seed（会补齐 SQLite 没有的那些）
+        n_el, n_warmed = store.load()
+        # 3) 计算元素深度（合成分数用）
+        depth_table = depth_mod.warm_up_from_seed()
+        content_epoch.complete_local()
+    except Exception as exc:
+        content_epoch.fail_local(exc)
+        raise
     env = os.environ.get("APP_ENV", "dev")
     redis_configured = "yes" if os.environ.get("REDIS_URL") else "default"
     print(f"[env] APP_ENV={env}  REDIS_URL={redis_configured}")
@@ -200,6 +211,7 @@ async def api_health():
         "redis_dbsize": 0,
         "sqlite": archive.db_path_str(),
         "app_env": os.environ.get("APP_ENV", "dev"),
+        "content": content_epoch.health_status(),
     }
     try:
         c = db.get_client()
@@ -688,7 +700,8 @@ async def api_combine(
 ):
     request_id = uuid.uuid4().hex[:12]
     started = time.perf_counter()
-    a, b = req.a.strip(), req.b.strip()
+    a = content_catalog.normalize_alias(req.a.strip())
+    b = content_catalog.normalize_alias(req.b.strip())
     if not a or not b:
         raise HTTPException(400, "a/b 不能为空")
     if (
@@ -826,6 +839,7 @@ async def api_combine(
             name=result,
             emoji=emoji,
             category=chain,
+            source=source,
             is_starter=False,
             icon=icon,
         )
@@ -835,6 +849,7 @@ async def api_combine(
             name=result,
             emoji=emoji,
             category=existing_info.get("category") or chain,
+            source=source,
             is_starter=False,
             icon=icon,
         )
@@ -1041,6 +1056,8 @@ async def api_recipes_verify(req: VerifyReq):
             invalid.append({"a": a, "b": b, "reason": "字段过长"})
             continue
 
+        a = content_catalog.normalize_alias(a)
+        b = content_catalog.normalize_alias(b)
         key = db.normalize_key(a, b)
         hit = db.get_cached(key)
         if not hit:
@@ -1285,7 +1302,7 @@ async def api_element_recipes(name: str):
         ]
       }
     """
-    target = (name or "").strip()
+    target = content_catalog.normalize_alias((name or "").strip())
     if not target:
         raise HTTPException(400, "name 不能为空")
 

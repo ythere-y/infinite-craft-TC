@@ -4,6 +4,8 @@ import { access, readFile, readdir } from "node:fs/promises";
 import { promisify } from "node:util";
 import test from "node:test";
 
+import { errorResponse } from "../edge-functions/_lib/http.js";
+
 const execFileAsync = promisify(execFile);
 
 async function exists(path) {
@@ -78,4 +80,25 @@ test("primary docs describe local development and Makers production", async () =
 
   assert.match(readme, /Render.*暂停/su);
   assert.doesNotMatch(readme, /方式 3：EdgeOne Makers/u);
+});
+
+test("HTTP errors support an optional stable code without changing legacy calls", async () => {
+  const coded = errorResponse(
+    503,
+    "内容初始化中，请稍后重试",
+    { content: { status: "migrating" } },
+    "CONTENT_INITIALIZING",
+  );
+  assert.equal(coded.status, 503);
+  assert.deepEqual(await coded.json(), {
+    detail: "内容初始化中，请稍后重试",
+    code: "CONTENT_INITIALIZING",
+    details: { content: { status: "migrating" } },
+  });
+
+  const legacy = errorResponse(400, "旧错误", { field: "a" });
+  assert.deepEqual(await legacy.json(), {
+    detail: "旧错误",
+    details: { field: "a" },
+  });
 });

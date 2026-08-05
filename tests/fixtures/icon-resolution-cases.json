@@ -14,13 +14,196 @@
   },
   {
     "name": "智能咖啡",
+    "group": "stable-pool",
     "emoji": "☕",
     "category": "ai",
     "parents": ["AI", "咖啡"],
     "comment": "咖啡完成智能升级",
     "expected": {
       "base": "☕",
+      "badge": "🧩",
+      "palette": "product",
+      "source": "generated"
+    }
+  },
+  {
+    "name": "代码助手",
+    "group": "semantic",
+    "emoji": "🧰",
+    "category": "ai",
+    "parents": ["代码", "AI"],
+    "comment": "帮忙开发新功能",
+    "expected": {
+      "base": "🧰",
+      "badge": "💻",
+      "palette": "product",
+      "source": "generated"
+    }
+  },
+  {
+    "name": "周报代笔",
+    "group": "semantic",
+    "emoji": "✍️",
+    "category": "ai",
+    "parents": ["周报", "AI"],
+    "comment": "总结本周工作",
+    "expected": {
+      "base": "✍️",
+      "badge": "📝",
+      "palette": "product",
+      "source": "generated"
+    }
+  },
+  {
+    "name": "数据参谋",
+    "group": "semantic",
+    "emoji": "🧮",
+    "category": "ai",
+    "parents": ["数据", "模型"],
+    "comment": "分析指标走势",
+    "expected": {
+      "base": "🧮",
+      "badge": "📊",
+      "palette": "product",
+      "source": "generated"
+    }
+  },
+  {
+    "name": "客服搭子",
+    "group": "semantic",
+    "emoji": "🎧",
+    "category": "ai",
+    "parents": ["客服", "模型"],
+    "comment": "对话回答用户",
+    "expected": {
+      "base": "🎧",
+      "badge": "💬",
+      "palette": "product",
+      "source": "generated"
+    }
+  },
+  {
+    "name": "视觉工坊",
+    "group": "semantic",
+    "emoji": "🖼️",
+    "category": "ai",
+    "parents": ["设计", "模型"],
+    "comment": "生成图片内容",
+    "expected": {
+      "base": "🖼️",
+      "badge": "🎨",
+      "palette": "product",
+      "source": "generated"
+    }
+  },
+  {
+    "name": "知识雷达",
+    "group": "semantic",
+    "emoji": "📚",
+    "category": "ai",
+    "parents": ["知识", "模型"],
+    "comment": "检索研究资料",
+    "expected": {
+      "base": "📚",
+      "badge": "🔍",
+      "palette": "product",
+      "source": "generated"
+    }
+  },
+  {
+    "name": "流程代理",
+    "group": "semantic",
+    "emoji": "🔁",
+    "category": "ai",
+    "parents": ["工作流", "模型"],
+    "comment": "智能体接管流程",
+    "expected": {
+      "base": "🔁",
+      "badge": "⚙️",
+      "palette": "product",
+      "source": "generated"
+    }
+  },
+  {
+    "name": "云端搭子",
+    "group": "stable-pool",
+    "emoji": "☁️",
+    "category": "ai",
+    "parents": ["云", "伙伴"],
+    "comment": "在云上找了个搭子",
+    "expected": {
+      "base": "☁️",
       "badge": "🧠",
+      "palette": "product",
+      "source": "generated"
+    }
+  },
+  {
+    "name": "灵感鹅",
+    "group": "stable-pool",
+    "emoji": "🐧",
+    "category": "ai",
+    "parents": ["鹅", "火花"],
+    "comment": "灵感突然来了",
+    "expected": {
+      "base": "🐧",
+      "badge": "⚡",
+      "palette": "product",
+      "source": "generated"
+    }
+  },
+  {
+    "name": "未来饭盒",
+    "group": "stable-pool",
+    "emoji": "🍱",
+    "category": "ai",
+    "parents": ["未来", "午餐"],
+    "comment": "明天的饭先装好了",
+    "expected": {
+      "base": "🍱",
+      "badge": "🤖",
+      "palette": "product",
+      "source": "generated"
+    }
+  },
+  {
+    "name": "模型夜宵",
+    "group": "stable-pool",
+    "emoji": "🌙",
+    "category": "ai",
+    "parents": ["模型", "夜宵"],
+    "comment": "深夜也要吃饱",
+    "expected": {
+      "base": "🌙",
+      "badge": "✨",
+      "palette": "product",
+      "source": "generated"
+    }
+  },
+  {
+    "name": "无限奶茶",
+    "group": "stable-pool",
+    "emoji": "🧋",
+    "category": "ai",
+    "parents": ["无限", "奶茶"],
+    "comment": "这一杯没有尽头",
+    "expected": {
+      "base": "🧋",
+      "badge": "💡",
+      "palette": "product",
+      "source": "generated"
+    }
+  },
+  {
+    "name": "主副同款",
+    "group": "self-exclusion",
+    "emoji": "🧩",
+    "category": "ai",
+    "parents": ["主图", "贴纸"],
+    "comment": "两张贴纸需要错开",
+    "expected": {
+      "base": "🧩",
+      "badge": "🤖",
       "palette": "product",
       "source": "generated"
     }

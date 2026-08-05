@@ -1,10 +1,12 @@
 import {
   ELEMENT_ICONS,
+  ENTITY_ALIASES,
   ICON_RULES,
 } from "../_generated/icon-data.js";
 
 const PALETTES = new Set(ICON_RULES.palettes || []);
 const SOURCES = new Set(ICON_RULES.allowed_sources || []);
+const STABLE_HASH_MODULUS = 2_147_483_647;
 
 function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -40,7 +42,15 @@ export function normalizeIcon(value) {
 }
 
 export function presetIcon(name) {
-  const row = ELEMENT_ICONS[name];
+  let row = Object.hasOwn(ELEMENT_ICONS, name)
+    ? ELEMENT_ICONS[name]
+    : null;
+  if (
+    !isObject(row) &&
+    Object.hasOwn(ENTITY_ALIASES, name)
+  ) {
+    row = ELEMENT_ICONS[ENTITY_ALIASES[name]];
+  }
   if (!isObject(row)) return null;
   return normalizeIcon(row.icon ?? row);
 }
@@ -91,6 +101,24 @@ function dynamicBadge({ text, category, chain, base }) {
   return null;
 }
 
+function stablePoolBadge({ name, pool, base }) {
+  if (!Array.isArray(pool)) return null;
+  const candidates = pool.filter(
+    (badge) =>
+      typeof badge === "string" &&
+      badge &&
+      badge !== base,
+  );
+  if (!candidates.length) return null;
+
+  let value = 0;
+  for (const character of String(name || "").normalize("NFC")) {
+    value =
+      (value * 31 + character.codePointAt(0)) % STABLE_HASH_MODULUS;
+  }
+  return candidates[value % candidates.length];
+}
+
 export function resolveIconRecipe({
   name,
   emoji,
@@ -114,12 +142,20 @@ export function resolveIconRecipe({
   if (!PALETTES.has(palette)) palette = "place";
 
   const base = typeof emoji === "string" && emoji ? emoji : "❓";
-  const badge = dynamicBadge({
+  let badge = dynamicBadge({
     text: contextText({ name, category, parents, chain, comment }),
     category,
     chain,
     base,
   });
+  if (!badge) {
+    const badgePools = ICON_RULES.category_badge_pools || {};
+    badge = stablePoolBadge({
+      name,
+      pool: badgePools[category] ?? badgePools[chain],
+      base,
+    });
+  }
   const recipe = {
     base,
     palette,

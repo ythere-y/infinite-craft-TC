@@ -2,6 +2,8 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { mergeIconContent } from "./generate-icon-data.mjs";
+
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PALETTES = new Set([
   "nature",
@@ -14,7 +16,7 @@ const PALETTES = new Set([
 const SOURCES = new Set(["curated", "entity", "generated", "fallback"]);
 
 const LOCKED_ENTITIES = {
-  Riot: {
+  "Riot Games": {
     icon: {
       base: "👊",
       badge: "🎮",
@@ -24,7 +26,7 @@ const LOCKED_ENTITIES = {
     entity_type: "company",
     canonical_name: "Riot Games",
   },
-  Epic: {
+  "Epic Games": {
     icon: {
       base: "🛡️",
       badge: "🎮",
@@ -56,7 +58,7 @@ const LOCKED_ENTITIES = {
   },
 };
 
-const ENTITY_CATEGORIES = new Set(["studio", "level", "boss", "invest"]);
+const ENTITY_CATEGORIES = new Set(["studio", "level", "boss", "association"]);
 const NON_ENTITY_NAMES = new Set([
   "全员",
   "全员信",
@@ -132,7 +134,7 @@ function lockedEntityResults(iconMap) {
           issues.push(`${field} differs`);
         }
       }
-      if (name === "Riot" && /闪电|暴乱/u.test(actual.rationale ?? "")) {
+      if (name === "Riot Games" && /闪电|暴乱/u.test(actual.rationale ?? "")) {
         issues.push("rationale contains a forbidden literal sense");
       }
     }
@@ -149,16 +151,23 @@ function findEntityCandidates(seedElements, knowledge) {
         NUMERIC_ABBREVIATION.test(name) ||
         (ENTITY_CATEGORIES.has(seed.category) && !NON_ENTITY_NAMES.has(name)),
     )
-    .map(([name, seed]) => ({
-      name,
-      category: seed.category,
-      status: knowledge[name] ? "mapped" : "review",
-      reason: knowledge[name]
-        ? "explicit knowledge row"
-        : ENTITY_CATEGORIES.has(seed.category)
-        ? `${seed.category} category`
-        : "English name or abbreviation",
-    }));
+    .map(([name, seed]) => {
+      const catalogued =
+        typeof seed.factual_metadata?.provenance === "string" &&
+        seed.factual_metadata.provenance.length > 0;
+      return {
+        name,
+        category: seed.category,
+        status: knowledge[name] || catalogued ? "mapped" : "review",
+        reason: knowledge[name]
+          ? "explicit knowledge row"
+          : catalogued
+            ? "catalog provenance"
+            : ENTITY_CATEGORIES.has(seed.category)
+              ? `${seed.category} category`
+              : "English name or abbreviation",
+      };
+    });
 }
 
 export function auditIconMap({
@@ -435,8 +444,23 @@ export async function runIconAudit({
   writeReport,
 } = {}) {
   const projectRoot = resolve(root);
-  const [seedElements, iconMap, emojiManifest, knowledge] = await Promise.all([
+  const [
+    baseElements,
+    baseCombinations,
+    bountyContent,
+    iconMap,
+    emojiManifest,
+    knowledge,
+  ] = await Promise.all([
     readJson(resolve(projectRoot, "backend/seed_elements.json"), "Seed elements"),
+    readJson(
+      resolve(projectRoot, "backend/seed_combinations.json"),
+      "Seed combinations",
+    ),
+    readJson(
+      resolve(projectRoot, "backend/generated/bounty-content.json"),
+      "Compiled bounty content",
+    ),
     readJson(
       resolve(
         projectRoot,
@@ -453,6 +477,11 @@ export async function runIconAudit({
     ),
     readJson(resolve(projectRoot, "backend/icon_knowledge.json"), "Icon knowledge"),
   ]);
+  const { elements: seedElements } = mergeIconContent({
+    baseElements,
+    baseCombinations,
+    bountyContent,
+  });
   const audit = auditIconMap({
     seedElements,
     iconMap,

@@ -5,11 +5,19 @@ import {
   STARTERS,
 } from "../_generated/seed-data.js";
 import {
+  CATALOG_DIGEST,
+  CONTENT_EPOCH,
+} from "../_generated/bounty-content.js";
+import {
   MAX_RECIPE_FIELD_LENGTH,
   MAX_SESSION_ID_LENGTH,
   MAX_VERIFY_RECIPES,
 } from "../_generated/runtime-contract-data.js";
-import { buildBounty, buildCategory } from "./bounty.js";
+import {
+  buildBounty,
+  buildCategory,
+  normalizeBountyAlias,
+} from "./bounty.js";
 import { createGameService } from "./game-service.js";
 import {
   CORS_HEADERS,
@@ -49,6 +57,89 @@ import {
 } from "./icon-recipes.js";
 
 const VERIFY_READ_BATCH = 20;
+const PUBLIC_CONTENT_MODES = new Set([
+  "ready",
+  "bootstrap",
+  "epoch_reset",
+  "differential",
+  "unknown",
+]);
+const PUBLIC_CONTENT_ERROR_CODES = new Set([
+  "CONTENT_RESET_NOT_AUTHORIZED",
+  "CONTENT_RESET_RECEIPT_INVALID",
+]);
+const PUBLIC_CONTENT_PHASES = new Set([
+  "detect",
+  "purge_runtime_data",
+  "seed_starters",
+  "seed_elements",
+  "seed_recipes",
+  "rebuild_indexes",
+  "verify_catalog",
+  "ready",
+]);
+export function publicContentStatus(
+  value,
+  {
+    initializationFailed = false,
+    initializationErrorCode = "",
+  } = {},
+) {
+  const epoch = Number(value?.epoch);
+  const rawStatus = cleanText(value?.status);
+  const rawMode = cleanText(value?.mode);
+  const rawPhase = cleanText(value?.phase);
+  const rawDigest = cleanText(value?.catalog_digest);
+  const index = Number(value?.index);
+  const hasError = initializationFailed || Boolean(cleanText(value?.error));
+  const requestedErrorCode = cleanText(
+    initializationErrorCode || value?.error_code,
+  );
+  const publicErrorCode = PUBLIC_CONTENT_ERROR_CODES.has(requestedErrorCode)
+    ? requestedErrorCode
+    : "CONTENT_INITIALIZATION_FAILED";
+  const currentTarget = (
+    epoch === CONTENT_EPOCH &&
+    rawDigest === CATALOG_DIGEST
+  );
+  const ready = (
+    currentTarget &&
+    rawStatus === "ready" &&
+    rawMode === "ready" &&
+    rawPhase === "ready" &&
+    !hasError
+  );
+  const migrating = currentTarget && rawStatus === "migrating";
+
+  return {
+    epoch: CONTENT_EPOCH,
+    catalog_digest: CATALOG_DIGEST,
+    status: ready ? "ready" : "migrating",
+    mode: ready
+      ? "ready"
+      : migrating &&
+          PUBLIC_CONTENT_MODES.has(rawMode) &&
+          rawMode !== "ready"
+        ? rawMode
+        : "unknown",
+    phase: ready
+      ? "ready"
+      : migrating &&
+          PUBLIC_CONTENT_PHASES.has(rawPhase) &&
+          rawPhase !== "ready"
+        ? rawPhase
+        : "detect",
+    ...(migrating && Number.isSafeInteger(index) && index >= 0
+      ? { index }
+      : {}),
+    ...(hasError
+      ? {
+          error: "内容初始化暂时失败",
+          error_code: publicErrorCode,
+        }
+      : {}),
+  };
+}
 
 function intParam(searchParams, name, fallback, minimum, maximum) {
   const raw = searchParams.get(name);
@@ -105,6 +196,7 @@ async function mapInBatches(items, batchSize, worker) {
 export function createRouter({
   kv,
   env = {},
+  contentStatus = null,
   fetchImpl = globalThis.fetch,
   now = () => Date.now(),
   random = Math.random,
@@ -198,16 +290,20 @@ export function createRouter({
   }
 
   async function getKnownCombination(a, b) {
+    const canonicalA = normalizeBountyAlias(a);
+    const canonicalB = normalizeBountyAlias(b);
     return (
-      COMBINATIONS[normalizePair(a, b)] ||
-      (await store.getCombination(a, b)) ||
+      COMBINATIONS[normalizePair(canonicalA, canonicalB)] ||
+      (await store.getCombination(canonicalA, canonicalB)) ||
       null
     );
   }
 
   async function recipePayload(target) {
     const elements = await combinedElements();
-    const seeded = RECIPES_BY_RESULT[target] || [];
+    const seeded = Object.hasOwn(RECIPES_BY_RESULT, target)
+      ? RECIPES_BY_RESULT[target]
+      : [];
     const dynamic = await store.dynamicRecipes(target);
     const seen = new Set();
     const recipes = [];
@@ -332,8 +428,8 @@ export function createRouter({
       let kvStatus = "ok";
       try {
         await kv.get("snapshot_health");
-      } catch (error) {
-        kvStatus = `error: ${error?.name || "KVError"}`;
+      } catch {
+        kvStatus = "error: KVError";
       }
       return jsonResponse({
         kv: kvStatus,
@@ -358,6 +454,7 @@ export function createRouter({
             ),
           ),
         },
+        content: publicContentStatus(contentStatus),
       });
     }
 
@@ -561,7 +658,11 @@ export function createRouter({
           invalid.push({ a, b, reason: "字段过长" });
           continue;
         }
-        candidates.push({ a, b, result });
+        candidates.push({
+          a: normalizeBountyAlias(a),
+          b: normalizeBountyAlias(b),
+          result,
+        });
       }
 
       const checks = await mapInBatches(
@@ -742,7 +843,9 @@ export function createRouter({
     const recipeMatch = path.match(/^\/api\/element\/([^/]+)\/recipes$/);
     if (recipeMatch) {
       requireMethod(request, "GET");
-      const target = cleanText(decoded(recipeMatch[1], "name"));
+      const target = normalizeBountyAlias(
+        decoded(recipeMatch[1], "name"),
+      );
       if (!target) throw new HttpError(400, "name 不能为空");
       return jsonResponse(await recipePayload(target));
     }

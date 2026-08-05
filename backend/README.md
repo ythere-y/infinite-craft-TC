@@ -6,8 +6,10 @@
 
 | 文件                     | 作用                                                   | 谁读它                                    |
 | ------------------------ | ------------------------------------------------------ | ----------------------------------------- |
-| `seed_elements.json`     | 元素字典：name → {emoji, category}，含 8 个 starter    | 前端渲染右侧栏；后端校验；LLM prompt 注入 |
-| `seed_combinations.json` | 合成规则：`"a + b"` → {result, emoji, chain}，按字典序 | 后端 /api/combine 首先查表，命中即返回    |
+| `seed_elements.json`     | 原版基础元素和规则，保留经典合成链                     | Epoch 2 编译器与本地后端                  |
+| `seed_combinations.json` | 原版基础合成规则，`"a + b"` 按字典序规范化             | Epoch 2 编译器与本地后端                  |
+| `../content/tencent-bounty-catalog.json` | Epoch 2 的悬赏目标、固定路线、别名、退役内容和资料依据 | 三端内容生成器 |
+| `generated/bounty-content.json` | 校验、可达性证明和摘要完成后的本地运行产物        | FastAPI 启动、迁移和固定公式查询          |
 | `shared/combine-prompt.json` | 合成 prompt 的 canonical 共享规范、策略与 few-shot 示例 | Python 后端与 Makers 构建生成器            |
 | `prompt.py`              | LLM 调用编排、共享 prompt 加载与 JSON 解析             | 后端 miss 后调用 LLM                      |
 | `prompt_store.py`        | 本地 Prompt 草稿、不可变聚合版本和生效指针             | FastAPI 管理 API 与本地 LLM 链路          |
@@ -15,20 +17,46 @@
 ## 数据流
 
 ```
+应用启动：校验编译目录 → 执行 Epoch 迁移 → 固定公式写入 Redis + SQLite
+    ↓ ready
 用户拖 A 到 B
     ↓
 前端 POST /api/combine {a, b}
     ↓
 后端规范化 key = sorted([a,b]).join(" + ")
     ↓
-查 SQLite 缓存 ──命中──→ 直接返回
+规范化别名并查 Redis（固定公式已在启动时预热）──命中──→ 直接返回
     ↓ miss
-查 seed_combinations.json ──命中──→ 写缓存，返回
-    ↓ miss
-调 GLM-5.1-64K（prompt.py 按共享规范装配请求）
+调 DeepSeek（prompt.py 按共享规范装配请求）
     ↓
-解析 JSON → 落库缓存 → 若是首次创造，写 first_discovery → 返回
+解析 JSON → 写 Redis + SQLite → 若是首次创造，写 first_discovery → 返回
 ```
+
+固定目录不封闭 AI 创造：健康启动会把全部固定公式预热到 Redis，运行时 Redis
+miss 才进入模型；一旦目录新增了同键公式，下一次启动对账会让 seed 覆盖旧的
+动态结果。
+
+## Epoch 2 与初始元素
+
+当前内容纪元是 `content_epoch=2`，初始元素严格固定为 11 个：
+
+```text
+水、火、风、土、企鹅、人、时间、AI、电脑、手机、网络
+```
+
+悬赏墙包含 254 个固定可达目标，其中“关联组织”40 个。目录编译器会拒绝重复
+规范化组合、不可达目标、无用途的中间元素、错误 starter 绑定以及缺少资料依据的
+关联组织，不能直接手改 `generated/` 文件绕过这些检查。
+
+修改目录后运行：
+
+```bash
+npm run generate:bounty-content
+npm run generate:icon-data
+npm run generate:makers-data
+```
+
+随后提交目录源、生成的本地/Makers 数据和图标映射。
 
 ## 本地 Prompt 管理
 
@@ -48,8 +76,8 @@
 
 ## 类别约束（category / chain）
 
-元素有 9 类（见 `seed_elements._meta.categories`）；合成规则有 7 条主链（见 `seed_combinations._meta.chains`）。
-新增条目时**必须打 category/chain 标签**，用于：
+新增条目时必须设置 `category` 和配方 `chain`，用于：
+
 1. 前端按类筛选（"只看鹅厂梗"）
 2. LLM prompt 里按类别举例，保证风格一致
 3. 统计分析（哪条链被玩得最多）
@@ -58,18 +86,18 @@
 
 **热梗更新周期**：每周五下午跑一次热梗抓取，补 `meme_2026wNN` 条目。
 
-**新增元素的清单**：
-1. 在 `seed_elements.elements` 加一行
-2. 在 `seed_combinations.combinations` 至少加 1 条"怎么合成出来"和 1 条"它和别的合成什么"
-3. 如果是高频梗，在 `shared/combine-prompt.json` 的 `examples` 里加一条
-4. 热梗类建议打版本号（如 `meme_2026w16`），便于一周后盘点哪些还火、哪些过气
+新增腾讯/互联网悬赏目标时，在 `content/tencent-bounty-catalog.json` 中同时维护：
 
-## 当前词库规模（v1.0, 2026-04-22）
+1. 所属 group 和 target 定义；
+2. 从 11 个 starter 出发可达的 canonical recipe；
+3. 必要但无需上榜的 support element/recipe；
+4. 别名、需要退役的旧组合和旧元素；
+5. 关联组织及高风险游戏事实的来源信息。
 
-- 元素：**140+**（8 starter + 130+ 可合成产物）
-- 合成规则：**140+** 条
-- Few-shot 示例：由共享 prompt 规范统一维护
+## 当前编译规模（Epoch 2）
 
-## 下一步
-
-种子词库已就绪。代码实现进入 plan mode 统一规划。
+- 初始元素：11
+- 编译元素：780
+- 固定公式：914
+- 悬赏目标：254
+- 关联组织：40

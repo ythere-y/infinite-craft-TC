@@ -6,6 +6,79 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const BROWSER_MAP_PATH = "frontend/assets/icons/generated/element-icon-map.json";
 const MAKERS_DATA_PATH = "edge-functions/_generated/icon-data.js";
 
+function isObjectRecord(value) {
+  return value && typeof value === "object" && !Array.isArray(value);
+}
+
+function normalizePair(pair) {
+  const parts = pair.split(" + ").map((part) => part.trim());
+  if (parts.length !== 2 || parts.some((part) => !part)) {
+    throw new Error(`Malformed combination key: ${pair}`);
+  }
+  return parts.sort().join(" + ");
+}
+
+function combinationCore(recipe) {
+  return {
+    result: recipe?.result,
+    emoji: recipe?.emoji,
+    chain: recipe?.chain,
+  };
+}
+
+export function mergeIconContent({
+  baseElements,
+  baseCombinations,
+  bountyContent,
+}) {
+  if (!isObjectRecord(baseElements?.elements)) {
+    throw new Error("Base elements must expose an elements object");
+  }
+  if (!isObjectRecord(baseCombinations?.combinations)) {
+    throw new Error("Base combinations must expose a combinations object");
+  }
+  if (!isObjectRecord(bountyContent?.elements)) {
+    throw new Error("Compiled bounty content must expose an elements object");
+  }
+  if (!isObjectRecord(bountyContent?.combinations)) {
+    throw new Error("Compiled bounty content must expose a combinations object");
+  }
+
+  const elements = structuredClone(baseElements.elements);
+  for (const [name, entry] of Object.entries(bountyContent.elements)) {
+    if (
+      Object.hasOwn(baseElements.elements, name) &&
+      JSON.stringify(baseElements.elements[name]) !== JSON.stringify(entry)
+    ) {
+      throw new Error(`Compiled bounty element conflicts with base seed: ${name}`);
+    }
+    elements[name] = structuredClone(entry);
+  }
+
+  const combinations = {};
+  for (const [pair, recipe] of Object.entries(baseCombinations.combinations)) {
+    combinations[normalizePair(pair)] = structuredClone(recipe);
+  }
+  for (const [pair, recipe] of Object.entries(bountyContent.combinations)) {
+    const normalized = normalizePair(pair);
+    if (
+      Object.hasOwn(combinations, normalized) &&
+      JSON.stringify(combinationCore(combinations[normalized])) !==
+        JSON.stringify(combinationCore(recipe))
+    ) {
+      throw new Error(
+        `Compiled bounty combination conflicts with base seed: ${normalized}`,
+      );
+    }
+    combinations[normalized] = structuredClone(recipe);
+  }
+
+  return {
+    elements: { ...baseElements, elements },
+    combinations: { ...baseCombinations, combinations },
+  };
+}
+
 async function readJson(path, label) {
   let contents;
   try {
@@ -59,6 +132,27 @@ function validateRules(rules, categories, emojiManifest) {
   }
   for (const [category, badge] of Object.entries(rules.category_badges)) {
     requireManifestEmoji(emojiManifest, badge, `category_badges.${category}`);
+  }
+  for (const [category, pool] of Object.entries(
+    rules.category_badge_pools || {},
+  )) {
+    const label = `category_badge_pools.${category}`;
+    if (!Array.isArray(pool) || !pool.length) {
+      throw new Error(`${label} must be a non-empty array`);
+    }
+    if (
+      !pool.every(
+        (badge) => typeof badge === "string" && badge.trim().length > 0,
+      )
+    ) {
+      throw new Error(`${label} must contain non-empty strings`);
+    }
+    if (new Set(pool).size !== pool.length) {
+      throw new Error(`${label} must not contain duplicates`);
+    }
+    for (const badge of pool) {
+      requireManifestEmoji(emojiManifest, badge, label);
+    }
   }
 }
 
@@ -115,9 +209,47 @@ function rationaleForSeed(name, emoji, category, qualifier, contexts) {
   return `沿用种子元素的“${emoji}”语义；${category}类别无需附加徽章`;
 }
 
+function stableNameHash(name) {
+  let value = 0;
+  for (const character of String(name).normalize("NFC")) {
+    value = (value * 31 + character.codePointAt(0)) % 2_147_483_647;
+  }
+  return value;
+}
+
+function allocateCatalogBadge({
+  name,
+  base,
+  palette,
+  pool,
+  usedBadgesBySignature,
+}) {
+  if (!Array.isArray(pool)) return undefined;
+  const candidates = pool.filter((badge) => badge !== base);
+  if (!candidates.length) return undefined;
+
+  const signature = `${base}\u0000${palette}`;
+  const used = usedBadgesBySignature.get(signature) ?? new Set();
+  const start = stableNameHash(name) % candidates.length;
+  for (let offset = 0; offset < candidates.length; offset += 1) {
+    const badge = candidates[(start + offset) % candidates.length];
+    if (!used.has(badge)) return badge;
+  }
+  return candidates[start];
+}
+
+function rememberBadge(icon, usedBadgesBySignature) {
+  if (icon.badge === undefined) return;
+  const signature = `${icon.base}\u0000${icon.palette}`;
+  const used = usedBadgesBySignature.get(signature) ?? new Set();
+  used.add(icon.badge);
+  usedBadgesBySignature.set(signature, used);
+}
+
 export function buildElementIconMap({
   seedElements,
   seedCombinations,
+  catalogElementNames = new Set(),
   rules,
   knowledge,
   emojiManifest,
@@ -143,6 +275,7 @@ export function buildElementIconMap({
   }
 
   const iconMap = {};
+  const usedBadgesBySignature = new Map();
   for (const [name, seed] of Object.entries(elements)) {
     requireManifestEmoji(emojiManifest, seed.emoji, `${name}.emoji`);
 
@@ -158,13 +291,24 @@ export function buildElementIconMap({
       }
       requireDistinctBaseAndBadge(entity.icon, `${name}.icon`);
       iconMap[name] = structuredClone(entity);
+      rememberBadge(entity.icon, usedBadgesBySignature);
       continue;
     }
 
     const palette = rules.category_palettes[seed.category];
     const contexts = resultContexts.get(name) ?? [];
     const keywordRule = findKeywordRule(name, seed.category, contexts, rules);
-    const badge = keywordRule?.badge;
+    const badge =
+      keywordRule?.badge ??
+      (catalogElementNames.has(name)
+        ? allocateCatalogBadge({
+            name,
+            base: seed.emoji,
+            palette,
+            pool: rules.category_badge_pools?.catalog,
+            usedBadgesBySignature,
+          })
+        : undefined);
     const icon = {
       base: seed.emoji,
       ...(badge ? { badge } : {}),
@@ -172,13 +316,14 @@ export function buildElementIconMap({
       source: badge ? "generated" : "fallback",
     };
     requireDistinctBaseAndBadge(icon, `${name}.icon`);
+    rememberBadge(icon, usedBadgesBySignature);
     iconMap[name] = {
       icon,
       rationale: rationaleForSeed(
         name,
         seed.emoji,
         seed.category,
-        keywordRule?.reason,
+        keywordRule?.reason ?? (badge ? "合并目录语义" : undefined),
         contexts,
       ),
     };
@@ -216,30 +361,53 @@ function serializeMakersData(iconMap, rules, knowledge) {
 
 export async function generateIconData({ root = ROOT } = {}) {
   const projectRoot = resolve(root);
-  const [seedElements, seedCombinations, rules, knowledge, emojiManifest] =
-    await Promise.all([
-      readJson(resolve(projectRoot, "backend/seed_elements.json"), "Seed elements"),
-      readJson(
-        resolve(projectRoot, "backend/seed_combinations.json"),
-        "Seed combinations",
+  const [
+    baseElements,
+    baseCombinations,
+    bountyContent,
+    rules,
+    knowledge,
+    emojiManifest,
+  ] = await Promise.all([
+    readJson(resolve(projectRoot, "backend/seed_elements.json"), "Seed elements"),
+    readJson(
+      resolve(projectRoot, "backend/seed_combinations.json"),
+      "Seed combinations",
+    ),
+    readJson(
+      resolve(projectRoot, "backend/generated/bounty-content.json"),
+      "Compiled bounty content",
+    ),
+    readJson(resolve(projectRoot, "backend/icon_rules.json"), "Icon rules"),
+    readJson(
+      resolve(projectRoot, "backend/icon_knowledge.json"),
+      "Icon knowledge",
+    ),
+    readJson(
+      resolve(
+        projectRoot,
+        "frontend/assets/icons/generated/emoji-icon-manifest.json",
       ),
-      readJson(resolve(projectRoot, "backend/icon_rules.json"), "Icon rules"),
-      readJson(
-        resolve(projectRoot, "backend/icon_knowledge.json"),
-        "Icon knowledge",
-      ),
-      readJson(
-        resolve(
-          projectRoot,
-          "frontend/assets/icons/generated/emoji-icon-manifest.json",
-        ),
-        "Emoji manifest",
-      ),
-    ]);
+      "Emoji manifest",
+    ),
+  ]);
+  const {
+    elements: seedElements,
+    combinations: seedCombinations,
+  } = mergeIconContent({
+    baseElements,
+    baseCombinations,
+    bountyContent,
+  });
+  const baseNames = new Set(Object.keys(baseElements.elements));
+  const catalogElementNames = new Set(
+    Object.keys(bountyContent.elements).filter((name) => !baseNames.has(name)),
+  );
 
   const iconMap = buildElementIconMap({
     seedElements,
     seedCombinations,
+    catalogElementNames,
     rules,
     knowledge,
     emojiManifest,

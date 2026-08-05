@@ -22,6 +22,19 @@ from .icon_recipes import normalize_icon
 
 _DATA_DIR = Path(__file__).parent.parent / "data"
 _lock = threading.Lock()
+_GAMEPLAY_TABLES = (
+    "formula_votes",
+    "result_votes",
+    "formula_reproductions",
+    "formula_moderation",
+    "formula_versions",
+    "retired_combo_keys",
+    "combinations",
+    "elements",
+    "first_discoveries",
+    "kpi_events",
+    "nicknames",
+)
 
 
 def _db_path() -> Path:
@@ -64,7 +77,8 @@ def init_archive() -> None:
                     category   TEXT,
                     is_starter INTEGER NOT NULL DEFAULT 0,
                     created_at REAL NOT NULL,
-                    icon_json  TEXT
+                    icon_json  TEXT,
+                    source     TEXT
                 );
 
                 CREATE TABLE IF NOT EXISTS first_discoveries (
@@ -109,6 +123,17 @@ def init_archive() -> None:
                     active_version_id TEXT NOT NULL REFERENCES prompt_versions(id)
                 );
 
+                CREATE TABLE IF NOT EXISTS content_state (
+                    singleton      INTEGER PRIMARY KEY CHECK(singleton = 1),
+                    epoch          INTEGER NOT NULL,
+                    catalog_digest TEXT NOT NULL,
+                    status         TEXT NOT NULL,
+                    phase          TEXT NOT NULL,
+                    error          TEXT NOT NULL DEFAULT '',
+                    updated_at     REAL NOT NULL,
+                    completed_at   REAL
+                );
+
                 CREATE INDEX IF NOT EXISTS idx_kpi_session ON kpi_events(session_id);
                 CREATE INDEX IF NOT EXISTS idx_first_ts    ON first_discoveries(ts DESC);
                 CREATE INDEX IF NOT EXISTS idx_combo_chain ON combinations(chain);
@@ -135,6 +160,8 @@ def init_archive() -> None:
             }
             if "icon_json" not in element_columns:
                 con.execute("ALTER TABLE elements ADD COLUMN icon_json TEXT")
+            if "source" not in element_columns:
+                con.execute("ALTER TABLE elements ADD COLUMN source TEXT")
             prompt_draft_columns = {
                 row["name"]
                 for row in con.execute(
@@ -148,6 +175,177 @@ def init_archive() -> None:
                 )
             con.commit()
             print(f"[sqlite] archive ready: {_db_path()}")
+        finally:
+            con.close()
+
+
+# ============================================================
+# 内容版本迁移状态
+# ============================================================
+
+def content_state() -> Optional[Dict]:
+    con = _conn()
+    try:
+        exists = con.execute(
+            """
+            SELECT 1 FROM sqlite_master
+            WHERE type='table' AND name='content_state'
+            """
+        ).fetchone()
+        if not exists:
+            return None
+        row = con.execute(
+            "SELECT * FROM content_state WHERE singleton = 1"
+        ).fetchone()
+        return dict(row) if row else None
+    finally:
+        con.close()
+
+
+def has_gameplay_data() -> bool:
+    con = _conn()
+    try:
+        existing = {
+            row["name"]
+            for row in con.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            ).fetchall()
+        }
+        return any(
+            con.execute(f"SELECT 1 FROM {table} LIMIT 1").fetchone()
+            for table in _GAMEPLAY_TABLES
+            if table in existing
+        )
+    finally:
+        con.close()
+
+
+def begin_content_migration(epoch: int, digest: str, phase: str) -> None:
+    now = time.time()
+    with _lock:
+        con = _conn()
+        try:
+            con.execute(
+                """
+                INSERT INTO content_state(
+                    singleton, epoch, catalog_digest, status, phase, error,
+                    updated_at, completed_at
+                ) VALUES (1, ?, ?, 'migrating', ?, '', ?, NULL)
+                ON CONFLICT(singleton) DO UPDATE SET
+                    epoch=excluded.epoch,
+                    catalog_digest=excluded.catalog_digest,
+                    status='migrating',
+                    phase=excluded.phase,
+                    error='',
+                    updated_at=excluded.updated_at,
+                    completed_at=NULL
+                """,
+                (epoch, digest, phase, now),
+            )
+            con.commit()
+        finally:
+            con.close()
+
+
+def fail_content_migration(error: str) -> None:
+    """Persist the latest failure without reviving a ready migration."""
+    with _lock:
+        con = _conn()
+        try:
+            con.execute(
+                """
+                UPDATE content_state
+                SET status='migrating', error=?, updated_at=?, completed_at=NULL
+                WHERE singleton=1 AND status='migrating'
+                """,
+                (error, time.time()),
+            )
+            con.commit()
+        finally:
+            con.close()
+
+
+def reset_gameplay_data() -> None:
+    """Atomically clear local gameplay data while retaining durable metadata."""
+    with _lock:
+        con = _conn()
+        try:
+            con.execute("BEGIN IMMEDIATE")
+            existing = {
+                row["name"]
+                for row in con.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table'"
+                ).fetchall()
+            }
+            for table in _GAMEPLAY_TABLES:
+                if table in existing:
+                    con.execute(f"DELETE FROM {table}")
+            con.commit()
+        except Exception:
+            con.rollback()
+            raise
+        finally:
+            con.close()
+
+
+def retire_fixed_content(
+    pair_keys: set[str],
+    element_names: set[str],
+) -> None:
+    """Remove only generated seed rows superseded by a catalog digest change."""
+    with _lock:
+        con = _conn()
+        try:
+            con.execute("BEGIN IMMEDIATE")
+            if pair_keys:
+                placeholders = ",".join("?" for _ in pair_keys)
+                con.execute(
+                    f"""
+                    DELETE FROM combinations
+                    WHERE source='seed' AND key IN ({placeholders})
+                    """,
+                    tuple(sorted(pair_keys)),
+                )
+            if element_names:
+                placeholders = ",".join("?" for _ in element_names)
+                con.execute(
+                    f"""
+                    DELETE FROM elements
+                    WHERE source='seed' AND name IN ({placeholders})
+                    """,
+                    tuple(sorted(element_names)),
+                )
+            con.commit()
+        except Exception:
+            con.rollback()
+            raise
+        finally:
+            con.close()
+
+
+def complete_content_migration(epoch: int, digest: str) -> None:
+    now = time.time()
+    with _lock:
+        con = _conn()
+        try:
+            con.execute(
+                """
+                INSERT INTO content_state(
+                    singleton, epoch, catalog_digest, status, phase, error,
+                    updated_at, completed_at
+                ) VALUES (1, ?, ?, 'ready', 'ready', '', ?, ?)
+                ON CONFLICT(singleton) DO UPDATE SET
+                    epoch=excluded.epoch,
+                    catalog_digest=excluded.catalog_digest,
+                    status='ready',
+                    phase='ready',
+                    error='',
+                    updated_at=excluded.updated_at,
+                    completed_at=excluded.completed_at
+                """,
+                (epoch, digest, now, now),
+            )
+            con.commit()
         finally:
             con.close()
 
@@ -218,6 +416,8 @@ def upsert_element(
     name: str,
     emoji: str,
     category: Optional[str],
+    *,
+    source: Optional[str],
     is_starter: bool = False,
     icon: Optional[dict] = None,
 ) -> None:
@@ -231,7 +431,7 @@ def upsert_element(
         con = _conn()
         try:
             existing = con.execute(
-                "SELECT icon_json FROM elements WHERE name = ?",
+                "SELECT icon_json, source FROM elements WHERE name = ?",
                 (name,),
             ).fetchone()
             replace_invalid = bool(
@@ -243,9 +443,10 @@ def upsert_element(
             con.execute(
                 """
                 INSERT INTO elements(
-                    name, emoji, category, is_starter, created_at, icon_json
+                    name, emoji, category, is_starter, created_at, icon_json,
+                    source
                 )
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(name) DO UPDATE SET
                     icon_json = CASE
                         WHEN elements.icon_json IS NULL
@@ -253,7 +454,8 @@ def upsert_element(
                              OR ?
                         THEN excluded.icon_json
                         ELSE elements.icon_json
-                    END
+                    END,
+                    source = COALESCE(elements.source, excluded.source)
                 """,
                 (
                     name,
@@ -262,6 +464,7 @@ def upsert_element(
                     1 if is_starter else 0,
                     time.time(),
                     icon_json,
+                    source,
                     1 if replace_invalid else 0,
                 ),
             )
@@ -329,7 +532,10 @@ def all_elements() -> List[Dict]:
     con = _conn()
     try:
         rows = con.execute(
-            "SELECT name, emoji, category, is_starter, icon_json FROM elements"
+            """
+            SELECT name, emoji, category, is_starter, icon_json, source
+            FROM elements
+            """
         ).fetchall()
         out: List[Dict] = []
         for row in rows:

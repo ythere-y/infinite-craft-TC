@@ -3,6 +3,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { runIconAudit } from "./audit-icon-map.mjs";
+import { generateBountyContent } from "./generate-bounty-content.mjs";
 import { generateMakersData } from "./generate-makers-data.mjs";
 import { generateMakersNicknameData } from "./nickname-data-lib.mjs";
 import { validateCommittedIconAssets } from "./icon-data-lib.mjs";
@@ -31,6 +32,7 @@ const REQUIRED_ENTRIES = [
   "THIRD_PARTY_NOTICES.md",
   "index.html",
   "app.js",
+  "audio-feedback.js",
   "casino-mode.js",
   "casino-round.js",
   "combine-feedback.js",
@@ -131,22 +133,48 @@ export async function auditCommittedIconMap({ root = ROOT } = {}) {
     );
   }
 
-  const [browserRecipes, makersRecipes] = await Promise.all([
-    readJson(
-      resolve(
-        projectRoot,
-        "frontend/assets/icons/generated/element-icon-map.json",
+  const [baseElements, bountyElements, browserRecipes, makersRecipes] =
+    await Promise.all([
+      readJson(
+        resolve(projectRoot, "backend/seed_elements.json"),
+        "Base elements",
       ),
-      "Browser icon map",
-    ),
-    loadMakersIconRecipes(projectRoot),
+      readJson(
+        resolve(projectRoot, "backend/generated/bounty-content.json"),
+        "Compiled bounty elements",
+      ),
+      readJson(
+        resolve(
+          projectRoot,
+          "frontend/assets/icons/generated/element-icon-map.json",
+        ),
+        "Browser icon map",
+      ),
+      loadMakersIconRecipes(projectRoot),
+    ]);
+  const expectedNames = new Set([
+    ...Object.keys(baseElements.elements || {}),
+    ...Object.keys(bountyElements.elements || {}),
   ]);
+  const expectedCount = expectedNames.size;
   const browserNames = Object.keys(browserRecipes);
   const makersNames = Object.keys(makersRecipes ?? {});
-  if (browserNames.length !== 591 || makersNames.length !== 591) {
+  if (
+    browserNames.length !== expectedCount ||
+    makersNames.length !== expectedCount
+  ) {
     throw new Error(
-      `Icon recipe drift: expected 591 recipes, found browser=${browserNames.length}, Makers=${makersNames.length}`,
+      `Icon recipe drift: expected ${expectedCount} recipes, ` +
+        `found browser=${browserNames.length}, Makers=${makersNames.length}`,
     );
+  }
+  for (const name of expectedNames) {
+    if (
+      !Object.hasOwn(browserRecipes, name) ||
+      !Object.hasOwn(makersRecipes, name)
+    ) {
+      throw new Error(`Icon recipe drift for ${name}`);
+    }
   }
   for (const name of new Set([...browserNames, ...makersNames])) {
     if (
@@ -159,6 +187,7 @@ export async function auditCommittedIconMap({ root = ROOT } = {}) {
 }
 
 export async function buildMakersSite() {
+  await generateBountyContent();
   await validateCommittedIconAssets({ root: ROOT });
   await auditCommittedIconMap({ root: ROOT });
   await generateMakersData();

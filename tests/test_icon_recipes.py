@@ -50,6 +50,27 @@ def test_exact_preset_override_ignores_supplied_emoji():
     ) == preset_icon("Riot")
 
 
+def test_exact_map_name_wins_before_reviewed_alias_fallback():
+    assert preset_icon("小马哥") == {
+        "base": "🐎",
+        "badge": "👔",
+        "palette": "product",
+        "source": "generated",
+    }
+    assert preset_icon("Riot") == {
+        "base": "👊",
+        "badge": "🎮",
+        "palette": "studio",
+        "source": "curated",
+    }
+    assert preset_icon("Epic") == {
+        "base": "🛡️",
+        "badge": "🎮",
+        "palette": "studio",
+        "source": "curated",
+    }
+
+
 def test_valid_persisted_recipe_takes_precedence_over_exact_preset():
     persisted = {
         "base": "🪨",
@@ -78,6 +99,34 @@ def test_dynamic_resolution_is_deterministic():
 
     assert resolve_icon_recipe(**inputs) == resolve_icon_recipe(**inputs)
     assert resolve_icon_recipe(**inputs) == fixture_cases()[1]["expected"]
+
+
+def test_stable_pool_fixtures_are_diverse_and_never_repeat_the_base():
+    fallback_cases = [
+        case for case in fixture_cases() if case.get("group") == "stable-pool"
+    ]
+
+    assert len({case["expected"]["badge"] for case in fallback_cases}) >= 4
+    for case in fallback_cases:
+        assert case["expected"]["badge"] != case["emoji"]
+
+
+def test_historic_brain_badge_remains_unchanged():
+    persisted = {
+        "base": "☕",
+        "badge": "🧠",
+        "palette": "product",
+        "source": "generated",
+    }
+
+    assert resolve_icon_recipe(
+        name="智能咖啡",
+        emoji="☕",
+        category="ai",
+        parents=("AI", "咖啡"),
+        comment="咖啡完成智能升级",
+        persisted=persisted,
+    ) == persisted
 
 
 @pytest.mark.parametrize(
@@ -138,6 +187,7 @@ def test_init_archive_migrates_old_elements_schema(isolated_archive):
     }
     con.close()
     assert "icon_json" in columns
+    assert "source" in columns
 
 
 def test_icon_json_round_trips_without_overwriting_persisted_recipe(isolated_archive):
@@ -148,11 +198,14 @@ def test_icon_json_round_trips_without_overwriting_persisted_recipe(isolated_arc
         "palette": "product",
         "source": "generated",
     }
-    archive.upsert_element("智能咖啡", "☕", "ai", icon=original)
+    archive.upsert_element(
+        "智能咖啡", "☕", "ai", source="llm", icon=original
+    )
     archive.upsert_element(
         "智能咖啡",
         "❌",
         "other",
+        source="llm",
         icon={
             "base": "❌",
             "palette": "place",
@@ -166,6 +219,7 @@ def test_icon_json_round_trips_without_overwriting_persisted_recipe(isolated_arc
             "emoji": "☕",
             "category": "ai",
             "is_starter": 0,
+            "source": "llm",
             "icon": original,
         }
     ]
@@ -211,11 +265,14 @@ def test_upsert_repairs_invalid_nonempty_icon_json_without_overwriting_valid_rec
         "palette": "product",
         "source": "generated",
     }
-    archive.upsert_element("智能咖啡", "☕", "ai", icon=derived)
+    archive.upsert_element(
+        "智能咖啡", "☕", "ai", source="llm", icon=derived
+    )
     archive.upsert_element(
         "智能咖啡",
         "❌",
         "other",
+        source="llm",
         icon={
             "base": "❌",
             "palette": "place",
@@ -271,12 +328,7 @@ def test_seed_store_derives_and_backfills_old_dynamic_row(
     local_store = seed_loader.SeedStore()
     local_store.load()
 
-    expected = {
-        "base": "☕",
-        "badge": "🧠",
-        "palette": "product",
-        "source": "generated",
-    }
+    expected = fixture_cases()[1]["expected"]
     assert local_store.elements["智能咖啡"]["icon"] == expected
     assert archive.all_elements()[0]["icon"] == expected
 
@@ -297,6 +349,7 @@ def test_seed_store_prefers_archived_icon_when_seed_name_collides(
         "Riot",
         "⚡",
         "studio",
+        source="llm",
         is_starter=True,
         icon=persisted,
     )
@@ -347,12 +400,7 @@ def test_attach_icon_preserves_existing_fields():
 
     assert enriched == {
         **original,
-        "icon": {
-            "base": "☕",
-            "badge": "🧠",
-            "palette": "product",
-            "source": "generated",
-        },
+        "icon": fixture_cases()[1]["expected"],
     }
     assert original == {"emoji": "☕", "category": "ai", "extra": True}
 
@@ -419,6 +467,7 @@ def test_new_dynamic_combine_persists_and_returns_icon(monkeypatch):
             "name": "智能咖啡",
             "emoji": "☕",
             "category": "ai",
+            "source": "llm",
             "is_starter": False,
             "icon": response.icon,
         }

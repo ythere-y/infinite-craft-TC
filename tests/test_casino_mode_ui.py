@@ -241,30 +241,49 @@ def _production_app_page() -> str:
         window.__uraEvents = [];
         window.__combineQueue = [
           {
-            result: "午夜蒸汽",
-            emoji: "💨",
-            chain: "test",
-            icon: null,
-            is_first: true,
-            depth: 2,
-            full_score: 40,
-            hit_count: 1,
-            comment: "测试点评",
-            source: "seed",
-            explode: false
+            ok: true,
+            payload: {
+              result: "午夜蒸汽",
+              emoji: "💨",
+              chain: "test",
+              icon: null,
+              is_first: true,
+              depth: 2,
+              full_score: 40,
+              hit_count: 1,
+              comment: "测试点评",
+              source: "seed",
+              explode: false
+            }
           },
           {
-            result: "白昼泥浆",
-            emoji: "🟤",
-            chain: "test",
-            icon: null,
-            is_first: true,
-            depth: 2,
-            full_score: 50,
-            hit_count: 1,
-            comment: "测试点评",
-            source: "seed",
-            explode: false
+            ok: true,
+            payload: {
+              result: "白昼泥浆",
+              emoji: "🟤",
+              chain: "test",
+              icon: null,
+              is_first: true,
+              depth: 2,
+              full_score: 50,
+              hit_count: 1,
+              comment: "测试点评",
+              source: "seed",
+              explode: false
+            }
+          },
+          {
+            ok: true,
+            payload: {
+              result: "fallback",
+              emoji: "❔",
+              source: "fallback"
+            }
+          },
+          {
+            ok: false,
+            status: 500,
+            payload: { detail: "测试失败" }
           }
         ];
         window.addEventListener("ura-mode-change", function (event) {
@@ -280,6 +299,10 @@ def _production_app_page() -> str:
         };
         window.fetch = function (url) {
           var path = String(url);
+          var combineResponse =
+            path.indexOf("/api/combine") >= 0
+              ? window.__combineQueue.shift()
+              : null;
           var payload =
             path.indexOf("emoji-icon-manifest") >= 0 ? {}
             : path.indexOf("element-icon-map") >= 0 ? {}
@@ -295,11 +318,12 @@ def _production_app_page() -> str:
                   "火": { emoji: "🔥", category: "classic", is_starter: true }
                 }
               }
-            : path.indexOf("/api/combine") >= 0
-              ? window.__combineQueue.shift()
+            : combineResponse
+              ? combineResponse.payload
             : { ok: true };
           return Promise.resolve({
-            ok: true,
+            ok: combineResponse ? combineResponse.ok : true,
+            status: combineResponse ? (combineResponse.status || 200) : 200,
             json: function () { return Promise.resolve(payload); }
           });
         };
@@ -468,6 +492,30 @@ def _production_app_page() -> str:
           }));
         }
 
+        function tapElement(target, pointerId) {
+          var rect = target.getBoundingClientRect();
+          var x = rect.left + rect.width / 2;
+          var y = rect.top + rect.height / 2;
+          pointer("pointerdown", target, x, y, pointerId, 1);
+          pointer("pointerup", target, x, y, pointerId, 0);
+        }
+
+        window.__audioFeedback = { unlocks: 0, clicks: 0, combines: 0 };
+        window.AUDIO_FEEDBACK = {
+          unlock: function () {
+            window.__audioFeedback.unlocks += 1;
+            return Promise.resolve(true);
+          },
+          playElementClick: function () {
+            window.__audioFeedback.clicks += 1;
+            return true;
+          },
+          playCombineSuccess: function () {
+            window.__audioFeedback.combines += 1;
+            return true;
+          }
+        };
+
         async function placeStarter(name, x, y, pointerId) {
           var source = document.querySelector(
             '#element-list .element[data-name="' + name + '"]'
@@ -481,8 +529,8 @@ def _production_app_page() -> str:
             pointerId,
             1
           );
-          pointer("pointermove", window, x, y, pointerId, 1);
-          pointer("pointerup", window, x, y, pointerId, 0);
+          pointer("pointermove", source, x, y, pointerId, 1);
+          pointer("pointerup", source, x, y, pointerId, 0);
           await new Promise(function (resolve) { setTimeout(resolve, 20); });
         }
 
@@ -500,8 +548,8 @@ def _production_app_page() -> str:
           var targetX = targetRect.left + targetRect.width / 2;
           var targetY = targetRect.top + targetRect.height / 2;
           pointer("pointerdown", source, sourceX, sourceY, pointerId, 1);
-          pointer("pointermove", window, targetX, targetY, pointerId, 1);
-          pointer("pointerup", window, targetX, targetY, pointerId, 0);
+          pointer("pointermove", source, targetX, targetY, pointerId, 1);
+          pointer("pointerup", source, targetX, targetY, pointerId, 0);
           await new Promise(function (resolve) { setTimeout(resolve, 90); });
         }
 
@@ -558,17 +606,180 @@ def _production_app_page() -> str:
           tiers: JSON.parse(localStorage.getItem("ic_scores") || "[]")
             .map(function (event) { return event.tier; })
         };
-        var beforeDoubleClick =
+        var combinesAfterSuccess = window.__audioFeedback.combines;
+
+        await placeStarter(
+          "水",
+          workspaceRect.left + 210,
+          workspaceRect.top + 300,
+          44
+        );
+        await placeStarter(
+          "火",
+          workspaceRect.left + 430,
+          workspaceRect.top + 300,
+          45
+        );
+        await combineCanvasPair("水", "火", 46);
+        var combinesAfterFallback = window.__audioFeedback.combines;
+        await combineCanvasPair("水", "火", 47);
+        var combinesAfterError = window.__audioFeedback.combines;
+
+        var waterChip = document.querySelector(
+          '#element-list .element[data-name="水"]'
+        );
+        var fireChip = document.querySelector(
+          '#element-list .element[data-name="火"]'
+        );
+        var originalRandom = Math.random;
+        Math.random = function () { return 0; };
+
+        var watersBeforeListClick = new Set(document.querySelectorAll(
+          '#workspace .element.on-canvas[data-name="水"]'
+        ));
+        var beforeListClick =
           document.querySelectorAll("#workspace .element.on-canvas").length;
-        document.querySelector('#element-list .element[data-name="水"]')
-          .dispatchEvent(new MouseEvent("dblclick", {
-            bubbles: true,
-            cancelable: true
-          }));
-        await new Promise(function (resolve) { setTimeout(resolve, 20); });
-        var doubleClickRetained =
-          document.querySelectorAll("#workspace .element.on-canvas").length
-          === beforeDoubleClick + 1;
+        tapElement(waterChip, 51);
+        var afterListClick =
+          document.querySelectorAll("#workspace .element.on-canvas").length;
+        var summonedWater = Array.from(document.querySelectorAll(
+          '#workspace .element.on-canvas[data-name="水"]'
+        )).find(function (element) {
+          return !watersBeforeListClick.has(element);
+        });
+        var listRandomPosition = summonedWater ? {
+          left: parseFloat(summonedWater.style.left),
+          top: parseFloat(summonedWater.style.top)
+        } : null;
+
+        var beforeListDouble = afterListClick;
+        var firesBeforeListDouble = new Set(document.querySelectorAll(
+          '#workspace .element.on-canvas[data-name="火"]'
+        ));
+        tapElement(fireChip, 52);
+        tapElement(fireChip, 53);
+        var afterListDouble =
+          document.querySelectorAll("#workspace .element.on-canvas").length;
+        var summonedFire = Array.from(document.querySelectorAll(
+          '#workspace .element.on-canvas[data-name="火"]'
+        )).find(function (element) {
+          return !firesBeforeListDouble.has(element);
+        });
+        Math.random = originalRandom;
+
+        var canvasSingleUnchanged = false;
+        if (summonedWater) {
+          var waterBefore = {
+            left: summonedWater.style.left,
+            top: summonedWater.style.top
+          };
+          tapElement(summonedWater, 54);
+          canvasSingleUnchanged =
+            summonedWater.style.left === waterBefore.left
+            && summonedWater.style.top === waterBefore.top;
+        }
+
+        var beforeCanvasDouble = document.querySelectorAll(
+          '#workspace .element.on-canvas[data-name="火"]'
+        ).length;
+        var firesBeforeCanvasDouble = new Set(document.querySelectorAll(
+          '#workspace .element.on-canvas[data-name="火"]'
+        ));
+        var fireBefore = summonedFire ? {
+          left: parseFloat(summonedFire.style.left),
+          top: parseFloat(summonedFire.style.top)
+        } : null;
+        if (summonedFire) {
+          tapElement(summonedFire, 55);
+          tapElement(summonedFire, 56);
+        }
+        var firesAfterCanvasDouble = Array.from(document.querySelectorAll(
+          '#workspace .element.on-canvas[data-name="火"]'
+        ));
+        var copiedFire = firesAfterCanvasDouble.find(function (element) {
+          return !firesBeforeCanvasDouble.has(element);
+        });
+        var canvasCopyOffset = copiedFire && fireBefore ? {
+          x: parseFloat(copiedFire.style.left) - fireBefore.left,
+          y: parseFloat(copiedFire.style.top) - fireBefore.top
+        } : null;
+
+        var canvasDragMoved = false;
+        if (summonedWater) {
+          var dragBefore =
+            summonedWater.style.left + "|" + summonedWater.style.top;
+          var dragRect = summonedWater.getBoundingClientRect();
+          var dragX = dragRect.left + dragRect.width / 2;
+          var dragY = dragRect.top + dragRect.height / 2;
+          pointer("pointerdown", summonedWater, dragX, dragY, 57, 1);
+          pointer("pointermove", summonedWater, dragX + 80, dragY + 60, 57, 1);
+          pointer("pointerup", summonedWater, dragX + 80, dragY + 60, 57, 0);
+          await new Promise(function (resolve) { setTimeout(resolve, 20); });
+          var dragAfter =
+            summonedWater.style.left + "|" + summonedWater.style.top;
+          canvasDragMoved = dragBefore !== dragAfter;
+        }
+
+        var outAndBackChip = document.querySelector(
+          '#element-list .element[data-name="白昼泥浆"]'
+        );
+        var outAndBackBefore =
+          document.querySelectorAll("#workspace .element.on-canvas").length;
+        var outAndBackClicksBefore = window.__audioFeedback.clicks;
+        if (outAndBackChip) {
+          var outAndBackRect = outAndBackChip.getBoundingClientRect();
+          var outAndBackX =
+            outAndBackRect.left + outAndBackRect.width / 2;
+          var outAndBackY =
+            outAndBackRect.top + outAndBackRect.height / 2;
+          pointer(
+            "pointerdown",
+            outAndBackChip,
+            outAndBackX,
+            outAndBackY,
+            60,
+            1
+          );
+          pointer(
+            "pointermove",
+            outAndBackChip,
+            outAndBackX + 40,
+            outAndBackY,
+            60,
+            1
+          );
+          pointer(
+            "pointermove",
+            outAndBackChip,
+            outAndBackX,
+            outAndBackY,
+            60,
+            1
+          );
+          pointer(
+            "pointerup",
+            outAndBackChip,
+            outAndBackX,
+            outAndBackY,
+            60,
+            0
+          );
+        }
+        var outAndBackAfter =
+          document.querySelectorAll("#workspace .element.on-canvas").length;
+
+        document.getElementById("btn-recipebook").click();
+        var recipeResult = document.querySelector(
+          "#recipebook .recipe-result"
+        );
+        var recipeBefore =
+          document.querySelectorAll("#workspace .element.on-canvas").length;
+        if (recipeResult) {
+          tapElement(recipeResult, 58);
+          tapElement(recipeResult, 59);
+        }
+        var recipeAfter =
+          document.querySelectorAll("#workspace .element.on-canvas").length;
 
         document.getElementById("casino-app-result").textContent =
           JSON.stringify({
@@ -585,8 +796,29 @@ def _production_app_page() -> str:
                 initial_guidance: initialGuidance,
                 expanded_guidance: expandedGuidance,
                 collapsed_guidance: collapsedGuidance,
-                midnight_topbar: midnightTopbar,
-                double_click_retained: doubleClickRetained
+                midnight_topbar: midnightTopbar
+              },
+              interactions: {
+                list_single_delta: afterListClick - beforeListClick,
+                list_double_delta: afterListDouble - beforeListDouble,
+                list_random_position: listRandomPosition,
+                canvas_single_unchanged: canvasSingleUnchanged,
+                canvas_double_delta:
+                  firesAfterCanvasDouble.length - beforeCanvasDouble,
+                canvas_copy_offset: canvasCopyOffset,
+                canvas_drag_moved: canvasDragMoved,
+                out_and_back_canvas_delta:
+                  outAndBackAfter - outAndBackBefore,
+                out_and_back_sound_delta:
+                  window.__audioFeedback.clicks - outAndBackClicksBefore,
+                recipe_click_delta: recipeAfter - recipeBefore,
+                element_click_sounds: window.__audioFeedback.clicks
+              },
+              audio: {
+                after_success: combinesAfterSuccess,
+                after_fallback: combinesAfterFallback,
+                after_error: combinesAfterError,
+                element_clicks: window.__audioFeedback.clicks
               },
               scoring: {
                 before_harvest: beforeHarvest,
@@ -771,7 +1003,6 @@ def test_midnight_toast_is_dark_and_advanced_guidance_toggles(
         "expanded": "false",
         "visible_text": actual["initial_guidance"]["visible_text"],
     }
-    assert actual["double_click_retained"] is True
     assert midnight["backgroundImage"] != light["backgroundImage"]
     assert midnight["color"] != light["color"]
     assert midnight["resultColor"] != light["resultColor"]
@@ -779,6 +1010,31 @@ def test_midnight_toast_is_dark_and_advanced_guidance_toggles(
     assert midnight["dividerColor"] != light["dividerColor"]
     assert midnight["buttonBackground"] != light["buttonBackground"]
     assert midnight["buttonColor"] != light["buttonColor"]
+
+
+def test_element_pointer_interactions_are_action_specific(tmp_path):
+    actual = _run_app_page(tmp_path)["interactions"]
+
+    assert actual["list_single_delta"] == 1
+    assert actual["list_double_delta"] == 1
+    assert actual["list_random_position"] == {"left": 10, "top": 16}
+    assert actual["canvas_single_unchanged"] is True
+    assert actual["canvas_double_delta"] == 1
+    assert actual["canvas_copy_offset"] == {"x": 28, "y": 28}
+    assert actual["canvas_drag_moved"] is True
+    assert actual["out_and_back_canvas_delta"] == 0
+    assert actual["out_and_back_sound_delta"] == 0
+    assert actual["recipe_click_delta"] == 0
+    assert actual["element_click_sounds"] == 4
+
+
+def test_audio_routes_only_completed_actions(tmp_path):
+    actual = _run_app_page(tmp_path)["audio"]
+
+    assert actual["after_success"] == 2
+    assert actual["after_fallback"] == 2
+    assert actual["after_error"] == 2
+    assert actual["element_clicks"] == 4
 
 
 def test_reset_control_is_replaced_by_reload_guidance(tmp_path):

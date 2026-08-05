@@ -1,14 +1,15 @@
 {
-  "Riot": {
+  "Riot Games": {
     "entity_type": "company",
     "canonical_name": "Riot Games",
     "aliases": [
+      "Riot",
       "拳头",
       "拳头游戏"
     ],
     "contexts": [
       "studio",
-      "invest"
+      "association"
     ],
     "forbidden_senses": [
       "riot=暴乱",
@@ -22,16 +23,16 @@
     },
     "rationale": "腾讯投资的游戏工作室；中文通称拳头游戏"
   },
-  "Epic": {
+  "Epic Games": {
     "entity_type": "company",
     "canonical_name": "Epic Games",
     "aliases": [
-      "Epic Games",
+      "Epic",
       "Epic游戏"
     ],
     "contexts": [
       "studio",
-      "invest"
+      "association"
     ],
     "forbidden_senses": [
       "epic=史诗",
@@ -44,6 +45,28 @@
       "source": "curated"
     },
     "rationale": "游戏工作室 Epic Games；盾牌主图配游戏徽章表示其公司语境"
+  },
+  "NBA": {
+    "entity_type": "sports_league",
+    "canonical_name": "National Basketball Association",
+    "aliases": [
+      "美国职业篮球联赛",
+      "美职篮"
+    ],
+    "contexts": [
+      "sports",
+      "basketball"
+    ],
+    "forbidden_senses": [
+      "NBA=普通字母缩写"
+    ],
+    "icon": {
+      "base": "🏀",
+      "badge": "🏆",
+      "palette": "product",
+      "source": "entity"
+    },
+    "rationale": "美国职业篮球联赛；篮球主图配奖杯徽章限定联盟实体语境"
   },
   "COO": {
     "entity_type": "role",
@@ -190,7 +213,7 @@
     "entity_type": "organization",
     "canonical_name": "企业发展事业群",
     "aliases": ["腾讯CDG", "Corporate Development Group"],
-    "contexts": ["tencent", "invest"],
+    "contexts": ["tencent", "association"],
     "forbidden_senses": [],
     "icon": {"base": "📈", "badge": "🐧", "palette": "office", "source": "entity"},
     "rationale": "腾讯企业发展事业群缩写；增长图表配企鹅徽章"
@@ -330,10 +353,10 @@
     "icon": {"base": "☁️", "badge": "🖥️", "palette": "product", "source": "entity"},
     "rationale": "腾讯云计算平台；云主图配计算终端徽章"
   },
-  "TME": {
+  "腾讯音乐娱乐集团": {
     "entity_type": "company",
     "canonical_name": "Tencent Music Entertainment",
-    "aliases": ["腾讯音乐娱乐集团", "腾讯音乐"],
+    "aliases": ["TME", "腾讯音乐娱乐", "腾讯音乐"],
     "contexts": ["product", "music"],
     "forbidden_senses": [],
     "icon": {"base": "🎶", "badge": "🔤", "palette": "product", "source": "entity"},
@@ -618,10 +641,10 @@
     "icon": {"base": "📱", "badge": "🎮", "palette": "product", "source": "entity"},
     "rationale": "英雄联盟移动游戏产品；手机主图配游戏徽章"
   },
-  "金铲铲": {
+  "金铲铲之战": {
     "entity_type": "product",
     "canonical_name": "金铲铲之战",
-    "aliases": ["金铲铲之战", "腾讯金铲铲"],
+    "aliases": ["金铲铲", "腾讯金铲铲"],
     "contexts": ["product", "game"],
     "forbidden_senses": ["金铲铲=普通铲子"],
     "icon": {"base": "♟️", "badge": "⛏️", "palette": "product", "source": "entity"},
@@ -630,7 +653,7 @@
   "穿越火线": {
     "entity_type": "product",
     "canonical_name": "CrossFire",
-    "aliases": ["CF端游", "穿越火线端游"],
+    "aliases": ["CF", "CF端游", "CF游戏", "穿越火线简称", "穿越火线端游"],
     "contexts": ["product", "game"],
     "forbidden_senses": [],
     "icon": {"base": "🔫", "badge": "🎮", "palette": "product", "source": "entity"},
@@ -672,83 +695,56 @@
     "icon": {"base": "🀄", "badge": "🎮", "palette": "product", "source": "entity"},
     "rationale": "腾讯数字麻将游戏；麻将牌配游戏徽章"
   },
-  "天美": {
+  "天美工作室群": {
     "entity_type": "studio",
     "canonical_name": "天美工作室群",
-    "aliases": ["TiMi Studio Group", "腾讯天美"],
+    "aliases": ["天美", "TiMi Studio Group", "腾讯天美"],
     "contexts": ["studio", "tencent"],
     "forbidden_senses": ["天美=天气美好"],
     "icon": {"base": "⚔️", "badge": "🎮", "palette": "studio", "source": "entity"},
     "rationale": "腾讯游戏工作室群；武器配游戏徽章"
   },
-  "光子": {
+  "光子工作室群": {
     "entity_type": "studio",
     "canonical_name": "光子工作室群",
-    "aliases": ["Lightspeed Studios", "腾讯光子"],
+    "aliases": ["光子", "Lightspeed Studios", "腾讯光子"],
     "contexts": ["studio", "tencent"],
     "forbidden_senses": ["光子=物理粒子"],
     "icon": {"base": "💡", "badge": "🎮", "palette": "studio", "source": "entity"},
     "rationale": "腾讯游戏工作室群；光源配游戏徽章限定实体语境"
   },
-  "魔方": {
+  "魔方工作室群": {
     "entity_type": "studio",
     "canonical_name": "魔方工作室群",
-    "aliases": ["Morefun Studios", "腾讯魔方"],
+    "aliases": ["魔方", "Morefun Studios", "腾讯魔方"],
     "contexts": ["studio", "tencent"],
     "forbidden_senses": ["魔方=益智玩具"],
     "icon": {"base": "🎲", "badge": "🎮", "palette": "studio", "source": "entity"},
     "rationale": "腾讯游戏工作室群；立方体玩具意象配游戏徽章"
   },
-  "北极光": {
+  "北极光工作室群": {
     "entity_type": "studio",
     "canonical_name": "北极光工作室群",
-    "aliases": ["Aurora Studios", "腾讯北极光"],
+    "aliases": ["北极光", "Aurora Studios", "腾讯北极光"],
     "contexts": ["studio", "tencent"],
     "forbidden_senses": ["北极光=自然极光"],
     "icon": {"base": "🌌", "badge": "🎮", "palette": "studio", "source": "entity"},
     "rationale": "腾讯游戏工作室群；极光夜空配游戏徽章"
   },
-  "量子": {
+  "Quantum Studio": {
     "entity_type": "studio",
-    "canonical_name": "量子工作室",
-    "aliases": ["Quantum Studio", "腾讯量子"],
+    "canonical_name": "Quantum Studio",
+    "aliases": ["量子", "量子工作室", "腾讯量子"],
     "contexts": ["studio", "tencent"],
     "forbidden_senses": ["量子=物理概念"],
     "icon": {"base": "⚛️", "badge": "🎮", "palette": "studio", "source": "entity"},
     "rationale": "腾讯游戏工作室；原子意象配游戏徽章限定实体语境"
   },
-  "极光": {
-    "entity_type": "studio",
-    "canonical_name": "极光计划",
-    "aliases": ["腾讯极光计划", "Aurora Project"],
-    "contexts": ["studio", "tencent"],
-    "forbidden_senses": ["极光=自然现象"],
-    "icon": {"base": "✨", "badge": "🎮", "palette": "studio", "source": "entity"},
-    "rationale": "腾讯游戏发行品牌语境；闪光配游戏徽章"
-  },
-  "波士顿": {
-    "entity_type": "studio",
-    "canonical_name": "腾讯波士顿工作室语境",
-    "aliases": ["腾讯波士顿工作室", "Boston studio"],
-    "contexts": ["studio", "tencent"],
-    "forbidden_senses": ["波士顿=普通城市"],
-    "icon": {"base": "🦞", "badge": "🎮", "palette": "studio", "source": "entity"},
-    "rationale": "种子工作室链中的波士顿实体；当地龙虾意象配游戏徽章"
-  },
-  "拳头": {
-    "entity_type": "company",
-    "canonical_name": "Riot Games",
-    "aliases": ["拳头游戏", "Riot Games中文名"],
-    "contexts": ["studio", "invest"],
-    "forbidden_senses": ["拳头=身体部位"],
-    "icon": {"base": "👊", "badge": "🐧", "palette": "studio", "source": "entity"},
-    "rationale": "Riot Games 的中文通称；拳头主图配企鹅徽章标示腾讯投资语境"
-  },
   "Supercell": {
     "entity_type": "company",
     "canonical_name": "Supercell",
     "aliases": ["Supercell游戏公司", "超级细胞"],
-    "contexts": ["studio", "invest"],
+    "contexts": ["studio", "association"],
     "forbidden_senses": ["supercell=超级单体雷暴"],
     "icon": {"base": "🏰", "badge": "🎮", "palette": "studio", "source": "entity"},
     "rationale": "移动游戏公司 Supercell；城堡主图配游戏徽章"
@@ -757,7 +753,7 @@
     "entity_type": "company",
     "canonical_name": "拼多多",
     "aliases": ["Pinduoduo", "PDD电商"],
-    "contexts": ["invest", "ecommerce"],
+    "contexts": ["association", "ecommerce"],
     "forbidden_senses": [],
     "icon": {"base": "🛒", "badge": "💰", "palette": "product", "source": "entity"},
     "rationale": "腾讯投资语境中的电商公司；购物车配投资徽章"
@@ -766,7 +762,7 @@
     "entity_type": "company",
     "canonical_name": "美团",
     "aliases": ["Meituan", "美团平台"],
-    "contexts": ["invest", "local_services"],
+    "contexts": ["association", "local_services"],
     "forbidden_senses": [],
     "icon": {"base": "🛵", "badge": "💰", "palette": "product", "source": "entity"},
     "rationale": "腾讯投资语境中的本地生活公司；配送车配投资徽章"
@@ -775,16 +771,16 @@
     "entity_type": "company",
     "canonical_name": "快手",
     "aliases": ["Kuaishou", "快手科技"],
-    "contexts": ["invest", "short_video"],
+    "contexts": ["association", "short_video"],
     "forbidden_senses": ["快手=动作很快的人"],
     "icon": {"base": "📹", "badge": "💰", "palette": "product", "source": "entity"},
     "rationale": "腾讯投资语境中的短视频公司；摄像机配投资徽章"
   },
-  "B站": {
+  "哔哩哔哩": {
     "entity_type": "company",
     "canonical_name": "哔哩哔哩",
-    "aliases": ["Bilibili", "哔哩哔哩"],
-    "contexts": ["invest", "video"],
+    "aliases": ["B站", "Bilibili"],
+    "contexts": ["association", "video"],
     "forbidden_senses": ["B站=普通B号站点"],
     "icon": {"base": "📺", "badge": "💰", "palette": "product", "source": "entity"},
     "rationale": "腾讯投资语境中的视频社区；电视配投资徽章"
@@ -793,7 +789,7 @@
     "entity_type": "company",
     "canonical_name": "京东",
     "aliases": ["JD.com", "京东集团"],
-    "contexts": ["invest", "ecommerce"],
+    "contexts": ["association", "ecommerce"],
     "forbidden_senses": [],
     "icon": {"base": "📦", "badge": "💰", "palette": "product", "source": "entity"},
     "rationale": "腾讯投资语境中的电商与物流公司；包裹配投资徽章"
@@ -802,7 +798,7 @@
     "entity_type": "company",
     "canonical_name": "知乎",
     "aliases": ["Zhihu", "知乎社区"],
-    "contexts": ["invest", "knowledge"],
+    "contexts": ["association", "knowledge"],
     "forbidden_senses": ["知乎=古文疑问词"],
     "icon": {"base": "💡", "badge": "💰", "palette": "product", "source": "entity"},
     "rationale": "腾讯投资语境中的问答社区；灯泡配投资徽章"
@@ -811,7 +807,7 @@
     "entity_type": "company",
     "canonical_name": "蔚来汽车",
     "aliases": ["NIO", "蔚来"],
-    "contexts": ["invest", "vehicle"],
+    "contexts": ["association", "vehicle"],
     "forbidden_senses": ["蔚来=未来谐音"],
     "icon": {"base": "🚗", "badge": "💰", "palette": "product", "source": "entity"},
     "rationale": "腾讯投资语境中的新能源汽车公司；汽车配投资徽章"
@@ -820,7 +816,7 @@
     "entity_type": "company",
     "canonical_name": "小红书",
     "aliases": ["Xiaohongshu", "RED社区"],
-    "contexts": ["invest", "social"],
+    "contexts": ["association", "social"],
     "forbidden_senses": ["小红书=红色小册子"],
     "icon": {"base": "📕", "badge": "💰", "palette": "product", "source": "entity"},
     "rationale": "腾讯投资语境中的生活方式社区；红书配投资徽章"
@@ -829,7 +825,7 @@
     "entity_type": "campaign",
     "canonical_name": "腾讯99公益日",
     "aliases": ["99公益日", "腾讯公益日"],
-    "contexts": ["invest", "charity"],
+    "contexts": ["association", "charity"],
     "forbidden_senses": ["99=普通数字"],
     "icon": {"base": "❤️", "badge": "💰", "palette": "product", "source": "entity"},
     "rationale": "腾讯公益年度活动；爱心配公益筹款徽章"
@@ -1063,7 +1059,7 @@
     "entity_type": "person",
     "canonical_name": "刘炽平",
     "aliases": ["Martin Lau", "刘炽平英文名"],
-    "contexts": ["boss", "invest"],
+    "contexts": ["boss", "association"],
     "forbidden_senses": ["Martin=泛指英文人名"],
     "icon": {"base": "💼", "badge": "🌐", "palette": "people", "source": "entity"},
     "rationale": "腾讯高级管理者刘炽平的英文名；公文包配国际业务徽章"
@@ -1072,7 +1068,7 @@
     "entity_type": "person",
     "canonical_name": "刘炽平",
     "aliases": ["Martin Lau", "刘总"],
-    "contexts": ["boss", "invest"],
+    "contexts": ["boss", "association"],
     "forbidden_senses": [],
     "icon": {"base": "💼", "badge": "📈", "palette": "people", "source": "entity"},
     "rationale": "腾讯高级管理者刘炽平；公文包配经营增长徽章"
@@ -1284,15 +1280,6 @@
     "icon": {"base": "🏰", "badge": "📱", "palette": "product", "source": "entity"},
     "rationale": "Epic Games 开发的游戏产品；城堡主图配产品徽章"
   },
-  "CF": {
-    "entity_type": "product_reference",
-    "canonical_name": "CrossFire",
-    "aliases": ["穿越火线简称", "CF游戏"],
-    "contexts": ["product", "game"],
-    "forbidden_senses": ["CF=普通字母缩写"],
-    "icon": {"base": "🔫", "badge": "📱", "palette": "product", "source": "entity"},
-    "rationale": "《穿越火线》的英文缩写；枪械配产品徽章"
-  },
   "蛋仔": {
     "entity_type": "product_reference",
     "canonical_name": "蛋仔派对",
@@ -1301,15 +1288,6 @@
     "forbidden_senses": ["蛋仔=普通蛋形角色"],
     "icon": {"base": "🥚", "badge": "📱", "palette": "product", "source": "entity"},
     "rationale": "种子产品链中的《蛋仔派对》简称；蛋主图配产品徽章"
-  },
-  "腾讯音乐娱乐": {
-    "entity_type": "company",
-    "canonical_name": "Tencent Music Entertainment",
-    "aliases": ["腾讯音乐娱乐集团", "TME中文名"],
-    "contexts": ["product", "music"],
-    "forbidden_senses": [],
-    "icon": {"base": "🎶", "badge": "📱", "palette": "product", "source": "entity"},
-    "rationale": "腾讯音乐娱乐集团中文名；多音符配产品徽章"
   },
   "微信之夜": {
     "entity_type": "event",

@@ -3,11 +3,10 @@
 种子公式是同键记录的权威来源；动态公式仍保持首次写入定型。
 """
 
-import json
 from pathlib import Path
 from typing import Dict, Tuple, List
 
-from . import db, archive, community
+from . import archive, community, content_catalog, db
 from .icon_recipes import attach_icon
 
 _HERE = Path(__file__).parent
@@ -23,8 +22,10 @@ class SeedStore:
         self.starters: List[Dict] = []
 
     def load(self) -> Tuple[int, int]:
-        with open(SEED_ELEMENTS_PATH, encoding="utf-8") as f:
-            data = json.load(f)
+        data = content_catalog._load_runtime_content(
+            SEED_ELEMENTS_PATH,
+            SEED_COMBINATIONS_PATH,
+        )
         self.starters = [
             attach_icon(starter["name"], starter)
             for starter in data.get("starters", [])
@@ -39,13 +40,14 @@ class SeedStore:
         for s in self.starters:
             archive.upsert_element(
                 name=s["name"], emoji=s["emoji"],
-                category=s.get("category"), is_starter=True,
+                category=s.get("category"), source="seed", is_starter=True,
                 icon=s.get("icon"),
             )
         for name, info in self.elements.items():
             archive.upsert_element(
                 name=name, emoji=info.get("emoji", "❓"),
                 category=info.get("category"),
+                source="seed",
                 is_starter=(name in starter_names),
                 icon=info.get("icon"),
             )
@@ -68,18 +70,17 @@ class SeedStore:
             }
             enriched = attach_icon(name, info)
             self.elements[name] = enriched
-            if persisted_icon is None:
+            if persisted_icon is None or not row.get("source"):
                 archive.upsert_element(
                     name=name,
                     emoji=row["emoji"],
                     category=row["category"],
+                    source=row.get("source") or "llm",
                     is_starter=bool(row["is_starter"]),
                     icon=enriched["icon"],
                 )
 
         # 合成规则
-        with open(SEED_COMBINATIONS_PATH, encoding="utf-8") as f:
-            data = json.load(f)
         combos = data.get("combinations", {})
 
         warmed = 0
@@ -123,7 +124,8 @@ class SeedStore:
                 self.elements[info["result"]] = result_info
                 archive.upsert_element(
                     name=info["result"], emoji=info.get("emoji", "❓"),
-                    category=info.get("chain"), is_starter=False,
+                    category=info.get("chain"), source="seed",
+                    is_starter=False,
                     icon=result_info["icon"],
                 )
         if bad > 0:

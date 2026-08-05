@@ -426,92 +426,92 @@ function makeElementChip(info, { isFirst = false, source = "sidebar" } = {}) {
   if (info.is_starter) div.title = "🌱 基础元素（开局自带）";
   renderGameElement(div, info, { isFirst });
   div.addEventListener("pointerdown", (e) => onPointerDown(e, div, info, source));
-  // 侧栏双击 → 画布中心生成该元素（允许原地叠放）
-  bindDoubleTap(div, () => spawnAtWorkspaceCenter(info));
+  bindElementTap(div, {
+    onClick: () => {
+      const point = randomWorkspacePoint(workspace.getBoundingClientRect());
+      spawnOnCanvas(info, point.x, point.y);
+      window.AUDIO_FEEDBACK?.playElementClick?.();
+    },
+  });
   return div;
 }
 
-// 在画布中心附近随机抖动位置生成一个元素（避免完全重叠）
-function spawnAtWorkspaceCenter(info) {
-  const rect = workspace.getBoundingClientRect();
-  const jitter = () => (Math.random() - 0.5) * 40;
-  const cx = rect.width / 2 + jitter();
-  const cy = rect.height / 2 + jitter();
-  spawnOnCanvas(info, cx, cy);
+function randomWorkspacePoint(rect, random = Math.random) {
+  function coordinate(size, margin) {
+    if (size <= margin * 2) return size / 2;
+    return margin + random() * (size - margin * 2);
+  }
+  return {
+    x: coordinate(rect.width, 40),
+    y: coordinate(rect.height, 32),
+  };
 }
 
 /**
- * 自己实现的 double-tap 识别，和原生 dblclick 互补。
- * 原生 dblclick 在 pointerdown+preventDefault+setPointerCapture 场景下有时会不触发：
- *   · 两次 click 命中了不同子 span (.emoji vs .name)
- *   · 指针在两次 click 间移动 > 2px
- *   · 第一次 click 的 pointerCapture 干扰了后续事件
- * 这个 helper 通过监听 pointerup 的时间 + 坐标阈值来兜底，
- * 同时保留原生 dblclick 以兼容老浏览器。
- *
- * 触发条件：两次 pointerup 间隔 < 350ms 且位移 < 12px → 视为 double-tap
- * 副作用：触发后会取消当前正在进行的 drag（如果第二次 pointerdown 起飞了 ghost）。
+ * 在元素自己的 pointerup 阶段抢先结束轻触产生的临时 drag，
+ * 再将同一元素上的快速鼠标轻触分发为单击或双击动作。
  */
-function isMouseDuplicationEvent(event) {
-  return event.pointerType === "mouse";
-}
+function bindElementTap(
+  el,
+  { onClick = () => {}, onDoubleClick = () => {} } = {},
+) {
+  let downX = 0;
+  let downY = 0;
+  let lastTap = 0;
+  let lastX = 0;
+  let lastY = 0;
+  let movedBeyondTap = false;
 
-function bindDoubleTap(el, handler) {
-  let last = 0;
-  let lastX = 0, lastY = 0;
-  let downX = 0, downY = 0;
-  let lastPointerType = "";
-  let lastFired = 0;  // 上次真正触发 handler 的时刻；去重用
-
-  // handler 在 500ms 窗口内只允许触发一次，
-  // 这样即使原生 dblclick 和自实现 double-tap 都命中，
-  // 也只会调一次 handler（创建一个元素，而不是两个）
-  function fireOnce(e) {
-    const now = performance.now();
-    if (now - lastFired < 500) return;
-    lastFired = now;
-    cancelActiveDrag();
-    handler(e);
-  }
-
-  el.addEventListener("pointerdown", (e) => {
-    lastPointerType = e.pointerType;
-    downX = e.clientX;
-    downY = e.clientY;
+  el.addEventListener("pointerdown", (event) => {
+    downX = event.clientX;
+    downY = event.clientY;
+    movedBeyondTap = false;
   });
-  el.addEventListener("pointerup", (e) => {
-    if (!isMouseDuplicationEvent(e)) {
-      last = 0;
-      return;
+  el.addEventListener("pointermove", (event) => {
+    if (
+      Math.abs(event.clientX - downX) > 8 ||
+      Math.abs(event.clientY - downY) > 8
+    ) {
+      movedBeyondTap = true;
     }
-    if (e.button !== 0) return;
-    // 如果这次 pointerdown → pointerup 移动过大，视为拖拽，不参与 double-tap
-    const moved = Math.abs(e.clientX - downX) > 8 || Math.abs(e.clientY - downY) > 8;
+  });
+  el.addEventListener("pointerup", (event) => {
+    if (event.button !== 0) return;
+    const moved =
+      movedBeyondTap ||
+      Math.abs(event.clientX - downX) > 8 ||
+      Math.abs(event.clientY - downY) > 8;
     if (moved) {
-      last = 0;  // 拖拽结束不算一次"tap"
+      lastTap = 0;
       return;
     }
+
+    cancelActiveDrag();
     const now = performance.now();
-    const dx = Math.abs(e.clientX - lastX);
-    const dy = Math.abs(e.clientY - lastY);
-    if (now - last < 350 && dx < 12 && dy < 12) {
-      last = 0;
-      fireOnce(e);
-    } else {
-      last = now;
-      lastX = e.clientX;
-      lastY = e.clientY;
-    }
-  });
-  // 原生 dblclick 兜底（走 fireOnce 去重）
-  el.addEventListener("dblclick", (e) => {
-    if (lastPointerType && lastPointerType !== "mouse") {
-      lastPointerType = "";
+    const isSecondMouseClick =
+      lastTap > 0 &&
+      event.pointerType === "mouse" &&
+      now - lastTap < 350 &&
+      Math.abs(event.clientX - lastX) < 12 &&
+      Math.abs(event.clientY - lastY) < 12;
+    if (isSecondMouseClick) {
+      lastTap = 0;
+      onDoubleClick(event);
       return;
     }
-    e.preventDefault();
-    e.stopPropagation();
-    fireOnce(e);
+
+    lastTap = now;
+    lastX = event.clientX;
+    lastY = event.clientY;
+    onClick(event);
+  });
+  el.addEventListener("pointercancel", () => {
+    movedBeyondTap = false;
+    lastTap = 0;
+  });
+  el.addEventListener("dblclick", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
   });
 }
 
@@ -539,6 +539,7 @@ function finishActiveDrag() {
 // ============================================================
 function onPointerDown(e, el, info, source) {
   if (e.button !== 0) return;        // 只处理左键
+  window.AUDIO_FEEDBACK?.unlock?.();
   e.preventDefault();
 
   const rect = el.getBoundingClientRect();
@@ -559,7 +560,16 @@ function onPointerDown(e, el, info, source) {
   ghost.style.zIndex = "999";
   document.body.appendChild(ghost);
 
-  drag.active = { ghost, info, sourceId, offsetX, offsetY };
+  drag.active = {
+    ghost,
+    info,
+    sourceId,
+    offsetX,
+    offsetY,
+    startX: e.clientX,
+    startY: e.clientY,
+    moved: false,
+  };
   document.body.classList.add("drag-active");
 
   // 如果是 canvas 元素，立刻隐藏原位（视觉上只留 ghost）
@@ -582,7 +592,20 @@ function bindGlobalPointerEvents() {
 
 function onPointerMove(e) {
   if (!drag.active) return;
-  const { ghost, offsetX, offsetY, sourceId } = drag.active;
+  const {
+    ghost,
+    offsetX,
+    offsetY,
+    sourceId,
+    startX,
+    startY,
+  } = drag.active;
+  if (
+    Math.abs(e.clientX - startX) > 8 ||
+    Math.abs(e.clientY - startY) > 8
+  ) {
+    drag.active.moved = true;
+  }
   ghost.style.left = (e.clientX - offsetX) + "px";
   ghost.style.top = (e.clientY - offsetY) + "px";
 
@@ -599,9 +622,21 @@ async function onPointerUp(e) {
   if (!drag.active) return;
   const cleaned = finishActiveDrag();
   if (!cleaned) return;
-  const { info, sourceId } = cleaned.active;
+  const {
+    info,
+    sourceId,
+    startX,
+    startY,
+    moved: movedDuringDrag,
+  } = cleaned.active;
   const { target } = cleaned;
   const clientX = e.clientX, clientY = e.clientY;
+  const moved =
+    movedDuringDrag ||
+    Math.abs(clientX - startX) > 8 ||
+    Math.abs(clientY - startY) > 8;
+  if (!moved) return;
+
   // 判断落点
   const wsRect = workspace.getBoundingClientRect();
   const inWorkspace = clientX >= wsRect.left && clientX <= wsRect.right
@@ -663,11 +698,13 @@ function spawnOnCanvas(info, x, y) {
   state.onCanvas.push(record);
 
   el.addEventListener("pointerdown", (e) => onPointerDown(e, el, info, "canvas"));
-  // 画布双击 → 在右下偏移位置复制一份（代替原先的删除）
-  bindDoubleTap(el, () => {
-    const rec = state.onCanvas.find(r => r.id === id);
-    if (!rec) return;
-    spawnOnCanvas(info, rec.x + 28, rec.y + 28);
+  bindElementTap(el, {
+    onClick: () => window.AUDIO_FEEDBACK?.playElementClick?.(),
+    onDoubleClick: () => {
+      const rec = state.onCanvas.find(r => r.id === id);
+      if (!rec) return;
+      spawnOnCanvas(info, rec.x + 28, rec.y + 28);
+    },
   });
 
   syncRecipeLinks();
@@ -763,6 +800,7 @@ async function combine(srcId, dstId, x, y) {
     removeCanvasEl(srcId);
     removeCanvasEl(dstId);
     const newRec = spawnOnCanvas(resultInfo, x, y);
+    window.AUDIO_FEEDBACK?.playCombineSuccess?.();
 
     // 记录玩家的配方图鉴（a + b → result）
     rememberRecipe(src, dst, resultInfo, {
@@ -1166,7 +1204,7 @@ function renderRecipebook(filter = "") {
     const resultInfo = elementInfoFor(r.result, r);
     const score = r.full_score || estimateFullScore(r.result);
 
-    // 让 chip 真正能拖和双击（和侧栏元素一样的行为）
+    // 配方 chip 只参与拖拽，不响应侧栏召唤或画布复制手势。
     const aChipEl = makeInteractiveRecipeChip(aInfo);
     const bChipEl = makeInteractiveRecipeChip(bInfo);
     const resEl = makeInteractiveRecipeChip(resultInfo, { isResult: true });
@@ -1219,7 +1257,7 @@ function estimateFullScore(resultName) {
   return 10 * ev.depth * ev.depth;
 }
 
-// 让图鉴里的 chip 可拖、可双击（行为和侧栏元素一致）
+// 图鉴里的 chip 只复用拖拽系统，不响应轻触召唤或双击复制。
 function makeInteractiveRecipeChip(info, { isResult = false } = {}) {
   const chip = document.createElement("span");
   chip.className = "recipe-chip" + (isResult ? " recipe-result" : "");
@@ -1231,8 +1269,6 @@ function makeInteractiveRecipeChip(info, { isResult = false } = {}) {
     if (e.button !== 0) return;
     onPointerDown(e, chip, info, "sidebar");
   });
-  // 双击：在画布中心生成
-  bindDoubleTap(chip, () => spawnAtWorkspaceCenter(info));
   return chip;
 }
 

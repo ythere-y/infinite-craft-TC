@@ -17,8 +17,14 @@ export function jsonResponse(
   });
 }
 
-export function errorResponse(status, message, details = undefined) {
+export function errorResponse(
+  status,
+  message,
+  details = undefined,
+  code = undefined,
+) {
   const payload = { detail: message };
+  if (code !== undefined) payload.code = code;
   if (details !== undefined) payload.details = details;
   return jsonResponse(payload, { status });
 }

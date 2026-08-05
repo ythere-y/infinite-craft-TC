@@ -8,16 +8,22 @@ import {
 } from "../frontend/wall/polling.js";
 import { recipeCommentFor } from "../frontend/wall/recipe-comments.js";
 
-test("score-level helper loads before consumers", async () => {
-  const html = await readFile("frontend/index.html", "utf8");
+test("score and audio helpers load before consumers", async () => {
+  const [html, build] = await Promise.all([
+    readFile("frontend/index.html", "utf8"),
+    readFile("scripts/build-makers.mjs", "utf8"),
+  ]);
 
   assert.ok(html.indexOf("icon-system.js") < html.indexOf("score-level.js"));
   assert.ok(html.indexOf("score-level.js") < html.indexOf("effects.js"));
   assert.ok(html.indexOf("score-level.js") < html.indexOf("app.js"));
+  assert.ok(html.indexOf("audio-feedback.js") < html.indexOf("app.js"));
+  assert.match(html, /audio-feedback\.js\?v=20260804b/);
   assert.ok(html.indexOf("anime.iife.min.js") < html.indexOf("casino-mode.js"));
   assert.ok(html.indexOf("casino-round.js") < html.indexOf("casino-mode.js"));
   assert.ok(html.indexOf("effects.js") < html.indexOf("casino-mode.js"));
   assert.ok(html.indexOf("casino-mode.js") < html.indexOf("app.js"));
+  assert.match(build, /"audio-feedback\.js"/);
 });
 
 test("homepage keeps basic guidance visible and advanced guidance collapsed", async () => {
@@ -29,7 +35,10 @@ test("homepage keeps basic guidance visible and advanced guidance collapsed", as
   assert.ok(basic, "homepage should separate basic and advanced guidance");
   assert.match(html, /id="btn-help"[^>]*aria-expanded="false"[^>]*aria-controls="advanced-guidance"/);
   assert.match(hint[1], /id="advanced-guidance"[^>]*hidden/);
-  assert.match(hint[1], /id="advanced-guidance"[\s\S]*双击[\s\S]*案例展示[\s\S]*滨海大厦/);
+  assert.match(
+    hint[1],
+    /id="advanced-guidance"[\s\S]*单击[\s\S]*右侧元素[\s\S]*随机[\s\S]*双击[\s\S]*画布[\s\S]*右下[\s\S]*配方库[\s\S]*仅支持拖拽[\s\S]*案例展示[\s\S]*滨海大厦/,
+  );
   assert.match(
     basic[1],
     /class="guidance-formula"[^>]*aria-label="拖拽元素，加以合成，创造新元素。"/,
@@ -90,7 +99,7 @@ test("main game ships the opening stage in dependency order", async () => {
   );
   assert.match(
     html,
-    /<script src="\/app\.js\?v=20260804b"><\/script>/,
+    /<script src="\/app\.js\?v=20260804e"><\/script>/,
   );
   assert.match(
     html,
@@ -424,7 +433,6 @@ test("main game uses compact sticker and action-icon contracts", async () => {
   assert.ok(readyAt >= 0 && readyAt < loadAt && loadAt < hydrateAt);
 
   assert.match(app, /function makeElementChip\(info,/);
-  assert.match(app, /function spawnAtWorkspaceCenter\(info\)/);
   assert.match(app, /function onPointerDown\(e, el, info, source\)/);
   assert.match(app, /function setDragTarget\(record, active\)/);
   assert.match(app, /EFFECTS\?\.setCombineTarget\?\.\(record\.el, active\)/);
@@ -485,7 +493,7 @@ test("phone layout keeps the workspace and element collection in vertical flow",
   ]);
 
   assert.match(html, /class="guidance-formula"/);
-  assert.match(html, /id="advanced-guidance"[\s\S]*class="hint-line desktop-only-help">👆👆 <b>双击<\/b>/);
+  assert.match(html, /id="advanced-guidance"[\s\S]*class="hint-line desktop-only-help">👆 <b>单击<\/b>/);
   assert.match(html, /id="search"[^>]+aria-label="搜索已发现元素"/);
   assert.match(html, /class="topbar-controls">[\s\S]*id="nick-display"[\s\S]*class="topbar-actions"/);
   assert.match(html, /id="btn-help"[^>]*>[\s\S]*class="action-slot"[^>]*data-icon-action="help"[\s\S]*class="action-label">帮助<\/span>/);
@@ -572,13 +580,4 @@ test("phone guidance stays static and expands the workspace in normal page flow"
   assert.match(css, /\.hint\s*\{[^}]*overflow:\s*visible/s);
   assert.doesNotMatch(css, /\.hint\s*\{[^}]*overflow-y:\s*auto/s);
   assert.match(css, /\.sidebar\s*\{[^}]*min-height:\s*0/s);
-});
-
-test("element duplication is restricted to mouse pointer provenance", async () => {
-  const source = await readFile("frontend/app.js", "utf8");
-
-  assert.match(source, /function isMouseDuplicationEvent\(event\)/);
-  assert.match(source, /event\.pointerType === "mouse"/);
-  assert.match(source, /if \(!isMouseDuplicationEvent\(e\)\)/);
-  assert.match(source, /lastPointerType && lastPointerType !== "mouse"/);
 });

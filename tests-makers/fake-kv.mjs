@@ -1,11 +1,15 @@
 export class FakeKV {
-  constructor(initial = {}) {
+  constructor(initial = {}, { cursorMode = "key" } = {}) {
     this.values = new Map(Object.entries(initial));
     this.getCalls = 0;
     this.listCalls = 0;
+    this.putCalls = 0;
+    this.deleteCalls = 0;
+    this.cursorMode = cursorMode;
   }
 
   async put(key, value) {
+    this.putCalls += 1;
     this.#assertKey(key);
     if (typeof value === "string") {
       this.values.set(key, value);
@@ -42,20 +46,32 @@ export class FakeKV {
   }
 
   async delete(key) {
+    this.deleteCalls += 1;
     this.#assertKey(key);
     this.values.delete(key);
   }
 
   async list({ prefix = "", limit = 256, cursor = "" } = {}) {
     this.listCalls += 1;
-    const keys = [...this.values.keys()]
-      .filter((key) => key.startsWith(prefix) && (!cursor || key >= cursor))
+    const allKeys = [...this.values.keys()]
+      .filter((key) => key.startsWith(prefix))
       .sort();
-    const page = keys.slice(0, Math.min(256, Math.max(1, limit)));
-    const complete = page.length >= keys.length;
+    const safeLimit = Math.min(256, Math.max(1, limit));
+    const offset = this.cursorMode === "offset"
+      ? Math.max(0, Number.parseInt(cursor || "0", 10) || 0)
+      : 0;
+    const keys = this.cursorMode === "offset"
+      ? allKeys
+      : allKeys.filter((key) => !cursor || key >= cursor);
+    const page = keys.slice(offset, offset + safeLimit);
+    const complete = offset + page.length >= keys.length;
     return {
       complete,
-      cursor: complete ? null : keys[page.length],
+      cursor: complete
+        ? null
+        : this.cursorMode === "offset"
+          ? String(offset + page.length)
+          : keys[page.length],
       keys: page.map((key) => ({ key })),
     };
   }
