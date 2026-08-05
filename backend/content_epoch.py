@@ -8,6 +8,16 @@ from typing import Any
 from . import archive, content_catalog, db
 
 
+class ContentResetNotAuthorized(RuntimeError):
+    code = "CONTENT_RESET_NOT_AUTHORIZED"
+
+    def __init__(self, source: str | int, target: int) -> None:
+        super().__init__(
+            f"{self.code}: destructive reset from {source!r} "
+            f"to epoch {target} is not authorized"
+        )
+
+
 @dataclass(frozen=True)
 class MigrationDecision:
     mode: str
@@ -19,9 +29,24 @@ def _catalog_state() -> dict[str, Any]:
     return {
         "epoch": int(compiled["content_epoch"]),
         "catalog_digest": str(compiled["catalog_digest"]),
+        "destructive_reset_from": frozenset(
+            compiled["destructive_reset_from"]
+        ),
         "retired_pairs": set(compiled["retired_pairs"]),
         "retired_elements": set(compiled["retired_elements"]),
     }
+
+
+def _require_reset_authorized(
+    catalog: dict[str, Any],
+    source: str | int,
+) -> None:
+    if source not in catalog["destructive_reset_from"]:
+        raise ContentResetNotAuthorized(source, catalog["epoch"])
+
+
+def _redis_has_runtime_data() -> bool:
+    return int(db.get_client().dbsize()) > 0
 
 
 def _apply_migration(phase: str, catalog: dict[str, Any]) -> None:
@@ -48,6 +73,7 @@ def prepare_local() -> MigrationDecision:
 
     if state and state["status"] == "migrating":
         if state["epoch"] != catalog["epoch"]:
+            _require_reset_authorized(catalog, int(state["epoch"]))
             phase = "epoch_reset"
             mode = phase
         elif state["catalog_digest"] != catalog["catalog_digest"]:
@@ -57,10 +83,21 @@ def prepare_local() -> MigrationDecision:
             elif stored_phase in {"differential", "reconcile"}:
                 phase = "differential"
             else:
-                phase = "epoch_reset"
+                raise ValueError(
+                    f"unknown local content migration phase: {stored_phase}"
+                )
             mode = phase
         else:
             phase = str(state["phase"])
+            if phase not in {
+                "epoch_reset",
+                "bootstrap",
+                "differential",
+                "reconcile",
+            }:
+                raise ValueError(
+                    f"unknown local content migration phase: {phase}"
+                )
             mode = "resume"
         archive.begin_content_migration(
             catalog["epoch"],
@@ -84,10 +121,18 @@ def prepare_local() -> MigrationDecision:
         return MigrationDecision(mode="ready", phase="reconcile")
 
     if state is None:
-        phase = "epoch_reset" if archive.has_gameplay_data() else "bootstrap"
+        has_runtime_data = (
+            archive.has_gameplay_data() or _redis_has_runtime_data()
+        )
+        if has_runtime_data:
+            _require_reset_authorized(catalog, "legacy")
+            phase = "epoch_reset"
+        else:
+            phase = "bootstrap"
     elif state["epoch"] == catalog["epoch"]:
         phase = "differential"
     else:
+        _require_reset_authorized(catalog, int(state["epoch"]))
         phase = "epoch_reset"
 
     archive.begin_content_migration(
@@ -108,6 +153,8 @@ def complete_local() -> None:
 
 
 def fail_local(error: BaseException | str) -> None:
+    if isinstance(error, ContentResetNotAuthorized):
+        return
     if isinstance(error, BaseException):
         message = f"{type(error).__name__}: {error}"
     else:

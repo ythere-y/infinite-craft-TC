@@ -100,17 +100,17 @@
 
 ### Steps
 
-- [ ] Add a public catalog accessor:
+- [x] Add a public catalog accessor:
 
   ```python
   def destructive_reset_from() -> tuple[str | int, ...]:
       return tuple(load_compiled_content()["destructive_reset_from"])
   ```
 
-- [ ] Add failing local tests for the decision matrix:
+- [x] Add failing local tests for the decision matrix:
 
   - missing state plus SQLite or Redis runtime data resolves to authorized `"legacy"` and performs `epoch_reset`;
-  - missing state plus empty SQLite and Redis resolves to non-destructive `bootstrap`;
+  - missing state plus empty SQLite and Redis resolves to `bootstrap` without requiring a prior-epoch authorization; bootstrap may still clear its own partial seed data when resuming;
   - ready Epoch 1 resolves to authorized destructive reset;
   - ready Epoch 3 raises `ContentResetNotAuthorized` and leaves SQLite, Redis, and stored state byte-for-byte unchanged;
   - a lower epoch removed from the catalog authorization raises the same error before writes;
@@ -118,20 +118,20 @@
   - same Epoch 2 and a different digest remains differential;
   - an already-started authorized Epoch 2 destructive migration resumes idempotently.
 
-- [ ] Run the focused red tests:
+- [x] Run the focused red tests:
 
   ```bash
   python3 -m pytest tests/test_content_epoch.py -q
   ```
 
-- [ ] Add:
+- [x] Add:
 
   ```python
   class ContentResetNotAuthorized(RuntimeError):
       code = "CONTENT_RESET_NOT_AUTHORIZED"
   ```
 
-- [ ] Extend `_catalog_state()` with the normalized policy and implement pure transition resolution:
+- [x] Extend `_catalog_state()` with the normalized policy and implement pure transition resolution:
 
   ```python
   def _authorized(catalog, source):
@@ -145,19 +145,19 @@
   - lower, same, and higher numeric epochs;
   - resumable destructive state that already targets the current epoch.
 
-- [ ] Detect Redis runtime data with `db.get_client().dbsize()` before deciding that an absent-state store is empty. Propagate connection errors; do not treat an unreadable store as empty.
+- [x] Detect Redis runtime data with `db.get_client().dbsize()` before deciding that an absent-state store is empty. Propagate connection errors; do not treat an unreadable store as empty.
 
-- [ ] Move all authorization checks before `archive.begin_content_migration`, `archive.reset_gameplay_data`, and `db.reset_runtime_data`.
+- [x] Move all authorization checks before `archive.begin_content_migration`, `archive.reset_gameplay_data`, and `db.reset_runtime_data`.
 
-- [ ] Keep `complete_local`, `fail_local`, same-epoch reconciliation, and differential retirement behavior unchanged.
+- [x] Keep `complete_local`, safe failure reporting, same-epoch reconciliation, and differential retirement behavior unchanged.
 
-- [ ] Run the focused green test:
+- [x] Run the focused green test:
 
   ```bash
   python3 -m pytest tests/test_content_epoch.py -q
   ```
 
-- [ ] Commit:
+- [x] Commit:
 
   ```bash
   git add backend/content_catalog.py backend/content_epoch.py tests/test_content_epoch.py

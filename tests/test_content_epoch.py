@@ -153,7 +153,9 @@ def test_matching_epoch_and_digest_starts_nondestructive_reconciliation(
     assert state["error"] == ""
 
 
-def test_empty_legacy_store_bootstraps_and_resets_redis(tmp_path, monkeypatch):
+def test_missing_state_with_redis_data_is_authorized_legacy_reset(
+    tmp_path, monkeypatch
+):
     use_temp_archive(tmp_path, monkeypatch)
     archive.init_archive()
     community.init()
@@ -165,25 +167,42 @@ def test_empty_legacy_store_bootstraps_and_resets_redis(tmp_path, monkeypatch):
 
     decision = content_epoch.prepare_local()
 
-    assert decision.mode == "bootstrap"
+    assert decision.mode == "epoch_reset"
     assert fake.values == {}
+    assert fake.flush_count == 1
+    state = archive.content_state()
+    assert state["status"] == "migrating"
+    assert state["phase"] == "epoch_reset"
+
+
+def test_empty_legacy_store_bootstraps_without_prior_epoch_authorization(
+    tmp_path, monkeypatch
+):
+    use_temp_archive(tmp_path, monkeypatch)
+    archive.init_archive()
+    community.init()
+    fake = FakeRedis()
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+
+    decision = content_epoch.prepare_local()
+
+    assert decision.mode == "bootstrap"
     assert fake.flush_count == 1
     state = archive.content_state()
     assert state["status"] == "migrating"
     assert state["phase"] == "bootstrap"
 
 
-@pytest.mark.parametrize("persisted_epoch", [1, 3])
-def test_epoch_mismatch_resets_even_when_sqlite_is_empty(
-    tmp_path, monkeypatch, persisted_epoch
+def test_authorized_epoch_one_resets_even_when_sqlite_is_empty(
+    tmp_path, monkeypatch
 ):
     use_temp_archive(tmp_path, monkeypatch)
     archive.init_archive()
     community.init()
     _, digest = current_catalog_state()
-    archive.complete_content_migration(persisted_epoch, digest)
+    archive.complete_content_migration(1, digest)
     fake = FakeRedis()
-    fake.values["stale"] = persisted_epoch
+    fake.values["stale"] = 1
     monkeypatch.setattr(db, "get_client", lambda: fake)
 
     decision = content_epoch.prepare_local()
@@ -196,6 +215,85 @@ def test_epoch_mismatch_resets_even_when_sqlite_is_empty(
     assert state["epoch"] == epoch
     assert state["catalog_digest"] == current_digest
     assert state["status"] == "migrating"
+
+
+def test_higher_epoch_fails_before_any_local_write_or_delete(
+    tmp_path, monkeypatch
+):
+    use_temp_archive(tmp_path, monkeypatch)
+    archive.init_archive()
+    community.init()
+    _, digest = current_catalog_state()
+    archive.complete_content_migration(3, digest)
+    archive.upsert_combination("甲 + 乙", "未来数据", "📦", "llm", "ai")
+    fake = FakeRedis()
+    fake.values["combo:甲 + 乙"] = {"result": "未来数据"}
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+    state_before = archive.content_state()
+
+    with pytest.raises(
+        content_epoch.ContentResetNotAuthorized,
+        match="CONTENT_RESET_NOT_AUTHORIZED",
+    ):
+        content_epoch.prepare_local()
+
+    assert archive.content_state() == state_before
+    assert archive.all_combinations()[0]["result"] == "未来数据"
+    assert fake.values == {"combo:甲 + 乙": {"result": "未来数据"}}
+    assert fake.flush_count == 0
+
+
+def test_unauthorized_lower_epoch_fails_before_local_write_or_delete(
+    tmp_path, monkeypatch
+):
+    use_temp_archive(tmp_path, monkeypatch)
+    archive.init_archive()
+    community.init()
+    compiled = content_catalog.load_compiled_content()
+    archive.complete_content_migration(1, compiled["catalog_digest"])
+    archive.upsert_combination("甲 + 乙", "保留数据", "📦", "llm", "ai")
+    fake = FakeRedis()
+    fake.values["combo:甲 + 乙"] = {"result": "保留数据"}
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+    monkeypatch.setattr(
+        content_catalog,
+        "load_compiled_content",
+        lambda: {**compiled, "destructive_reset_from": ["legacy"]},
+    )
+    state_before = archive.content_state()
+
+    with pytest.raises(
+        content_epoch.ContentResetNotAuthorized,
+        match="CONTENT_RESET_NOT_AUTHORIZED",
+    ):
+        content_epoch.prepare_local()
+
+    assert archive.content_state() == state_before
+    assert archive.all_combinations()[0]["result"] == "保留数据"
+    assert fake.values == {"combo:甲 + 乙": {"result": "保留数据"}}
+    assert fake.flush_count == 0
+
+
+def test_policy_failure_reporting_does_not_mutate_an_older_migration(
+    tmp_path, monkeypatch
+):
+    use_temp_archive(tmp_path, monkeypatch)
+    archive.init_archive()
+    community.init()
+    _, digest = current_catalog_state()
+    archive.begin_content_migration(3, digest, "epoch_reset")
+    fake = FakeRedis()
+    fake.values["future"] = "keep"
+    monkeypatch.setattr(db, "get_client", lambda: fake)
+    state_before = archive.content_state()
+
+    with pytest.raises(content_epoch.ContentResetNotAuthorized) as raised:
+        content_epoch.prepare_local()
+    content_epoch.fail_local(raised.value)
+
+    assert archive.content_state() == state_before
+    assert fake.values == {"future": "keep"}
+    assert fake.flush_count == 0
 
 
 def test_failed_seed_load_leaves_migration_resumable(tmp_path, monkeypatch):
