@@ -16,6 +16,37 @@ import { KvStore } from "../edge-functions/_lib/kv-store.js";
 import { FakeKV } from "./fake-kv.mjs";
 
 const NOW = 1_700_000_000_000;
+const RESET_RECEIPT_KEY =
+  `system_content_reset_receipt_${CONTENT_EPOCH}`;
+
+function resetReceipt(overrides = {}) {
+  return {
+    target_epoch: CONTENT_EPOCH,
+    source_epoch: "legacy",
+    catalog_digest: CATALOG_DIGEST,
+    status: "in_progress",
+    started_at: NOW,
+    completed_at: null,
+    ...overrides,
+  };
+}
+
+class RecordingKV extends FakeKV {
+  constructor(initial = {}, options = {}) {
+    super(initial, options);
+    this.operations = [];
+  }
+
+  async put(key, value) {
+    this.operations.push({ type: "put", key, value });
+    return super.put(key, value);
+  }
+
+  async delete(key) {
+    this.operations.push({ type: "delete", key });
+    return super.delete(key);
+  }
+}
 
 function readyKv(overrides = {}, options = {}) {
   return new FakeKV({
@@ -44,8 +75,16 @@ async function runToReady(initializer, firstResult = null) {
   return result;
 }
 
-test("epoch 1 KV is purged and seeded in resumable batches", async () => {
-  const kv = new FakeKV({
+test("legacy KV is purged only after a durable reset receipt", async () => {
+  const kv = new RecordingKV({
+    system_content_reset_receipt_1: JSON.stringify({
+      target_epoch: 1,
+      source_epoch: "legacy",
+      catalog_digest: "sha256:epoch-one",
+      status: "completed",
+      started_at: NOW - 2,
+      completed_at: NOW - 1,
+    }),
     combo_legacy: JSON.stringify({
       a: "打工鹅",
       b: "时间",
@@ -66,6 +105,18 @@ test("epoch 1 KV is purged and seeded in resumable batches", async () => {
   assert.equal(first.status.epoch, CONTENT_EPOCH);
   assert.equal(first.status.status, "migrating");
   assert.ok(kv.deleteCalls <= 2);
+  const receiptWrite = kv.operations.findIndex((operation) =>
+    operation.type === "put" && operation.key === RESET_RECEIPT_KEY
+  );
+  const firstDelete = kv.operations.findIndex((operation) =>
+    operation.type === "delete"
+  );
+  assert.ok(receiptWrite >= 0);
+  assert.ok(firstDelete > receiptWrite);
+  assert.equal(
+    JSON.parse(await kv.get(RESET_RECEIPT_KEY)).status,
+    "in_progress",
+  );
 
   const result = await runToReady(initializer, first);
   assert.equal(result.status.status, "ready");
@@ -78,23 +129,78 @@ test("epoch 1 KV is purged and seeded in resumable batches", async () => {
   assert.equal(sample.source, "seed");
   assert.equal(sample.content_epoch, CONTENT_EPOCH);
   assert.equal(sample.catalog_digest, CATALOG_DIGEST);
+  const receipt = JSON.parse(await kv.get(RESET_RECEIPT_KEY));
+  assert.equal(receipt.status, "completed");
+  assert.equal(receipt.completed_at, NOW);
+  assert.ok(await kv.get("system_content_reset_receipt_1"));
+  const receiptCompletion = kv.operations.findIndex((operation) =>
+    operation.type === "put" &&
+    operation.key === RESET_RECEIPT_KEY &&
+    JSON.parse(operation.value).status === "completed"
+  );
+  const readyWrite = kv.operations.findIndex((operation) =>
+    operation.type === "put" &&
+    operation.key === "system_content_state" &&
+    JSON.parse(operation.value).status === "ready"
+  );
+  assert.ok(receiptCompletion >= 0);
+  assert.ok(readyWrite > receiptCompletion);
 });
 
-test("ready matching epoch and digest performs no writes", async () => {
-  const kv = readyKv();
-  const before = new Map(kv.values);
-  const beforePuts = kv.putCalls;
-  const beforeDeletes = kv.deleteCalls;
+test("empty namespace bootstraps without a destructive reset receipt", async () => {
+  const kv = new FakeKV();
+  const result = await runToReady(createContentInitializer({
+    kv,
+    batchSize: 256,
+    workBudget: 10,
+    now: () => NOW,
+  }));
 
-  const result = await createContentInitializer({ kv }).ensureInitialized();
-
-  assert.equal(result.ready, true);
-  assert.deepEqual(kv.values, before);
-  assert.equal(kv.putCalls, beforePuts);
-  assert.equal(kv.deleteCalls, beforeDeletes);
+  assert.equal(result.status.mode, "ready");
+  assert.equal(await kv.get(RESET_RECEIPT_KEY), null);
+  assert.equal(kv.deleteCalls, 0);
 });
 
-test("an older initializer never regresses a higher persisted epoch", async () => {
+test("authorized epoch 1 state starts a resumable reset receipt", async () => {
+  const kv = new RecordingKV({
+    system_content_state: JSON.stringify({
+      epoch: 1,
+      catalog_digest: "sha256:epoch-one",
+      catalog_version: "1.0.0",
+      status: "ready",
+      mode: "ready",
+      phase: "ready",
+      cursor: null,
+      index: 0,
+      started_at: NOW - 1,
+      completed_at: NOW - 1,
+      error: "",
+    }),
+    player_runtime_data: JSON.stringify({ keep: false }),
+  });
+
+  await createContentInitializer({
+    kv,
+    batchSize: 2,
+    workBudget: 1,
+    now: () => NOW,
+  }).ensureInitialized();
+
+  assert.deepEqual(
+    JSON.parse(await kv.get(RESET_RECEIPT_KEY)),
+    resetReceipt({ source_epoch: 1 }),
+  );
+  const receiptWrite = kv.operations.findIndex((operation) =>
+    operation.type === "put" && operation.key === RESET_RECEIPT_KEY
+  );
+  const firstDelete = kv.operations.findIndex((operation) =>
+    operation.type === "delete"
+  );
+  assert.ok(receiptWrite >= 0);
+  assert.ok(firstDelete > receiptWrite);
+});
+
+test("higher epoch fails reset authorization before any KV mutation", async () => {
   const future = {
     epoch: CONTENT_EPOCH + 1,
     catalog_digest: "sha256:future-epoch",
@@ -113,16 +219,139 @@ test("an older initializer never regresses a higher persisted epoch", async () =
     future_runtime_data: JSON.stringify({ keep: true }),
   });
 
-  const result = await createContentInitializer({
+  await assert.rejects(
+    createContentInitializer({ kv }).ensureInitialized(),
+    (error) => error?.code === "CONTENT_RESET_NOT_AUTHORIZED",
+  );
+
+  assert.equal(kv.putCalls, 0);
+  assert.equal(kv.deleteCalls, 0);
+  assert.deepEqual(
+    JSON.parse(await kv.get("system_content_state")),
+    future,
+  );
+  assert.ok(await kv.get("future_runtime_data"));
+});
+
+test("malformed persisted state fails reset authorization without a receipt", async () => {
+  const kv = new FakeKV({
+    system_content_state: "{broken state",
+    player_runtime_data: JSON.stringify({ keep: true }),
+  });
+  const before = new Map(kv.values);
+
+  await assert.rejects(
+    createContentInitializer({ kv }).ensureInitialized(),
+    (error) => error?.code === "CONTENT_RESET_NOT_AUTHORIZED",
+  );
+
+  assert.deepEqual(kv.values, before);
+  assert.equal(kv.putCalls, 0);
+  assert.equal(kv.deleteCalls, 0);
+});
+
+test("malformed reset receipts fail closed before any KV mutation", async () => {
+  const invalidReceipts = [
+    resetReceipt({ target_epoch: CONTENT_EPOCH + 1 }),
+    resetReceipt({ target_epoch: String(CONTENT_EPOCH) }),
+    resetReceipt({ catalog_digest: "sha256:wrong" }),
+    resetReceipt({ source_epoch: "1" }),
+    resetReceipt({ status: "completed", completed_at: null }),
+    resetReceipt({ started_at: String(NOW) }),
+    resetReceipt({
+      status: "completed",
+      completed_at: String(NOW),
+    }),
+  ];
+
+  for (const invalidReceipt of invalidReceipts) {
+    const kv = new FakeKV({
+      [RESET_RECEIPT_KEY]: JSON.stringify(invalidReceipt),
+      player_runtime_data: JSON.stringify({ keep: true }),
+    });
+    const before = new Map(kv.values);
+
+    await assert.rejects(
+      createContentInitializer({ kv }).ensureInitialized(),
+      (error) => error?.code === "CONTENT_RESET_RECEIPT_INVALID",
+      JSON.stringify(invalidReceipt),
+    );
+
+    assert.deepEqual(kv.values, before);
+    assert.equal(kv.putCalls, 0);
+    assert.equal(kv.deleteCalls, 0);
+  }
+});
+
+test("completed reset receipt recovers missing state without replaying purge", async () => {
+  const kv = new FakeKV({
+    [RESET_RECEIPT_KEY]: JSON.stringify(resetReceipt({
+      status: "completed",
+      completed_at: NOW,
+    })),
+    player_runtime_data: JSON.stringify({ keep: true }),
+  });
+  const initializer = createContentInitializer({
     kv,
     batchSize: 256,
     workBudget: 10,
-    now: () => NOW,
-  }).ensureInitialized();
+    now: () => NOW + 1,
+  });
 
-  assert.equal(result.ready, false);
-  assert.equal(result.blocked_by_newer_target, true);
-  assert.deepEqual(result.status, future);
+  const result = await runToReady(initializer);
+
+  assert.equal(result.ready, true);
+  assert.ok(await kv.get("player_runtime_data"));
+  assert.equal(kv.deleteCalls, 0);
+  assert.equal(
+    JSON.parse(await kv.get(RESET_RECEIPT_KEY)).status,
+    "completed",
+  );
+});
+
+test("ready matching epoch and digest performs no writes", async () => {
+  const kv = readyKv();
+  const before = new Map(kv.values);
+  const beforePuts = kv.putCalls;
+  const beforeDeletes = kv.deleteCalls;
+
+  const result = await createContentInitializer({ kv }).ensureInitialized();
+
+  assert.equal(result.ready, true);
+  assert.deepEqual(kv.values, before);
+  assert.equal(kv.putCalls, beforePuts);
+  assert.equal(kv.deleteCalls, beforeDeletes);
+});
+
+test("an older initializer rejects a higher persisted epoch without mutation", async () => {
+  const future = {
+    epoch: CONTENT_EPOCH + 1,
+    catalog_digest: "sha256:future-epoch",
+    catalog_version: "3.0.0",
+    status: "ready",
+    mode: "ready",
+    phase: "ready",
+    cursor: null,
+    index: 0,
+    started_at: NOW,
+    completed_at: NOW,
+    error: "",
+  };
+  const kv = new FakeKV({
+    system_content_state: JSON.stringify(future),
+    future_runtime_data: JSON.stringify({ keep: true }),
+  });
+
+  await assert.rejects(
+    createContentInitializer({
+      kv,
+      batchSize: 256,
+      workBudget: 10,
+      now: () => NOW,
+    }).ensureInitialized(),
+    (error) => error?.code === "CONTENT_RESET_NOT_AUTHORIZED",
+  );
+
   assert.equal(kv.putCalls, 0);
   assert.equal(kv.deleteCalls, 0);
   assert.ok(await kv.get("future_runtime_data"));
@@ -467,8 +696,9 @@ test("different namespace wrappers over one backend share the isolate coordinato
   assert.equal(status.phase, "ready");
 });
 
-test("replayed stale purge preserves already-current seed records", async () => {
+test("replayed stale purge deletes every runtime record and preserves its receipt", async () => {
   const kv = new FakeKV({
+    [RESET_RECEIPT_KEY]: JSON.stringify(resetReceipt()),
     system_content_state: JSON.stringify({
       epoch: CONTENT_EPOCH,
       catalog_digest: CATALOG_DIGEST,
@@ -501,11 +731,16 @@ test("replayed stale purge preserves already-current seed records", async () => 
     now: () => NOW,
   }).ensureInitialized();
 
-  assert.equal(JSON.parse(await kv.get(sampleKey)).result, "互联网");
+  assert.equal(await kv.get(sampleKey), null);
+  assert.equal(
+    JSON.parse(await kv.get(RESET_RECEIPT_KEY)).status,
+    "in_progress",
+  );
 });
 
 test("epoch reset retires absent current-metadata seed records after seeding", async () => {
   const kv = new FakeKV({
+    [RESET_RECEIPT_KEY]: JSON.stringify(resetReceipt()),
     system_content_state: JSON.stringify({
       epoch: CONTENT_EPOCH,
       catalog_digest: CATALOG_DIGEST,
@@ -853,6 +1088,7 @@ test("persisted initialization errors are sanitized, bounded, and canonical", as
   }
 
   const kv = new SizeLimitedErrorKV({
+    [RESET_RECEIPT_KEY]: JSON.stringify(resetReceipt()),
     system_content_state: JSON.stringify({
       epoch: CONTENT_EPOCH,
       catalog_digest: CATALOG_DIGEST,
@@ -989,9 +1225,10 @@ test("recipe reconciliation deletes malformed seed data and preserves LLM recipe
   assert.ok(await kv.get(dynamicRecipeKey));
 });
 
-test("malformed persisted state conservatively restarts epoch reset", async () => {
+test("malformed persisted state resumes reset only with a valid receipt", async () => {
   const kv = new FakeKV({
     system_content_state: "{broken state",
+    [RESET_RECEIPT_KEY]: JSON.stringify(resetReceipt()),
     player_runtime_data: JSON.stringify({ keep: false }),
   });
   const initializer = createContentInitializer({
@@ -1011,7 +1248,7 @@ test("malformed persisted state conservatively restarts epoch reset", async () =
   assert.equal(kv.values.has("player_runtime_data"), false);
 });
 
-test("differential state cannot enter purge_runtime_data", async () => {
+test("malformed differential purge state fails closed", async () => {
   const kv = new FakeKV({
     system_content_state: JSON.stringify({
       epoch: CONTENT_EPOCH,
@@ -1028,19 +1265,22 @@ test("differential state cannot enter purge_runtime_data", async () => {
     player_runtime_data: JSON.stringify({ keep: true }),
   });
 
-  const result = await createContentInitializer({
-    kv,
-    batchSize: 2,
-    workBudget: 1,
-    now: () => NOW,
-  }).ensureInitialized();
+  const before = new Map(kv.values);
+  await assert.rejects(
+    createContentInitializer({
+      kv,
+      batchSize: 2,
+      workBudget: 1,
+      now: () => NOW,
+    }).ensureInitialized(),
+    (error) => error?.code === "CONTENT_RESET_NOT_AUTHORIZED",
+  );
 
-  assert.equal(result.status.mode, "differential");
-  assert.notEqual(result.status.phase, "purge_runtime_data");
+  assert.deepEqual(kv.values, before);
   assert.ok(await kv.get("player_runtime_data"));
 });
 
-test("migrating state cannot claim the ready phase", async () => {
+test("malformed migrating ready state fails closed", async () => {
   const kv = new FakeKV({
     system_content_state: JSON.stringify({
       epoch: CONTENT_EPOCH,
@@ -1056,18 +1296,20 @@ test("migrating state cannot claim the ready phase", async () => {
     }),
   });
 
-  const result = await createContentInitializer({
-    kv,
-    batchSize: 2,
-    workBudget: 1,
-    now: () => NOW,
-  }).ensureInitialized();
-
-  assert.equal(result.ready, false);
-  assert.notEqual(result.status.phase, "ready");
+  const before = new Map(kv.values);
+  await assert.rejects(
+    createContentInitializer({
+      kv,
+      batchSize: 2,
+      workBudget: 1,
+      now: () => NOW,
+    }).ensureInitialized(),
+    (error) => error?.code === "CONTENT_RESET_NOT_AUTHORIZED",
+  );
+  assert.deepEqual(kv.values, before);
 });
 
-test("rebuild state rejects an unknown reconciliation scan", async () => {
+test("malformed reconciliation scan fails closed", async () => {
   const kv = new FakeKV({
     system_content_state: JSON.stringify({
       epoch: CONTENT_EPOCH,
@@ -1084,15 +1326,17 @@ test("rebuild state rejects an unknown reconciliation scan", async () => {
     }),
   });
 
-  const result = await createContentInitializer({
-    kv,
-    batchSize: 2,
-    workBudget: 1,
-    now: () => NOW,
-  }).ensureInitialized();
-
-  assert.equal(result.status.phase, "seed_starters");
-  assert.equal(result.status.scan, null);
+  const before = new Map(kv.values);
+  await assert.rejects(
+    createContentInitializer({
+      kv,
+      batchSize: 2,
+      workBudget: 1,
+      now: () => NOW,
+    }).ensureInitialized(),
+    (error) => error?.code === "CONTENT_RESET_NOT_AUTHORIZED",
+  );
+  assert.deepEqual(kv.values, before);
 });
 
 test("ready state cannot retain an unfinished reconciliation scan", async () => {
@@ -1109,8 +1353,9 @@ test("ready state cannot retain an unfinished reconciliation scan", async () => 
   assert.notEqual(result.status.phase, "ready");
 });
 
-test("missing mode at purge conservatively restarts epoch reset", async () => {
+test("missing mode at purge resumes only with a valid receipt", async () => {
   const kv = new FakeKV({
+    [RESET_RECEIPT_KEY]: JSON.stringify(resetReceipt()),
     system_content_state: JSON.stringify({
       epoch: CONTENT_EPOCH,
       catalog_digest: CATALOG_DIGEST,
@@ -1138,6 +1383,7 @@ test("missing mode at purge conservatively restarts epoch reset", async () => {
 
 test("epoch reset cannot skip purge without durable completion proof", async () => {
   const kv = new FakeKV({
+    [RESET_RECEIPT_KEY]: JSON.stringify(resetReceipt()),
     system_content_state: JSON.stringify({
       epoch: CONTENT_EPOCH,
       catalog_digest: CATALOG_DIGEST,
@@ -1167,6 +1413,9 @@ test("epoch reset cannot skip purge without durable completion proof", async () 
 
 test("an in-progress epoch reset stays destructive across a digest change", async () => {
   const kv = new FakeKV({
+    [RESET_RECEIPT_KEY]: JSON.stringify(resetReceipt({
+      started_at: NOW - 1_000,
+    })),
     system_content_state: JSON.stringify({
       epoch: CONTENT_EPOCH,
       catalog_digest: "sha256:interrupted",
@@ -1227,6 +1476,7 @@ test("one purge work unit never deletes more than batchSize records", async () =
         JSON.stringify({ index }),
       ]),
     ),
+    [RESET_RECEIPT_KEY]: JSON.stringify(resetReceipt()),
     system_content_state: JSON.stringify({
       epoch: CONTENT_EPOCH,
       catalog_digest: CATALOG_DIGEST,
@@ -1279,6 +1529,7 @@ test("purge never advances past an unprocessed third key", async () => {
         catalog_digest: CATALOG_DIGEST,
       }),
       [runtimeKey]: JSON.stringify({ remove: true }),
+      [RESET_RECEIPT_KEY]: JSON.stringify(resetReceipt()),
       system_content_state: JSON.stringify({
         epoch: CONTENT_EPOCH,
         catalog_digest: CATALOG_DIGEST,
@@ -1316,9 +1567,10 @@ test("purge never advances past an unprocessed third key", async () => {
       true,
       `${cursorMode} purge never completed`,
     );
-    assert.ok(await kv.get(comboKey), `${cursorMode} combo was deleted`);
-    assert.ok(await kv.get(elementKey), `${cursorMode} shared element was deleted`);
+    assert.equal(await kv.get(comboKey), null, `${cursorMode} combo survived`);
+    assert.equal(await kv.get(elementKey), null, `${cursorMode} element survived`);
     assert.equal(await kv.get(runtimeKey), null, `${cursorMode} runtime survived`);
+    assert.ok(await kv.get(RESET_RECEIPT_KEY), `${cursorMode} receipt was deleted`);
   }
 });
 
@@ -1378,6 +1630,7 @@ test("concurrent initializers converge through persisted idempotent state", asyn
       epoch: 1,
       catalog_digest: "sha256:epoch1",
       status: "ready",
+      mode: "ready",
       phase: "ready",
     }),
   });

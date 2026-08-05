@@ -174,7 +174,7 @@
 
 ### Steps
 
-- [ ] Add failing Makers tests for these transitions:
+- [x] Add failing Makers tests for these transitions:
 
   - an entirely empty namespace bootstraps without creating a reset receipt;
   - a state-less namespace with runtime records is treated as `"legacy"` and may reset only because `"legacy"` is authorized;
@@ -187,15 +187,15 @@
   - completed receipt plus missing state recovers non-destructively and never replays purge;
   - current ready state remains a no-op and same-epoch changed digest remains differential.
 
-- [ ] Instrument `FakeKV` in tests where necessary to record ordered `put` and `delete` operations. Assert receipt persistence precedes deletion and completion precedes the ready-state write.
+- [x] Instrument `FakeKV` in tests where necessary to record ordered `put` and `delete` operations. Assert receipt persistence precedes deletion and completion precedes the ready-state write.
 
-- [ ] Run the focused red tests:
+- [x] Run the focused red tests:
 
   ```bash
   node --test --test-name-pattern="authorization|receipt|legacy|higher epoch|malformed persisted state" tests-makers/content-initializer.test.mjs
   ```
 
-- [ ] Import `DESTRUCTIVE_RESET_FROM` and add:
+- [x] Import `DESTRUCTIVE_RESET_FROM` and add:
 
   ```js
   const RESET_RECEIPT_PREFIX = "system_content_reset_receipt_";
@@ -209,9 +209,9 @@
   }
   ```
 
-- [ ] Add strict JSON parsers for state and receipt. A missing state is distinct from malformed present JSON. Validate a receipt against the current target epoch and digest, source epoch, status, and timestamps.
+- [x] Add strict JSON parsers for state and receipt. A missing state is distinct from malformed present JSON. Validate a receipt against the current target epoch and digest, source epoch, status, and timestamps.
 
-- [ ] Before writing a migration state, inspect the namespace with bounded KV listing and resolve:
+- [x] Before writing a migration state, inspect the namespace with bounded KV listing and resolve:
 
   - empty except control records → `bootstrap`;
   - absent state plus runtime data and no receipt → authorized `"legacy"` reset;
@@ -223,7 +223,7 @@
   - same target and digest → ready/resume;
   - same epoch and changed digest → differential.
 
-- [ ] For an authorized destructive transition, write:
+- [x] For an authorized destructive transition, write:
 
   ```js
   {
@@ -238,19 +238,19 @@
 
   before entering `purge_runtime_data`.
 
-- [ ] Change purge filtering to preserve `STATE_KEY` and all keys beginning with `RESET_RECEIPT_PREFIX`. Delete every other runtime key regardless of its payload.
+- [x] Change purge filtering to preserve `STATE_KEY` and all keys beginning with `RESET_RECEIPT_PREFIX`. Delete every other runtime key regardless of its payload.
 
-- [ ] After full catalog verification, write the same receipt with `status: "completed"` and `completed_at`, then persist the ready state. Re-running completion must retain the original `started_at`.
+- [x] After full catalog verification, write the same receipt with `status: "completed"` and `completed_at`, then persist the ready state. Re-running completion must retain the original `started_at`.
 
-- [ ] Preserve the existing newer-target concurrency guard: if another worker publishes a higher epoch, return its state without overwriting it.
+- [x] Preserve the existing newer-target concurrency guard: if another worker publishes a higher epoch, return its state without overwriting it.
 
-- [ ] Run the whole initializer suite green:
+- [x] Run the whole initializer suite green:
 
   ```bash
   node --test tests-makers/content-initializer.test.mjs
   ```
 
-- [ ] Commit:
+- [x] Commit:
 
   ```bash
   git add edge-functions/_lib/content-initializer.js tests-makers/content-initializer.test.mjs

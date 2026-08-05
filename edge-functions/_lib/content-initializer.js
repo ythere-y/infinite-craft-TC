@@ -4,12 +4,18 @@ import {
   BOUNTY_ELEMENTS,
   CATALOG_DIGEST,
   CONTENT_EPOCH,
+  DESTRUCTIVE_RESET_FROM,
 } from "../_generated/bounty-content.js";
 import { normalizeComment } from "./comments.js";
 import { cleanText, normalizePair } from "./keys.js";
 import { KvStore } from "./kv-store.js";
 
 const STATE_KEY = "system_content_state";
+const RESET_RECEIPT_PREFIX = "system_content_reset_receipt_";
+const RESET_RECEIPT_KEY = `${RESET_RECEIPT_PREFIX}${CONTENT_EPOCH}`;
+const RESET_AUTHORIZATION = new Set(DESTRUCTIVE_RESET_FROM);
+const CONTENT_RESET_NOT_AUTHORIZED = "CONTENT_RESET_NOT_AUTHORIZED";
+const CONTENT_RESET_RECEIPT_INVALID = "CONTENT_RESET_RECEIPT_INVALID";
 const PHASES = [
   "detect",
   "purge_runtime_data",
@@ -47,6 +53,15 @@ const DIFFERENTIAL_PHASES = new Set([
   "rebuild_indexes",
   "verify_catalog",
 ]);
+const BOOTSTRAP_PHASES = DIFFERENTIAL_PHASES;
+
+class ContentInitializationPolicyError extends Error {
+  constructor(code, message) {
+    super(`${code}: ${message}`);
+    this.name = "ContentInitializationPolicyError";
+    this.code = code;
+  }
+}
 
 const OWNERSHIP = Object.freeze({
   source: "seed",
@@ -148,23 +163,7 @@ const VERIFY_ITEMS = [
   ...RECIPES.map((item) => ({ kind: "combination", ...item })),
 ];
 
-function initialState(previous, now) {
-  const sameEpoch = Number(previous?.epoch) === CONTENT_EPOCH;
-  const resumesEpochReset = (
-    previous?.status === "migrating" &&
-    (
-      previous?.mode === "epoch_reset" ||
-      (!previous?.mode && previous?.phase === "purge_runtime_data")
-    )
-  );
-  const mode = (
-    resumesEpochReset ||
-    !previous ||
-    previous?.malformed === true ||
-    !sameEpoch
-  )
-    ? "epoch_reset"
-    : "differential";
+function initialState(mode, now, { startedAt = null } = {}) {
   return {
     epoch: CONTENT_EPOCH,
     catalog_digest: CATALOG_DIGEST,
@@ -182,9 +181,7 @@ function initialState(previous, now) {
     scan_pass: 0,
     scan_deleted: 0,
     purge_completed: false,
-    started_at: resumesEpochReset
-      ? Number(previous.started_at) || now()
-      : now(),
+    started_at: Number(startedAt) || now(),
     completed_at: null,
     error: "",
   };
@@ -216,6 +213,9 @@ function validMigratingState(state) {
   if (!scanValid) return false;
   if (state.mode === "differential") {
     return DIFFERENTIAL_PHASES.has(state.phase);
+  }
+  if (state.mode === "bootstrap") {
+    return BOOTSTRAP_PHASES.has(state.phase);
   }
   if (state.mode !== "epoch_reset" || !EPOCH_RESET_PHASES.has(state.phase)) {
     return false;
@@ -387,11 +387,59 @@ function parseStoredJson(raw) {
   }
 }
 
-function isCurrentCatalogRecord(raw) {
-  const record = parseStoredJson(raw);
+function policyError(code, message) {
+  return new ContentInitializationPolicyError(code, message);
+}
+
+function resetAuthorized(sourceEpoch) {
+  return RESET_AUTHORIZATION.has(sourceEpoch);
+}
+
+function readyStateShape(state) {
   return (
-    Number(record?.content_epoch) === CONTENT_EPOCH &&
-    record?.catalog_digest === CATALOG_DIGEST
+    state?.status === "ready" &&
+    state?.mode === "ready" &&
+    state?.phase === "ready" &&
+    Number.isSafeInteger(Number(state?.epoch)) &&
+    Number(state.epoch) > 0 &&
+    Boolean(cleanText(state?.catalog_digest))
+  );
+}
+
+function receiptShape(receipt) {
+  const sourceEpoch = receipt?.source_epoch;
+  const validSource = (
+    sourceEpoch === "legacy" ||
+    (
+      typeof sourceEpoch === "number" &&
+      Number.isSafeInteger(sourceEpoch) &&
+      sourceEpoch > 0 &&
+      sourceEpoch < CONTENT_EPOCH
+    )
+  );
+  const startedAt = receipt?.started_at;
+  const completedAt = receipt?.completed_at;
+  const inProgress = (
+    receipt?.status === "in_progress" &&
+    receipt?.completed_at == null
+  );
+  const completed = (
+    receipt?.status === "completed" &&
+    typeof completedAt === "number" &&
+    Number.isFinite(completedAt) &&
+    completedAt >= startedAt
+  );
+  return (
+    typeof receipt?.target_epoch === "number" &&
+    Number.isSafeInteger(receipt.target_epoch) &&
+    receipt.target_epoch === CONTENT_EPOCH &&
+    receipt?.catalog_digest === CATALOG_DIGEST &&
+    validSource &&
+    resetAuthorized(sourceEpoch) &&
+    typeof startedAt === "number" &&
+    Number.isFinite(startedAt) &&
+    startedAt > 0 &&
+    (inProgress || completed)
   );
 }
 
@@ -514,6 +562,44 @@ export function createContentInitializer({
     return parsed || { status: "invalid", malformed: true };
   }
 
+  async function readResetReceipt() {
+    const raw = await kv.get(RESET_RECEIPT_KEY);
+    if (raw == null || raw === "") return null;
+    const parsed = parseStoredJson(raw);
+    if (!parsed || !receiptShape(parsed)) {
+      throw policyError(
+        CONTENT_RESET_RECEIPT_INVALID,
+        "the persisted reset receipt is malformed or conflicts with Epoch 2",
+      );
+    }
+    return parsed;
+  }
+
+  async function putResetReceipt(receipt) {
+    await kv.put(RESET_RECEIPT_KEY, JSON.stringify(receipt));
+    return receipt;
+  }
+
+  async function namespaceHasRuntimeData() {
+    let cursor = null;
+    for (;;) {
+      const page = await kv.list(listOptions("", safeBatchSize, cursor));
+      const runtimeKey = (page?.keys || [])
+        .map((item) => item?.key || item?.name)
+        .find((key) =>
+          key &&
+          key !== STATE_KEY &&
+          !key.startsWith(RESET_RECEIPT_PREFIX)
+        );
+      if (runtimeKey) return true;
+      if (page?.complete) return false;
+      if (!cursorIsPersistable(page?.cursor)) {
+        throw new Error("KV namespace scan returned an invalid cursor");
+      }
+      cursor = page.cursor;
+    }
+  }
+
   async function putState(candidate) {
     candidate = canonicalState(candidate);
     const current = await readStatus();
@@ -533,6 +619,140 @@ export function createContentInitializer({
       return selected;
     }
     return preferred || observed || selected;
+  }
+
+  async function putCompletedReceiptRecoveryState(candidate) {
+    const current = await readStatus();
+    if (hasNewerTarget(current)) return current;
+    const normalized = canonicalState(candidate);
+    await kv.put(STATE_KEY, JSON.stringify(normalized));
+    const observed = await readStatus();
+    return hasNewerTarget(observed) ? observed : normalized;
+  }
+
+  async function startAuthorizedReset(sourceEpoch) {
+    if (!resetAuthorized(sourceEpoch)) {
+      throw policyError(
+        CONTENT_RESET_NOT_AUTHORIZED,
+        `destructive reset from ${String(sourceEpoch)} is not authorized`,
+      );
+    }
+    const receipt = {
+      target_epoch: CONTENT_EPOCH,
+      source_epoch: sourceEpoch,
+      catalog_digest: CATALOG_DIGEST,
+      status: "in_progress",
+      started_at: now(),
+      completed_at: null,
+    };
+    await putResetReceipt(receipt);
+    return putState(initialState(
+      "epoch_reset",
+      now,
+      { startedAt: receipt.started_at },
+    ));
+  }
+
+  async function prepareInitialState() {
+    const state = await readStatus();
+    const receipt = await readResetReceipt();
+
+    if (Number(state?.epoch) > CONTENT_EPOCH) {
+      if (receipt) {
+        throw policyError(
+          CONTENT_RESET_RECEIPT_INVALID,
+          "the reset receipt conflicts with a higher persisted epoch",
+        );
+      }
+      throw policyError(
+        CONTENT_RESET_NOT_AUTHORIZED,
+        `persisted epoch ${state.epoch} is newer than Epoch ${CONTENT_EPOCH}`,
+      );
+    }
+    if (
+      Number(state?.epoch) === CONTENT_EPOCH &&
+      state?.catalog_digest !== CATALOG_DIGEST &&
+      hasNewerTarget(state)
+    ) {
+      return { state, terminal: newerTargetResult(state) };
+    }
+    if (validReadyState(state)) {
+      if (receipt?.status === "in_progress") {
+        throw policyError(
+          CONTENT_RESET_RECEIPT_INVALID,
+          "an in-progress reset receipt conflicts with ready content",
+        );
+      }
+      return { state, terminal: stateResult(state) };
+    }
+    if (validMigratingState(state)) {
+      if (state.mode === "epoch_reset") {
+        if (!receipt) {
+          throw policyError(
+            CONTENT_RESET_RECEIPT_INVALID,
+            "an Epoch 2 destructive migration has no durable receipt",
+          );
+        }
+        if (receipt.status === "completed") {
+          const recovery = await putCompletedReceiptRecoveryState(
+            initialState("differential", now, {
+              startedAt: receipt.started_at,
+            }),
+          );
+          return { state: recovery };
+        }
+        return { state };
+      }
+      if (receipt?.status === "in_progress") {
+        throw policyError(
+          CONTENT_RESET_RECEIPT_INVALID,
+          "an in-progress reset receipt conflicts with a non-destructive migration",
+        );
+      }
+      return { state };
+    }
+    if (receipt) {
+      if (state && readyStateShape(state)) {
+        const sourceEpoch = Number(state.epoch);
+        if (sourceEpoch !== receipt.source_epoch) {
+          throw policyError(
+            CONTENT_RESET_RECEIPT_INVALID,
+            "the reset receipt source does not match persisted content",
+          );
+        }
+      }
+      const mode = receipt.status === "in_progress"
+        ? "epoch_reset"
+        : "differential";
+      const candidate = initialState(mode, now, {
+        startedAt: receipt.started_at,
+      });
+      const prepared = receipt.status === "completed"
+        ? await putCompletedReceiptRecoveryState(candidate)
+        : await putState(candidate);
+      return { state: prepared };
+    }
+    if (state == null) {
+      if (!await namespaceHasRuntimeData()) {
+        return {
+          state: await putState(initialState("bootstrap", now)),
+        };
+      }
+      return { state: await startAuthorizedReset("legacy") };
+    }
+    if (readyStateShape(state)) {
+      const sourceEpoch = Number(state.epoch);
+      if (sourceEpoch === CONTENT_EPOCH) {
+        return {
+          state: await putState(initialState("differential", now)),
+        };
+      }
+      return { state: await startAuthorizedReset(sourceEpoch) };
+    }
+    throw policyError(
+      CONTENT_RESET_NOT_AUTHORIZED,
+      "persisted content state is malformed and has no matching reset receipt",
+    );
   }
 
   function restartPurge(state) {
@@ -562,11 +782,13 @@ export function createContentInitializer({
     );
     const keys = (page?.keys || [])
       .map((item) => item?.key || item?.name)
-      .filter((key) => key && key !== STATE_KEY);
+      .filter((key) =>
+        key &&
+        key !== STATE_KEY &&
+        !key.startsWith(RESET_RECEIPT_PREFIX)
+      );
     let deleted = 0;
     for (const key of keys) {
-      const raw = await kv.get(key);
-      if (isCurrentCatalogRecord(raw)) continue;
       await kv.delete(key);
       deleted += 1;
     }
@@ -820,6 +1042,22 @@ export function createContentInitializer({
         error: "",
       };
     }
+    if (state.mode === "epoch_reset") {
+      const receipt = await readResetReceipt();
+      if (!receipt) {
+        throw policyError(
+          CONTENT_RESET_RECEIPT_INVALID,
+          "the reset receipt disappeared before catalog verification",
+        );
+      }
+      if (receipt.status === "in_progress") {
+        await putResetReceipt({
+          ...receipt,
+          status: "completed",
+          completed_at: now(),
+        });
+      }
+    }
     return {
       ...state,
       status: "ready",
@@ -888,20 +1126,9 @@ export function createContentInitializer({
   }
 
   async function ensureInitializedOnce() {
-    let state = await readStatus();
-    if (hasNewerTarget(state)) {
-      return newerTargetResult(state);
-    }
-    if (validReadyState(state)) {
-      return stateResult(state);
-    }
-
-    if (!validMigratingState(state)) {
-      state = await putState(initialState(state, now));
-      if (hasNewerTarget(state)) {
-        return newerTargetResult(state);
-      }
-    }
+    const prepared = await prepareInitialState();
+    if (prepared.terminal) return prepared.terminal;
+    let state = prepared.state;
 
     try {
       for (let work = 0; work < safeWorkBudget; work += 1) {
@@ -911,7 +1138,9 @@ export function createContentInitializer({
         }
         if (validReadyState(persisted)) return stateResult(persisted);
         if (!validMigratingState(persisted)) {
-          state = await putState(initialState(persisted, now));
+          const recovered = await prepareInitialState();
+          if (recovered.terminal) return recovered.terminal;
+          state = recovered.state;
         } else {
           state = persisted;
         }
