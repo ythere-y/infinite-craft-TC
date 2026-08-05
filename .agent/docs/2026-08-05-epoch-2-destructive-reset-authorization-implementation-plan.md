@@ -325,7 +325,7 @@
 
 ### Steps
 
-- [ ] Update the operations documentation with:
+- [x] Update the operations documentation with:
 
   - `destructive_reset_from` is the sole destructive authorization source;
   - Epoch 2 currently authorizes `["legacy", 1]`;
@@ -334,14 +334,14 @@
   - fail-closed meanings of `CONTENT_RESET_NOT_AUTHORIZED` and `CONTENT_RESET_RECEIPT_INVALID`;
   - how a future epoch must intentionally declare its permitted source epochs.
 
-- [ ] Run generated-artifact drift detection:
+- [x] Run generated-artifact drift detection:
 
   ```bash
   npm run generate:bounty-content
   git diff --exit-code -- backend/generated/bounty-content.json edge-functions/_generated/bounty-content.js
   ```
 
-- [ ] Run all project-required verification:
+- [x] Run all project-required verification:
 
   ```bash
   npm test
@@ -349,7 +349,7 @@
   npm run build
   ```
 
-- [ ] Inspect the final diff for scope, secrets, generated consistency, and unrelated files:
+- [x] Inspect the final diff for scope, secrets, generated consistency, and unrelated files:
 
   ```bash
   git status --short
@@ -357,11 +357,11 @@
   git diff --stat HEAD~4
   ```
 
-- [ ] Commit documentation or final integration corrections:
+- [x] Commit documentation or final integration corrections:
 
   ```bash
   git add docs/makers-development.md
   git commit -m "docs: explain Epoch reset authorization"
   ```
 
-- [ ] Report the exact verification commands and outcomes. Note that `npm run makers:build` remains the deployment maintainer’s production check and is not run locally.
+- [x] Report the exact verification commands and outcomes. Note that `npm run makers:build` remains the deployment maintainer’s production check and is not run locally.

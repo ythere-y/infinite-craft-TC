@@ -96,10 +96,14 @@ Redis。后端与前端源码以只读方式挂载，Uvicorn 会在代码修改�
 
 本地启动会先读取 SQLite 的 `content_state`，再加载固定目录：
 
-- 没有状态且没有玩法数据时执行 bootstrap；若已存在玩法数据，则保守执行
-  epoch reset；
-- `content_epoch` 变化时清空本地测试玩法数据，同时仅清空
-  `REDIS_URL` 选中的逻辑库；
+- 没有状态且 SQLite、Redis 都没有玩法数据时执行 bootstrap；若任一存储已存在
+  运行时数据，则把来源识别为 `legacy`；
+- 只有当前目录 `meta.destructive_reset_from` 明确列出的来源才允许执行 epoch
+  reset。Epoch 2 当前只授权 `["legacy", 1]`；
+- 获得授权的 epoch reset 会清空全部本地测试玩法数据，包括社区公式、投票、
+  首发、KPI 与昵称记录，同时仅清空 `REDIS_URL` 选中的逻辑库；SQLite 的
+  `content_state` 和无关配置表保留；
+- 更高 epoch、未授权的较低 epoch 会在写迁移状态或删除数据前使启动失败；
 - epoch 相同但目录 digest 变化时执行差异迁移，删除明确退役的 seed
   组合/元素，并用当前固定公式覆盖同键动态结果；
 - 迁移中断时保留 `migrating` 状态，下一次启动从安全阶段恢复；
@@ -218,11 +222,29 @@ Edge Function 将 `test` 当作整个数据库使用，并在运行时自动创�
 首发、昵称、分数、排行榜和索引所需的 key。现有分数记录仍使用字面量
 `kpi_*` KV key，以兼容已持久化的数据。
 
-每个已构建版本都携带 `content_epoch`、catalog version 和 digest。Edge Function
-初始化会通过 `system_content_state` 执行分批、可恢复的 bootstrap、epoch reset 或
-差异迁移；非健康检查 API 在内容未 ready 时返回 503，`/api/health` 仍可用于
-观察公开的 epoch、digest、status、mode 和 phase。初始化完成后，固定元素、
-组合、配方索引和深度映射都会与该版本目录对账。
+每个已构建版本都携带 `content_epoch`、catalog version、digest 和
+`destructive_reset_from`。这个目录字段是破坏性清空的唯一授权来源；Epoch 2
+当前只授权从 `legacy` 或 Epoch 1 迁移。新增未来 epoch 时，维护者必须在可编辑
+目录中有意声明允许清空的确切来源，生成器会拒绝重复、当前/更高 epoch、错误类型
+或缺失的授权清单。
+
+Edge Function 初始化通过 `system_content_state` 执行分批、可恢复的 bootstrap、
+epoch reset 或差异迁移。授权的 Epoch 2 reset 会清空 KV 中除控制记录外的全部
+测试运行时数据，包括组合/元素、社区、投票、首发、KPI、昵称及其索引。控制记录
+`system_content_state` 和所有 `system_content_reset_receipt_*` 不参与清空。
+
+目标 Epoch 2 使用 `system_content_reset_receipt_2` 记录来源 epoch、目录 digest、
+`in_progress`/`completed` 状态及起止时间。初始化器先持久化 `in_progress` 回执，
+再进入删除阶段；目录精确校验完成后先把回执标记为 `completed`，最后发布 ready
+状态。中断后可继续未完成的清空；若回执已完成但状态丢失，只执行非破坏性对账，
+不会再次清空运行时数据。
+
+非健康检查 API 在内容未 ready 时返回 503，`/api/health` 仍可用于观察公开的
+epoch、digest、status、mode 和 phase。未授权转换公开为
+`CONTENT_RESET_NOT_AUTHORIZED`，坏回执或冲突回执公开为
+`CONTENT_RESET_RECEIPT_INVALID`；两者都不会暴露原始状态、回执内容或底层异常。
+其他初始化错误仍统一为 `CONTENT_INITIALIZATION_FAILED`。初始化完成后，固定
+元素、组合、配方索引和深度映射都会与该版本目录对账。
 
 Makers KV 没有 compare-and-swap。实现保证同一 isolate 内串行初始化，并通过
 可重放步骤在“同时只推进一个 catalog 版本”的发布约束下最终收敛；不宣称不同
