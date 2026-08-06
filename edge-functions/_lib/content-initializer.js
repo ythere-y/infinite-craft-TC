@@ -766,7 +766,19 @@ export function createContentInitializer({
     if (receipt) {
       if (state && readyStateShape(state)) {
         const sourceEpoch = Number(state.epoch);
-        if (sourceEpoch !== receipt.source_epoch) {
+        if (
+          sourceEpoch === CONTENT_EPOCH &&
+          receipt.status === "in_progress"
+        ) {
+          receipt = await putResetReceipt({
+            ...receipt,
+            status: "completed",
+            completed_at: Math.max(now(), receipt.started_at),
+          });
+        } else if (
+          sourceEpoch !== CONTENT_EPOCH &&
+          sourceEpoch !== receipt.source_epoch
+        ) {
           throw policyError(
             CONTENT_RESET_RECEIPT_INVALID,
             "the reset receipt source does not match persisted content",

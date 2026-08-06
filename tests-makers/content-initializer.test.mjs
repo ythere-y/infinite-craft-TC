@@ -383,6 +383,40 @@ test("completed reset receipt recovers missing state without replaying purge", a
   );
 });
 
+test("same-epoch ready content treats reset source as pre-reset history", async () => {
+  for (const status of ["in_progress", "completed"]) {
+    const kv = readyKv({
+      catalog_digest: OLD_CATALOG_DIGEST,
+      catalog_version: "2.0.0",
+    });
+    await kv.put(RESET_RECEIPT_KEY, JSON.stringify(resetReceipt({
+      catalog_digest: OLD_CATALOG_DIGEST,
+      status,
+      completed_at: status === "completed" ? NOW - 1 : null,
+      started_at: NOW - 2,
+    })));
+    await kv.put(
+      "player_runtime_data",
+      JSON.stringify({ keep: true }),
+    );
+
+    const result = await runToReady(createContentInitializer({
+      kv,
+      batchSize: 256,
+      workBudget: 10,
+      now: () => NOW,
+    }));
+
+    assert.equal(result.ready, true);
+    assert.ok(await kv.get("player_runtime_data"));
+    assert.equal(kv.deleteCalls, 0);
+    assert.equal(
+      JSON.parse(await kv.get(RESET_RECEIPT_KEY)).status,
+      "completed",
+    );
+  }
+});
+
 test("ready matching epoch and digest performs no writes", async () => {
   const kv = readyKv();
   const before = new Map(kv.values);
