@@ -16,6 +16,7 @@ import { KvStore } from "../edge-functions/_lib/kv-store.js";
 import { FakeKV } from "./fake-kv.mjs";
 
 const NOW = 1_700_000_000_000;
+const OLD_CATALOG_DIGEST = `sha256:${"a".repeat(64)}`;
 const RESET_RECEIPT_KEY =
   `system_content_reset_receipt_${CONTENT_EPOCH}`;
 
@@ -286,6 +287,7 @@ test("malformed reset receipts fail closed before any KV mutation", async () => 
 test("completed reset receipt recovers missing state without replaying purge", async () => {
   const kv = new FakeKV({
     [RESET_RECEIPT_KEY]: JSON.stringify(resetReceipt({
+      catalog_digest: OLD_CATALOG_DIGEST,
       status: "completed",
       completed_at: NOW,
     })),
@@ -1414,6 +1416,7 @@ test("epoch reset cannot skip purge without durable completion proof", async () 
 test("an in-progress epoch reset stays destructive across a digest change", async () => {
   const kv = new FakeKV({
     [RESET_RECEIPT_KEY]: JSON.stringify(resetReceipt({
+      catalog_digest: OLD_CATALOG_DIGEST,
       started_at: NOW - 1_000,
     })),
     system_content_state: JSON.stringify({

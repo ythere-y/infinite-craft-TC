@@ -429,11 +429,15 @@ function receiptShape(receipt) {
     Number.isFinite(completedAt) &&
     completedAt >= startedAt
   );
+  const validCatalogDigest = (
+    typeof receipt?.catalog_digest === "string" &&
+    /^sha256:[a-f0-9]{64}$/u.test(receipt.catalog_digest)
+  );
   return (
     typeof receipt?.target_epoch === "number" &&
     Number.isSafeInteger(receipt.target_epoch) &&
     receipt.target_epoch === CONTENT_EPOCH &&
-    receipt?.catalog_digest === CATALOG_DIGEST &&
+    validCatalogDigest &&
     validSource &&
     resetAuthorized(sourceEpoch) &&
     typeof startedAt === "number" &&
