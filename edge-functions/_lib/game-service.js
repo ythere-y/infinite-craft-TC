@@ -16,6 +16,7 @@ import {
 } from "./bounty.js";
 import { normalizePair, cleanText } from "./keys.js";
 import {
+  defaultLLMProvider,
   llmConfiguration,
   requestModelCombination,
 } from "./llm.js";
@@ -67,7 +68,6 @@ export function createGameService({
   promptLimits = PROMPT_SPEC.limits,
 } = {}) {
   if (!store) throw new TypeError("Game service requires a KV store");
-  const modelConfigured = llmConfiguration(env).configured;
   const community = new CommunityStore(store.kv, { now });
   const modelCallsPerMinute = Math.max(
     1,
@@ -132,7 +132,8 @@ export function createGameService({
     if (communityState?.status !== "retired") {
       if (cached?.result) return withResolvedIcon(cached, a, b);
     }
-    if (!modelConfigured) return null;
+    const provider = await store.llmProvider(defaultLLMProvider(env));
+    if (!llmConfiguration(env, provider).configured) return null;
 
     const quota = await store.consumeRateLimit(clientIdentity, {
       limit: modelCallsPerMinute,
@@ -170,6 +171,7 @@ export function createGameService({
       fetchImpl,
       random,
       promptLimits,
+      provider,
     });
     if (!generated) return null;
     const generatedHit = await withResolvedIcon(

@@ -11,6 +11,7 @@ import { PROMPT_SPEC } from "../_generated/prompt-data.js";
 const RECENT_KEY = "snapshot_recent";
 const ELEMENTS_KEY = "snapshot_elements";
 const STATS_KEY = "snapshot_stats";
+const LLM_PROVIDER_KEY = "admin_llm_provider";
 // This is a KV value-size boundary for the hot snapshot, not a catalogue cap.
 const MAX_RECENT_SNAPSHOT_ITEMS = 500;
 const MAX_INDEX_RECORDS_PER_SHARD = 2_000;
@@ -100,6 +101,19 @@ export class KvStore {
 
   timestamp() {
     return this.now() / 1_000;
+  }
+
+  async llmProvider(fallback = "makers") {
+    const provider = cleanText(await this.kv.get(LLM_PROVIDER_KEY));
+    return ["makers", "deepseek"].includes(provider) ? provider : fallback;
+  }
+
+  async setLLMProvider(provider) {
+    if (!["makers", "deepseek"].includes(provider)) {
+      throw new TypeError("provider must be makers or deepseek");
+    }
+    await this.kv.put(LLM_PROVIDER_KEY, provider);
+    return provider;
   }
 
   async getJson(key, fallback = null) {

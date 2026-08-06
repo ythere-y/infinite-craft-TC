@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-03T10:03:37.631Z",
+  "generatedAt": "2026-08-06T09:18:39.837Z",
   "sources": {
     "notoEmoji": {
       "version": "2.048 (Emoji 16.0)",
@@ -8,12 +8,17 @@
     "phosphor": {
       "version": "2.1.1",
       "license": "MIT"
+    },
+    "qqEra": {
+      "usage": "internal-test-only",
+      "registry": "frontend/assets/icons/qq-era/sources.json"
     }
   },
   "counts": {
     "actionSvgs": 21,
-    "emojiManifestEntries": 9111,
-    "emojiPngs": 3786
+    "emojiManifestEntries": 9125,
+    "emojiPngs": 3786,
+    "namedPngs": 14
   },
-  "sha256": "4ad0591b94413fff7cc1b06d886d4b9214244d9580ffd6edce047807fa8af13f"
+  "sha256": "81b8fb8ea5fb5ff31fcccf2869f1cbe3d9fb1a59e037af691dc26c8876266da5"
 }

@@ -87,6 +87,24 @@ def test_valid_persisted_recipe_takes_precedence_over_exact_preset():
     ) == persisted
 
 
+def test_reviewed_qq_asset_takes_precedence_over_legacy_persisted_icon():
+    assert resolve_icon_recipe(
+        name="黄钻",
+        emoji="💛",
+        category="qq_memory",
+        persisted={
+            "base": "💛",
+            "badge": "🚇",
+            "palette": "product",
+            "source": "generated",
+        },
+    ) == {
+        "base": "qq-era:yellow-diamond",
+        "palette": "product",
+        "source": "curated",
+    }
+
+
 def test_dynamic_resolution_is_deterministic():
     inputs = {
         "name": "智能咖啡",

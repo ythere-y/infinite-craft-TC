@@ -175,6 +175,7 @@ export function auditIconMap({
   iconMap,
   emojiManifest,
   knowledge,
+  catalogElementNames = new Set(),
 }) {
   const seedNames = Object.keys(seedElements.elements);
   const mapNames = Object.keys(iconMap);
@@ -225,6 +226,25 @@ export function auditIconMap({
   const baseReuseGroups = collectReuseGroups(
     iconMap,
     (icon) => `${icon.base}\u0000\u0000`,
+  );
+  const catalogIconMap = Object.fromEntries(
+    Object.entries(iconMap).filter(([name]) => catalogElementNames.has(name)),
+  );
+  const catalogBaseReuseGroups = collectReuseGroups(
+    catalogIconMap,
+    (icon) => `${icon.base}\u0000\u0000`,
+  );
+  const catalogPlaceholderNames = Object.entries(catalogIconMap)
+    .filter(([, entry]) => entry.icon?.base === "🧩")
+    .map(([name]) => name);
+  const catalogBaseOveruseGroups = catalogBaseReuseGroups.filter(
+    (group) =>
+      group.count >= 5 &&
+      !group.names.every(
+        (name) =>
+          typeof iconMap[name].duplicate_exception === "string" &&
+          iconMap[name].duplicate_exception.trim(),
+      ),
   );
   const fullSignatureReuseGroups = collectReuseGroups(iconMap, iconSignature);
   const duplicateEntries = fullSignatureReuseGroups.reduce(
@@ -293,6 +313,16 @@ export function auditIconMap({
       `Full-signature duplicate rate ${(duplicateRate * 100).toFixed(2)}% is at least 10%`,
     );
   }
+  if (catalogPlaceholderNames.length) {
+    violations.push(
+      `Catalog primary placeholder 🧩 remains on: ${catalogPlaceholderNames.join(", ")}`,
+    );
+  }
+  for (const group of catalogBaseOveruseGroups) {
+    violations.push(
+      `Catalog primary base ${group.display} is used by five or more elements without an explicit duplicate_exception on every row`,
+    );
+  }
   for (const group of unexceptedOveruse) {
     violations.push(
       `Signature ${group.display} is used more than twice without an explicit duplicate_exception on every row`,
@@ -302,6 +332,9 @@ export function auditIconMap({
   return {
     acceptedExceptions,
     baseReuseGroups,
+    catalogBaseOveruseGroups,
+    catalogBaseReuseGroups,
+    catalogPlaceholderNames,
     entityCandidates,
     entityIssues,
     fullSignatureReuseGroups,
@@ -309,6 +342,9 @@ export function auditIconMap({
     lockedResults,
     metrics: {
       baseReuseGroups: baseReuseGroups.length,
+      catalogBaseReuseGroups: catalogBaseReuseGroups.length,
+      catalogElements: catalogElementNames.size,
+      catalogPlaceholders: catalogPlaceholderNames.length,
       duplicateEntries,
       duplicateRate,
       fullSignatureReuseGroups: fullSignatureReuseGroups.length,
@@ -364,6 +400,8 @@ knowledge layer, rules, and Emoji manifest.
 - **Mapped elements**: explicit icon-map rows compared with the preset seed total.
 - **Base reuse group**: two or more rows sharing the same base Emoji, regardless
   of badge or palette.
+- **Catalog primary concentration**: five or more catalog-only rows sharing a
+  base Emoji without a reviewed exception on every row.
 - **Full signature**: \`base + badge + palette\`.
 - **Elements in repeated full signatures**: every mapped row belonging to a
   full signature used by two or more rows. The duplicate rate is that complete
@@ -377,6 +415,10 @@ knowledge layer, rules, and Emoji manifest.
 - Mapped elements: ${audit.metrics.mappedElements} / ${audit.metrics.seedElements}
 - Missing or invalid assets/recipes: ${audit.invalidAssets.length}
 - Base reuse groups: ${audit.metrics.baseReuseGroups}
+- Catalog elements: ${audit.metrics.catalogElements}
+- Catalog base reuse groups: ${audit.metrics.catalogBaseReuseGroups}
+- Catalog primary placeholders: ${audit.metrics.catalogPlaceholders}
+- Catalog primary overuse groups: ${audit.catalogBaseOveruseGroups.length}
 - Full-signature reuse groups: ${audit.metrics.fullSignatureReuseGroups}
 - Elements in repeated full signatures: ${audit.metrics.duplicateEntries}
 - Full-signature duplicate rate: ${percentage}%
@@ -406,6 +448,13 @@ function printAudit(audit) {
   console.log(`Mapped elements: ${audit.metrics.mappedElements}/${audit.metrics.seedElements}`);
   console.log(`Missing/invalid assets: ${audit.invalidAssets.length}`);
   console.log(`Base reuse groups: ${audit.metrics.baseReuseGroups}`);
+  console.log(`Catalog elements: ${audit.metrics.catalogElements}`);
+  console.log(
+    `Catalog primary placeholders: ${audit.metrics.catalogPlaceholders}`,
+  );
+  console.log(
+    `Catalog primary overuse groups: ${audit.catalogBaseOveruseGroups.length}`,
+  );
   console.log(
     `Full-signature reuse groups: ${audit.metrics.fullSignatureReuseGroups}`,
   );
@@ -482,11 +531,16 @@ export async function runIconAudit({
     baseCombinations,
     bountyContent,
   });
+  const baseNames = new Set(Object.keys(baseElements.elements));
+  const catalogElementNames = new Set(
+    Object.keys(bountyContent.elements).filter((name) => !baseNames.has(name)),
+  );
   const audit = auditIconMap({
     seedElements,
     iconMap,
     emojiManifest,
     knowledge,
+    catalogElementNames,
   });
   printAudit(audit);
   if (listEntities) printEntityCandidates(audit.entityCandidates);

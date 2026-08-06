@@ -116,6 +116,15 @@ def test_every_bounty_target_is_strictly_reachable():
     assert len({content["depths"][name] for name in targets}) >= 3
 
 
+def test_every_preset_element_is_strictly_reachable():
+    content = content_catalog.load_compiled_content()
+    preset_names = set(content["elements"]) | {
+        row["name"] for row in content["starters"]
+    }
+
+    assert preset_names == set(content["depths"])
+
+
 def test_retired_bad_formulas_are_absent():
     combinations = content_catalog.merged_combinations()
     for pair in [

@@ -15,6 +15,7 @@ import {
   emojiCodepointCandidates,
   requiredActionIcons,
   sha256ForFiles,
+  validatePngBuffer,
   validateCommittedIconAssets,
 } from "./icon-data-lib.mjs";
 
@@ -34,6 +35,8 @@ const PHOSPHOR_ROOTS = {
 };
 const ICONS_ROOT = resolve(ROOT, "frontend/assets/icons");
 const GENERATED_ROOT = resolve(ICONS_ROOT, "generated");
+const NAMED_ICON_MANIFEST = resolve(ICONS_ROOT, "qq-era/manifest.json");
+const NAMED_ICON_SOURCES = resolve(ICONS_ROOT, "qq-era/sources.json");
 
 function actionIconSource(name) {
   if (name === "x") return resolve(PHOSPHOR_ROOTS.regular, "x.svg");
@@ -94,6 +97,27 @@ export async function copyEmojiPngs(sourceRoot, destinationRoot) {
     ),
   );
   return pngNames;
+}
+
+export function mergeNamedIconManifest(emojiManifest, namedManifest) {
+  const merged = { ...emojiManifest };
+  for (const [name, path] of Object.entries(namedManifest)) {
+    if (Object.hasOwn(merged, name)) {
+      throw new Error(
+        `Named icon ${name} must not replace an existing manifest key`,
+      );
+    }
+    if (
+      typeof name !== "string" ||
+      !name.trim() ||
+      typeof path !== "string" ||
+      !/^\/assets\/icons\/qq-era\/[a-z0-9-]+\.png$/.test(path)
+    ) {
+      throw new Error(`Named icon ${name} must use a local QQ-era asset path`);
+    }
+    merged[name] = path;
+  }
+  return merged;
 }
 
 export async function replaceStagedTargetsTransactionally(
@@ -173,15 +197,15 @@ async function main() {
     const pngNames = await copyEmojiPngs(SOURCE_PNGS, stagedEmojiRoot);
 
     const emojiData = JSON.parse(await readFile(SOURCE_EMOJI_JSON, "utf8"));
-    const manifest = {};
+    const emojiManifest = {};
     for (const filename of pngNames) {
       const codepoints = filename.slice(0, -4);
       const path = `/assets/icons/generated/emoji/${filename}`;
       const emoji = emojiFromCodepoints(codepoints);
-      manifest[codepoints] = path;
-      manifest[emoji] = path;
+      emojiManifest[codepoints] = path;
+      emojiManifest[emoji] = path;
       for (const candidate of emojiCodepointCandidates(emoji)) {
-        manifest[candidate] = path;
+        emojiManifest[candidate] = path;
       }
     }
     for (const entry of emojiData) {
@@ -191,12 +215,28 @@ async function main() {
       const path = `/assets/icons/generated/emoji/${filename}`;
       for (const codepoints of [entry.unified, entry.non_qualified].filter(Boolean)) {
         const emoji = emojiFromCodepoints(codepoints);
-        manifest[emoji] = path;
+        emojiManifest[emoji] = path;
         for (const candidate of emojiCodepointCandidates(emoji)) {
-          manifest[candidate] = path;
+          emojiManifest[candidate] = path;
         }
       }
     }
+    const namedManifest = JSON.parse(
+      await readFile(NAMED_ICON_MANIFEST, "utf8"),
+    );
+    JSON.parse(await readFile(NAMED_ICON_SOURCES, "utf8"));
+    const manifest = mergeNamedIconManifest(emojiManifest, namedManifest);
+    const namedFiles = [];
+    for (const path of Object.values(namedManifest)) {
+      const file = resolve(ROOT, "frontend", path.slice(1));
+      await requireFile(file, `Named QQ-era icon ${path}`);
+      validatePngBuffer(await readFile(file), `Named QQ-era icon ${path}`);
+      namedFiles.push([`qq-era/${path.split("/").at(-1)}`, file]);
+    }
+    namedFiles.push(
+      ["qq-era/manifest.json", NAMED_ICON_MANIFEST],
+      ["qq-era/sources.json", NAMED_ICON_SOURCES],
+    );
 
     const actionFiles = [];
     for (const name of requiredActionIcons()) {
@@ -222,13 +262,22 @@ async function main() {
           version: "2.1.1",
           license: "MIT",
         },
+        qqEra: {
+          usage: "internal-test-only",
+          registry: "frontend/assets/icons/qq-era/sources.json",
+        },
       },
       counts: {
         actionSvgs: actionFiles.length,
         emojiManifestEntries: Object.keys(manifest).length,
         emojiPngs: emojiFiles.length,
+        namedPngs: Object.keys(namedManifest).length,
       },
-      sha256: await sha256ForFiles([...emojiFiles, ...actionFiles]),
+      sha256: await sha256ForFiles([
+        ...emojiFiles,
+        ...actionFiles,
+        ...namedFiles,
+      ]),
     };
 
     await writeFile(stagedManifest, `${JSON.stringify(manifest, null, 2)}\n`);
@@ -263,7 +312,7 @@ async function main() {
 
     const summary = await validateCommittedIconAssets();
     console.log(
-      `Generated ${summary.emojiFiles} emoji PNGs, ${summary.emojiEntries} manifest entries, and ${summary.actionIcons} action SVGs.`,
+      `Generated ${summary.emojiFiles} emoji PNGs, ${summary.namedFiles} named PNGs, ${summary.emojiEntries} manifest entries, and ${summary.actionIcons} action SVGs.`,
     );
   } finally {
     await rm(stagingRoot, { force: true, recursive: true });

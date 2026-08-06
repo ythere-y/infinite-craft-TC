@@ -1,0 +1,266 @@
+{
+  "踩空间": {
+    "icon": {"base": "👣", "badge": "🌌", "palette": "product", "source": "fallback"},
+    "fallback_icon": {"base": "👣", "badge": "🌌", "palette": "product", "source": "fallback"},
+    "rationale": "脚印与空间背景表达访问好友QQ空间",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "超级QQ": {
+    "icon": {"base": "qq-era:super-qq", "palette": "product", "source": "curated"},
+    "fallback_icon": {"base": "🐧", "badge": "📱", "palette": "product", "source": "fallback"},
+    "rationale": "使用2010年前后的超级QQ等级图标",
+    "provenance": {"source_id": "qq-icons-2010-pack", "archive_path": "超Q/vip_1.png"}
+  },
+  "窗口抖动": {
+    "icon": {"base": "🪟", "badge": "💥", "palette": "product", "source": "fallback"},
+    "fallback_icon": {"base": "🪟", "badge": "💥", "palette": "product", "source": "fallback"},
+    "rationale": "窗口与冲击标记表达QQ窗口抖动",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "滴滴滴": {
+    "icon": {"base": "🔔", "badge": "💬", "palette": "product", "source": "fallback"},
+    "fallback_icon": {"base": "🔔", "badge": "💬", "palette": "product", "source": "fallback"},
+    "rationale": "铃声与消息气泡表达QQ经典提示音",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "粉钻": {
+    "icon": {"base": "qq-era:pink-diamond", "palette": "product", "source": "curated"},
+    "fallback_icon": {"base": "💎", "badge": "🐧", "palette": "product", "source": "fallback"},
+    "rationale": "使用QQ 2008粉钻经典点亮图标",
+    "provenance": {"source_id": "qq-icons-2010-pack", "archive_path": "08版本7钻/粉钻.png"}
+  },
+  "个性签名": {
+    "icon": {"base": "✍️", "badge": "📝", "palette": "people", "source": "fallback"},
+    "fallback_icon": {"base": "✍️", "badge": "📝", "palette": "people", "source": "fallback"},
+    "rationale": "书写动作与文本表达个性签名",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "黑钻": {
+    "icon": {"base": "qq-era:black-diamond", "palette": "studio", "source": "curated"},
+    "fallback_icon": {"base": "💎", "badge": "⚔️", "palette": "studio", "source": "fallback"},
+    "rationale": "使用QQ 2008黑钻经典点亮图标",
+    "provenance": {"source_id": "qq-icons-2010-pack", "archive_path": "08版本7钻/黑钻.png"}
+  },
+  "红钻": {
+    "icon": {"base": "qq-era:red-diamond", "palette": "product", "source": "curated"},
+    "fallback_icon": {"base": "💎", "badge": "👗", "palette": "product", "source": "fallback"},
+    "rationale": "使用QQ 2008红钻经典点亮图标",
+    "provenance": {"source_id": "qq-icons-2010-pack", "archive_path": "08版本7钻/红钻.png"}
+  },
+  "黄钻": {
+    "icon": {"base": "qq-era:yellow-diamond", "palette": "product", "source": "curated"},
+    "fallback_icon": {"base": "💎", "badge": "⭐", "palette": "product", "source": "fallback"},
+    "rationale": "使用QQ 2008空间黄钻经典点亮图标",
+    "provenance": {"source_id": "qq-icons-2010-pack", "archive_path": "08版本7钻/黄钻.png"}
+  },
+  "灰色头像": {
+    "icon": {"base": "👤", "badge": "⚫", "palette": "people", "source": "fallback"},
+    "fallback_icon": {"base": "👤", "badge": "⚫", "palette": "people", "source": "fallback"},
+    "rationale": "灰暗用户轮廓表达离线灰色头像",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "蓝钻": {
+    "icon": {"base": "qq-era:blue-diamond", "palette": "studio", "source": "curated"},
+    "fallback_icon": {"base": "💎", "badge": "🎮", "palette": "studio", "source": "fallback"},
+    "rationale": "使用QQ 2008蓝钻经典点亮图标",
+    "provenance": {"source_id": "qq-icons-2010-pack", "archive_path": "08版本7钻/蓝钻.png"}
+  },
+  "留言板": {
+    "icon": {"base": "📝", "badge": "💬", "palette": "product", "source": "fallback"},
+    "fallback_icon": {"base": "📝", "badge": "💬", "palette": "product", "source": "fallback"},
+    "rationale": "便笺与消息气泡表达空间留言板",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "绿钻": {
+    "icon": {"base": "qq-era:green-diamond", "palette": "product", "source": "curated"},
+    "fallback_icon": {"base": "💎", "badge": "🎵", "palette": "product", "source": "fallback"},
+    "rationale": "使用QQ 2008绿钻经典点亮图标",
+    "provenance": {"source_id": "qq-icons-2010-pack", "archive_path": "08版本7钻/绿钻.png"}
+  },
+  "你是GG还是MM": {
+    "icon": {"base": "🚻", "badge": "❓", "palette": "people", "source": "fallback"},
+    "fallback_icon": {"base": "🚻", "badge": "❓", "palette": "people", "source": "fallback"},
+    "rationale": "性别标记与问号表达QQ时代的身份询问",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "朋友网": {
+    "icon": {"base": "👥", "badge": "🌐", "palette": "people", "source": "fallback"},
+    "fallback_icon": {"base": "👥", "badge": "🌐", "palette": "people", "source": "fallback"},
+    "rationale": "好友群体与网络表达朋友网",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "抢车位": {
+    "icon": {"base": "🚗", "badge": "🅿️", "palette": "product", "source": "fallback"},
+    "fallback_icon": {"base": "🚗", "badge": "🅿️", "palette": "product", "source": "fallback"},
+    "rationale": "汽车与停车标记表达抢车位",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "手机QQ": {
+    "icon": {"base": "📱", "badge": "🐧", "palette": "product", "source": "fallback"},
+    "fallback_icon": {"base": "📱", "badge": "🐧", "palette": "product", "source": "fallback"},
+    "rationale": "手机与QQ企鹅表达手机QQ",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "太阳号": {
+    "icon": {"base": "☀️", "badge": "🔢", "palette": "office", "source": "fallback"},
+    "fallback_icon": {"base": "☀️", "badge": "🔢", "palette": "office", "source": "fallback"},
+    "rationale": "太阳等级与号码表达太阳号",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "腾讯微博": {
+    "icon": {"base": "📣", "badge": "🐧", "palette": "product", "source": "fallback"},
+    "fallback_icon": {"base": "📣", "badge": "🐧", "palette": "product", "source": "fallback"},
+    "rationale": "广播符号与企鹅表达腾讯微博",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "腾讯TT": {
+    "icon": {"base": "🧭", "badge": "🔤", "palette": "product", "source": "fallback"},
+    "fallback_icon": {"base": "🧭", "badge": "🔤", "palette": "product", "source": "fallback"},
+    "rationale": "浏览器罗盘与文字标记表达腾讯TT",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "偷菜": {
+    "icon": {"base": "🥬", "badge": "🤏", "palette": "people", "source": "fallback"},
+    "fallback_icon": {"base": "🥬", "badge": "🤏", "palette": "people", "source": "fallback"},
+    "rationale": "蔬菜与取物手势表达QQ农场偷菜",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "隐身上线": {
+    "icon": {"base": "🥷", "badge": "🟢", "palette": "people", "source": "fallback"},
+    "fallback_icon": {"base": "🥷", "badge": "🟢", "palette": "people", "source": "fallback"},
+    "rationale": "隐匿人物与在线绿点表达隐身上线",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "在线升级": {
+    "icon": {"base": "⬆️", "badge": "⏱️", "palette": "office", "source": "fallback"},
+    "fallback_icon": {"base": "⬆️", "badge": "⏱️", "palette": "office", "source": "fallback"},
+    "rationale": "升级箭头与在线时长表达在线升级",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "紫钻": {
+    "icon": {"base": "qq-era:purple-diamond", "palette": "studio", "source": "curated"},
+    "fallback_icon": {"base": "💎", "badge": "🎵", "palette": "studio", "source": "fallback"},
+    "rationale": "使用QQ 2008紫钻经典点亮图标",
+    "provenance": {"source_id": "qq-icons-2010-pack", "archive_path": "08版本7钻/紫钻.png"}
+  },
+  "OICQ": {
+    "icon": {"base": "☎️", "badge": "🐧", "palette": "product", "source": "fallback"},
+    "fallback_icon": {"base": "☎️", "badge": "🐧", "palette": "product", "source": "fallback"},
+    "rationale": "传统电话与企鹅表达早期OICQ",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "Q币": {
+    "icon": {"base": "🪙", "badge": "🐧", "palette": "product", "source": "fallback"},
+    "fallback_icon": {"base": "🪙", "badge": "🐧", "palette": "product", "source": "fallback"},
+    "rationale": "硬币与企鹅表达Q币",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "QQ": {
+    "icon": {"base": "qq-era:qq", "palette": "product", "source": "curated"},
+    "fallback_icon": {"base": "🐧", "badge": "💬", "palette": "product", "source": "fallback"},
+    "rationale": "使用QQ 2010经典企鹅程序图标",
+    "provenance": {"source_id": "qq-icons-2010-pack", "archive_path": "QQ其它/QQ_logo32-xp.PNG"}
+  },
+  "QQ餐厅": {
+    "icon": {"base": "🍽️", "badge": "🐧", "palette": "product", "source": "fallback"},
+    "fallback_icon": {"base": "🍽️", "badge": "🐧", "palette": "product", "source": "fallback"},
+    "rationale": "餐具与企鹅表达QQ餐厅",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "QQ宠物": {
+    "icon": {"base": "🐧", "badge": "❤️", "palette": "people", "source": "fallback"},
+    "fallback_icon": {"base": "🐧", "badge": "❤️", "palette": "people", "source": "fallback"},
+    "rationale": "企鹅与爱心表达QQ宠物",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "QQ等级": {
+    "icon": {"base": "qq-era:qq-level", "palette": "office", "source": "curated"},
+    "fallback_icon": {"base": "⭐", "badge": "☀️", "palette": "office", "source": "fallback"},
+    "rationale": "使用QQ 2010星星月亮太阳等级图标",
+    "provenance": {"source_id": "qq-icons-2010-pack", "archive_path": "QQ其它/QQ等级.png"}
+  },
+  "QQ分组": {
+    "icon": {"base": "📁", "badge": "👥", "palette": "people", "source": "fallback"},
+    "fallback_icon": {"base": "📁", "badge": "👥", "palette": "people", "source": "fallback"},
+    "rationale": "文件夹与好友群体表达QQ分组",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "QQ会员": {
+    "icon": {"base": "qq-era:qq-member", "palette": "product", "source": "curated"},
+    "fallback_icon": {"base": "🐧", "badge": "👑", "palette": "product", "source": "fallback"},
+    "rationale": "使用经典红毛QQ会员企鹅",
+    "provenance": {"source_id": "qq-icons-2010-pack", "archive_path": "vip图片/QQ会员.png"}
+  },
+  "QQ空间": {
+    "icon": {"base": "qq-era:qzone", "palette": "product", "source": "curated"},
+    "fallback_icon": {"base": "⭐", "badge": "🌌", "palette": "product", "source": "fallback"},
+    "rationale": "使用QQ 2010经典空间星形图标",
+    "provenance": {"source_id": "qq-icons-2010-pack", "archive_path": "QQ其它/QQ空间.PNG"}
+  },
+  "QQ浏览器": {
+    "icon": {"base": "🧭", "badge": "🐧", "palette": "product", "source": "fallback"},
+    "fallback_icon": {"base": "🧭", "badge": "🐧", "palette": "product", "source": "fallback"},
+    "rationale": "浏览器罗盘与企鹅表达QQ浏览器",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "QQ牧场": {
+    "icon": {"base": "🐄", "badge": "🌾", "palette": "nature", "source": "fallback"},
+    "fallback_icon": {"base": "🐄", "badge": "🌾", "palette": "nature", "source": "fallback"},
+    "rationale": "奶牛与饲草表达QQ牧场",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "QQ农场": {
+    "icon": {"base": "🌾", "badge": "🥕", "palette": "nature", "source": "fallback"},
+    "fallback_icon": {"base": "🌾", "badge": "🥕", "palette": "nature", "source": "fallback"},
+    "rationale": "田间作物与胡萝卜表达QQ农场",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "QQ校友": {
+    "icon": {"base": "🎓", "badge": "👥", "palette": "people", "source": "fallback"},
+    "fallback_icon": {"base": "🎓", "badge": "👥", "palette": "people", "source": "fallback"},
+    "rationale": "学士帽与好友群体表达QQ校友",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "QQ秀": {
+    "icon": {"base": "👗", "badge": "🐧", "palette": "people", "source": "fallback"},
+    "fallback_icon": {"base": "👗", "badge": "🐧", "palette": "people", "source": "fallback"},
+    "rationale": "服饰与企鹅表达QQ秀",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "QQ旋风": {
+    "icon": {"base": "🌪️", "badge": "⚡", "palette": "product", "source": "fallback"},
+    "fallback_icon": {"base": "🌪️", "badge": "⚡", "palette": "product", "source": "fallback"},
+    "rationale": "旋风与闪电表达QQ旋风下载工具",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "QQ音乐": {
+    "icon": {"base": "qq-era:qq-music", "palette": "product", "source": "curated"},
+    "fallback_icon": {"base": "🎵", "badge": "🐧", "palette": "product", "source": "fallback"},
+    "rationale": "使用QQ 2010经典音乐图标",
+    "provenance": {"source_id": "qq-icons-2010-pack", "archive_path": "绿钻/QQ音乐.png"}
+  },
+  "QQ邮箱": {
+    "icon": {"base": "qq-era:qq-mail", "palette": "product", "source": "curated"},
+    "fallback_icon": {"base": "📧", "badge": "🐧", "palette": "product", "source": "fallback"},
+    "rationale": "使用QQ 2010经典邮箱图标",
+    "provenance": {"source_id": "qq-icons-2010-pack", "archive_path": "QQ其它/邮箱.png"}
+  },
+  "QQ游戏": {
+    "icon": {"base": "🎮", "badge": "🐧", "palette": "studio", "source": "fallback"},
+    "fallback_icon": {"base": "🎮", "badge": "🐧", "palette": "studio", "source": "fallback"},
+    "rationale": "游戏手柄与企鹅表达QQ游戏",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "QQ游戏大厅": {
+    "icon": {"base": "🕹️", "badge": "🏛️", "palette": "studio", "source": "fallback"},
+    "fallback_icon": {"base": "🕹️", "badge": "🏛️", "palette": "studio", "source": "fallback"},
+    "rationale": "街机摇杆与大厅建筑表达QQ游戏大厅",
+    "provenance": {"source_id": "noto-emoji"}
+  },
+  "WebQQ": {
+    "icon": {"base": "🌐", "badge": "💬", "palette": "product", "source": "fallback"},
+    "fallback_icon": {"base": "🌐", "badge": "💬", "palette": "product", "source": "fallback"},
+    "rationale": "互联网与消息气泡表达网页版QQ",
+    "provenance": {"source_id": "noto-emoji"}
+  }
+}

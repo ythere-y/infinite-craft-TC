@@ -541,7 +541,7 @@ test("Makers build excludes the local Prompt administration UI and assets", asyn
 
     const adminHtml = await readFile(join(root, "dist/admin/index.html"), "utf8");
     assert.doesNotMatch(adminHtml, /data-admin-tab="prompt"/u);
-    assert.doesNotMatch(adminHtml, /class="admin-tabs"/u);
+    assert.match(adminHtml, /class="admin-tabs"/u);
     assert.doesNotMatch(adminHtml, /\/api\/admin\/prompt/u);
     assert.doesNotMatch(adminHtml, /\/copy-to-draft/u);
     assert.doesNotMatch(adminHtml, /version_offset/u);
@@ -558,8 +558,11 @@ test("Makers build excludes the local Prompt administration UI and assets", asyn
     assert.doesNotMatch(adminHtml, /LOCAL_PROMPT_ADMIN_/u);
     assert.match(adminHtml, /id="admin-monitor-panel"/u);
     assert.match(adminHtml, /\/api\/admin\/stats/u);
-    assert.doesNotMatch(adminHtml, /aria-labelledby="admin-monitor-tab"/u);
-    assert.doesNotMatch(adminHtml, /role="tabpanel"/u);
+    assert.match(adminHtml, /aria-labelledby="admin-monitor-tab"/u);
+    assert.match(adminHtml, /data-admin-tab="llm"/u);
+    assert.match(adminHtml, /role="tabpanel"/u);
+    assert.match(adminHtml, /admin\/llm-admin\.js/u);
+    assert.match(adminHtml, /admin\/llm-admin\.css/u);
     await assert.rejects(
       access(join(root, "dist/admin/prompt-admin.js")),
       { code: "ENOENT" },

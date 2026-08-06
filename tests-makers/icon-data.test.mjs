@@ -10,6 +10,52 @@ const PALETTES = new Set([
   "people",
   "place",
 ]);
+const QQ_MEMORY_ELEMENTS = [
+  "踩空间",
+  "超级QQ",
+  "窗口抖动",
+  "滴滴滴",
+  "粉钻",
+  "个性签名",
+  "黑钻",
+  "红钻",
+  "黄钻",
+  "灰色头像",
+  "蓝钻",
+  "留言板",
+  "绿钻",
+  "你是GG还是MM",
+  "朋友网",
+  "抢车位",
+  "手机QQ",
+  "太阳号",
+  "腾讯微博",
+  "腾讯TT",
+  "偷菜",
+  "隐身上线",
+  "在线升级",
+  "紫钻",
+  "OICQ",
+  "Q币",
+  "QQ",
+  "QQ餐厅",
+  "QQ宠物",
+  "QQ等级",
+  "QQ分组",
+  "QQ会员",
+  "QQ空间",
+  "QQ浏览器",
+  "QQ牧场",
+  "QQ农场",
+  "QQ校友",
+  "QQ秀",
+  "QQ旋风",
+  "QQ音乐",
+  "QQ邮箱",
+  "QQ游戏",
+  "QQ游戏大厅",
+  "WebQQ",
+];
 
 async function readJson(path) {
   return JSON.parse(await readFile(path, "utf8"));
@@ -49,6 +95,58 @@ test("the committed icon map covers every preset with valid semantic recipes", a
       );
     }
   }
+});
+
+test("QQ memory icons use explicit unique mappings with deterministic fallbacks", async () => {
+  const [iconMap, manifest] = await Promise.all([
+    readJson("frontend/assets/icons/generated/element-icon-map.json"),
+    readJson("frontend/assets/icons/generated/emoji-icon-manifest.json"),
+  ]);
+  const forbiddenGenericBases = new Set([
+    "🩷",
+    "🖤",
+    "❤️",
+    "💛",
+    "💙",
+    "💚",
+    "💜",
+  ]);
+  const signatures = new Set();
+
+  for (const name of QQ_MEMORY_ELEMENTS) {
+    const row = iconMap[name];
+    assert.ok(row, `${name} needs an explicit icon row`);
+    assert.notEqual(
+      row.icon.source,
+      "generated",
+      `${name} must not use a generated random badge`,
+    );
+    assert.ok(
+      !forbiddenGenericBases.has(row.icon.base),
+      `${name} must not use a colored heart as its primary icon`,
+    );
+    assert.ok(manifest[row.icon.base], `${name} primary icon must resolve`);
+    assert.ok(row.fallback_icon, `${name} needs a deterministic fallback_icon`);
+    assert.ok(
+      manifest[row.fallback_icon.base],
+      `${name} fallback base must resolve`,
+    );
+    if (row.fallback_icon.badge) {
+      assert.ok(
+        manifest[row.fallback_icon.badge],
+        `${name} fallback badge must resolve`,
+      );
+    }
+    const signature = [
+      row.icon.base,
+      row.icon.badge ?? "",
+      row.icon.palette,
+    ].join("\0");
+    assert.ok(!signatures.has(signature), `${name} duplicates another QQ icon`);
+    signatures.add(signature);
+  }
+
+  assert.equal(signatures.size, 44);
 });
 
 test("locked entities retain their reviewed interpretations", async () => {
@@ -302,6 +400,115 @@ test("candidate generation honors entity, keyword, category, then fallback order
   });
 });
 
+test("curated product mappings win before generated catalog badges and retain fallback icons", async () => {
+  const { buildElementIconMap } = await import(
+    "../scripts/generate-icon-data.mjs"
+  );
+  const curated = {
+    "黄钻": {
+      icon: {
+        base: "qq-era:yellow-diamond",
+        palette: "product",
+        source: "curated",
+      },
+      fallback_icon: {
+        base: "💎",
+        badge: "⭐",
+        palette: "product",
+        source: "fallback",
+      },
+      rationale: "QQ 2008 经典黄钻图标",
+      provenance: {
+        source_id: "qq-icons-2010-pack",
+        kind: "historic_asset",
+        source_url: "https://example.test/qq-icons.zip",
+      },
+    },
+  };
+  const iconMap = buildElementIconMap({
+    seedElements: {
+      elements: {
+        "黄钻": { emoji: "💛", category: "qq_memory" },
+      },
+    },
+    seedCombinations: { combinations: {} },
+    catalogElementNames: new Set(["黄钻"]),
+    rules: {
+      palettes: ["product"],
+      category_palettes: { qq_memory: "product" },
+      keyword_badges: [],
+      category_badges: {},
+      category_badge_pools: { catalog: ["🔥"] },
+      allowed_sources: ["curated", "generated", "fallback"],
+    },
+    knowledge: {},
+    curated,
+    emojiManifest: {
+      "💛": "/icons/yellow-heart.png",
+      "💎": "/icons/diamond.png",
+      "⭐": "/icons/star.png",
+      "🔥": "/icons/fire.png",
+      "qq-era:yellow-diamond": "/icons/qq-era/yellow-diamond.png",
+    },
+  });
+
+  assert.deepEqual(iconMap["黄钻"], curated["黄钻"]);
+});
+
+test("curated mappings reject malformed recipes and missing review metadata", async () => {
+  const { buildElementIconMap } = await import(
+    "../scripts/generate-icon-data.mjs"
+  );
+  const valid = {
+    icon: {
+      base: "qq-era:yellow-diamond",
+      palette: "product",
+      source: "curated",
+    },
+    fallback_icon: {
+      base: "💎",
+      badge: "⭐",
+      palette: "product",
+      source: "fallback",
+    },
+    rationale: "reviewed",
+    provenance: { source_id: "qq-icons-2010-pack" },
+  };
+  const build = (entry) =>
+    buildElementIconMap({
+      seedElements: {
+        elements: { "黄钻": { emoji: "💛", category: "qq_memory" } },
+      },
+      seedCombinations: { combinations: {} },
+      rules: {
+        palettes: ["product"],
+        category_palettes: { qq_memory: "product" },
+        keyword_badges: [],
+        category_badges: {},
+        allowed_sources: ["curated", "fallback"],
+      },
+      knowledge: {},
+      curated: { "黄钻": entry },
+      emojiManifest: {
+        "💛": "/icons/yellow-heart.png",
+        "💎": "/icons/diamond.png",
+        "⭐": "/icons/star.png",
+        "qq-era:yellow-diamond": "/icons/yellow-diamond.png",
+      },
+    });
+
+  for (const [label, mutate, pattern] of [
+    ["palette", (row) => { row.icon.palette = "unknown"; }, /palette/i],
+    ["source", (row) => { row.icon.source = "generated"; }, /source/i],
+    ["rationale", (row) => { row.rationale = " "; }, /rationale/i],
+    ["provenance", (row) => { row.provenance = {}; }, /provenance/i],
+  ]) {
+    const entry = structuredClone(valid);
+    mutate(entry);
+    assert.throws(() => build(entry), pattern, label);
+  }
+});
+
 test("candidate generation rejects redundant self badges", async () => {
   const { buildElementIconMap } = await import(
     "../scripts/generate-icon-data.mjs"
@@ -476,6 +683,78 @@ test("audit counts every member of a reused signature and requires explicit exce
   });
   assert.ok(
     !excepted.violations.some((message) => /more than twice.*exception/i.test(message)),
+  );
+});
+
+test("audit gates catalog primary icon placeholders and concentration", async () => {
+  const { auditIconMap } = await import("../scripts/audit-icon-map.mjs");
+  const names = ["Catalog A", "Catalog B", "Catalog C", "Catalog D", "Catalog E"];
+  const seedElements = {
+    elements: Object.fromEntries(
+      [...names, "Catalog Placeholder"].map((name) => [
+        name,
+        {
+          emoji: name === "Catalog Placeholder" ? "🧩" : "💬",
+          category: "abstract",
+        },
+      ]),
+    ),
+  };
+  const iconMap = Object.fromEntries(
+    Object.entries(seedElements.elements).map(([name, row]) => [
+      name,
+      {
+        icon: {
+          base: row.emoji,
+          palette: "place",
+          source: "generated",
+        },
+        rationale: "catalog fixture",
+      },
+    ]),
+  );
+  const catalogElementNames = new Set(Object.keys(seedElements.elements));
+
+  const failed = auditIconMap({
+    seedElements,
+    iconMap,
+    emojiManifest: {
+      "💬": "/icons/chat.png",
+      "🧩": "/icons/puzzle.png",
+    },
+    knowledge: {},
+    catalogElementNames,
+  });
+
+  assert.deepEqual(failed.catalogPlaceholderNames, ["Catalog Placeholder"]);
+  assert.deepEqual(failed.catalogBaseOveruseGroups[0].names, names);
+  assert.ok(
+    failed.violations.some((message) => /catalog.*placeholder.*Catalog Placeholder/i.test(message)),
+  );
+  assert.ok(
+    failed.violations.some((message) => /catalog.*base.*five|5.*exception/i.test(message)),
+  );
+
+  for (const name of names) {
+    iconMap[name].duplicate_exception = "reviewed catalog visual family";
+  }
+  const excepted = auditIconMap({
+    seedElements,
+    iconMap,
+    emojiManifest: {
+      "💬": "/icons/chat.png",
+      "🧩": "/icons/puzzle.png",
+    },
+    knowledge: {},
+    catalogElementNames,
+  });
+
+  assert.deepEqual(excepted.catalogBaseOveruseGroups, []);
+  assert.ok(
+    excepted.violations.every((message) => !/catalog.*base.*five|5.*exception/i.test(message)),
+  );
+  assert.ok(
+    excepted.violations.some((message) => /catalog.*placeholder/i.test(message)),
   );
 });
 

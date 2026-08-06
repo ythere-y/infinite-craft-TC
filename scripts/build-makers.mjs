@@ -55,6 +55,9 @@ const REQUIRED_ENTRIES = [
   "wall/first-honor.js",
   "wall/wall.js",
   "admin/index.html",
+  "admin/admin-tabs.js",
+  "admin/llm-admin.css",
+  "admin/llm-admin.js",
 ];
 
 async function assertPublicEntries() {
@@ -85,12 +88,6 @@ function stripMarkedLocalPromptHtml(html) {
     }
     stripped = `${stripped.slice(0, startAt)}${stripped.slice(endAt + end.length)}`;
   }
-  const monitorTabSemantics =
-    /\s+role="tabpanel"\s+aria-labelledby="admin-monitor-tab"/gu;
-  if ([...stripped.matchAll(monitorTabSemantics)].length !== 1) {
-    throw new Error("Missing or duplicate local monitor tab semantics");
-  }
-  stripped = stripped.replace(monitorTabSemantics, "");
   return stripped;
 }
 

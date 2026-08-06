@@ -749,7 +749,7 @@
       }
     },
     "爆料": {
-      "emoji": "💬",
+      "emoji": "📢",
       "category": "tencent",
       "aliases": [],
       "canonical_recipe": {
@@ -764,7 +764,7 @@
       }
     },
     "水帖": {
-      "emoji": "💬",
+      "emoji": "💦",
       "category": "tencent",
       "aliases": [],
       "canonical_recipe": {
@@ -1169,7 +1169,7 @@
       }
     },
     "IEG": {
-      "emoji": "🎮",
+      "emoji": "🏢",
       "category": "tencent",
       "aliases": [],
       "canonical_recipe": {
@@ -1274,7 +1274,7 @@
       }
     },
     "OICQ": {
-      "emoji": "💬",
+      "emoji": "☎️",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1289,7 +1289,7 @@
       }
     },
     "手机QQ": {
-      "emoji": "💬",
+      "emoji": "📱",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1304,7 +1304,7 @@
       }
     },
     "QQ游戏": {
-      "emoji": "💬",
+      "emoji": "🎮",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1319,7 +1319,7 @@
       }
     },
     "QQ游戏大厅": {
-      "emoji": "💬",
+      "emoji": "🏛️",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1349,7 +1349,7 @@
       }
     },
     "QQ秀": {
-      "emoji": "💬",
+      "emoji": "🕺",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1409,7 +1409,7 @@
       }
     },
     "QQ宠物": {
-      "emoji": "💬",
+      "emoji": "🐧",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1424,7 +1424,7 @@
       }
     },
     "QQ农场": {
-      "emoji": "💬",
+      "emoji": "🌾",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1439,7 +1439,7 @@
       }
     },
     "QQ牧场": {
-      "emoji": "💬",
+      "emoji": "🐄",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1454,7 +1454,7 @@
       }
     },
     "QQ餐厅": {
-      "emoji": "💬",
+      "emoji": "🍽️",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1469,7 +1469,7 @@
       }
     },
     "抢车位": {
-      "emoji": "💬",
+      "emoji": "🚘",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1484,7 +1484,7 @@
       }
     },
     "QQ校友": {
-      "emoji": "💬",
+      "emoji": "🎓",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1499,7 +1499,7 @@
       }
     },
     "朋友网": {
-      "emoji": "💬",
+      "emoji": "🧑‍🤝‍🧑",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1514,7 +1514,7 @@
       }
     },
     "腾讯微博": {
-      "emoji": "💬",
+      "emoji": "📣",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1529,7 +1529,7 @@
       }
     },
     "WebQQ": {
-      "emoji": "💬",
+      "emoji": "🌐",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1544,7 +1544,7 @@
       }
     },
     "腾讯TT": {
-      "emoji": "💬",
+      "emoji": "🧭",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1559,7 +1559,7 @@
       }
     },
     "QQ旋风": {
-      "emoji": "💬",
+      "emoji": "🌪️",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1574,7 +1574,7 @@
       }
     },
     "Q币": {
-      "emoji": "💬",
+      "emoji": "🪙",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1589,7 +1589,7 @@
       }
     },
     "QQ会员": {
-      "emoji": "💬",
+      "emoji": "👑",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1604,7 +1604,7 @@
       }
     },
     "超级QQ": {
-      "emoji": "💬",
+      "emoji": "🦸",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1619,7 +1619,7 @@
       }
     },
     "黄钻": {
-      "emoji": "💬",
+      "emoji": "💛",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1634,7 +1634,7 @@
       }
     },
     "红钻": {
-      "emoji": "💬",
+      "emoji": "❤️",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1649,7 +1649,7 @@
       }
     },
     "绿钻": {
-      "emoji": "💬",
+      "emoji": "💚",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1664,7 +1664,7 @@
       }
     },
     "蓝钻": {
-      "emoji": "💬",
+      "emoji": "💙",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1679,7 +1679,7 @@
       }
     },
     "紫钻": {
-      "emoji": "💬",
+      "emoji": "💜",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1694,7 +1694,7 @@
       }
     },
     "粉钻": {
-      "emoji": "💬",
+      "emoji": "🩷",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1709,7 +1709,7 @@
       }
     },
     "黑钻": {
-      "emoji": "💬",
+      "emoji": "🖤",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1724,7 +1724,7 @@
       }
     },
     "QQ等级": {
-      "emoji": "💬",
+      "emoji": "🪜",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1739,7 +1739,7 @@
       }
     },
     "太阳号": {
-      "emoji": "💬",
+      "emoji": "☀️",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1754,7 +1754,7 @@
       }
     },
     "你是GG还是MM": {
-      "emoji": "💬",
+      "emoji": "🚻",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1769,7 +1769,7 @@
       }
     },
     "滴滴滴": {
-      "emoji": "💬",
+      "emoji": "🔔",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1784,7 +1784,7 @@
       }
     },
     "窗口抖动": {
-      "emoji": "💬",
+      "emoji": "🪟",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1799,7 +1799,7 @@
       }
     },
     "隐身上线": {
-      "emoji": "💬",
+      "emoji": "🫥",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1814,7 +1814,7 @@
       }
     },
     "在线升级": {
-      "emoji": "💬",
+      "emoji": "⬆️",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1829,7 +1829,7 @@
       }
     },
     "踩空间": {
-      "emoji": "💬",
+      "emoji": "👣",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1844,7 +1844,7 @@
       }
     },
     "偷菜": {
-      "emoji": "💬",
+      "emoji": "🥬",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1859,7 +1859,7 @@
       }
     },
     "灰色头像": {
-      "emoji": "💬",
+      "emoji": "🩶",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1874,7 +1874,7 @@
       }
     },
     "个性签名": {
-      "emoji": "💬",
+      "emoji": "✍️",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1889,7 +1889,7 @@
       }
     },
     "QQ分组": {
-      "emoji": "💬",
+      "emoji": "🗂️",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1904,7 +1904,7 @@
       }
     },
     "留言板": {
-      "emoji": "💬",
+      "emoji": "🗒️",
       "category": "qq_memory",
       "aliases": [],
       "canonical_recipe": {
@@ -1919,7 +1919,7 @@
       }
     },
     "QQ堂": {
-      "emoji": "🎮",
+      "emoji": "🧱",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -1938,7 +1938,7 @@
       }
     },
     "QQ幻想": {
-      "emoji": "🎮",
+      "emoji": "🧚",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -1957,7 +1957,7 @@
       }
     },
     "自由幻想": {
-      "emoji": "🎮",
+      "emoji": "🦋",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -1976,7 +1976,7 @@
       }
     },
     "QQ三国": {
-      "emoji": "🎮",
+      "emoji": "🏯",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -1995,7 +1995,7 @@
       }
     },
     "QQ华夏": {
-      "emoji": "🎮",
+      "emoji": "🐉",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2014,7 +2014,7 @@
       }
     },
     "QQ飞车": {
-      "emoji": "🎮",
+      "emoji": "🏎️",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2033,7 +2033,7 @@
       }
     },
     "QQ炫舞": {
-      "emoji": "🎮",
+      "emoji": "💃",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2052,7 +2052,7 @@
       }
     },
     "QQ音速": {
-      "emoji": "🎮",
+      "emoji": "🎵",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2071,7 +2071,7 @@
       }
     },
     "洛克王国": {
-      "emoji": "🎮",
+      "emoji": "🏰",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2090,7 +2090,7 @@
       }
     },
     "Q宠大乐斗": {
-      "emoji": "🎮",
+      "emoji": "🥊",
       "category": "tencent_game",
       "aliases": [
         "Q宠大乱斗"
@@ -2111,7 +2111,7 @@
       }
     },
     "弹弹堂": {
-      "emoji": "🎮",
+      "emoji": "🎯",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2172,7 +2172,7 @@
       }
     },
     "寻仙": {
-      "emoji": "🎮",
+      "emoji": "🧙",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2191,7 +2191,7 @@
       }
     },
     "逆战": {
-      "emoji": "🎮",
+      "emoji": "🔫",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2210,7 +2210,7 @@
       }
     },
     "战地之王": {
-      "emoji": "🎮",
+      "emoji": "🪖",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2229,7 +2229,7 @@
       }
     },
     "剑灵": {
-      "emoji": "🎮",
+      "emoji": "🗡️",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2248,7 +2248,7 @@
       }
     },
     "上古世纪": {
-      "emoji": "🎮",
+      "emoji": "🗿",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2267,7 +2267,7 @@
       }
     },
     "使命召唤Online": {
-      "emoji": "🎮",
+      "emoji": "📯",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2286,7 +2286,7 @@
       }
     },
     "NBA2K Online": {
-      "emoji": "🎮",
+      "emoji": "🏀",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2305,7 +2305,7 @@
       }
     },
     "FIFA Online": {
-      "emoji": "🎮",
+      "emoji": "⚽",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2324,7 +2324,7 @@
       }
     },
     "天涯明月刀": {
-      "emoji": "🎮",
+      "emoji": "🌙",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2343,7 +2343,7 @@
       }
     },
     "御龙在天": {
-      "emoji": "🎮",
+      "emoji": "🐉",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2362,7 +2362,7 @@
       }
     },
     "轩辕传奇": {
-      "emoji": "🎮",
+      "emoji": "📜",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2381,7 +2381,7 @@
       }
     },
     "斗战神": {
-      "emoji": "🎮",
+      "emoji": "🐒",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2400,7 +2400,7 @@
       }
     },
     "节奏大师": {
-      "emoji": "🎮",
+      "emoji": "🥁",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2419,7 +2419,7 @@
       }
     },
     "天天酷跑": {
-      "emoji": "🎮",
+      "emoji": "🏃",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2438,7 +2438,7 @@
       }
     },
     "天天爱消除": {
-      "emoji": "🎮",
+      "emoji": "💞",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2457,7 +2457,7 @@
       }
     },
     "全民飞机大战": {
-      "emoji": "🎮",
+      "emoji": "✈️",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -2514,7 +2514,7 @@
       }
     },
     "英雄联盟": {
-      "emoji": "🎮",
+      "emoji": "🛡️",
       "category": "tencent_game",
       "aliases": [],
       "canonical_recipe": {
@@ -3219,7 +3219,7 @@
       }
     },
     "NExT Studios": {
-      "emoji": "🕹️",
+      "emoji": "⏭️",
       "category": "studio",
       "aliases": [],
       "canonical_recipe": {
@@ -3234,7 +3234,7 @@
       }
     },
     "Team Jade": {
-      "emoji": "🕹️",
+      "emoji": "💚",
       "category": "studio",
       "aliases": [],
       "canonical_recipe": {
@@ -3249,7 +3249,7 @@
       }
     },
     "MoreFun Studios": {
-      "emoji": "🕹️",
+      "emoji": "🎲",
       "category": "studio",
       "aliases": [],
       "canonical_recipe": {
@@ -3264,7 +3264,7 @@
       }
     },
     "Aurora Studio": {
-      "emoji": "🕹️",
+      "emoji": "🌌",
       "category": "studio",
       "aliases": [],
       "canonical_recipe": {
@@ -3279,7 +3279,7 @@
       }
     },
     "LIGHTSPEED LA": {
-      "emoji": "🕹️",
+      "emoji": "⚡",
       "category": "studio",
       "aliases": [],
       "canonical_recipe": {
@@ -3294,7 +3294,7 @@
       }
     },
     "Uncapped Games": {
-      "emoji": "🕹️",
+      "emoji": "🚀",
       "category": "studio",
       "aliases": [],
       "canonical_recipe": {
@@ -3324,7 +3324,7 @@
       }
     },
     "S Studio": {
-      "emoji": "🕹️",
+      "emoji": "🔷",
       "category": "studio",
       "aliases": [],
       "canonical_recipe": {
@@ -3339,7 +3339,7 @@
       }
     },
     "R Studio": {
-      "emoji": "🕹️",
+      "emoji": "🔴",
       "category": "studio",
       "aliases": [],
       "canonical_recipe": {
@@ -3354,7 +3354,7 @@
       }
     },
     "TiKi Studio": {
-      "emoji": "🕹️",
+      "emoji": "🗿",
       "category": "studio",
       "aliases": [],
       "canonical_recipe": {
@@ -3780,7 +3780,7 @@
       }
     },
     "Funcom": {
-      "emoji": "🤝",
+      "emoji": "🧙",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -3802,7 +3802,7 @@
       }
     },
     "Sumo Group": {
-      "emoji": "🤝",
+      "emoji": "🏎️",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -3824,7 +3824,7 @@
       }
     },
     "Digital Extremes": {
-      "emoji": "🤝",
+      "emoji": "🛰️",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -3846,7 +3846,7 @@
       }
     },
     "Sharkmob": {
-      "emoji": "🤝",
+      "emoji": "🦈",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -3868,7 +3868,7 @@
       }
     },
     "Grinding Gear Games": {
-      "emoji": "🤝",
+      "emoji": "⚙️",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -3890,7 +3890,7 @@
       }
     },
     "Klei Entertainment": {
-      "emoji": "🤝",
+      "emoji": "✏️",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -3912,7 +3912,7 @@
       }
     },
     "Miniclip": {
-      "emoji": "🤝",
+      "emoji": "🎱",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -3978,7 +3978,7 @@
       }
     },
     "微众银行": {
-      "emoji": "🤝",
+      "emoji": "🏦",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4000,7 +4000,7 @@
       }
     },
     "Ubisoft": {
-      "emoji": "🤝",
+      "emoji": "🌀",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4022,7 +4022,7 @@
       }
     },
     "Techland": {
-      "emoji": "🤝",
+      "emoji": "🧟",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4044,7 +4044,7 @@
       }
     },
     "Remedy Entertainment": {
-      "emoji": "🤝",
+      "emoji": "🔦",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4066,7 +4066,7 @@
       }
     },
     "Paradox Interactive": {
-      "emoji": "🤝",
+      "emoji": "🗺️",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4088,7 +4088,7 @@
       }
     },
     "PlatinumGames": {
-      "emoji": "🤝",
+      "emoji": "💿",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4110,7 +4110,7 @@
       }
     },
     "KADOKAWA": {
-      "emoji": "🤝",
+      "emoji": "📚",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4132,7 +4132,7 @@
       }
     },
     "Sea": {
-      "emoji": "🤝",
+      "emoji": "🌊",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4154,7 +4154,7 @@
       }
     },
     "Spotify": {
-      "emoji": "🤝",
+      "emoji": "🎧",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4176,7 +4176,7 @@
       }
     },
     "Snap": {
-      "emoji": "🤝",
+      "emoji": "👻",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4198,7 +4198,7 @@
       }
     },
     "Reddit": {
-      "emoji": "🤝",
+      "emoji": "👽",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4398,7 +4398,7 @@
       }
     },
     "Neople": {
-      "emoji": "🤝",
+      "emoji": "🏰",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4420,7 +4420,7 @@
       }
     },
     "Smilegate": {
-      "emoji": "🤝",
+      "emoji": "😊",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4442,7 +4442,7 @@
       }
     },
     "第七大道": {
-      "emoji": "🤝",
+      "emoji": "7️⃣",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4464,7 +4464,7 @@
       }
     },
     "Take-Two": {
-      "emoji": "🤝",
+      "emoji": "2️⃣",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4486,7 +4486,7 @@
       }
     },
     "EA": {
-      "emoji": "🤝",
+      "emoji": "🏟️",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4508,7 +4508,7 @@
       }
     },
     "Activision": {
-      "emoji": "🤝",
+      "emoji": "📯",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4530,7 +4530,7 @@
       }
     },
     "Nexon": {
-      "emoji": "🤝",
+      "emoji": "🟩",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4552,7 +4552,7 @@
       }
     },
     "KRAFTON": {
-      "emoji": "🤝",
+      "emoji": "🪂",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4574,7 +4574,7 @@
       }
     },
     "NCSoft": {
-      "emoji": "🤝",
+      "emoji": "🗡️",
       "category": "association",
       "aliases": [],
       "canonical_recipe": {
@@ -4618,55 +4618,55 @@
       "category": "tencent"
     },
     "光": {
-      "emoji": "🧩",
+      "emoji": "🔆",
       "category": "abstract"
     },
     "颜色": {
-      "emoji": "🧩",
+      "emoji": "🎨",
       "category": "abstract"
     },
     "文字": {
-      "emoji": "🧩",
+      "emoji": "🔤",
       "category": "abstract"
     },
     "公司": {
-      "emoji": "🧩",
+      "emoji": "🏢",
       "category": "abstract"
     },
     "荒野": {
-      "emoji": "🧩",
+      "emoji": "🏜️",
       "category": "abstract"
     },
     "目标": {
-      "emoji": "🧩",
+      "emoji": "🎯",
       "category": "abstract"
     },
     "怀旧": {
-      "emoji": "🧩",
+      "emoji": "📻",
       "category": "abstract"
     },
     "装扮": {
-      "emoji": "🧩",
+      "emoji": "👗",
       "category": "abstract"
     },
     "动物": {
-      "emoji": "🧩",
+      "emoji": "🐾",
       "category": "abstract"
     },
     "汽车": {
-      "emoji": "🧩",
+      "emoji": "🚗",
       "category": "abstract"
     },
     "学校": {
-      "emoji": "🧩",
+      "emoji": "🏫",
       "category": "abstract"
     },
     "下载": {
-      "emoji": "🧩",
+      "emoji": "📥",
       "category": "abstract"
     },
     "货币": {
-      "emoji": "🧩",
+      "emoji": "🪙",
       "category": "abstract"
     },
     "会员": {
@@ -4674,51 +4674,51 @@
       "category": "abstract"
     },
     "经验": {
-      "emoji": "🧩",
+      "emoji": "🧠",
       "category": "abstract"
     },
     "陌生人": {
-      "emoji": "🧩",
+      "emoji": "👤",
       "category": "abstract"
     },
     "声音": {
-      "emoji": "🧩",
+      "emoji": "🔊",
       "category": "abstract"
     },
     "震动": {
-      "emoji": "🧩",
+      "emoji": "📳",
       "category": "abstract"
     },
     "影子": {
-      "emoji": "🧩",
+      "emoji": "🌑",
       "category": "abstract"
     },
     "经验值": {
-      "emoji": "🧩",
+      "emoji": "📊",
       "category": "abstract"
     },
     "访问": {
-      "emoji": "🧩",
+      "emoji": "🚪",
       "category": "abstract"
     },
     "离线": {
-      "emoji": "🧩",
+      "emoji": "📴",
       "category": "abstract"
     },
     "签名": {
-      "emoji": "🧩",
+      "emoji": "✍️",
       "category": "abstract"
     },
     "好友": {
-      "emoji": "🧩",
+      "emoji": "🧑‍🤝‍🧑",
       "category": "abstract"
     },
     "留言": {
-      "emoji": "🧩",
+      "emoji": "📝",
       "category": "abstract"
     },
     "对战": {
-      "emoji": "🧩",
+      "emoji": "🥋",
       "category": "abstract"
     },
     "角色扮演": {
@@ -4726,63 +4726,63 @@
       "category": "abstract"
     },
     "梦": {
-      "emoji": "🧩",
+      "emoji": "💭",
       "category": "abstract"
     },
     "战争": {
-      "emoji": "🧩",
+      "emoji": "💥",
       "category": "abstract"
     },
     "历史": {
-      "emoji": "🧩",
+      "emoji": "📜",
       "category": "abstract"
     },
     "速度": {
-      "emoji": "🧩",
+      "emoji": "⚡",
       "category": "abstract"
     },
     "舞蹈": {
-      "emoji": "🧩",
+      "emoji": "💃",
       "category": "abstract"
     },
     "魔法": {
-      "emoji": "🧩",
+      "emoji": "🪄",
       "category": "abstract"
     },
     "格斗": {
-      "emoji": "🧩",
+      "emoji": "🥊",
       "category": "abstract"
     },
     "弹射": {
-      "emoji": "🧩",
+      "emoji": "🏹",
       "category": "abstract"
     },
     "仙侠": {
-      "emoji": "🧩",
+      "emoji": "🧚",
       "category": "abstract"
     },
     "未来": {
-      "emoji": "🧩",
+      "emoji": "🔮",
       "category": "abstract"
     },
     "战地": {
-      "emoji": "🧩",
+      "emoji": "🪖",
       "category": "abstract"
     },
     "剑": {
-      "emoji": "🧩",
+      "emoji": "🗡️",
       "category": "abstract"
     },
     "灵魂": {
-      "emoji": "🧩",
+      "emoji": "👻",
       "category": "abstract"
     },
     "上古": {
-      "emoji": "🧩",
+      "emoji": "🗿",
       "category": "abstract"
     },
     "使命召唤": {
-      "emoji": "🧩",
+      "emoji": "📯",
       "category": "abstract"
     },
     "NBA": {
@@ -4790,27 +4790,27 @@
       "category": "abstract"
     },
     "明月": {
-      "emoji": "🧩",
+      "emoji": "🌕",
       "category": "abstract"
     },
     "御龙": {
-      "emoji": "🧩",
+      "emoji": "🐉",
       "category": "abstract"
     },
     "轩辕": {
-      "emoji": "🧩",
+      "emoji": "🏯",
       "category": "abstract"
     },
     "斗战": {
-      "emoji": "🧩",
+      "emoji": "🐒",
       "category": "abstract"
     },
     "节奏": {
-      "emoji": "🧩",
+      "emoji": "🥁",
       "category": "abstract"
     },
     "跑步": {
-      "emoji": "🧩",
+      "emoji": "🏃",
       "category": "abstract"
     },
     "消除": {
@@ -4818,7 +4818,7 @@
       "category": "abstract"
     },
     "战术": {
-      "emoji": "🧩",
+      "emoji": "♟️",
       "category": "abstract"
     },
     "棋盘": {
@@ -4826,27 +4826,27 @@
       "category": "abstract"
     },
     "云盘": {
-      "emoji": "🧩",
+      "emoji": "💾",
       "category": "abstract"
     },
     "大数据": {
-      "emoji": "🧩",
+      "emoji": "🗄️",
       "category": "abstract"
     },
     "客服": {
-      "emoji": "🧩",
+      "emoji": "🎧",
       "category": "abstract"
     },
     "创新": {
-      "emoji": "🧩",
+      "emoji": "✨",
       "category": "abstract"
     },
     "射击": {
-      "emoji": "🧩",
+      "emoji": "🔫",
       "category": "abstract"
     },
     "光线": {
-      "emoji": "🧩",
+      "emoji": "🔦",
       "category": "abstract"
     },
     "洛杉矶": {
@@ -4854,7 +4854,7 @@
       "category": "abstract"
     },
     "即时战略": {
-      "emoji": "🧩",
+      "emoji": "🗺️",
       "category": "abstract"
     },
     "量子计算": {
@@ -4862,107 +4862,107 @@
       "category": "abstract"
     },
     "开发商": {
-      "emoji": "🧩",
+      "emoji": "🧑‍💻",
       "category": "abstract"
     },
     "沙盒": {
-      "emoji": "🧩",
+      "emoji": "🧱",
       "category": "abstract"
     },
     "竞速": {
-      "emoji": "🧩",
+      "emoji": "🏎️",
       "category": "abstract"
     },
     "科幻": {
-      "emoji": "🧩",
+      "emoji": "👽",
       "category": "abstract"
     },
     "吸血鬼": {
-      "emoji": "🧩",
+      "emoji": "🧛",
       "category": "abstract"
     },
     "流放": {
-      "emoji": "🧩",
+      "emoji": "🚶",
       "category": "abstract"
     },
     "饥荒": {
-      "emoji": "🧩",
+      "emoji": "🥖",
       "category": "abstract"
     },
     "小游戏": {
-      "emoji": "🧩",
+      "emoji": "🕹️",
       "category": "abstract"
     },
     "集团": {
-      "emoji": "🧩",
+      "emoji": "🏙️",
       "category": "abstract"
     },
     "银行": {
-      "emoji": "🧩",
+      "emoji": "🏦",
       "category": "abstract"
     },
     "刺客": {
-      "emoji": "🧩",
+      "emoji": "🥷",
       "category": "abstract"
     },
     "僵尸": {
-      "emoji": "🧩",
+      "emoji": "🧟",
       "category": "abstract"
     },
     "叙事": {
-      "emoji": "🧩",
+      "emoji": "📖",
       "category": "abstract"
     },
     "策略": {
-      "emoji": "🧩",
+      "emoji": "🧭",
       "category": "abstract"
     },
     "动作": {
-      "emoji": "🧩",
+      "emoji": "🎬",
       "category": "abstract"
     },
     "出版": {
-      "emoji": "🧩",
+      "emoji": "📰",
       "category": "abstract"
     },
     "流媒体": {
-      "emoji": "🧩",
+      "emoji": "📡",
       "category": "abstract"
     },
     "社交": {
-      "emoji": "🧩",
+      "emoji": "🗨️",
       "category": "abstract"
     },
     "相机": {
-      "emoji": "🧩",
+      "emoji": "📷",
       "category": "abstract"
     },
     "论坛": {
-      "emoji": "🧩",
+      "emoji": "🗣️",
       "category": "abstract"
     },
     "老铁": {
-      "emoji": "🧩",
+      "emoji": "🤜",
       "category": "abstract"
     },
     "视频": {
-      "emoji": "🧩",
+      "emoji": "📺",
       "category": "abstract"
     },
     "拼团": {
-      "emoji": "🧩",
+      "emoji": "👥",
       "category": "abstract"
     },
     "团购": {
-      "emoji": "🧩",
+      "emoji": "🛒",
       "category": "abstract"
     },
     "极品飞车": {
-      "emoji": "🧩",
+      "emoji": "🏁",
       "category": "abstract"
     },
     "发行商": {
-      "emoji": "🧩",
+      "emoji": "📦",
       "category": "abstract"
     },
     "物理": {
@@ -5021,19 +5021,19 @@
     },
     "火 + 火": {
       "result": "光",
-      "emoji": "🧩",
+      "emoji": "🔆",
       "chain": "support",
       "comment": "火焰汇聚，发出光。"
     },
     "光 + 雨": {
       "result": "颜色",
-      "emoji": "🧩",
+      "emoji": "🎨",
       "chain": "support",
       "comment": "光穿过雨滴，分解出颜色。"
     },
     "电脑 + 知识": {
       "result": "文字",
-      "emoji": "🧩",
+      "emoji": "🔤",
       "chain": "support",
       "comment": "知识输入电脑，沉淀为文字。"
     },
@@ -5051,7 +5051,7 @@
     },
     "人 + 工位": {
       "result": "公司",
-      "emoji": "🧩",
+      "emoji": "🏢",
       "chain": "support",
       "comment": "人们在工位上协作，组成公司。"
     },
@@ -5063,7 +5063,7 @@
     },
     "人 + 风": {
       "result": "声音",
-      "emoji": "🧩",
+      "emoji": "🔊",
       "chain": "support",
       "comment": "人的发声借空气传播为声音。"
     },
@@ -5105,55 +5105,55 @@
     },
     "土 + 影子": {
       "result": "荒野",
-      "emoji": "🧩",
+      "emoji": "🏜️",
       "chain": "support",
       "comment": "远离人烟的土地化作荒野。"
     },
     "文字 + 未来": {
       "result": "目标",
-      "emoji": "🧩",
+      "emoji": "🎯",
       "chain": "support",
       "comment": "把未来设想写成文字，形成目标。"
     },
     "历史 + 聊天": {
       "result": "怀旧",
-      "emoji": "🧩",
+      "emoji": "📻",
       "chain": "support",
       "comment": "聊天回望历史，产生怀旧。"
     },
     "人 + 颜色": {
       "result": "装扮",
-      "emoji": "🧩",
+      "emoji": "👗",
       "chain": "support",
       "comment": "人用颜色装点自己，形成装扮。"
     },
     "时间 + 植物": {
       "result": "动物",
-      "emoji": "🧩",
+      "emoji": "🐾",
       "chain": "support",
       "comment": "生命随时间演化出动物。"
     },
     "速度 + 金属": {
       "result": "汽车",
-      "emoji": "🧩",
+      "emoji": "🚗",
       "chain": "support",
       "comment": "金属机械获得速度，成为汽车。"
     },
     "城市 + 知识": {
       "result": "学校",
-      "emoji": "🧩",
+      "emoji": "🏫",
       "chain": "support",
       "comment": "城市集中传授知识，形成学校。"
     },
     "互联网 + 电脑": {
       "result": "下载",
-      "emoji": "🧩",
+      "emoji": "📥",
       "chain": "support",
       "comment": "电脑从互联网取得内容，即为下载。"
     },
     "人 + 金属": {
       "result": "货币",
-      "emoji": "🧩",
+      "emoji": "🪙",
       "chain": "support",
       "comment": "人把金属用作交换媒介，形成货币。"
     },
@@ -5165,397 +5165,397 @@
     },
     "人 + 知识": {
       "result": "经验",
-      "emoji": "🧩",
+      "emoji": "🧠",
       "chain": "support",
       "comment": "人将知识用于实践，积累经验。"
     },
     "人 + 影子": {
       "result": "陌生人",
-      "emoji": "🧩",
+      "emoji": "👤",
       "chain": "support",
       "comment": "只见轮廓不识其人，是陌生人。"
     },
     "声音 + 手机": {
       "result": "震动",
-      "emoji": "🧩",
+      "emoji": "📳",
       "chain": "support",
       "comment": "手机把提示声转换为震动提醒。"
     },
     "人 + 光": {
       "result": "影子",
-      "emoji": "🧩",
+      "emoji": "🌑",
       "chain": "support",
       "comment": "人挡住光线，留下影子。"
     },
     "时间 + 经验": {
       "result": "经验值",
-      "emoji": "🧩",
+      "emoji": "📊",
       "chain": "support",
       "comment": "经验随时间累积为经验值。"
     },
     "互联网 + 朋友": {
       "result": "访问",
-      "emoji": "🧩",
+      "emoji": "🚪",
       "chain": "support",
       "comment": "朋友通过互联网互相访问主页。"
     },
     "互联网 + 影子": {
       "result": "离线",
-      "emoji": "🧩",
+      "emoji": "📴",
       "chain": "support",
       "comment": "网络中的身影消失，进入离线状态。"
     },
     "人 + 文字": {
       "result": "签名",
-      "emoji": "🧩",
+      "emoji": "✍️",
       "chain": "support",
       "comment": "人用文字留下签名。"
     },
     "人 + 朋友": {
       "result": "好友",
-      "emoji": "🧩",
+      "emoji": "🧑‍🤝‍🧑",
       "chain": "support",
       "comment": "熟悉的朋友成为好友。"
     },
     "文字 + 朋友": {
       "result": "留言",
-      "emoji": "🧩",
+      "emoji": "📝",
       "chain": "support",
       "comment": "朋友用文字留下留言。"
     },
     "战争 + 游戏": {
       "result": "对战",
-      "emoji": "🧩",
+      "emoji": "🥋",
       "chain": "support",
       "comment": "战争规则进入游戏，形成对战。"
     },
     "云 + 人": {
       "result": "梦",
-      "emoji": "🧩",
+      "emoji": "💭",
       "chain": "support",
       "comment": "人在云端般的想象中做梦。"
     },
     "人 + 火": {
       "result": "战争",
-      "emoji": "🧩",
+      "emoji": "💥",
       "chain": "support",
       "comment": "人把火用于冲突，演变为战争。"
     },
     "人 + 时间": {
       "result": "历史",
-      "emoji": "🧩",
+      "emoji": "📜",
       "chain": "support",
       "comment": "人的经历随时间沉淀为历史。"
     },
     "时间 + 风": {
       "result": "速度",
-      "emoji": "🧩",
+      "emoji": "⚡",
       "chain": "support",
       "comment": "风在时间中体现运动速度。"
     },
     "人 + 音乐": {
       "result": "舞蹈",
-      "emoji": "🧩",
+      "emoji": "💃",
       "chain": "support",
       "comment": "人随音乐起舞。"
     },
     "梦 + 知识": {
       "result": "魔法",
-      "emoji": "🧩",
+      "emoji": "🪄",
       "chain": "support",
       "comment": "梦与知识交织成魔法体系。"
     },
     "人 + 对战": {
       "result": "格斗",
-      "emoji": "🧩",
+      "emoji": "🥊",
       "chain": "support",
       "comment": "人参与近身对战，形成格斗。"
     },
     "火 + 速度": {
       "result": "弹射",
-      "emoji": "🧩",
+      "emoji": "🏹",
       "chain": "support",
       "comment": "物体借爆发力高速弹射。"
     },
     "历史 + 魔法": {
       "result": "仙侠",
-      "emoji": "🧩",
+      "emoji": "🧚",
       "chain": "support",
       "comment": "历史意象与魔法结合成仙侠世界。"
     },
     "AI + 时间": {
       "result": "未来",
-      "emoji": "🧩",
+      "emoji": "🔮",
       "chain": "support",
       "comment": "AI 随时间发展，指向未来。"
     },
     "土 + 战争": {
       "result": "战地",
-      "emoji": "🧩",
+      "emoji": "🪖",
       "chain": "support",
       "comment": "战争发生的土地成为战地。"
     },
     "战争 + 金属": {
       "result": "剑",
-      "emoji": "🧩",
+      "emoji": "🗡️",
       "chain": "support",
       "comment": "金属被锻造成战争中的剑。"
     },
     "人 + 梦": {
       "result": "灵魂",
-      "emoji": "🧩",
+      "emoji": "👻",
       "chain": "support",
       "comment": "人的梦境映照灵魂。"
     },
     "历史 + 土": {
       "result": "上古",
-      "emoji": "🧩",
+      "emoji": "🗿",
       "chain": "support",
       "comment": "土地最久远的历史指向上古。"
     },
     "互联网 + 战争": {
       "result": "使命召唤",
-      "emoji": "🧩",
+      "emoji": "📯",
       "chain": "support",
       "comment": "战争题材联网，指向使命召唤。"
     },
     "云 + 时间": {
       "result": "明月",
-      "emoji": "🧩",
+      "emoji": "🌕",
       "chain": "support",
       "comment": "云随夜色流转，露出明月。"
     },
     "动物 + 魔法": {
       "result": "御龙",
-      "emoji": "🧩",
+      "emoji": "🐉",
       "chain": "support",
       "comment": "以魔法驾驭神兽，形成御龙意象。"
     },
     "上古 + 剑": {
       "result": "轩辕",
-      "emoji": "🧩",
+      "emoji": "🏯",
       "chain": "support",
       "comment": "上古传说与神剑相合，指向轩辕。"
     },
     "格斗 + 魔法": {
       "result": "斗战",
-      "emoji": "🧩",
+      "emoji": "🐒",
       "chain": "support",
       "comment": "格斗叠加神魔力量，形成斗战。"
     },
     "速度 + 音乐": {
       "result": "节奏",
-      "emoji": "🧩",
+      "emoji": "🥁",
       "chain": "support",
       "comment": "音乐的快慢构成节奏。"
     },
     "人 + 速度": {
       "result": "跑步",
-      "emoji": "🧩",
+      "emoji": "🏃",
       "chain": "support",
       "comment": "人以速度移动，就是跑步。"
     },
     "战争 + 知识": {
       "result": "战术",
-      "emoji": "🧩",
+      "emoji": "♟️",
       "chain": "support",
       "comment": "以知识规划战争，形成战术。"
     },
     "云 + 互联网": {
       "result": "云盘",
-      "emoji": "🧩",
+      "emoji": "💾",
       "chain": "support",
       "comment": "云服务连接互联网，形成云盘。"
     },
     "互联网 + 知识": {
       "result": "大数据",
-      "emoji": "🧩",
+      "emoji": "🗄️",
       "chain": "support",
       "comment": "互联网汇聚海量知识数据。"
     },
     "公司 + 聊天": {
       "result": "客服",
-      "emoji": "🧩",
+      "emoji": "🎧",
       "chain": "support",
       "comment": "公司通过聊天服务客户，形成客服。"
     },
     "未来 + 知识": {
       "result": "创新",
-      "emoji": "🧩",
+      "emoji": "✨",
       "chain": "support",
       "comment": "知识面向未来，产生创新。"
     },
     "弹射 + 战争": {
       "result": "射击",
-      "emoji": "🧩",
+      "emoji": "🔫",
       "chain": "support",
       "comment": "战争中以弹射武器进行射击。"
     },
     "光 + 速度": {
       "result": "光线",
-      "emoji": "🧩",
+      "emoji": "🔦",
       "chain": "support",
       "comment": "光以高速传播，形成光线。"
     },
     "电脑 + 策略": {
       "result": "即时战略",
-      "emoji": "🧩",
+      "emoji": "🗺️",
       "chain": "support",
       "comment": "策略在电脑上实时执行，形成即时战略。"
     },
     "代码 + 公司": {
       "result": "开发商",
-      "emoji": "🧩",
+      "emoji": "🧑‍💻",
       "chain": "support",
       "comment": "公司以代码开发产品，成为开发商。"
     },
     "土 + 游戏": {
       "result": "沙盒",
-      "emoji": "🧩",
+      "emoji": "🧱",
       "chain": "support",
       "comment": "游戏把土地开放为可塑造的沙盒。"
     },
     "汽车 + 速度": {
       "result": "竞速",
-      "emoji": "🧩",
+      "emoji": "🏎️",
       "chain": "support",
       "comment": "汽车追逐速度，形成竞速。"
     },
     "AI + 未来": {
       "result": "科幻",
-      "emoji": "🧩",
+      "emoji": "👽",
       "chain": "support",
       "comment": "AI 与未来想象结合成科幻。"
     },
     "动物 + 影子": {
       "result": "吸血鬼",
-      "emoji": "🧩",
+      "emoji": "🧛",
       "chain": "support",
       "comment": "夜行生物的影子形成吸血鬼意象。"
     },
     "人 + 荒野": {
       "result": "流放",
-      "emoji": "🧩",
+      "emoji": "🚶",
       "chain": "support",
       "comment": "人被逐入荒野，形成流放。"
     },
     "动物 + 荒野": {
       "result": "饥荒",
-      "emoji": "🧩",
+      "emoji": "🥖",
       "chain": "support",
       "comment": "荒野中生命缺少食物，形成饥荒。"
     },
     "手机 + 游戏": {
       "result": "小游戏",
-      "emoji": "🧩",
+      "emoji": "🕹️",
       "chain": "support",
       "comment": "手机上的轻量玩法形成小游戏。"
     },
     "公司 + 公司": {
       "result": "集团",
-      "emoji": "🧩",
+      "emoji": "🏙️",
       "chain": "support",
       "comment": "多家公司联合组成集团。"
     },
     "公司 + 货币": {
       "result": "银行",
-      "emoji": "🧩",
+      "emoji": "🏦",
       "chain": "support",
       "comment": "公司经营货币与信用，形成银行。"
     },
     "剑 + 影子": {
       "result": "刺客",
-      "emoji": "🧩",
+      "emoji": "🥷",
       "chain": "support",
       "comment": "暗影中的利刃指向刺客。"
     },
     "人 + 泥": {
       "result": "僵尸",
-      "emoji": "🧩",
+      "emoji": "🧟",
       "chain": "support",
       "comment": "人从泥土中复起，形成僵尸意象。"
     },
     "历史 + 文字": {
       "result": "叙事",
-      "emoji": "🧩",
+      "emoji": "📖",
       "chain": "support",
       "comment": "历史通过文字组织成叙事。"
     },
     "战争 + 智慧": {
       "result": "策略",
-      "emoji": "🧩",
+      "emoji": "🧭",
       "chain": "support",
       "comment": "以智慧安排战争，形成策略。"
     },
     "游戏 + 速度": {
       "result": "动作",
-      "emoji": "🧩",
+      "emoji": "🎬",
       "chain": "support",
       "comment": "高速交互形成动作游戏。"
     },
     "公司 + 文字": {
       "result": "出版",
-      "emoji": "🧩",
+      "emoji": "📰",
       "chain": "support",
       "comment": "公司编辑并发行文字，形成出版。"
     },
     "互联网 + 音乐": {
       "result": "流媒体",
-      "emoji": "🧩",
+      "emoji": "📡",
       "chain": "support",
       "comment": "音乐经互联网持续传输，形成流媒体。"
     },
     "朋友 + 社区": {
       "result": "社交",
-      "emoji": "🧩",
+      "emoji": "🗨️",
       "chain": "support",
       "comment": "朋友在社区互动，形成社交。"
     },
     "光 + 手机": {
       "result": "相机",
-      "emoji": "🧩",
+      "emoji": "📷",
       "chain": "support",
       "comment": "手机捕捉光线，成为相机。"
     },
     "文字 + 社区": {
       "result": "论坛",
-      "emoji": "🧩",
+      "emoji": "🗣️",
       "chain": "support",
       "comment": "社区围绕文字讨论，形成论坛。"
     },
     "时间 + 朋友": {
       "result": "老铁",
-      "emoji": "🧩",
+      "emoji": "🤜",
       "chain": "support",
       "comment": "经得起时间的朋友成为老铁。"
     },
     "光 + 时间": {
       "result": "视频",
-      "emoji": "🧩",
+      "emoji": "📺",
       "chain": "support",
       "comment": "连续记录随时间变化的光，形成视频。"
     },
     "朋友 + 电商": {
       "result": "拼团",
-      "emoji": "🧩",
+      "emoji": "👥",
       "chain": "support",
       "comment": "朋友在电商平台共同下单，形成拼团。"
     },
     "好友 + 电商": {
       "result": "团购",
-      "emoji": "🧩",
+      "emoji": "🛒",
       "chain": "support",
       "comment": "好友集合购买，形成团购。"
     },
     "汽车 + 游戏": {
       "result": "极品飞车",
-      "emoji": "🧩",
+      "emoji": "🏁",
       "chain": "support",
       "comment": "汽车进入竞速游戏，指向极品飞车。"
     },
     "出版 + 游戏": {
       "result": "发行商",
-      "emoji": "🧩",
+      "emoji": "📦",
       "chain": "support",
       "comment": "把游戏正式出版发行的组织是发行商。"
     },

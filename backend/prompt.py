@@ -147,6 +147,7 @@ def combine_via_llm(
     community_examples: Optional[List[Dict]] = None,
     request_id: Optional[str] = None,
     prompt_spec: Optional[Dict] = None,
+    provider: str = "deepseek",
 ) -> Optional[Dict[str, str]]:
     """Call the configured OpenAI-compatible LLM for a combination."""
     from .llm import query
@@ -169,6 +170,7 @@ def combine_via_llm(
         bounty_candidates=bounty_candidates,
         community_examples=community_examples or [],
     )
+    provider_options = {"provider": provider} if provider != "deepseek" else {}
     raw = query(
         {
             "system_prompt": messages["system"],
@@ -176,6 +178,7 @@ def combine_via_llm(
             "request_id": request_id,
         },
         temperature=messages["temperature"],
+        **provider_options,
     )
     text = ""
     if isinstance(raw, dict):

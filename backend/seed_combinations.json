@@ -2726,6 +2726,131 @@
       "result": "小马",
       "emoji": "🐴",
       "chain": "life"
+    },
+    "水 + 时间": {
+      "result": "生命",
+      "emoji": "🧬",
+      "chain": "physical"
+    },
+    "人 + 植物": {
+      "result": "头发",
+      "emoji": "💇",
+      "chain": "life"
+    },
+    "人 + 日子": {
+      "result": "皱纹",
+      "emoji": "👵",
+      "chain": "life"
+    },
+    "头发 + 时间": {
+      "result": "白发",
+      "emoji": "👴",
+      "chain": "life"
+    },
+    "头发 + 焦虑": {
+      "result": "秃头",
+      "emoji": "👨‍🦲",
+      "chain": "worker"
+    },
+    "人 + 情绪": {
+      "result": "精神状态",
+      "emoji": "⚡",
+      "chain": "meme_classic"
+    },
+    "时间 + 焦虑": {
+      "result": "紧绷感",
+      "emoji": "😤",
+      "chain": "meme_classic"
+    },
+    "午休 + 自由": {
+      "result": "松弛感",
+      "emoji": "😌",
+      "chain": "meme_classic"
+    },
+    "人 + 松弛感": {
+      "result": "松人",
+      "emoji": "🌴",
+      "chain": "meme_2026w16"
+    },
+    "人 + 加班": {
+      "result": "班味",
+      "emoji": "😮‍💨",
+      "chain": "meme_2026w16"
+    },
+    "周一 + 班味": {
+      "result": "班上不想上",
+      "emoji": "😵",
+      "chain": "meme_classic"
+    },
+    "早高峰 + 班味": {
+      "result": "颠颠上班",
+      "emoji": "🤪",
+      "chain": "meme_2026w16"
+    },
+    "打工 + 时间": {
+      "result": "资深打工人",
+      "emoji": "🧓",
+      "chain": "worker"
+    },
+    "手机 + 麦克风": {
+      "result": "直播间",
+      "emoji": "📹",
+      "chain": "worker"
+    },
+    "直播间 + 钱包": {
+      "result": "直播打赏",
+      "emoji": "💰",
+      "chain": "worker"
+    },
+    "游戏 + 钱包": {
+      "result": "氪金",
+      "emoji": "💎",
+      "chain": "worker"
+    },
+    "手机 + 情绪": {
+      "result": "表情",
+      "emoji": "🙂",
+      "chain": "life"
+    },
+    "人 + 表情": {
+      "result": "孙红雷",
+      "emoji": "😑",
+      "chain": "meme_2026w16"
+    },
+    "孙红雷 + 表情": {
+      "result": "孙红雷关人脸",
+      "emoji": "😑",
+      "chain": "meme_2026w16"
+    },
+    "人 + 爱": {
+      "result": "人情",
+      "emoji": "🧧",
+      "chain": "life"
+    },
+    "冰箱 + 时间": {
+      "result": "过期酸奶",
+      "emoji": "🥛",
+      "chain": "meme_2026w16"
+    },
+    "钱包 + 谎言": {
+      "result": "智商税",
+      "emoji": "🧾",
+      "chain": "meme_2026w16"
+    },
+    "土 + 钢架": {
+      "result": "工地",
+      "emoji": "🏗️",
+      "chain": "building"
+    },
+    "人 + 灵魂": {
+      "result": "死者人格",
+      "emoji": "💀",
+      "chain": "meme_2026w16"
+    },
+    "死者人格 + 火": {
+      "result": "上坟都不敢这么烧",
+      "emoji": "🕯️",
+      "chain": "meme_2026w16"
     }
   }
 }

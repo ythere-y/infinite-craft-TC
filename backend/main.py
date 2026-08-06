@@ -25,7 +25,7 @@ import secrets
 import time
 import uuid
 from pathlib import Path
-from typing import Optional, List
+from typing import Literal, Optional, List
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -42,6 +42,8 @@ from . import (
     db,
     depth as depth_mod,
     kpi,
+    llm,
+    llm_config,
     prompt_store,
 )
 from .community_api import (
@@ -178,6 +180,10 @@ class PromptVersionCopyReq(BaseModel):
     )
 
 
+class LLMProviderReq(BaseModel):
+    provider: Literal["makers", "deepseek"]
+
+
 # ============================================================
 # API
 # ============================================================
@@ -205,9 +211,10 @@ async def api_health():
     """Report dependencies and LLM configuration without billing a model call."""
     from .llm import configuration_status
 
+    provider = llm_config.get_provider()
     out = {
         "redis": "?",
-        "llm": configuration_status(),
+        "llm": configuration_status(provider),
         "redis_dbsize": 0,
         "sqlite": archive.db_path_str(),
         "app_env": os.environ.get("APP_ENV", "dev"),
@@ -443,6 +450,65 @@ async def api_admin_stats():
         "top_chains": top_chains,
         "recent_firsts": recent_firsts,
     }
+
+
+def test_llm_provider(provider: str) -> dict:
+    started = time.perf_counter()
+    if llm.configuration_status(provider) != "configured":
+        return {
+            "ok": False,
+            "provider": provider,
+            "message": "接口未配置",
+            "latency_ms": 0,
+        }
+    result = llm.query(
+        {
+            "system_prompt": "Reply with exactly OK.",
+            "question": "ping",
+            "request_id": f"admin-test-{uuid.uuid4().hex[:12]}",
+        },
+        temperature=0,
+        provider=provider,
+        max_tokens=8,
+        max_retries=0,
+    )
+    elapsed_ms = round((time.perf_counter() - started) * 1000)
+    return {
+        "ok": bool(result),
+        "provider": provider,
+        "message": "连接成功" if result else "连接失败",
+        "latency_ms": elapsed_ms,
+    }
+
+
+@app.get(
+    "/api/admin/llm/config",
+    dependencies=[Depends(require_admin_token)],
+)
+async def api_admin_llm_config():
+    return llm_config.public_configuration()
+
+
+@app.put(
+    "/api/admin/llm/config",
+    dependencies=[Depends(require_admin_token)],
+)
+async def api_admin_llm_save(req: LLMProviderReq):
+    provider = llm_config.set_provider(req.provider)
+    return llm_config.public_configuration(provider)
+
+
+@app.post(
+    "/api/admin/llm/test",
+    dependencies=[Depends(require_admin_token)],
+)
+async def api_admin_llm_test(req: LLMProviderReq):
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(
+        _LLM_EXECUTOR,
+        test_llm_provider,
+        req.provider,
+    )
 
 
 @app.get(
@@ -958,6 +1024,7 @@ async def _combine_via_llm(
             community_examples=positive_examples,
             request_id=request_id,
             prompt_spec=spec,
+            provider=llm_config.get_provider(),
         ),
     )
     elapsed_ms = round((time.perf_counter() - started) * 1000)

@@ -11,6 +11,9 @@ from backend import llm
 ENV_NAMES = (
     "LLM_API_KEY",
     "MAKERS_MODELS_KEY",
+    "AI_GATEWAY_BASE_URL",
+    "AI_GATEWAY_MODEL",
+    "AI_GATEWAY_TIMEOUT",
     "LLM_BASE_URL",
     "LLM_MODEL",
     "LLM_TIMEOUT",
@@ -306,6 +309,71 @@ def test_configuration_status(monkeypatch):
     assert llm.configuration_status() == "configured"
     monkeypatch.setenv("LLM_TIMEOUT", "invalid")
     assert llm.configuration_status() == "not_configured"
+
+
+def test_provider_settings_keep_makers_and_deepseek_credentials_separate(
+    monkeypatch,
+):
+    configure(
+        monkeypatch,
+        generic_key="deepseek-secret",
+        makers_key="makers-secret",
+    )
+    monkeypatch.setenv("AI_GATEWAY_BASE_URL", "https://makers.test/v1/")
+    monkeypatch.setenv("AI_GATEWAY_MODEL", "@makers/test-model")
+    monkeypatch.setenv("AI_GATEWAY_TIMEOUT", "9")
+
+    deepseek = llm.LLMSettings.from_env("deepseek")
+    makers = llm.LLMSettings.from_env("makers")
+
+    assert (deepseek.api_key, deepseek.base_url, deepseek.model) == (
+        "deepseek-secret",
+        "https://gateway.test/v1",
+        "test-model",
+    )
+    assert (makers.api_key, makers.base_url, makers.model, makers.timeout) == (
+        "makers-secret",
+        "https://makers.test/v1",
+        "@makers/test-model",
+        9,
+    )
+
+
+def test_query_uses_the_explicit_provider(monkeypatch):
+    configure(
+        monkeypatch,
+        generic_key="deepseek-secret",
+        makers_key="makers-secret",
+    )
+    monkeypatch.setenv("AI_GATEWAY_BASE_URL", "https://makers.test/v1")
+    monkeypatch.setenv("AI_GATEWAY_MODEL", "@makers/test-model")
+    factory, captured = fake_factory(content="OK")
+
+    result = llm.query(
+        {"question": "ping"},
+        provider="makers",
+        _client_factory=factory,
+    )
+
+    assert result == {"text": "OK"}
+    assert captured["init"]["api_key"] == "makers-secret"
+    assert captured["init"]["base_url"] == "https://makers.test/v1"
+    assert captured["create"]["model"] == "@makers/test-model"
+
+
+def test_query_supports_a_bounded_zero_retry_availability_probe(monkeypatch):
+    configure(monkeypatch)
+    factory, captured = fake_factory(content="OK")
+
+    assert llm.query(
+        {"question": "ping"},
+        max_tokens=8,
+        max_retries=0,
+        _client_factory=factory,
+    ) == {"text": "OK"}
+
+    assert captured["init"]["max_retries"] == 0
+    assert captured["create"]["max_tokens"] == 8
 
 
 def test_health_reports_configuration_without_model_call(monkeypatch):

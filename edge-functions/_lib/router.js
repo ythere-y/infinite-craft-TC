@@ -36,7 +36,11 @@ import {
 } from "./kpi.js";
 import { cleanText, normalizePair } from "./keys.js";
 import { KvStore } from "./kv-store.js";
-import { llmConfiguration } from "./llm.js";
+import {
+  defaultLLMProvider,
+  llmConfiguration,
+  testLLMConnection,
+} from "./llm.js";
 import {
   generateNickname,
   nicknameStats,
@@ -381,6 +385,31 @@ export function createRouter({
     }
   }
 
+  function requireAdminAccess(request) {
+    const expected = cleanText(env.ADMIN_TOKEN);
+    if (!expected) {
+      throw new HttpError(503, "LLM 配置已关闭：请配置 ADMIN_TOKEN");
+    }
+    const authorization = cleanText(request.headers.get("authorization"));
+    const bearer = authorization.match(/^Bearer\s+(.+)$/iu)?.[1] || "";
+    const explicit = cleanText(request.headers.get("x-admin-token"));
+    if (bearer !== expected && explicit !== expected) {
+      throw new HttpError(401, "管理面板凭据无效");
+    }
+  }
+
+  async function llmAdminConfiguration(provider = null) {
+    const selected = provider || await store.llmProvider(defaultLLMProvider(env));
+    return {
+      provider: selected,
+      providers: ["makers", "deepseek"].map((candidate) => ({
+        id: candidate,
+        label: candidate === "makers" ? "Makers" : "DeepSeek",
+        configured: llmConfiguration(env, candidate).configured,
+      })),
+    };
+  }
+
   async function requireCommunityRate(playerId, operation, limit) {
     const quota = await store.consumeRateLimit(
       `community:${operation}:${playerId}`,
@@ -424,8 +453,17 @@ export function createRouter({
     }
     if (path === "/api/health") {
       requireMethod(request, "GET");
-      const config = llmConfiguration(env);
       let kvStatus = "ok";
+      let provider = defaultLLMProvider(env);
+      try {
+        provider = await store.llmProvider(provider);
+      } catch {
+        kvStatus = "error: KVError";
+      }
+      const config = llmConfiguration(
+        env,
+        provider,
+      );
       try {
         await kv.get("snapshot_health");
       } catch {
@@ -812,6 +850,34 @@ export function createRouter({
       requireMethod(request, "GET");
       requireDashboardAccess(request);
       return jsonResponse(await adminPayload());
+    }
+    if (path === "/api/admin/llm/config") {
+      requireAdminAccess(request);
+      if (request.method === "GET") {
+        return jsonResponse(await llmAdminConfiguration());
+      }
+      requireMethod(request, "PUT");
+      const body = await readJson(request);
+      const provider = cleanText(body?.provider);
+      if (!["makers", "deepseek"].includes(provider)) {
+        throw new HttpError(400, "provider 必须是 makers 或 deepseek");
+      }
+      await store.setLLMProvider(provider);
+      return jsonResponse(await llmAdminConfiguration(provider));
+    }
+    if (path === "/api/admin/llm/test") {
+      requireMethod(request, "POST");
+      requireAdminAccess(request);
+      const body = await readJson(request);
+      const provider = cleanText(body?.provider);
+      if (!["makers", "deepseek"].includes(provider)) {
+        throw new HttpError(400, "provider 必须是 makers 或 deepseek");
+      }
+      return jsonResponse(await testLLMConnection({
+        env,
+        provider,
+        fetchImpl,
+      }));
     }
     if (path === "/api/analytics/chains") {
       requireMethod(request, "GET");

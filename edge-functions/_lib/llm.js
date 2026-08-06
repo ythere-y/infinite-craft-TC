@@ -12,8 +12,14 @@ function enabled(value) {
   return TRUE_VALUES.has(String(value ?? "").trim().toLowerCase());
 }
 
-export function llmConfiguration(env = {}) {
-  const useOwnDeepSeek = enabled(env.MAKERS_USE_OWN_DEEPSEEK);
+export function defaultLLMProvider(env = {}) {
+  return enabled(env.MAKERS_USE_OWN_DEEPSEEK) ? "deepseek" : "makers";
+}
+
+export function llmConfiguration(env = {}, provider = null) {
+  const useOwnDeepSeek = provider
+    ? provider === "deepseek"
+    : defaultLLMProvider(env) === "deepseek";
   const apiKey = String(
     useOwnDeepSeek
       ? env.MAKERS_DEEPSEEK_API_KEY || ""
@@ -90,8 +96,9 @@ export async function requestModelCombination({
   fetchImpl = globalThis.fetch,
   random = Math.random,
   promptLimits = PROMPT_SPEC.limits,
+  provider = null,
 }) {
-  const config = llmConfiguration(env);
+  const config = llmConfiguration(env, provider);
   if (!config.configured || typeof fetchImpl !== "function") return null;
 
   const controller = new AbortController();
@@ -144,6 +151,70 @@ export async function requestModelCombination({
     return parseModelCombination(text);
   } catch {
     return null;
+  } finally {
+    if (timeout != null && typeof clearTimeout === "function") {
+      clearTimeout(timeout);
+    }
+  }
+}
+
+export async function testLLMConnection({
+  env = {},
+  provider,
+  fetchImpl = globalThis.fetch,
+}) {
+  const config = llmConfiguration(env, provider);
+  const started = Date.now();
+  if (!config.configured) {
+    return {
+      ok: false,
+      provider,
+      message: "接口未配置",
+      latency_ms: 0,
+    };
+  }
+  const controller = new AbortController();
+  const timeout =
+    typeof setTimeout === "function"
+      ? setTimeout(
+          () => controller.abort(),
+          config.timeoutSeconds * 1_000,
+        )
+      : null;
+  try {
+    const response = await fetchImpl(completionUrl(config.baseUrl), {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${config.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: config.model,
+        temperature: 0,
+        max_tokens: 8,
+        messages: [
+          {role: "system", content: "Reply with exactly OK."},
+          {role: "user", content: "ping"},
+        ],
+      }),
+      signal: controller.signal,
+    });
+    const payload = response.ok ? await response.json() : null;
+    const content = payload?.choices?.[0]?.message?.content;
+    const ok = response.ok && typeof content === "string" && Boolean(content.trim());
+    return {
+      ok,
+      provider,
+      message: ok ? "连接成功" : "连接失败",
+      latency_ms: Math.max(0, Date.now() - started),
+    };
+  } catch {
+    return {
+      ok: false,
+      provider,
+      message: "连接失败",
+      latency_ms: Math.max(0, Date.now() - started),
+    };
   } finally {
     if (timeout != null && typeof clearTimeout === "function") {
       clearTimeout(timeout);

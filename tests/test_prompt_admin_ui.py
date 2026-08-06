@@ -5,6 +5,8 @@ ROOT = Path(__file__).resolve().parents[1]
 ADMIN_HTML = ROOT / "frontend" / "admin" / "index.html"
 ADMIN_JS = ROOT / "frontend" / "admin" / "prompt-admin.js"
 ADMIN_CSS = ROOT / "frontend" / "admin" / "prompt-admin.css"
+LLM_JS = ROOT / "frontend" / "admin" / "llm-admin.js"
+LLM_CSS = ROOT / "frontend" / "admin" / "llm-admin.css"
 
 
 def test_admin_page_exposes_prompt_management_controls():
@@ -32,6 +34,21 @@ def test_admin_page_exposes_prompt_management_controls():
     assert 'src="/admin/prompt-admin-model.js"' in html
     assert 'src="/admin/prompt-admin.js"' in html
     assert 'href="/admin/prompt-admin.css"' in html
+
+
+def test_admin_page_exposes_llm_provider_configuration():
+    html = ADMIN_HTML.read_text(encoding="utf-8")
+
+    assert 'data-admin-tab="llm"' in html
+    assert 'id="admin-llm-panel"' in html
+    assert 'value="makers"' in html
+    assert 'value="deepseek"' in html
+    assert 'id="llm-save"' in html
+    assert 'id="llm-test"' in html
+    assert 'src="/admin/llm-admin.js"' in html
+    assert 'href="/admin/llm-admin.css"' in html
+    assert LLM_JS.read_text(encoding="utf-8").strip()
+    assert LLM_CSS.read_text(encoding="utf-8").strip()
 
 
 def test_prompt_collections_have_templates_and_add_controls():

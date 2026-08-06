@@ -16,6 +16,7 @@ import {
   emojiCodepointCandidates,
   requiredActionIcons,
   sha256ForFiles,
+  validatePngBuffer,
   validateCommittedIconAssets,
 } from "../scripts/icon-data-lib.mjs";
 import {
@@ -33,6 +34,46 @@ test("emoji codepoint candidates retain qualified, fallback, and joined sequence
 
 test("required action icons include the delete action", () => {
   assert.deepEqual(requiredActionIcons().includes("trash"), true);
+});
+
+test("named historic icons extend the generated manifest without replacing emoji keys", async () => {
+  const { mergeNamedIconManifest } = await import(
+    "../scripts/generate-icon-assets.mjs"
+  );
+  const emojiManifest = {
+    "💎": "/assets/icons/generated/emoji/1f48e.png",
+  };
+  const namedManifest = {
+    "qq-era:yellow-diamond": "/assets/icons/qq-era/yellow-diamond.png",
+  };
+
+  assert.deepEqual(
+    mergeNamedIconManifest(emojiManifest, namedManifest),
+    {
+      ...emojiManifest,
+      ...namedManifest,
+    },
+  );
+  assert.throws(
+    () =>
+      mergeNamedIconManifest(emojiManifest, {
+        "💎": "/assets/icons/qq-era/not-an-emoji.png",
+      }),
+    /must not replace an existing manifest key/i,
+  );
+});
+
+test("historic PNG validation decodes image scanlines and rejects truncation", async () => {
+  const png = await readFile(
+    "frontend/assets/icons/qq-era/yellow-diamond.png",
+  );
+  const dimensions = validatePngBuffer(png, "yellow diamond");
+  assert.ok(dimensions.width > 0);
+  assert.ok(dimensions.height > 0);
+  assert.throws(
+    () => validatePngBuffer(png.subarray(0, png.length - 12), "truncated"),
+    /PNG|truncated|incomplete|decode/i,
+  );
 });
 
 test("committed icon validation reports a missing manifest", async () => {
@@ -80,6 +121,7 @@ test("committed icon validation rejects every stale metadata count", async () =>
       actionSvgs: actionFiles.length,
       emojiManifestEntries: 1,
       emojiPngs: 1,
+      namedPngs: 0,
     },
     sha256: await sha256ForFiles([
       ["generated/emoji/1f9e9.png", emojiPath],
@@ -92,6 +134,7 @@ test("committed icon validation rejects every stale metadata count", async () =>
       "actionSvgs",
       "emojiManifestEntries",
       "emojiPngs",
+      "namedPngs",
     ]) {
       await writeFile(
         metadataPath,
@@ -110,18 +153,31 @@ test("committed icon validation rejects every stale metadata count", async () =>
   }
 });
 
-test("the committed emoji manifest references every vendored emoji PNG", async () => {
-  const manifest = JSON.parse(
-    await readFile(
+test("the committed icon manifest references every vendored emoji and historic PNG", async () => {
+  const [manifest, namedManifest] = await Promise.all([
+    readFile(
       "frontend/assets/icons/generated/emoji-icon-manifest.json",
       "utf8",
-    ),
-  );
+    ).then(JSON.parse),
+    readFile(
+      "frontend/assets/icons/qq-era/manifest.json",
+      "utf8",
+    ).then(JSON.parse),
+  ]);
   const files = (await readdir("frontend/assets/icons/generated/emoji")).filter(
     (name) => name.endsWith(".png"),
   );
+  const references = new Set(Object.values(manifest));
 
-  assert.equal(new Set(Object.values(manifest)).size, files.length);
+  for (const file of files) {
+    assert.ok(
+      references.has(`/assets/icons/generated/emoji/${file}`),
+      `${file} must be referenced`,
+    );
+  }
+  for (const [name, path] of Object.entries(namedManifest)) {
+    assert.equal(manifest[name], path, `${name} must retain its named asset`);
+  }
 });
 
 test("emoji copying reads uppercase source names and writes lowercase destinations", async () => {

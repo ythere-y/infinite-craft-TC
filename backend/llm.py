@@ -14,6 +14,9 @@ from openai import OpenAI
 
 load_dotenv()
 
+MAKERS_BASE_URL = "https://ai-gateway.edgeone.link/v1"
+MAKERS_MODEL = "@makers/deepseek-v4-flash"
+
 
 @dataclass(frozen=True)
 class LLMSettings:
@@ -26,9 +29,20 @@ class LLMSettings:
     thinking_enabled: Optional[bool]
 
     @classmethod
-    def from_env(cls) -> "LLMSettings":
-        api_key = os.getenv("LLM_API_KEY", "").strip()
-        timeout = float(os.getenv("LLM_TIMEOUT", "15"))
+    def from_env(cls, provider: str = "deepseek") -> "LLMSettings":
+        if provider not in {"makers", "deepseek"}:
+            raise ValueError("invalid LLM provider")
+        makers = provider == "makers"
+        api_key = os.getenv(
+            "MAKERS_MODELS_KEY" if makers else "LLM_API_KEY",
+            "",
+        ).strip()
+        timeout = float(
+            os.getenv(
+                "AI_GATEWAY_TIMEOUT" if makers else "LLM_TIMEOUT",
+                "15",
+            )
+        )
         max_retries = int(os.getenv("LLM_MAX_RETRIES", "2"))
         thinking = os.getenv("LLM_THINKING_ENABLED", "").strip().lower()
         if thinking not in {"", "true", "false"}:
@@ -37,8 +51,16 @@ class LLMSettings:
             raise ValueError("invalid timeout or retry configuration")
         return cls(
             api_key=api_key,
-            base_url=os.getenv("LLM_BASE_URL", "").strip().rstrip("/"),
-            model=os.getenv("LLM_MODEL", "").strip(),
+            base_url=(
+                os.getenv("AI_GATEWAY_BASE_URL", MAKERS_BASE_URL)
+                if makers
+                else os.getenv("LLM_BASE_URL", "")
+            ).strip().rstrip("/"),
+            model=(
+                os.getenv("AI_GATEWAY_MODEL", MAKERS_MODEL)
+                if makers
+                else os.getenv("LLM_MODEL", "")
+            ).strip(),
             timeout=timeout,
             max_retries=max_retries,
             reasoning_effort=os.getenv("LLM_REASONING_EFFORT", "").strip(),
@@ -50,9 +72,11 @@ class LLMSettings:
         return bool(self.api_key and self.base_url and self.model)
 
 
-def configuration_status() -> Literal["configured", "not_configured"]:
+def configuration_status(
+    provider: str = "deepseek",
+) -> Literal["configured", "not_configured"]:
     try:
-        settings = LLMSettings.from_env()
+        settings = LLMSettings.from_env(provider)
     except (TypeError, ValueError):
         return "not_configured"
     return "configured" if settings.is_configured else "not_configured"
@@ -62,6 +86,9 @@ def query(
     payload: dict[str, Any],
     temperature: Optional[float] = None,
     *,
+    provider: str = "deepseek",
+    max_tokens: Optional[int] = None,
+    max_retries: Optional[int] = None,
     _client_factory: Callable[..., Any] = OpenAI,
 ) -> Optional[dict[str, Any]]:
     """Send the existing internal question payload through chat completions."""
@@ -71,7 +98,7 @@ def query(
         print(f"[llm] event=invalid_payload request_id={request_id}", flush=True)
         return None
     try:
-        settings = LLMSettings.from_env()
+        settings = LLMSettings.from_env(provider)
     except (TypeError, ValueError):
         print(f"[llm] event=invalid_config request_id={request_id}", flush=True)
         return None
@@ -90,6 +117,8 @@ def query(
     }
     if temperature is not None:
         request["temperature"] = float(temperature)
+    if max_tokens is not None:
+        request["max_tokens"] = max(1, int(max_tokens))
     if settings.reasoning_effort:
         request["reasoning_effort"] = settings.reasoning_effort
     if settings.thinking_enabled is not None:
@@ -115,7 +144,11 @@ def query(
             api_key=settings.api_key,
             base_url=settings.base_url,
             timeout=settings.timeout,
-            max_retries=settings.max_retries,
+            max_retries=(
+                settings.max_retries
+                if max_retries is None
+                else max(0, int(max_retries))
+            ),
         )
         completion = client.chat.completions.create(**request)
         choices = getattr(completion, "choices", None)

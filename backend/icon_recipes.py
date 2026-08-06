@@ -105,6 +105,16 @@ def preset_icon(name: str) -> dict | None:
     return normalize_icon(row.get("icon", row))
 
 
+def _reviewed_preset_icon(name: str) -> dict | None:
+    """Return a curated preset whose committed library fallback marks review."""
+    row = _PRESETS.get(name)
+    if not isinstance(row, dict):
+        row = _PRESETS.get(_PRESET_ALIASES.get(name, name))
+    if not isinstance(row, dict) or normalize_icon(row.get("fallback_icon")) is None:
+        return None
+    return normalize_icon(row.get("icon"))
+
+
 def _context_text(
     *,
     name: str,
@@ -185,7 +195,11 @@ def resolve_icon_recipe(
     comment: str = "",
     persisted: object = None,
 ) -> dict:
-    """Resolve persisted, exact preset, then deterministic dynamic recipe."""
+    """Resolve reviewed assets, persisted data, presets, then dynamic recipes."""
+    reviewed = _reviewed_preset_icon(name)
+    if reviewed is not None:
+        return reviewed
+
     saved = normalize_icon(persisted)
     if saved is not None:
         return saved

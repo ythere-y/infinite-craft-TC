@@ -204,7 +204,7 @@ test("aliases resolve before fixed formula lookup", async () => {
       a: "DNF",
       b: "会员",
       result: "黑钻",
-      emoji: "💬",
+      emoji: "🖤",
     },
   ]);
 });
@@ -1194,6 +1194,93 @@ test("admin routes fail closed when no access mode is configured", async () => {
   const result = await json(router, "/api/admin/stats");
   assert.equal(result.response.status, 503);
   assert.match(result.body.detail, /ADMIN_TOKEN/);
+});
+
+test("LLM admin selection persists in KV and controls live provider tests", async () => {
+  const kv = new FakeKV();
+  const calls = [];
+  const router = createRouter({
+    kv,
+    env: {
+      APP_ENV: "test",
+      DASHBOARD_PUBLIC: "1",
+      ADMIN_TOKEN: "test-admin",
+      MAKERS_MODELS_KEY: "makers-secret",
+      MAKERS_DEEPSEEK_API_KEY: "deepseek-secret",
+      AI_GATEWAY_MODEL: "@makers/test",
+    },
+    fetchImpl: async (url, options) => {
+      calls.push({url, options});
+      return new Response(JSON.stringify({
+        choices: [{message: {content: "OK"}}],
+      }), {status: 200});
+    },
+  });
+  const auth = {authorization: "Bearer test-admin"};
+
+  for (const [path, options] of [
+    ["/api/admin/llm/config", undefined],
+    ["/api/admin/llm/config", {method: "PUT", body: {provider: "makers"}}],
+    ["/api/admin/llm/test", {method: "POST", body: {provider: "makers"}}],
+  ]) {
+    const denied = await json(router, path, options);
+    assert.equal(denied.response.status, 401);
+  }
+
+  const initial = await json(router, "/api/admin/llm/config", {headers: auth});
+  assert.equal(initial.body.provider, "makers");
+
+  const saved = await json(router, "/api/admin/llm/config", {
+    method: "PUT",
+    headers: auth,
+    body: {provider: "deepseek"},
+  });
+  assert.equal(saved.body.provider, "deepseek");
+  assert.equal(await kv.get("admin_llm_provider"), "deepseek");
+
+  const health = await json(router, "/api/health");
+  assert.equal(health.body.llm_config.provider, "deepseek-direct");
+
+  const tested = await json(router, "/api/admin/llm/test", {
+    method: "POST",
+    headers: auth,
+    body: {provider: "deepseek"},
+  });
+  assert.equal(tested.body.ok, true);
+  assert.equal(tested.body.provider, "deepseek");
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://api.deepseek.com/chat/completions");
+  assert.equal(calls[0].options.headers.authorization, "Bearer deepseek-secret");
+  assert.doesNotMatch(JSON.stringify(initial.body), /makers-secret|deepseek-secret/u);
+
+  calls.length = 0;
+  await json(router, "/api/combine", {
+    method: "POST",
+    body: {a: "供应商切换甲", b: "供应商切换乙", session_id: "provider-test"},
+  });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://api.deepseek.com/chat/completions");
+  assert.equal(calls[0].options.headers.authorization, "Bearer deepseek-secret");
+});
+
+test("health tolerates a failed LLM provider preference read", async () => {
+  const kv = new FakeKV();
+  const get = kv.get.bind(kv);
+  kv.get = async (key, options) => {
+    if (key === "admin_llm_provider") throw new Error("private provider failure");
+    return get(key, options);
+  };
+  const router = createRouter({
+    kv,
+    env: {MAKERS_MODELS_KEY: "makers-secret"},
+  });
+
+  const health = await json(router, "/api/health");
+
+  assert.equal(health.response.status, 200);
+  assert.equal(health.body.kv, "error: KVError");
+  assert.equal(health.body.llm, "configured");
+  assert.doesNotMatch(JSON.stringify(health.body), /private provider failure/u);
 });
 
 test("router returns safe JSON errors, CORS preflight and stream shutdown", async () => {

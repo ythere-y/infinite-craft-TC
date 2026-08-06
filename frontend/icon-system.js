@@ -96,17 +96,26 @@
 
   function resolveElementRecipe(payload) {
     payload = object(payload) ? payload : {};
+    var preset = payload.name && elementMap[payload.name];
+    var mapped = preset && validRecipe(preset.icon);
+    var reviewed = preset && validRecipe(preset.fallback_icon);
+    if (mapped && reviewed) return mapped;
+
     var persisted = validRecipe(payload.icon);
     if (persisted) return persisted;
 
-    var preset = payload.name && elementMap[payload.name];
-    var mapped = preset && validRecipe(preset.icon);
     if (mapped) return mapped;
 
     if (typeof payload.emoji === "string" && payload.emoji) {
       return { base: payload.emoji, palette: "place", source: "emoji" };
     }
     return fallbackRecipe(payload);
+  }
+
+  function resolveElementFallback(payload) {
+    payload = object(payload) ? payload : {};
+    var preset = payload.name && elementMap[payload.name];
+    return preset ? validRecipe(preset.fallback_icon) : null;
   }
 
   function stableTilt(name) {
@@ -130,10 +139,11 @@
     image.replaceWith(nativeEmoji);
   }
 
-  function appendImage(doc, sticker, emoji, className, isBadge) {
+  function appendImage(doc, sticker, emoji, className, isBadge, onBaseError) {
     var url = emojiManifest[emoji];
     if (!url) {
-      if (!isBadge) sticker.appendChild(nativeEmojiNode(doc, emoji));
+      if (!isBadge && typeof onBaseError === "function") onBaseError();
+      else if (!isBadge) sticker.appendChild(nativeEmojiNode(doc, emoji));
       return null;
     }
     var image = doc.createElement("img");
@@ -144,10 +154,31 @@
     image.decoding = "async";
     image.addEventListener("error", function () {
       if (isBadge) image.remove();
+      else if (typeof onBaseError === "function") onBaseError();
       else appendNativeFallback(doc, image, emoji);
     }, { once: true });
     sticker.appendChild(image);
     return image;
+  }
+
+  function appendRecipeImages(doc, sticker, recipe, fallback) {
+    var baseImage = appendImage(
+      doc,
+      sticker,
+      recipe.base,
+      "element-icon-base",
+      false,
+      fallback
+        ? function () {
+            sticker.replaceChildren();
+            appendRecipeImages(doc, sticker, fallback, null);
+          }
+        : null
+    );
+    if (!baseImage && fallback) return;
+    if (recipe.badge) {
+      appendImage(doc, sticker, recipe.badge, "element-icon-badge", true);
+    }
   }
 
   function elementState(target, payload) {
@@ -200,14 +231,14 @@
   function renderElement(doc, target, payload) {
     payload = object(payload) ? payload : {};
     var recipe = resolveElementRecipe(payload);
+    var fallback = resolveElementFallback(payload);
     var name = typeof payload.name === "string" ? payload.name : "";
     var size = allowed(payload.size, SIZES, "sidebar");
     var sticker = doc.createElement("span");
     sticker.className = "emoji element-icon palette-" + allowed(recipe.palette, PALETTES, "place");
     sticker.classList.add("element-icon-" + size);
     sticker.style.setProperty("--element-icon-tilt", stableTilt(name) + "deg");
-    appendImage(doc, sticker, recipe.base, "element-icon-base", false);
-    if (recipe.badge) appendImage(doc, sticker, recipe.badge, "element-icon-badge", true);
+    appendRecipeImages(doc, sticker, recipe, fallback);
 
     var nameNode = doc.createElement("span");
     nameNode.className = "name";
@@ -291,6 +322,7 @@
   root.ICON_SYSTEM = {
     ready: ready,
     resolveElementRecipe: resolveElementRecipe,
+    resolveElementFallback: resolveElementFallback,
     renderElement: renderElement,
     fitSidebarChip: fitSidebarChip,
     renderAction: renderAction,

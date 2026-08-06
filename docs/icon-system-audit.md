@@ -8,6 +8,8 @@ knowledge layer, rules, and Emoji manifest.
 - **Mapped elements**: explicit icon-map rows compared with the preset seed total.
 - **Base reuse group**: two or more rows sharing the same base Emoji, regardless
   of badge or palette.
+- **Catalog primary concentration**: five or more catalog-only rows sharing a
+  base Emoji without a reviewed exception on every row.
 - **Full signature**: `base + badge + palette`.
 - **Elements in repeated full signatures**: every mapped row belonging to a
   full signature used by two or more rows. The duplicate rate is that complete
@@ -18,61 +20,65 @@ knowledge layer, rules, and Emoji manifest.
 
 ## Current metrics
 
-- Mapped elements: 591 / 591
+- Mapped elements: 780 / 780
 - Missing or invalid assets/recipes: 0
-- Base reuse groups: 144
-- Full-signature reuse groups: 29
-- Elements in repeated full signatures: 58
-- Full-signature duplicate rate: 9.81%
+- Base reuse groups: 185
+- Catalog elements: 347
+- Catalog base reuse groups: 83
+- Catalog primary placeholders: 0
+- Catalog primary overuse groups: 0
+- Full-signature reuse groups: 24
+- Elements in repeated full signatures: 48
+- Full-signature duplicate rate: 6.15%
 - Signatures used more than twice: 0
 - Unresolved entity/abbreviation candidates: 0
 - Gate violations: 0
 
 ## Top 20 base reuse groups
 
-- 💼 · : 10 — Boss直聘、TIM、企业微信、Martin、刘炽平、办公、总裁、HR、打工、企业通讯
-- 🏢 · : 6 — 鹅厂、开放办公区、大厦、腾讯大厦、企业、小楼
-- 👔 · : 6 — 老板、M族、任宇昕、甲方、老板黑话、高管
-- 💬 · : 6 — 微信、弹幕、聊天、爆料、水帖、即时聊天
-- 💻 · : 6 — PCG、CODING、电脑、张志东、Tony、聊天软件
-- ☁️ · : 5 — CSIG、云、微云、腾讯云、公有云
-- ⚔️ · : 5 — 王者荣耀、DNF、天美、勇士、多人编辑打架
-- 🌅 · : 5 — 滨海、朝阳、早会、晨会、海湾
+- 💼 · : 10 — Boss直聘、Martin、刘炽平、办公、总裁、HR、打工、企业通讯、TIM、企业微信
+- 🏢 · : 7 — 开放办公区、大厦、企业、小楼、公司、腾讯大厦、鹅厂
+- 🎮 · : 6 — Mark、游戏、工作室、IEG、QQ游戏、英雄联盟
+- 🎯 · : 6 — OKR、AI写OKR、目标、Valorant、弹弹堂、腾讯企点
+- 🏛️ · : 6 — 鹅厂大楼、国家、总部、总部基地、首都、QQ游戏大厅
+- 🏰 · : 6 — 地下城、部落冲突、堡垒之夜、Neople、Supercell、洛克王国
+- 👔 · : 6 — 老板、任宇昕、甲方、老板黑话、高管、M族
+- 💻 · : 6 — 电脑、张志东、Tony、聊天软件、CODING、PCG
+- 📋 · : 6 — 黑板墙、任务、会议记录、P族、TAPD、周会纪要
+- 📚 · : 6 — 知识、小说、ima.copilot、KADOKAWA、文档不同步、阅文集团
+- ☁️ · : 5 — 云、公有云、CSIG、微云、腾讯云
+- ⚔️ · : 5 — 勇士、DNF、多人编辑打架、天美工作室群、王者荣耀
+- ⚽ · : 5 — 太湖三霸、体育、足球、FIFA Online、腾讯体育
+- 🌅 · : 5 — 滨海、朝阳、海湾、早会、晨会
+- 🌌 · : 5 — 宇宙、银河系、Aurora Studio、QQ空间、北极光工作室群
 - 🎉 · : 5 — 周五、派对、入职、派对大战、小聚
-- 🎮 · : 5 — IEG、英雄联盟、Mark、游戏、工作室
-- 🏛️ · : 5 — 鹅厂大楼、国家、总部、总部基地、首都
+- 🎨 · : 5 — 设计、颜色、CDC、TIT创意园、乐享
+- 🏃 · : 5 — 下班、跑路、迟到、跑步、天天酷跑
+- 🏙️ · : 5 — 社区、城市、都市圈、集团、鹅厂双子塔
 - 🏞️ · : 5 — 园区、河流、湖泊、丘陵、园中园
-- 🏭 · : 5 — 电子厂、漕河泾、纺织机械厂、LOFT工业风、产业园
-- 📋 · : 5 — TAPD、黑板墙、P族、周会纪要、任务
-- 📚 · : 5 — 知识、阅文集团、ima.copilot、小说、文档不同步
-- ☕ · : 4 — 咖啡、美式、续命鹅、鹅咖
-- ⚽ · : 4 — 太湖三霸、腾讯体育、体育、足球
-- 🌃 · : 4 — 广州、夜、微信之夜、灯火通明
-- 🌉 · : 4 — 上海、武汉、硅谷、上海总部
-- 🌌 · : 4 — 宇宙、QQ空间、北极光、银河系
 
 ## Top 20 full-signature reuse groups
 
 - 💨 · nature: 2 — 灰尘、烟
-- 💬 · product: 2 — 水帖、即时聊天
 - 💻 + 👔 · people: 2 — 张志东、Tony
 - 💼 + 👥 · office: 2 — Boss直聘、HR
 - 📈 · office: 2 — 季报、用户增长
 - 📊 · office: 2 — 月报、资历
 - 📐 · office: 2 — 对齐、指标
-- 📚 · product: 2 — 小说、文档不同步
 - 📜 + 👔 · people: 2 — 陈一丹、Charles
 - 📝 · office: 2 — 周报、事故复盘
 - 📡 + 👔 · people: 2 — 许晨晔、Daniel
 - 📢 · office: 2 — 广告、全员告警
 - 🔔 · product: 2 — 订阅、通知
-- 🔬 · place: 2 — 科兴、科兴科学园
 - 🤪 · people: 2 — 颠颠上班、发癫
 - 🥒 · people: 2 — 老贝榨、榨菜
-- 🥷 + 📱 · product: 2 — 火影忍者手游、火影
-- 🧊 · product: 2 — 南极圈、南极
+- 🥷 + 📱 · product: 2 — 火影、火影忍者手游
 - 🧦 · people: 2 — 鹿晗穿红、红袜子
 - 🧧 · people: 2 — 新年、人情
+- 😑 · people: 2 — 孙红雷关人脸、孙红雷
+- 🚀 · office: 2 — 上线、紧急发版
+- 🚀 + 👔 · people: 2 — 曾李青、Jason
+- 🚇 · people: 2 — 地铁、通勤高峰
 
 ## Accepted exceptions
 
@@ -80,7 +86,7 @@ knowledge layer, rules, and Emoji manifest.
 
 ## Locked entity examples
 
-### Riot
+### Riot Games
 
 Status: PASS
 
@@ -97,7 +103,7 @@ Status: PASS
 }
 ```
 
-### Epic
+### Epic Games
 
 Status: PASS
 

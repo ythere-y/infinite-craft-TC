@@ -72,6 +72,27 @@ test("valid persisted icon JSON wins over an exact preset", () => {
   );
 });
 
+test("reviewed QQ assets win over legacy persisted generated icons", () => {
+  assert.deepEqual(
+    resolveIconRecipe({
+      name: "黄钻",
+      emoji: "💛",
+      category: "qq_memory",
+      persisted: {
+        base: "💛",
+        badge: "🚇",
+        palette: "product",
+        source: "generated",
+      },
+    }),
+    {
+      base: "qq-era:yellow-diamond",
+      palette: "product",
+      source: "curated",
+    },
+  );
+});
+
 test("malformed icon recipes normalize to null", () => {
   for (const value of [
     null,

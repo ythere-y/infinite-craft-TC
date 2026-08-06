@@ -1,0 +1,15 @@
+{
+  "qq-icons-2010-pack": {
+    "title": "QQ七钻图标等级素材包",
+    "source_page": "https://www.duote.com/soft/893565.html",
+    "download_url": "https://qn2.runjiapp.com/zxqqqztpdjscb.zip",
+    "asset_dates": "2010-07-30 to 2010-10-09",
+    "usage": "internal-test-only",
+    "note": "Selected unmodified PNG files from the archive; executable content was not used."
+  },
+  "noto-emoji": {
+    "title": "Noto Emoji 2.048",
+    "license": "Apache-2.0",
+    "usage": "deterministic fallback icons"
+  }
+}

@@ -55,6 +55,17 @@ export function presetIcon(name) {
   return normalizeIcon(row.icon ?? row);
 }
 
+function reviewedPresetIcon(name) {
+  let row = Object.hasOwn(ELEMENT_ICONS, name)
+    ? ELEMENT_ICONS[name]
+    : null;
+  if (!isObject(row) && Object.hasOwn(ENTITY_ALIASES, name)) {
+    row = ELEMENT_ICONS[ENTITY_ALIASES[name]];
+  }
+  if (!isObject(row) || !normalizeIcon(row.fallback_icon)) return null;
+  return normalizeIcon(row.icon);
+}
+
 function contextText({ name, category, parents, chain, comment }) {
   return [
     name,
@@ -128,6 +139,9 @@ export function resolveIconRecipe({
   comment = "",
   persisted = null,
 }) {
+  const reviewed = reviewedPresetIcon(name);
+  if (reviewed) return reviewed;
+
   const saved = normalizeIcon(persisted);
   if (saved) return saved;
 

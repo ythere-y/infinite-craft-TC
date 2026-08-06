@@ -6,6 +6,7 @@
   <title>🎛️ 后台监控 · 鹅厂无限合成 ♾️</title>
   <link rel="icon" type="image/png" href="/assets/icons/generated/emoji/1f427.png">
   <link rel="stylesheet" href="/icon-system.css">
+  <link rel="stylesheet" href="/admin/llm-admin.css">
   <!-- LOCAL_PROMPT_ADMIN_ASSETS_START -->
   <link rel="stylesheet" href="/admin/prompt-admin.css">
   <!-- LOCAL_PROMPT_ADMIN_ASSETS_END -->
@@ -184,16 +185,19 @@
   </header>
 
   <main>
-    <!-- LOCAL_PROMPT_ADMIN_NAV_START -->
     <nav class="admin-tabs" role="tablist" aria-label="后台功能">
       <button type="button" data-admin-tab="monitor"
               id="admin-monitor-tab" role="tab" aria-controls="admin-monitor-panel"
               aria-selected="true" tabindex="0">运行监控</button>
+      <button type="button" data-admin-tab="llm"
+              id="admin-llm-tab" role="tab" aria-controls="admin-llm-panel"
+              aria-selected="false" tabindex="-1">LLM 接口</button>
+      <!-- LOCAL_PROMPT_ADMIN_NAV_START -->
       <button type="button" data-admin-tab="prompt"
               id="admin-prompt-tab" role="tab" aria-controls="admin-prompt-panel"
               aria-selected="false" tabindex="-1">Prompt 管理</button>
+      <!-- LOCAL_PROMPT_ADMIN_NAV_END -->
     </nav>
-    <!-- LOCAL_PROMPT_ADMIN_NAV_END -->
 
     <section id="admin-monitor-panel" data-admin-panel="monitor"
              role="tabpanel" aria-labelledby="admin-monitor-tab">
@@ -278,6 +282,34 @@
         <div class="chip-row" id="chains"></div>
       </div>
     </div>
+    </section>
+
+    <section id="admin-llm-panel" data-admin-panel="llm"
+             role="tabpanel" aria-labelledby="admin-llm-tab" hidden>
+      <div class="llm-card">
+        <div>
+          <h2>LLM 接口调配</h2>
+          <p>选择游戏生成新组合时使用的模型接口。密钥仍由服务端环境变量管理，不会在此页面显示。</p>
+        </div>
+        <fieldset id="llm-providers">
+          <legend>接口供应商</legend>
+          <label class="llm-provider">
+            <input type="radio" name="llm-provider" value="makers">
+            <span><b>Makers</b><small data-provider-status="makers">检查配置中…</small></span>
+          </label>
+          <label class="llm-provider">
+            <input type="radio" name="llm-provider" value="deepseek">
+            <span><b>DeepSeek</b><small data-provider-status="deepseek">检查配置中…</small></span>
+          </label>
+        </fieldset>
+        <div class="llm-actions">
+          <button type="button" id="llm-save">保存选择</button>
+          <button type="button" id="llm-test">测试可用性</button>
+        </div>
+        <p id="llm-status" class="llm-status" role="status" aria-live="polite">
+          切换到本页签后加载配置。
+        </p>
+      </div>
     </section>
 
     <!-- LOCAL_PROMPT_ADMIN_PANEL_START -->
@@ -455,6 +487,8 @@
   </footer>
 
   <script src="/icon-system.js"></script>
+  <script src="/admin/admin-tabs.js"></script>
+  <script src="/admin/llm-admin.js"></script>
   <!-- LOCAL_PROMPT_ADMIN_SCRIPTS_START -->
   <script src="/admin/prompt-decimal.js"></script>
   <script src="/admin/prompt-admin-model.js"></script>

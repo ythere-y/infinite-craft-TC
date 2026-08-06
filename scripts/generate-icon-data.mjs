@@ -109,6 +109,46 @@ function requireDistinctBaseAndBadge(icon, label) {
   }
 }
 
+function validateExplicitIcon(icon, label, rules, emojiManifest) {
+  if (!isObjectRecord(icon)) {
+    throw new Error(`${label} must be an icon object`);
+  }
+  requireManifestEmoji(emojiManifest, icon.base, `${label}.base`);
+  if (!rules.palettes.includes(icon.palette)) {
+    throw new Error(`${label}.palette must use a configured palette`);
+  }
+  if (!rules.allowed_sources.includes(icon.source)) {
+    throw new Error(`${label}.source must use an allowed source`);
+  }
+  if (icon.badge !== undefined) {
+    requireManifestEmoji(emojiManifest, icon.badge, `${label}.badge`);
+  }
+  requireDistinctBaseAndBadge(icon, label);
+}
+
+function validateCuratedEntry(entry, name, rules, emojiManifest) {
+  if (!isObjectRecord(entry)) {
+    throw new Error(`${name} curated mapping must be an object`);
+  }
+  validateExplicitIcon(entry.icon, `${name}.icon`, rules, emojiManifest);
+  validateExplicitIcon(
+    entry.fallback_icon,
+    `${name}.fallback_icon`,
+    rules,
+    emojiManifest,
+  );
+  if (typeof entry.rationale !== "string" || !entry.rationale.trim()) {
+    throw new Error(`${name}.rationale must be a non-empty string`);
+  }
+  if (
+    !isObjectRecord(entry.provenance) ||
+    typeof entry.provenance.source_id !== "string" ||
+    !entry.provenance.source_id.trim()
+  ) {
+    throw new Error(`${name}.provenance must contain a source_id`);
+  }
+}
+
 function validateRules(rules, categories, emojiManifest) {
   const paletteSet = new Set(rules.palettes);
   for (const category of categories) {
@@ -252,6 +292,7 @@ export function buildElementIconMap({
   catalogElementNames = new Set(),
   rules,
   knowledge,
+  curated = {},
   emojiManifest,
 }) {
   const elements = seedElements?.elements;
@@ -273,11 +314,27 @@ export function buildElementIconMap({
       `Icon knowledge contains unknown elements: ${unknownKnowledge.join(", ")}`,
     );
   }
+  const unknownCurated = Object.keys(curated).filter(
+    (name) => !Object.hasOwn(elements, name),
+  );
+  if (unknownCurated.length) {
+    throw new Error(
+      `Curated icons contain unknown elements: ${unknownCurated.join(", ")}`,
+    );
+  }
 
   const iconMap = {};
   const usedBadgesBySignature = new Map();
   for (const [name, seed] of Object.entries(elements)) {
     requireManifestEmoji(emojiManifest, seed.emoji, `${name}.emoji`);
+
+    const curatedEntry = curated[name];
+    if (curatedEntry) {
+      validateCuratedEntry(curatedEntry, name, rules, emojiManifest);
+      iconMap[name] = structuredClone(curatedEntry);
+      rememberBadge(curatedEntry.icon, usedBadgesBySignature);
+      continue;
+    }
 
     const entity = knowledge[name];
     if (entity) {
@@ -367,6 +424,7 @@ export async function generateIconData({ root = ROOT } = {}) {
     bountyContent,
     rules,
     knowledge,
+    curated,
     emojiManifest,
   ] = await Promise.all([
     readJson(resolve(projectRoot, "backend/seed_elements.json"), "Seed elements"),
@@ -382,6 +440,10 @@ export async function generateIconData({ root = ROOT } = {}) {
     readJson(
       resolve(projectRoot, "backend/icon_knowledge.json"),
       "Icon knowledge",
+    ),
+    readJson(
+      resolve(projectRoot, "backend/icon_curated.json"),
+      "Curated icons",
     ),
     readJson(
       resolve(
@@ -410,6 +472,7 @@ export async function generateIconData({ root = ROOT } = {}) {
     catalogElementNames,
     rules,
     knowledge,
+    curated,
     emojiManifest,
   });
   const browserPath = resolve(projectRoot, BROWSER_MAP_PATH);
@@ -427,6 +490,7 @@ export async function generateIconData({ root = ROOT } = {}) {
     aliases: Object.keys(collectEntityAliases(knowledge)).length,
     elements: Object.keys(iconMap).length,
     entities: Object.keys(knowledge).length,
+    curated: Object.keys(curated).length,
     outputs: [BROWSER_MAP_PATH, MAKERS_DATA_PATH],
   };
 }
@@ -435,7 +499,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   generateIconData()
     .then((summary) => {
       console.log(
-        `Generated ${summary.elements} icon recipes (${summary.entities} entity overrides).`,
+        `Generated ${summary.elements} icon recipes (${summary.entities} entity and ${summary.curated} curated overrides).`,
       );
     })
     .catch((error) => {

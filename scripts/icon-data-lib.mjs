@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { access, readFile, readdir, stat } from "node:fs/promises";
 import { dirname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { inflateSync } from "node:zlib";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ICONS_URL_PREFIX = "/assets/icons/";
@@ -138,6 +139,80 @@ export async function sha256ForFiles(files) {
   return digest.digest("hex");
 }
 
+export function validatePngBuffer(buffer, label = "PNG asset") {
+  if (!Buffer.isBuffer(buffer)) {
+    throw new Error(`${label} must be provided as a buffer`);
+  }
+  const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  if (buffer.length < signature.length || !buffer.subarray(0, 8).equals(signature)) {
+    throw new Error(`${label} has an invalid PNG signature`);
+  }
+
+  let offset = 8;
+  let width;
+  let height;
+  let channels;
+  let sawIend = false;
+  const idat = [];
+  while (offset < buffer.length) {
+    if (offset + 12 > buffer.length) {
+      throw new Error(`${label} has a truncated PNG chunk`);
+    }
+    const length = buffer.readUInt32BE(offset);
+    const end = offset + 12 + length;
+    if (end > buffer.length) {
+      throw new Error(`${label} has a truncated PNG chunk`);
+    }
+    const type = buffer.toString("ascii", offset + 4, offset + 8);
+    const data = buffer.subarray(offset + 8, offset + 8 + length);
+    if (type === "IHDR") {
+      if (offset !== 8 || length !== 13) {
+        throw new Error(`${label} has an invalid PNG header`);
+      }
+      width = data.readUInt32BE(0);
+      height = data.readUInt32BE(4);
+      const bitDepth = data[8];
+      const colorType = data[9];
+      if (
+        !width ||
+        !height ||
+        bitDepth !== 8 ||
+        ![2, 6].includes(colorType) ||
+        data[10] !== 0 ||
+        data[11] !== 0 ||
+        data[12] !== 0
+      ) {
+        throw new Error(`${label} uses an unsupported PNG encoding`);
+      }
+      channels = colorType === 6 ? 4 : 3;
+    } else if (type === "IDAT") {
+      idat.push(data);
+    } else if (type === "IEND") {
+      sawIend = true;
+      offset = end;
+      break;
+    }
+    offset = end;
+  }
+  if (!width || !height || !idat.length || !sawIend || offset !== buffer.length) {
+    throw new Error(`${label} is incomplete or has trailing PNG data`);
+  }
+
+  let decoded;
+  try {
+    decoded = inflateSync(Buffer.concat(idat));
+  } catch (error) {
+    throw new Error(`${label} PNG decode failed: ${error.message}`);
+  }
+  const expectedBytes = height * (1 + width * channels);
+  if (decoded.length !== expectedBytes) {
+    throw new Error(
+      `${label} decoded to ${decoded.length} bytes; expected ${expectedBytes}`,
+    );
+  }
+  return { width, height };
+}
+
 export async function validateCommittedIconAssets({ root = ROOT } = {}) {
   const projectRoot = resolve(root);
   const generatedRoot = resolve(
@@ -200,6 +275,64 @@ export async function validateCommittedIconAssets({ root = ROOT } = {}) {
     ),
   );
 
+  const namedRoot = resolve(projectRoot, "frontend/assets/icons/qq-era");
+  let namedManifest = {};
+  const namedManifestPath = resolve(namedRoot, "manifest.json");
+  try {
+    await access(namedManifestPath);
+    namedManifest = await readJson(namedManifestPath, "QQ-era icon manifest");
+  } catch (error) {
+    if (
+      error.code !== "ENOENT" ||
+      manifestReferences.some((value) =>
+        value.startsWith("/assets/icons/qq-era/"))
+    ) {
+      throw error;
+    }
+  }
+  const namedEntries = Object.entries(namedManifest);
+  for (const [name, iconUrl] of namedEntries) {
+    if (manifest[name] !== iconUrl) {
+      throw new Error(`${name} does not match the generated icon manifest`);
+    }
+  }
+  let namedFiles = [];
+  if (namedEntries.length) {
+    const sourcesPath = resolve(namedRoot, "sources.json");
+    await readJson(sourcesPath, "QQ-era icon source registry");
+    const referencedNames = new Set(
+      namedEntries.map(([, iconUrl]) => iconUrl.split("/").at(-1)),
+    );
+    const pngNames = (await readdir(namedRoot))
+      .filter((name) => name.toLowerCase().endsWith(".png"))
+      .sort();
+    for (const name of pngNames) {
+      if (!referencedNames.has(name)) {
+        throw new Error(`QQ-era PNG ${name} is not referenced by its manifest`);
+      }
+    }
+    if (referencedNames.size !== pngNames.length) {
+      throw new Error("QQ-era icon manifest references a missing or duplicate PNG");
+    }
+    namedFiles = pngNames.map((name) => [
+      `qq-era/${name}`,
+      resolve(namedRoot, name),
+    ]);
+    for (const [relativePath, path] of namedFiles) {
+      validatePngBuffer(
+        await readFile(path),
+        `Historic icon ${relativePath}`,
+      );
+    }
+    namedFiles.push(
+      ["qq-era/manifest.json", namedManifestPath],
+      ["qq-era/sources.json", sourcesPath],
+    );
+    if (!metadata?.sources?.qqEra?.registry) {
+      throw new Error("Icon build metadata must record the QQ-era source registry");
+    }
+  }
+
   const emojiFiles = (await readdir(resolve(generatedRoot, "emoji")))
     .filter((name) => name.toLowerCase().endsWith(".png"))
     .map((name) => [
@@ -218,6 +351,7 @@ export async function validateCommittedIconAssets({ root = ROOT } = {}) {
     actionSvgs: actionFiles.length,
     emojiManifestEntries: Object.keys(manifest).length,
     emojiPngs: emojiFiles.length,
+    namedPngs: namedEntries.length,
   };
   for (const [name, actual] of Object.entries(actualCounts)) {
     if (metadata?.counts?.[name] !== actual) {
@@ -227,7 +361,11 @@ export async function validateCommittedIconAssets({ root = ROOT } = {}) {
     }
   }
 
-  const digest = await sha256ForFiles([...emojiFiles, ...actionFiles]);
+  const digest = await sha256ForFiles([
+    ...emojiFiles,
+    ...actionFiles,
+    ...namedFiles,
+  ]);
   if (metadata.sha256 !== digest) {
     throw new Error(
       `Icon asset digest ${digest} does not match metadata (${String(metadata.sha256)})`,
@@ -239,5 +377,6 @@ export async function validateCommittedIconAssets({ root = ROOT } = {}) {
     elementEntries,
     emojiEntries: Object.keys(manifest).length,
     emojiFiles: emojiFiles.length,
+    namedFiles: namedEntries.length,
   };
 }

@@ -253,7 +253,7 @@ export const ELEMENT_ICONS = {
       "palette": "office",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“👨‍🦲”语义；worker类别无需附加徽章"
+    "rationale": "沿用种子语义“👨‍🦲”；种子配方“头发 + 焦虑”（worker 链）确认“秃头”概念，无需附加徽章"
   },
   "黑眼圈": {
     "icon": {
@@ -559,7 +559,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“💀”语义；meme_2026w16类别无需附加徽章"
+    "rationale": "沿用种子语义“💀”；种子配方“人 + 灵魂”（meme_2026w16 链）确认“死者人格”概念，无需附加徽章"
   },
   "哭哭马": {
     "icon": {
@@ -583,7 +583,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“😮‍💨”语义；meme_2026w16类别无需附加徽章"
+    "rationale": "沿用种子语义“😮‍💨”；种子配方“人 + 加班”（meme_2026w16 链）确认“班味”概念，无需附加徽章"
   },
   "空降疲惫": {
     "icon": {
@@ -607,7 +607,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🌴”语义；meme_2026w16类别无需附加徽章"
+    "rationale": "沿用种子语义“🌴”；种子配方“人 + 松弛感”（meme_2026w16 链）确认“松人”概念，无需附加徽章"
   },
   "紧人": {
     "icon": {
@@ -623,7 +623,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🤪”语义；meme_2026w16类别无需附加徽章"
+    "rationale": "沿用种子语义“🤪”；种子配方“早高峰 + 班味”（meme_2026w16 链）确认“颠颠上班”概念，无需附加徽章"
   },
   "对抗路姨甥": {
     "icon": {
@@ -640,7 +640,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“😑”语义；meme_2026w16类别无需附加徽章"
+    "rationale": "沿用种子语义“😑”；种子配方“孙红雷 + 表情”（meme_2026w16 链）确认“孙红雷关人脸”概念，无需附加徽章"
   },
   "过期酸奶": {
     "icon": {
@@ -648,7 +648,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🥛”语义；meme_2026w16类别无需附加徽章"
+    "rationale": "沿用种子语义“🥛”；种子配方“冰箱 + 时间”（meme_2026w16 链）确认“过期酸奶”概念，无需附加徽章"
   },
   "上坟都不敢这么烧": {
     "icon": {
@@ -656,7 +656,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🕯️”语义；meme_2026w16类别无需附加徽章"
+    "rationale": "沿用种子语义“🕯️”；种子配方“死者人格 + 火”（meme_2026w16 链）确认“上坟都不敢这么烧”概念，无需附加徽章"
   },
   "鹿晗穿红": {
     "icon": {
@@ -720,7 +720,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“😤”语义；meme_classic类别无需附加徽章"
+    "rationale": "沿用种子语义“😤”；种子配方“时间 + 焦虑”（meme_classic 链）确认“紧绷感”概念，无需附加徽章"
   },
   "松弛感": {
     "icon": {
@@ -728,7 +728,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“😌”语义；meme_classic类别无需附加徽章"
+    "rationale": "沿用种子语义“😌”；种子配方“午休 + 自由”（meme_classic 链）确认“松弛感”概念，无需附加徽章"
   },
   "班上不想上": {
     "icon": {
@@ -736,7 +736,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“😵”语义；meme_classic类别无需附加徽章"
+    "rationale": "沿用种子语义“😵”；种子配方“周一 + 班味”（meme_classic 链）确认“班上不想上”概念，无需附加徽章"
   },
   "gap year": {
     "entity_type": "english_term",
@@ -764,7 +764,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“⚡”语义；meme_classic类别无需附加徽章"
+    "rationale": "沿用种子语义“⚡”；种子配方“人 + 情绪”（meme_classic 链）确认“精神状态”概念，无需附加徽章"
   },
   "闭环": {
     "icon": {
@@ -932,7 +932,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🧬”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🧬”；种子配方“时间 + 水”（physical 链）确认“生命”概念，无需附加徽章"
   },
   "时间": {
     "icon": {
@@ -1030,7 +1030,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“💇”语义；life类别无需附加徽章"
+    "rationale": "沿用种子语义“💇”；种子配方“人 + 植物”（life 链）确认“头发”概念，无需附加徽章"
   },
   "眼泪": {
     "icon": {
@@ -2327,7 +2327,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🙂”语义；life类别无需附加徽章"
+    "rationale": "沿用种子语义“🙂”；种子配方“情绪 + 手机”（life 链）确认“表情”概念，无需附加徽章"
   },
   "小床": {
     "icon": {
@@ -2424,7 +2424,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“😑”语义；life类别无需附加徽章"
+    "rationale": "沿用种子语义“😑”；种子配方“人 + 表情”（meme_2026w16 链）确认“孙红雷”概念，无需附加徽章"
   },
   "红袜子": {
     "icon": {
@@ -2800,7 +2800,7 @@ export const ELEMENT_ICONS = {
       "palette": "office",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“💎”语义；worker类别无需附加徽章"
+    "rationale": "沿用种子语义“💎”；种子配方“游戏 + 钱包”（worker 链）确认“氪金”概念，无需附加徽章"
   },
   "直播间": {
     "icon": {
@@ -2808,7 +2808,7 @@ export const ELEMENT_ICONS = {
       "palette": "office",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“📹”语义；worker类别无需附加徽章"
+    "rationale": "沿用种子语义“📹”；种子配方“手机 + 麦克风”（worker 链）确认“直播间”概念，无需附加徽章"
   },
   "直播打赏": {
     "icon": {
@@ -2816,7 +2816,7 @@ export const ELEMENT_ICONS = {
       "palette": "office",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“💰”语义；worker类别无需附加徽章"
+    "rationale": "沿用种子语义“💰”；种子配方“直播间 + 钱包”（worker 链）确认“直播打赏”概念，无需附加徽章"
   },
   "广告": {
     "icon": {
@@ -2973,7 +2973,7 @@ export const ELEMENT_ICONS = {
       "palette": "office",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🧓”语义；worker类别无需附加徽章"
+    "rationale": "沿用种子语义“🧓”；种子配方“打工 + 时间”（worker 链）确认“资深打工人”概念，无需附加徽章"
   },
   "猝死": {
     "icon": {
@@ -3076,7 +3076,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🧾”语义；meme_2026w16类别无需附加徽章"
+    "rationale": "沿用种子语义“🧾”；种子配方“谎言 + 钱包”（meme_2026w16 链）确认“智商税”概念，无需附加徽章"
   },
   "起床": {
     "icon": {
@@ -3977,7 +3977,7 @@ export const ELEMENT_ICONS = {
       "palette": "nature",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🏗️”语义；physical类别无需附加徽章"
+    "rationale": "沿用种子语义“🏗️”；种子配方“土 + 钢架”（building 链）确认“工地”概念，无需附加徽章"
   },
   "矿石": {
     "icon": {
@@ -4025,7 +4025,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“👵”语义；life类别无需附加徽章"
+    "rationale": "沿用种子语义“👵”；种子配方“人 + 日子”（life 链）确认“皱纹”概念，无需附加徽章"
   },
   "白发": {
     "icon": {
@@ -4033,7 +4033,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“👴”语义；life类别无需附加徽章"
+    "rationale": "沿用种子语义“👴”；种子配方“头发 + 时间”（life 链）确认“白发”概念，无需附加徽章"
   },
   "资历": {
     "icon": {
@@ -4358,7 +4358,7 @@ export const ELEMENT_ICONS = {
       "palette": "people",
       "source": "fallback"
     },
-    "rationale": "沿用种子元素的“🧧”语义；life类别无需附加徽章"
+    "rationale": "沿用种子语义“🧧”；种子配方“人 + 爱”（life 链）确认“人情”概念，无需附加徽章"
   },
   "盆栽": {
     "icon": {
@@ -4423,120 +4423,120 @@ export const ELEMENT_ICONS = {
   },
   "光": {
     "icon": {
-      "base": "🧩",
-      "badge": "📈",
+      "base": "🔆",
+      "badge": "🎮",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“火 + 火”（support 链）以“合并目录语义”徽章区分“光”"
+    "rationale": "沿用种子语义“🔆”，依据种子配方“火 + 火”（support 链）以“合并目录语义”徽章区分“光”"
   },
   "颜色": {
     "icon": {
-      "base": "🧩",
+      "base": "🎨",
       "badge": "☕",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“光 + 雨”（support 链）以“合并目录语义”徽章区分“颜色”"
+    "rationale": "沿用种子语义“🎨”，依据种子配方“光 + 雨”（support 链）以“合并目录语义”徽章区分“颜色”"
   },
   "文字": {
     "icon": {
-      "base": "🧩",
-      "badge": "🎵",
+      "base": "🔤",
+      "badge": "🏭",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“电脑 + 知识”（support 链）以“合并目录语义”徽章区分“文字”"
+    "rationale": "沿用种子语义“🔤”，依据种子配方“电脑 + 知识”（support 链）以“合并目录语义”徽章区分“文字”"
   },
   "公司": {
     "icon": {
-      "base": "🧩",
+      "base": "🏢",
       "badge": "⚡",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 工位”（support 链）以“合并目录语义”徽章区分“公司”"
+    "rationale": "沿用种子语义“🏢”，依据种子配方“人 + 工位”（support 链）以“合并目录语义”徽章区分“公司”"
   },
   "荒野": {
     "icon": {
-      "base": "🧩",
-      "badge": "👔",
+      "base": "🏜️",
+      "badge": "🪨",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“土 + 影子”（support 链）以“合并目录语义”徽章区分“荒野”"
+    "rationale": "沿用种子语义“🏜️”，依据种子配方“土 + 影子”（support 链）以“合并目录语义”徽章区分“荒野”"
   },
   "目标": {
     "icon": {
-      "base": "🧩",
+      "base": "🎯",
       "badge": "👥",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“文字 + 未来”（support 链）以“合并目录语义”徽章区分“目标”"
+    "rationale": "沿用种子语义“🎯”，依据种子配方“文字 + 未来”（support 链）以“合并目录语义”徽章区分“目标”"
   },
   "怀旧": {
     "icon": {
-      "base": "🧩",
-      "badge": "🌈",
+      "base": "📻",
+      "badge": "🏢",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“历史 + 聊天”（support 链）以“合并目录语义”徽章区分“怀旧”"
+    "rationale": "沿用种子语义“📻”，依据种子配方“历史 + 聊天”（support 链）以“合并目录语义”徽章区分“怀旧”"
   },
   "装扮": {
     "icon": {
-      "base": "🧩",
-      "badge": "📚",
+      "base": "👗",
+      "badge": "📦",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 颜色”（support 链）以“合并目录语义”徽章区分“装扮”"
+    "rationale": "沿用种子语义“👗”，依据种子配方“人 + 颜色”（support 链）以“合并目录语义”徽章区分“装扮”"
   },
   "动物": {
     "icon": {
-      "base": "🧩",
+      "base": "🐾",
+      "badge": "🎮",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🐾”，依据种子配方“时间 + 植物”（support 链）以“合并目录语义”徽章区分“动物”"
+  },
+  "汽车": {
+    "icon": {
+      "base": "🚗",
+      "badge": "♟️",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🚗”，依据种子配方“速度 + 金属”（support 链）以“合并目录语义”徽章区分“汽车”"
+  },
+  "学校": {
+    "icon": {
+      "base": "🏫",
       "badge": "🎯",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“时间 + 植物”（support 链）以“合并目录语义”徽章区分“动物”"
-  },
-  "汽车": {
-    "icon": {
-      "base": "🧩",
-      "badge": "🎲",
-      "palette": "place",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“速度 + 金属”（support 链）以“合并目录语义”徽章区分“汽车”"
-  },
-  "学校": {
-    "icon": {
-      "base": "🧩",
-      "badge": "💻",
-      "palette": "place",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“城市 + 知识”（support 链）以“合并目录语义”徽章区分“学校”"
+    "rationale": "沿用种子语义“🏫”，依据种子配方“城市 + 知识”（support 链）以“合并目录语义”徽章区分“学校”"
   },
   "下载": {
     "icon": {
-      "base": "🧩",
-      "badge": "💬",
+      "base": "📥",
+      "badge": "👥",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“互联网 + 电脑”（support 链）以“合并目录语义”徽章区分“下载”"
+    "rationale": "沿用种子语义“📥”，依据种子配方“互联网 + 电脑”（support 链）以“合并目录语义”徽章区分“下载”"
   },
   "货币": {
     "icon": {
-      "base": "🧩",
-      "badge": "⚽",
+      "base": "🪙",
+      "badge": "🌱",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 金属”（support 链）以“合并目录语义”徽章区分“货币”"
+    "rationale": "沿用种子语义“🪙”，依据种子配方“人 + 金属”（support 链）以“合并目录语义”徽章区分“货币”"
   },
   "会员": {
     "icon": {
@@ -4549,111 +4549,111 @@ export const ELEMENT_ICONS = {
   },
   "经验": {
     "icon": {
-      "base": "🧩",
+      "base": "🧠",
       "badge": "🔑",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 知识”（support 链）以“合并目录语义”徽章区分“经验”"
+    "rationale": "沿用种子语义“🧠”，依据种子配方“人 + 知识”（support 链）以“合并目录语义”徽章区分“经验”"
   },
   "陌生人": {
     "icon": {
-      "base": "🧩",
-      "badge": "🌳",
+      "base": "👤",
+      "badge": "🎭",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 影子”（support 链）以“合并目录语义”徽章区分“陌生人”"
+    "rationale": "沿用种子语义“👤”，依据种子配方“人 + 影子”（support 链）以“合并目录语义”徽章区分“陌生人”"
   },
   "声音": {
     "icon": {
-      "base": "🧩",
-      "badge": "🏀",
+      "base": "🔊",
+      "badge": "☀️",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 风”（support 链）以“合并目录语义”徽章区分“声音”"
+    "rationale": "沿用种子语义“🔊”，依据种子配方“人 + 风”（support 链）以“合并目录语义”徽章区分“声音”"
   },
   "震动": {
     "icon": {
-      "base": "🧩",
-      "badge": "♟️",
+      "base": "📳",
+      "badge": "☀️",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“声音 + 手机”（support 链）以“合并目录语义”徽章区分“震动”"
+    "rationale": "沿用种子语义“📳”，依据种子配方“声音 + 手机”（support 链）以“合并目录语义”徽章区分“震动”"
   },
   "影子": {
     "icon": {
-      "base": "🧩",
-      "badge": "🎤",
+      "base": "🌑",
+      "badge": "🎮",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 光”（support 链）以“合并目录语义”徽章区分“影子”"
+    "rationale": "沿用种子语义“🌑”，依据种子配方“人 + 光”（support 链）以“合并目录语义”徽章区分“影子”"
   },
   "经验值": {
     "icon": {
-      "base": "🧩",
+      "base": "📊",
       "badge": "🌸",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“时间 + 经验”（support 链）以“合并目录语义”徽章区分“经验值”"
+    "rationale": "沿用种子语义“📊”，依据种子配方“时间 + 经验”（support 链）以“合并目录语义”徽章区分“经验值”"
   },
   "访问": {
     "icon": {
-      "base": "🧩",
+      "base": "🚪",
+      "badge": "🏢",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🚪”，依据种子配方“互联网 + 朋友”（support 链）以“合并目录语义”徽章区分“访问”"
+  },
+  "离线": {
+    "icon": {
+      "base": "📴",
+      "badge": "💚",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“📴”，依据种子配方“互联网 + 影子”（support 链）以“合并目录语义”徽章区分“离线”"
+  },
+  "签名": {
+    "icon": {
+      "base": "✍️",
+      "badge": "🍎",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“✍️”，依据种子配方“人 + 文字”（support 链）以“合并目录语义”徽章区分“签名”"
+  },
+  "好友": {
+    "icon": {
+      "base": "🧑‍🤝‍🧑",
+      "badge": "⚙️",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧑‍🤝‍🧑”，依据种子配方“人 + 朋友”（support 链）以“合并目录语义”徽章区分“好友”"
+  },
+  "留言": {
+    "icon": {
+      "base": "📝",
       "badge": "🎁",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“互联网 + 朋友”（support 链）以“合并目录语义”徽章区分“访问”"
-  },
-  "离线": {
-    "icon": {
-      "base": "🧩",
-      "badge": "🟠",
-      "palette": "place",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“互联网 + 影子”（support 链）以“合并目录语义”徽章区分“离线”"
-  },
-  "签名": {
-    "icon": {
-      "base": "🧩",
-      "badge": "🚀",
-      "palette": "place",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 文字”（support 链）以“合并目录语义”徽章区分“签名”"
-  },
-  "好友": {
-    "icon": {
-      "base": "🧩",
-      "badge": "🔍",
-      "palette": "place",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 朋友”（support 链）以“合并目录语义”徽章区分“好友”"
-  },
-  "留言": {
-    "icon": {
-      "base": "🧩",
-      "badge": "🎉",
-      "palette": "place",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“文字 + 朋友”（support 链）以“合并目录语义”徽章区分“留言”"
+    "rationale": "沿用种子语义“📝”，依据种子配方“文字 + 朋友”（support 链）以“合并目录语义”徽章区分“留言”"
   },
   "对战": {
     "icon": {
-      "base": "🧩",
-      "badge": "💡",
+      "base": "🥋",
+      "badge": "💎",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“战争 + 游戏”（support 链）以“合并目录语义”徽章区分“对战”"
+    "rationale": "沿用种子语义“🥋”，依据种子配方“战争 + 游戏”（support 链）以“合并目录语义”徽章区分“对战”"
   },
   "角色扮演": {
     "icon": {
@@ -4666,138 +4666,138 @@ export const ELEMENT_ICONS = {
   },
   "梦": {
     "icon": {
-      "base": "🧩",
-      "badge": "🗺️",
+      "base": "💭",
+      "badge": "♟️",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“云 + 人”（support 链）以“合并目录语义”徽章区分“梦”"
+    "rationale": "沿用种子语义“💭”，依据种子配方“云 + 人”（support 链）以“合并目录语义”徽章区分“梦”"
   },
   "战争": {
     "icon": {
-      "base": "🧩",
-      "badge": "🔔",
+      "base": "💥",
+      "badge": "📣",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 火”（support 链）以“合并目录语义”徽章区分“战争”"
+    "rationale": "沿用种子语义“💥”，依据种子配方“人 + 火”（support 链）以“合并目录语义”徽章区分“战争”"
   },
   "历史": {
     "icon": {
-      "base": "🧩",
-      "badge": "📍",
-      "palette": "place",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 时间”（support 链）以“合并目录语义”徽章区分“历史”"
-  },
-  "速度": {
-    "icon": {
-      "base": "🧩",
+      "base": "📜",
       "badge": "🧑‍💻",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“时间 + 风”（support 链）以“合并目录语义”徽章区分“速度”"
+    "rationale": "沿用种子语义“📜”，依据种子配方“人 + 时间”（support 链）以“合并目录语义”徽章区分“历史”"
+  },
+  "速度": {
+    "icon": {
+      "base": "⚡",
+      "badge": "🧑‍💻",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“⚡”，依据种子配方“时间 + 风”（support 链）以“合并目录语义”徽章区分“速度”"
   },
   "舞蹈": {
     "icon": {
-      "base": "🧩",
-      "badge": "🧑‍💼",
+      "base": "💃",
+      "badge": "📊",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 音乐”（support 链）以“合并目录语义”徽章区分“舞蹈”"
+    "rationale": "沿用种子语义“💃”，依据种子配方“人 + 音乐”（support 链）以“合并目录语义”徽章区分“舞蹈”"
   },
   "魔法": {
     "icon": {
-      "base": "🧩",
-      "badge": "🚲",
+      "base": "🪄",
+      "badge": "👔",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“梦 + 知识”（support 链）以“合并目录语义”徽章区分“魔法”"
+    "rationale": "沿用种子语义“🪄”，依据种子配方“梦 + 知识”（support 链）以“合并目录语义”徽章区分“魔法”"
   },
   "格斗": {
     "icon": {
-      "base": "🧩",
-      "badge": "🔥",
+      "base": "🥊",
+      "badge": "🏢",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 对战”（support 链）以“合并目录语义”徽章区分“格斗”"
+    "rationale": "沿用种子语义“🥊”，依据种子配方“人 + 对战”（support 链）以“合并目录语义”徽章区分“格斗”"
   },
   "弹射": {
     "icon": {
-      "base": "🧩",
-      "badge": "🎨",
+      "base": "🏹",
+      "badge": "🎵",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“火 + 速度”（support 链）以“合并目录语义”徽章区分“弹射”"
+    "rationale": "沿用种子语义“🏹”，依据种子配方“火 + 速度”（support 链）以“合并目录语义”徽章区分“弹射”"
   },
   "仙侠": {
     "icon": {
-      "base": "🧩",
-      "badge": "🌱",
+      "base": "🧚",
+      "badge": "☀️",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“历史 + 魔法”（support 链）以“合并目录语义”徽章区分“仙侠”"
+    "rationale": "沿用种子语义“🧚”，依据种子配方“历史 + 魔法”（support 链）以“合并目录语义”徽章区分“仙侠”"
   },
   "未来": {
     "icon": {
-      "base": "🧩",
+      "base": "🔮",
       "badge": "🏔️",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“AI + 时间”（support 链）以“合并目录语义”徽章区分“未来”"
+    "rationale": "沿用种子语义“🔮”，依据种子配方“AI + 时间”（support 链）以“合并目录语义”徽章区分“未来”"
   },
   "战地": {
     "icon": {
-      "base": "🧩",
-      "badge": "🧠",
+      "base": "🪖",
+      "badge": "🕹️",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“土 + 战争”（support 链）以“合并目录语义”徽章区分“战地”"
+    "rationale": "沿用种子语义“🪖”，依据种子配方“土 + 战争”（support 链）以“合并目录语义”徽章区分“战地”"
   },
   "剑": {
     "icon": {
-      "base": "🧩",
-      "badge": "🏭",
+      "base": "🗡️",
+      "badge": "🌳",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“战争 + 金属”（support 链）以“合并目录语义”徽章区分“剑”"
+    "rationale": "沿用种子语义“🗡️”，依据种子配方“战争 + 金属”（support 链）以“合并目录语义”徽章区分“剑”"
   },
   "灵魂": {
     "icon": {
-      "base": "🧩",
-      "badge": "🏆",
+      "base": "👻",
+      "badge": "🚇",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 梦”（support 链）以“合并目录语义”徽章区分“灵魂”"
+    "rationale": "沿用种子语义“👻”，依据种子配方“人 + 梦”（support 链）以“合并目录语义”徽章区分“灵魂”"
   },
   "上古": {
     "icon": {
-      "base": "🧩",
-      "badge": "🌍",
+      "base": "🗿",
+      "badge": "👥",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“历史 + 土”（support 链）以“合并目录语义”徽章区分“上古”"
+    "rationale": "沿用种子语义“🗿”，依据种子配方“历史 + 土”（support 链）以“合并目录语义”徽章区分“上古”"
   },
   "使命召唤": {
     "icon": {
-      "base": "🧩",
-      "badge": "⌚",
+      "base": "📯",
+      "badge": "⚓",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“互联网 + 战争”（support 链）以“合并目录语义”徽章区分“使命召唤”"
+    "rationale": "沿用种子语义“📯”，依据种子配方“互联网 + 战争”（support 链）以“合并目录语义”徽章区分“使命召唤”"
   },
   "NBA": {
     "entity_type": "sports_league",
@@ -4823,57 +4823,57 @@ export const ELEMENT_ICONS = {
   },
   "明月": {
     "icon": {
-      "base": "🧩",
-      "badge": "🎧",
+      "base": "🌕",
+      "badge": "📚",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“云 + 时间”（support 链）以“合并目录语义”徽章区分“明月”"
+    "rationale": "沿用种子语义“🌕”，依据种子配方“云 + 时间”（support 链）以“合并目录语义”徽章区分“明月”"
   },
   "御龙": {
     "icon": {
-      "base": "🧩",
-      "badge": "🌊",
+      "base": "🐉",
+      "badge": "🌳",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“动物 + 魔法”（support 链）以“合并目录语义”徽章区分“御龙”"
+    "rationale": "沿用种子语义“🐉”，依据种子配方“动物 + 魔法”（support 链）以“合并目录语义”徽章区分“御龙”"
   },
   "轩辕": {
     "icon": {
-      "base": "🧩",
-      "badge": "✅",
+      "base": "🏯",
+      "badge": "♟️",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“上古 + 剑”（support 链）以“合并目录语义”徽章区分“轩辕”"
+    "rationale": "沿用种子语义“🏯”，依据种子配方“上古 + 剑”（support 链）以“合并目录语义”徽章区分“轩辕”"
   },
   "斗战": {
     "icon": {
-      "base": "🧩",
-      "badge": "🎾",
+      "base": "🐒",
+      "badge": "🎉",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“格斗 + 魔法”（support 链）以“合并目录语义”徽章区分“斗战”"
+    "rationale": "沿用种子语义“🐒”，依据种子配方“格斗 + 魔法”（support 链）以“合并目录语义”徽章区分“斗战”"
   },
   "节奏": {
     "icon": {
-      "base": "🧩",
-      "badge": "🪨",
+      "base": "🥁",
+      "badge": "❤️",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“速度 + 音乐”（support 链）以“合并目录语义”徽章区分“节奏”"
+    "rationale": "沿用种子语义“🥁”，依据种子配方“速度 + 音乐”（support 链）以“合并目录语义”徽章区分“节奏”"
   },
   "跑步": {
     "icon": {
-      "base": "🧩",
-      "badge": "🌙",
+      "base": "🏃",
+      "badge": "💚",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 速度”（support 链）以“合并目录语义”徽章区分“跑步”"
+    "rationale": "沿用种子语义“🏃”，依据种子配方“人 + 速度”（support 链）以“合并目录语义”徽章区分“跑步”"
   },
   "消除": {
     "icon": {
@@ -4886,12 +4886,12 @@ export const ELEMENT_ICONS = {
   },
   "战术": {
     "icon": {
-      "base": "🧩",
+      "base": "♟️",
       "badge": "🟡",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“战争 + 知识”（support 链）以“合并目录语义”徽章区分“战术”"
+    "rationale": "沿用种子语义“♟️”，依据种子配方“战争 + 知识”（support 链）以“合并目录语义”徽章区分“战术”"
   },
   "棋盘": {
     "icon": {
@@ -4904,57 +4904,57 @@ export const ELEMENT_ICONS = {
   },
   "云盘": {
     "icon": {
-      "base": "🧩",
-      "badge": "📊",
+      "base": "💾",
+      "badge": "🤝",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“云 + 互联网”（support 链）以“合并目录语义”徽章区分“云盘”"
+    "rationale": "沿用种子语义“💾”，依据种子配方“云 + 互联网”（support 链）以“合并目录语义”徽章区分“云盘”"
   },
   "大数据": {
     "icon": {
-      "base": "🧩",
-      "badge": "🐼",
+      "base": "🗄️",
+      "badge": "🏢",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“互联网 + 知识”（support 链）以“合并目录语义”徽章区分“大数据”"
+    "rationale": "沿用种子语义“🗄️”，依据种子配方“互联网 + 知识”（support 链）以“合并目录语义”徽章区分“大数据”"
   },
   "客服": {
     "icon": {
-      "base": "🧩",
+      "base": "🎧",
       "badge": "🦁",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“公司 + 聊天”（support 链）以“合并目录语义”徽章区分“客服”"
+    "rationale": "沿用种子语义“🎧”，依据种子配方“公司 + 聊天”（support 链）以“合并目录语义”徽章区分“客服”"
   },
   "创新": {
     "icon": {
-      "base": "🧩",
+      "base": "✨",
       "badge": "💙",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“未来 + 知识”（support 链）以“合并目录语义”徽章区分“创新”"
+    "rationale": "沿用种子语义“✨”，依据种子配方“未来 + 知识”（support 链）以“合并目录语义”徽章区分“创新”"
   },
   "射击": {
     "icon": {
-      "base": "🧩",
-      "badge": "📷",
+      "base": "🔫",
+      "badge": "📱",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“弹射 + 战争”（support 链）以“合并目录语义”徽章区分“射击”"
+    "rationale": "沿用种子语义“🔫”，依据种子配方“弹射 + 战争”（support 链）以“合并目录语义”徽章区分“射击”"
   },
   "光线": {
     "icon": {
-      "base": "🧩",
-      "badge": "🐧",
+      "base": "🔦",
+      "badge": "💻",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“光 + 速度”（support 链）以“合并目录语义”徽章区分“光线”"
+    "rationale": "沿用种子语义“🔦”，依据种子配方“光 + 速度”（support 链）以“合并目录语义”徽章区分“光线”"
   },
   "洛杉矶": {
     "icon": {
@@ -4967,12 +4967,12 @@ export const ELEMENT_ICONS = {
   },
   "即时战略": {
     "icon": {
-      "base": "🧩",
-      "badge": "⛵",
+      "base": "🗺️",
+      "badge": "⚓",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“电脑 + 策略”（support 链）以“合并目录语义”徽章区分“即时战略”"
+    "rationale": "沿用种子语义“🗺️”，依据种子配方“电脑 + 策略”（support 链）以“合并目录语义”徽章区分“即时战略”"
   },
   "量子计算": {
     "icon": {
@@ -4985,237 +4985,237 @@ export const ELEMENT_ICONS = {
   },
   "开发商": {
     "icon": {
-      "base": "🧩",
-      "badge": "💧",
+      "base": "🧑‍💻",
+      "badge": "🎁",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“代码 + 公司”（support 链）以“合并目录语义”徽章区分“开发商”"
+    "rationale": "沿用种子语义“🧑‍💻”，依据种子配方“代码 + 公司”（support 链）以“合并目录语义”徽章区分“开发商”"
   },
   "沙盒": {
     "icon": {
-      "base": "🧩",
-      "badge": "🎭",
+      "base": "🧱",
+      "badge": "💡",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“土 + 游戏”（support 链）以“合并目录语义”徽章区分“沙盒”"
+    "rationale": "沿用种子语义“🧱”，依据种子配方“土 + 游戏”（support 链）以“合并目录语义”徽章区分“沙盒”"
   },
   "竞速": {
     "icon": {
-      "base": "🧩",
-      "badge": "🛒",
+      "base": "🏎️",
+      "badge": "🏙️",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“汽车 + 速度”（support 链）以“合并目录语义”徽章区分“竞速”"
+    "rationale": "沿用种子语义“🏎️”，依据种子配方“汽车 + 速度”（support 链）以“合并目录语义”徽章区分“竞速”"
   },
   "科幻": {
     "icon": {
-      "base": "🧩",
-      "badge": "💼",
+      "base": "👽",
+      "badge": "🎬",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“AI + 未来”（support 链）以“合并目录语义”徽章区分“科幻”"
+    "rationale": "沿用种子语义“👽”，依据种子配方“AI + 未来”（support 链）以“合并目录语义”徽章区分“科幻”"
   },
   "吸血鬼": {
     "icon": {
-      "base": "🧩",
-      "badge": "📝",
+      "base": "🧛",
+      "badge": "🧑‍💻",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“动物 + 影子”（support 链）以“合并目录语义”徽章区分“吸血鬼”"
+    "rationale": "沿用种子语义“🧛”，依据种子配方“动物 + 影子”（support 链）以“合并目录语义”徽章区分“吸血鬼”"
   },
   "流放": {
     "icon": {
-      "base": "🧩",
+      "base": "🚶",
+      "badge": "🟡",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🚶”，依据种子配方“人 + 荒野”（support 链）以“合并目录语义”徽章区分“流放”"
+  },
+  "饥荒": {
+    "icon": {
+      "base": "🥖",
+      "badge": "🐼",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🥖”，依据种子配方“动物 + 荒野”（support 链）以“合并目录语义”徽章区分“饥荒”"
+  },
+  "小游戏": {
+    "icon": {
+      "base": "🕹️",
+      "badge": "🔑",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🕹️”，依据种子配方“手机 + 游戏”（support 链）以“合并目录语义”徽章区分“小游戏”"
+  },
+  "集团": {
+    "icon": {
+      "base": "🏙️",
       "badge": "📣",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 荒野”（support 链）以“合并目录语义”徽章区分“流放”"
-  },
-  "饥荒": {
-    "icon": {
-      "base": "🧩",
-      "badge": "📱",
-      "palette": "place",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“动物 + 荒野”（support 链）以“合并目录语义”徽章区分“饥荒”"
-  },
-  "小游戏": {
-    "icon": {
-      "base": "🧩",
-      "badge": "📦",
-      "palette": "place",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“手机 + 游戏”（support 链）以“合并目录语义”徽章区分“小游戏”"
-  },
-  "集团": {
-    "icon": {
-      "base": "🧩",
-      "badge": "❤️",
-      "palette": "place",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“公司 + 公司”（support 链）以“合并目录语义”徽章区分“集团”"
+    "rationale": "沿用种子语义“🏙️”，依据种子配方“公司 + 公司”（support 链）以“合并目录语义”徽章区分“集团”"
   },
   "银行": {
     "icon": {
-      "base": "🧩",
-      "badge": "🦋",
-      "palette": "place",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“公司 + 货币”（support 链）以“合并目录语义”徽章区分“银行”"
-  },
-  "刺客": {
-    "icon": {
-      "base": "🧩",
-      "badge": "💎",
-      "palette": "place",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“剑 + 影子”（support 链）以“合并目录语义”徽章区分“刺客”"
-  },
-  "僵尸": {
-    "icon": {
-      "base": "🧩",
+      "base": "🏦",
       "badge": "🐉",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“人 + 泥”（support 链）以“合并目录语义”徽章区分“僵尸”"
+    "rationale": "沿用种子语义“🏦”，依据种子配方“公司 + 货币”（support 链）以“合并目录语义”徽章区分“银行”"
+  },
+  "刺客": {
+    "icon": {
+      "base": "🥷",
+      "badge": "🌊",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🥷”，依据种子配方“剑 + 影子”（support 链）以“合并目录语义”徽章区分“刺客”"
+  },
+  "僵尸": {
+    "icon": {
+      "base": "🧟",
+      "badge": "❤️",
+      "palette": "place",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“🧟”，依据种子配方“人 + 泥”（support 链）以“合并目录语义”徽章区分“僵尸”"
   },
   "叙事": {
     "icon": {
-      "base": "🧩",
-      "badge": "🏢",
+      "base": "📖",
+      "badge": "🌈",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“历史 + 文字”（support 链）以“合并目录语义”徽章区分“叙事”"
+    "rationale": "沿用种子语义“📖”，依据种子配方“历史 + 文字”（support 链）以“合并目录语义”徽章区分“叙事”"
   },
   "策略": {
     "icon": {
-      "base": "🧩",
-      "badge": "⚙️",
+      "base": "🧭",
+      "badge": "📚",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“战争 + 智慧”（support 链）以“合并目录语义”徽章区分“策略”"
+    "rationale": "沿用种子语义“🧭”，依据种子配方“战争 + 智慧”（support 链）以“合并目录语义”徽章区分“策略”"
   },
   "动作": {
     "icon": {
-      "base": "🧩",
-      "badge": "🍜",
+      "base": "🎬",
+      "badge": "☕",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“游戏 + 速度”（support 链）以“合并目录语义”徽章区分“动作”"
+    "rationale": "沿用种子语义“🎬”，依据种子配方“游戏 + 速度”（support 链）以“合并目录语义”徽章区分“动作”"
   },
   "出版": {
     "icon": {
-      "base": "🧩",
-      "badge": "🛠️",
+      "base": "📰",
+      "badge": "✅",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“公司 + 文字”（support 链）以“合并目录语义”徽章区分“出版”"
+    "rationale": "沿用种子语义“📰”，依据种子配方“公司 + 文字”（support 链）以“合并目录语义”徽章区分“出版”"
   },
   "流媒体": {
     "icon": {
-      "base": "🧩",
-      "badge": "🏛️",
+      "base": "📡",
+      "badge": "🔥",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“互联网 + 音乐”（support 链）以“合并目录语义”徽章区分“流媒体”"
+    "rationale": "沿用种子语义“📡”，依据种子配方“互联网 + 音乐”（support 链）以“合并目录语义”徽章区分“流媒体”"
   },
   "社交": {
     "icon": {
-      "base": "🧩",
-      "badge": "🍎",
+      "base": "🗨️",
+      "badge": "🔍",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“朋友 + 社区”（support 链）以“合并目录语义”徽章区分“社交”"
+    "rationale": "沿用种子语义“🗨️”，依据种子配方“朋友 + 社区”（support 链）以“合并目录语义”徽章区分“社交”"
   },
   "相机": {
     "icon": {
-      "base": "🧩",
+      "base": "📷",
       "badge": "🟣",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“光 + 手机”（support 链）以“合并目录语义”徽章区分“相机”"
+    "rationale": "沿用种子语义“📷”，依据种子配方“光 + 手机”（support 链）以“合并目录语义”徽章区分“相机”"
   },
   "论坛": {
     "icon": {
-      "base": "🧩",
-      "badge": "🏝️",
+      "base": "🗣️",
+      "badge": "🏔️",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“文字 + 社区”（support 链）以“合并目录语义”徽章区分“论坛”"
+    "rationale": "沿用种子语义“🗣️”，依据种子配方“文字 + 社区”（support 链）以“合并目录语义”徽章区分“论坛”"
   },
   "老铁": {
     "icon": {
-      "base": "🧩",
-      "badge": "🔮",
+      "base": "🤜",
+      "badge": "🚗",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“时间 + 朋友”（support 链）以“合并目录语义”徽章区分“老铁”"
+    "rationale": "沿用种子语义“🤜”，依据种子配方“时间 + 朋友”（support 链）以“合并目录语义”徽章区分“老铁”"
   },
   "视频": {
     "icon": {
-      "base": "🧩",
-      "badge": "🔧",
+      "base": "📺",
+      "badge": "🏆",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“光 + 时间”（support 链）以“合并目录语义”徽章区分“视频”"
+    "rationale": "沿用种子语义“📺”，依据种子配方“光 + 时间”（support 链）以“合并目录语义”徽章区分“视频”"
   },
   "拼团": {
     "icon": {
-      "base": "🧩",
-      "badge": "💰",
+      "base": "👥",
+      "badge": "🔒",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“朋友 + 电商”（support 链）以“合并目录语义”徽章区分“拼团”"
+    "rationale": "沿用种子语义“👥”，依据种子配方“朋友 + 电商”（support 链）以“合并目录语义”徽章区分“拼团”"
   },
   "团购": {
     "icon": {
-      "base": "🧩",
-      "badge": "🍀",
+      "base": "🛒",
+      "badge": "🦁",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“好友 + 电商”（support 链）以“合并目录语义”徽章区分“团购”"
+    "rationale": "沿用种子语义“🛒”，依据种子配方“好友 + 电商”（support 链）以“合并目录语义”徽章区分“团购”"
   },
   "极品飞车": {
     "icon": {
-      "base": "🧩",
-      "badge": "☀️",
+      "base": "🏁",
+      "badge": "💚",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“汽车 + 游戏”（support 链）以“合并目录语义”徽章区分“极品飞车”"
+    "rationale": "沿用种子语义“🏁”，依据种子配方“汽车 + 游戏”（support 链）以“合并目录语义”徽章区分“极品飞车”"
   },
   "发行商": {
     "icon": {
-      "base": "🧩",
-      "badge": "✈️",
+      "base": "📦",
+      "badge": "🏭",
       "palette": "place",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🧩”，依据种子配方“出版 + 游戏”（support 链）以“合并目录语义”徽章区分“发行商”"
+    "rationale": "沿用种子语义“📦”，依据种子配方“出版 + 游戏”（support 链）以“合并目录语义”徽章区分“发行商”"
   },
   "物理": {
     "icon": {
@@ -5237,12 +5237,12 @@ export const ELEMENT_ICONS = {
   },
   "Activision": {
     "icon": {
-      "base": "🤝",
-      "badge": "🔔",
+      "base": "📯",
+      "badge": "❄️",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“使命召唤Online + 开发商”（association 链）以“合并目录语义”徽章区分“Activision”"
+    "rationale": "沿用种子语义“📯”，依据种子配方“使命召唤Online + 开发商”（association 链）以“合并目录语义”徽章区分“Activision”"
   },
   "AnyDev": {
     "entity_type": "product",
@@ -5266,12 +5266,12 @@ export const ELEMENT_ICONS = {
   },
   "Aurora Studio": {
     "icon": {
-      "base": "🕹️",
-      "badge": "🏛️",
+      "base": "🌌",
+      "badge": "🧭",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🕹️”，依据种子配方“光线 + 工作室”（studio 链）以“合并目录语义”徽章区分“Aurora Studio”"
+    "rationale": "沿用种子语义“🌌”，依据种子配方“光线 + 工作室”（studio 链）以“合并目录语义”徽章区分“Aurora Studio”"
   },
   "CDC": {
     "entity_type": "organization",
@@ -5379,12 +5379,12 @@ export const ELEMENT_ICONS = {
   },
   "Digital Extremes": {
     "icon": {
-      "base": "🤝",
-      "badge": "💼",
+      "base": "🛰️",
+      "badge": "🏔️",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“开发商 + 科幻”（association 链）以“合并目录语义”徽章区分“Digital Extremes”"
+    "rationale": "沿用种子语义“🛰️”，依据种子配方“开发商 + 科幻”（association 链）以“合并目录语义”徽章区分“Digital Extremes”"
   },
   "DNF": {
     "entity_type": "product",
@@ -5408,12 +5408,12 @@ export const ELEMENT_ICONS = {
   },
   "EA": {
     "icon": {
-      "base": "🤝",
-      "badge": "👥",
+      "base": "🏟️",
+      "badge": "📚",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“开发商 + 极品飞车”（association 链）以“合并目录语义”徽章区分“EA”"
+    "rationale": "沿用种子语义“🏟️”，依据种子配方“开发商 + 极品飞车”（association 链）以“合并目录语义”徽章区分“EA”"
   },
   "Epic Games": {
     "entity_type": "company",
@@ -5440,30 +5440,30 @@ export const ELEMENT_ICONS = {
   },
   "FIFA Online": {
     "icon": {
-      "base": "🎮",
+      "base": "⚽",
       "badge": "🚗",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“游戏 + 足球”（tencent_game 链）以“合并目录语义”徽章区分“FIFA Online”"
+    "rationale": "沿用种子语义“⚽”，依据种子配方“游戏 + 足球”（tencent_game 链）以“合并目录语义”徽章区分“FIFA Online”"
   },
   "Funcom": {
     "icon": {
-      "base": "🤝",
-      "badge": "💙",
+      "base": "🧙",
+      "badge": "🎤",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“开发商 + 沙盒”（association 链）以“合并目录语义”徽章区分“Funcom”"
+    "rationale": "沿用种子语义“🧙”，依据种子配方“开发商 + 沙盒”（association 链）以“合并目录语义”徽章区分“Funcom”"
   },
   "Grinding Gear Games": {
     "icon": {
-      "base": "🤝",
+      "base": "⚙️",
       "badge": "🏀",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“开发商 + 流放”（association 链）以“合并目录语义”徽章区分“Grinding Gear Games”"
+    "rationale": "沿用种子语义“⚙️”，依据种子配方“开发商 + 流放”（association 链）以“合并目录语义”徽章区分“Grinding Gear Games”"
   },
   "IEG": {
     "entity_type": "organization",
@@ -5531,57 +5531,57 @@ export const ELEMENT_ICONS = {
   },
   "KADOKAWA": {
     "icon": {
-      "base": "🤝",
+      "base": "📚",
       "badge": "✅",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“出版 + 动漫”（association 链）以“合并目录语义”徽章区分“KADOKAWA”"
+    "rationale": "沿用种子语义“📚”，依据种子配方“出版 + 动漫”（association 链）以“合并目录语义”徽章区分“KADOKAWA”"
   },
   "Klei Entertainment": {
     "icon": {
-      "base": "🤝",
-      "badge": "📝",
+      "base": "✏️",
+      "badge": "⚡",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“开发商 + 饥荒”（association 链）以“合并目录语义”徽章区分“Klei Entertainment”"
+    "rationale": "沿用种子语义“✏️”，依据种子配方“开发商 + 饥荒”（association 链）以“合并目录语义”徽章区分“Klei Entertainment”"
   },
   "KRAFTON": {
     "icon": {
-      "base": "🤝",
-      "badge": "🟣",
+      "base": "🪂",
+      "badge": "🦊",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“PUBG + 开发商”（association 链）以“合并目录语义”徽章区分“KRAFTON”"
+    "rationale": "沿用种子语义“🪂”，依据种子配方“PUBG + 开发商”（association 链）以“合并目录语义”徽章区分“KRAFTON”"
   },
   "LIGHTSPEED LA": {
     "icon": {
-      "base": "🕹️",
+      "base": "⚡",
       "badge": "🌱",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🕹️”，依据种子配方“工作室 + 洛杉矶”（studio 链）以“合并目录语义”徽章区分“LIGHTSPEED LA”"
+    "rationale": "沿用种子语义“⚡”，依据种子配方“工作室 + 洛杉矶”（studio 链）以“合并目录语义”徽章区分“LIGHTSPEED LA”"
   },
   "Miniclip": {
     "icon": {
-      "base": "🤝",
-      "badge": "💬",
+      "base": "🎱",
+      "badge": "🔍",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“小游戏 + 开发商”（association 链）以“合并目录语义”徽章区分“Miniclip”"
+    "rationale": "沿用种子语义“🎱”，依据种子配方“小游戏 + 开发商”（association 链）以“合并目录语义”徽章区分“Miniclip”"
   },
   "MoreFun Studios": {
     "icon": {
-      "base": "🕹️",
+      "base": "🎲",
       "badge": "🧑‍💻",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🕹️”，依据种子配方“射击 + 工作室”（studio 链）以“合并目录语义”徽章区分“MoreFun Studios”"
+    "rationale": "沿用种子语义“🎲”，依据种子配方“射击 + 工作室”（studio 链）以“合并目录语义”徽章区分“MoreFun Studios”"
   },
   "M族": {
     "entity_type": "role_family",
@@ -5607,66 +5607,75 @@ export const ELEMENT_ICONS = {
   },
   "NBA2K Online": {
     "icon": {
-      "base": "🎮",
+      "base": "🏀",
       "badge": "🟣",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“NBA + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“NBA2K Online”"
+    "rationale": "沿用种子语义“🏀”，依据种子配方“NBA + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“NBA2K Online”"
   },
   "NCSoft": {
     "icon": {
-      "base": "🤝",
-      "badge": "🏔️",
+      "base": "🗡️",
+      "badge": "🔍",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“剑灵 + 开发商”（association 链）以“合并目录语义”徽章区分“NCSoft”"
+    "rationale": "沿用种子语义“🗡️”，依据种子配方“剑灵 + 开发商”（association 链）以“合并目录语义”徽章区分“NCSoft”"
   },
   "Neople": {
     "icon": {
-      "base": "🤝",
-      "badge": "📣",
+      "base": "🏰",
+      "badge": "✨",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“DNF + 开发商”（association 链）以“合并目录语义”徽章区分“Neople”"
+    "rationale": "沿用种子语义“🏰”，依据种子配方“DNF + 开发商”（association 链）以“合并目录语义”徽章区分“Neople”"
   },
   "Nexon": {
     "icon": {
-      "base": "🤝",
-      "badge": "❄️",
+      "base": "🟩",
+      "badge": "🚀",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“DNF + 发行商”（association 链）以“合并目录语义”徽章区分“Nexon”"
+    "rationale": "沿用种子语义“🟩”，依据种子配方“DNF + 发行商”（association 链）以“合并目录语义”徽章区分“Nexon”"
   },
   "NExT Studios": {
     "icon": {
-      "base": "🕹️",
-      "badge": "👔",
+      "base": "⏭️",
+      "badge": "✈️",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🕹️”，依据种子配方“创新 + 工作室”（studio 链）以“合并目录语义”徽章区分“NExT Studios”"
+    "rationale": "沿用种子语义“⏭️”，依据种子配方“创新 + 工作室”（studio 链）以“合并目录语义”徽章区分“NExT Studios”"
   },
   "OICQ": {
     "icon": {
-      "base": "💬",
-      "badge": "🏭",
+      "base": "☎️",
+      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 怀旧”（qq_memory 链）以“合并目录语义”徽章区分“OICQ”"
+    "fallback_icon": {
+      "base": "☎️",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "传统电话与企鹅表达早期OICQ",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "Paradox Interactive": {
     "icon": {
-      "base": "🤝",
-      "badge": "🟡",
+      "base": "🗺️",
+      "badge": "💙",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“开发商 + 策略”（association 链）以“合并目录语义”徽章区分“Paradox Interactive”"
+    "rationale": "沿用种子语义“🗺️”，依据种子配方“开发商 + 策略”（association 链）以“合并目录语义”徽章区分“Paradox Interactive”"
   },
   "PCG": {
     "entity_type": "organization",
@@ -5690,12 +5699,12 @@ export const ELEMENT_ICONS = {
   },
   "PlatinumGames": {
     "icon": {
-      "base": "🤝",
-      "badge": "🍜",
+      "base": "💿",
+      "badge": "💙",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“动作 + 开发商”（association 链）以“合并目录语义”徽章区分“PlatinumGames”"
+    "rationale": "沿用种子语义“💿”，依据种子配方“动作 + 开发商”（association 链）以“合并目录语义”徽章区分“PlatinumGames”"
   },
   "PUBG": {
     "entity_type": "product",
@@ -5740,279 +5749,373 @@ export const ELEMENT_ICONS = {
     "rationale": "腾讯产品专业族职级体系；任务板配晋升阶梯徽章"
   },
   "QQ": {
-    "entity_type": "product",
-    "canonical_name": "腾讯 QQ",
-    "aliases": [
-      "腾讯QQ",
-      "QQ聊天"
-    ],
-    "contexts": [
-      "tencent",
-      "product"
-    ],
-    "forbidden_senses": [
-      "QQ=普通企鹅"
-    ],
     "icon": {
+      "base": "qq-era:qq",
+      "palette": "product",
+      "source": "curated"
+    },
+    "fallback_icon": {
       "base": "🐧",
       "badge": "💬",
       "palette": "product",
-      "source": "entity"
+      "source": "fallback"
     },
-    "rationale": "腾讯即时通讯品牌；企鹅主图配聊天徽章避免与动物概念混淆"
+    "rationale": "使用QQ 2010经典企鹅程序图标",
+    "provenance": {
+      "source_id": "qq-icons-2010-pack",
+      "archive_path": "QQ其它/QQ_logo32-xp.PNG"
+    }
   },
   "QQ三国": {
     "icon": {
-      "base": "🎮",
-      "badge": "📚",
+      "base": "🏯",
+      "badge": "✅",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ + 战争”（tencent_game 链）以“合并目录语义”徽章区分“QQ三国”"
+    "rationale": "沿用种子语义“🏯”，依据种子配方“QQ + 战争”（tencent_game 链）以“合并目录语义”徽章区分“QQ三国”"
   },
   "QQ会员": {
     "icon": {
-      "base": "💬",
-      "badge": "🔔",
+      "base": "qq-era:qq-member",
       "palette": "product",
-      "source": "generated"
+      "source": "curated"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 身份”（qq_memory 链）以“合并目录语义”徽章区分“QQ会员”"
+    "fallback_icon": {
+      "base": "🐧",
+      "badge": "👑",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "使用经典红毛QQ会员企鹅",
+    "provenance": {
+      "source_id": "qq-icons-2010-pack",
+      "archive_path": "vip图片/QQ会员.png"
+    }
   },
   "QQ农场": {
     "icon": {
-      "base": "💬",
-      "badge": "💻",
-      "palette": "product",
-      "source": "generated"
+      "base": "🌾",
+      "badge": "🥕",
+      "palette": "nature",
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ空间 + 植物”（qq_memory 链）以“合并目录语义”徽章区分“QQ农场”"
+    "fallback_icon": {
+      "base": "🌾",
+      "badge": "🥕",
+      "palette": "nature",
+      "source": "fallback"
+    },
+    "rationale": "田间作物与胡萝卜表达QQ农场",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "QQ分组": {
     "icon": {
-      "base": "💬",
-      "badge": "❤️",
-      "palette": "product",
-      "source": "generated"
+      "base": "📁",
+      "badge": "👥",
+      "palette": "people",
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 好友”（qq_memory 链）以“合并目录语义”徽章区分“QQ分组”"
+    "fallback_icon": {
+      "base": "📁",
+      "badge": "👥",
+      "palette": "people",
+      "source": "fallback"
+    },
+    "rationale": "文件夹与好友群体表达QQ分组",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "QQ华夏": {
     "icon": {
-      "base": "🎮",
+      "base": "🐉",
       "badge": "⭐",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ + 历史”（tencent_game 链）以“合并目录语义”徽章区分“QQ华夏”"
+    "rationale": "沿用种子语义“🐉”，依据种子配方“QQ + 历史”（tencent_game 链）以“合并目录语义”徽章区分“QQ华夏”"
   },
   "QQ堂": {
     "icon": {
-      "base": "🎮",
-      "badge": "🔒",
+      "base": "🧱",
+      "badge": "🟠",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ + 对战”（tencent_game 链）以“合并目录语义”徽章区分“QQ堂”"
+    "rationale": "沿用种子语义“🧱”，依据种子配方“QQ + 对战”（tencent_game 链）以“合并目录语义”徽章区分“QQ堂”"
   },
   "QQ宠物": {
     "icon": {
-      "base": "💬",
-      "badge": "💼",
-      "palette": "product",
-      "source": "generated"
+      "base": "🐧",
+      "badge": "❤️",
+      "palette": "people",
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 动物”（qq_memory 链）以“合并目录语义”徽章区分“QQ宠物”"
+    "fallback_icon": {
+      "base": "🐧",
+      "badge": "❤️",
+      "palette": "people",
+      "source": "fallback"
+    },
+    "rationale": "企鹅与爱心表达QQ宠物",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "QQ幻想": {
     "icon": {
-      "base": "🎮",
-      "badge": "🏢",
+      "base": "🧚",
+      "badge": "👥",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ + 梦”（tencent_game 链）以“合并目录语义”徽章区分“QQ幻想”"
+    "rationale": "沿用种子语义“🧚”，依据种子配方“QQ + 梦”（tencent_game 链）以“合并目录语义”徽章区分“QQ幻想”"
   },
   "QQ旋风": {
     "icon": {
-      "base": "💬",
-      "badge": "☕",
+      "base": "🌪️",
+      "badge": "⚡",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 下载”（qq_memory 链）以“合并目录语义”徽章区分“QQ旋风”"
+    "fallback_icon": {
+      "base": "🌪️",
+      "badge": "⚡",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "旋风与闪电表达QQ旋风下载工具",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "QQ校友": {
     "icon": {
-      "base": "💬",
-      "badge": "🍀",
-      "palette": "product",
-      "source": "generated"
+      "base": "🎓",
+      "badge": "👥",
+      "palette": "people",
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 学校”（qq_memory 链）以“合并目录语义”徽章区分“QQ校友”"
+    "fallback_icon": {
+      "base": "🎓",
+      "badge": "👥",
+      "palette": "people",
+      "source": "fallback"
+    },
+    "rationale": "学士帽与好友群体表达QQ校友",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "QQ浏览器": {
-    "entity_type": "product",
-    "canonical_name": "QQ浏览器",
-    "aliases": [
-      "腾讯QQ浏览器",
-      "QQ Browser"
-    ],
-    "contexts": [
-      "product",
-      "browser"
-    ],
-    "forbidden_senses": [],
     "icon": {
-      "base": "🌐",
+      "base": "🧭",
       "badge": "🐧",
       "palette": "product",
-      "source": "entity"
+      "source": "fallback"
     },
-    "rationale": "腾讯浏览器产品；网络主图配企鹅品牌徽章"
+    "fallback_icon": {
+      "base": "🧭",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "浏览器罗盘与企鹅表达QQ浏览器",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "QQ游戏": {
     "icon": {
-      "base": "💬",
-      "badge": "💙",
-      "palette": "product",
-      "source": "generated"
+      "base": "🎮",
+      "badge": "🐧",
+      "palette": "studio",
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 游戏”（qq_memory 链）以“合并目录语义”徽章区分“QQ游戏”"
+    "fallback_icon": {
+      "base": "🎮",
+      "badge": "🐧",
+      "palette": "studio",
+      "source": "fallback"
+    },
+    "rationale": "游戏手柄与企鹅表达QQ游戏",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "QQ游戏大厅": {
     "icon": {
-      "base": "💬",
-      "badge": "🔒",
-      "palette": "product",
-      "source": "generated"
+      "base": "🕹️",
+      "badge": "🏛️",
+      "palette": "studio",
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ游戏 + 电脑”（qq_memory 链）以“合并目录语义”徽章区分“QQ游戏大厅”"
+    "fallback_icon": {
+      "base": "🕹️",
+      "badge": "🏛️",
+      "palette": "studio",
+      "source": "fallback"
+    },
+    "rationale": "街机摇杆与大厅建筑表达QQ游戏大厅",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "QQ炫舞": {
     "icon": {
-      "base": "🎮",
-      "badge": "💚",
+      "base": "💃",
+      "badge": "🧭",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ + 舞蹈”（tencent_game 链）以“合并目录语义”徽章区分“QQ炫舞”"
+    "rationale": "沿用种子语义“💃”，依据种子配方“QQ + 舞蹈”（tencent_game 链）以“合并目录语义”徽章区分“QQ炫舞”"
   },
   "QQ牧场": {
     "icon": {
-      "base": "💬",
-      "badge": "🎤",
-      "palette": "product",
-      "source": "generated"
+      "base": "🐄",
+      "badge": "🌾",
+      "palette": "nature",
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ空间 + 动物”（qq_memory 链）以“合并目录语义”徽章区分“QQ牧场”"
+    "fallback_icon": {
+      "base": "🐄",
+      "badge": "🌾",
+      "palette": "nature",
+      "source": "fallback"
+    },
+    "rationale": "奶牛与饲草表达QQ牧场",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "QQ秀": {
     "icon": {
-      "base": "💬",
-      "badge": "💰",
-      "palette": "product",
-      "source": "generated"
+      "base": "👗",
+      "badge": "🐧",
+      "palette": "people",
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 装扮”（qq_memory 链）以“合并目录语义”徽章区分“QQ秀”"
+    "fallback_icon": {
+      "base": "👗",
+      "badge": "🐧",
+      "palette": "people",
+      "source": "fallback"
+    },
+    "rationale": "服饰与企鹅表达QQ秀",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "QQ空间": {
-    "entity_type": "product",
-    "canonical_name": "QQ空间",
-    "aliases": [
-      "腾讯QQ空间",
-      "Qzone"
-    ],
-    "contexts": [
-      "product",
-      "social"
-    ],
-    "forbidden_senses": [
-      "空间=宇宙"
-    ],
     "icon": {
-      "base": "🌌",
-      "badge": "📱",
+      "base": "qq-era:qzone",
       "palette": "product",
-      "source": "entity"
+      "source": "curated"
     },
-    "rationale": "腾讯社交空间产品；星空主图配产品徽章"
+    "fallback_icon": {
+      "base": "⭐",
+      "badge": "🌌",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "使用QQ 2010经典空间星形图标",
+    "provenance": {
+      "source_id": "qq-icons-2010-pack",
+      "archive_path": "QQ其它/QQ空间.PNG"
+    }
   },
   "QQ等级": {
     "icon": {
-      "base": "💬",
-      "badge": "🚀",
-      "palette": "product",
-      "source": "generated"
+      "base": "qq-era:qq-level",
+      "palette": "office",
+      "source": "curated"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 经验”（qq_memory 链）以“合并目录语义”徽章区分“QQ等级”"
+    "fallback_icon": {
+      "base": "⭐",
+      "badge": "☀️",
+      "palette": "office",
+      "source": "fallback"
+    },
+    "rationale": "使用QQ 2010星星月亮太阳等级图标",
+    "provenance": {
+      "source_id": "qq-icons-2010-pack",
+      "archive_path": "QQ其它/QQ等级.png"
+    }
   },
   "QQ邮箱": {
-    "entity_type": "product",
-    "canonical_name": "QQ邮箱",
-    "aliases": [
-      "腾讯QQ邮箱",
-      "mail.qq.com"
-    ],
-    "contexts": [
-      "product",
-      "communication"
-    ],
-    "forbidden_senses": [],
     "icon": {
-      "base": "📬",
-      "badge": "📱",
+      "base": "qq-era:qq-mail",
       "palette": "product",
-      "source": "entity"
+      "source": "curated"
     },
-    "rationale": "腾讯电子邮件产品；邮箱主图配产品徽章"
+    "fallback_icon": {
+      "base": "📧",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "使用QQ 2010经典邮箱图标",
+    "provenance": {
+      "source_id": "qq-icons-2010-pack",
+      "archive_path": "QQ其它/邮箱.png"
+    }
   },
   "QQ音乐": {
-    "entity_type": "product",
-    "canonical_name": "QQ音乐",
-    "aliases": [
-      "腾讯QQ音乐",
-      "QQ Music"
-    ],
-    "contexts": [
-      "product",
-      "music"
-    ],
-    "forbidden_senses": [],
     "icon": {
-      "base": "🎵",
-      "badge": "📱",
+      "base": "qq-era:qq-music",
       "palette": "product",
-      "source": "entity"
+      "source": "curated"
     },
-    "rationale": "腾讯音乐流媒体产品；音符配产品徽章"
+    "fallback_icon": {
+      "base": "🎵",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "使用QQ 2010经典音乐图标",
+    "provenance": {
+      "source_id": "qq-icons-2010-pack",
+      "archive_path": "绿钻/QQ音乐.png"
+    }
   },
   "QQ音速": {
     "icon": {
-      "base": "🎮",
+      "base": "🎵",
       "badge": "📊",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ音乐 + 速度”（tencent_game 链）以“合并目录语义”徽章区分“QQ音速”"
+    "rationale": "沿用种子语义“🎵”，依据种子配方“QQ音乐 + 速度”（tencent_game 链）以“合并目录语义”徽章区分“QQ音速”"
   },
   "QQ飞车": {
     "icon": {
-      "base": "🎮",
-      "badge": "👔",
+      "base": "🏎️",
+      "badge": "🗺️",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ + 速度”（tencent_game 链）以“合并目录语义”徽章区分“QQ飞车”"
+    "rationale": "沿用种子语义“🏎️”，依据种子配方“QQ + 速度”（tencent_game 链）以“合并目录语义”徽章区分“QQ飞车”"
   },
   "QQ餐厅": {
     "icon": {
-      "base": "💬",
-      "badge": "🔑",
+      "base": "🍽️",
+      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ空间 + 食堂”（qq_memory 链）以“合并目录语义”徽章区分“QQ餐厅”"
+    "fallback_icon": {
+      "base": "🍽️",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "餐具与企鹅表达QQ餐厅",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "Quantum Studio": {
     "entity_type": "studio",
@@ -6039,48 +6142,57 @@ export const ELEMENT_ICONS = {
   },
   "Q宠大乐斗": {
     "icon": {
-      "base": "🎮",
-      "badge": "🌱",
+      "base": "🥊",
+      "badge": "🏛️",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ宠物 + 格斗”（tencent_game 链）以“合并目录语义”徽章区分“Q宠大乐斗”"
+    "rationale": "沿用种子语义“🥊”，依据种子配方“QQ宠物 + 格斗”（tencent_game 链）以“合并目录语义”徽章区分“Q宠大乐斗”"
   },
   "Q币": {
     "icon": {
-      "base": "💬",
-      "badge": "🧑‍💻",
+      "base": "🪙",
+      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 货币”（qq_memory 链）以“合并目录语义”徽章区分“Q币”"
+    "fallback_icon": {
+      "base": "🪙",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "硬币与企鹅表达Q币",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "R Studio": {
     "icon": {
-      "base": "🕹️",
-      "badge": "📷",
+      "base": "🔴",
+      "badge": "🔍",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🕹️”，依据种子配方“工作室 + 角色扮演”（studio 链）以“合并目录语义”徽章区分“R Studio”"
+    "rationale": "沿用种子语义“🔴”，依据种子配方“工作室 + 角色扮演”（studio 链）以“合并目录语义”徽章区分“R Studio”"
   },
   "Reddit": {
     "icon": {
-      "base": "🤝",
-      "badge": "🏙️",
+      "base": "👽",
+      "badge": "📝",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“社区 + 论坛”（association 链）以“合并目录语义”徽章区分“Reddit”"
+    "rationale": "沿用种子语义“👽”，依据种子配方“社区 + 论坛”（association 链）以“合并目录语义”徽章区分“Reddit”"
   },
   "Remedy Entertainment": {
     "icon": {
-      "base": "🤝",
-      "badge": "🚀",
+      "base": "🔦",
+      "badge": "💰",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“叙事 + 开发商”（association 链）以“合并目录语义”徽章区分“Remedy Entertainment”"
+    "rationale": "沿用种子语义“🔦”，依据种子配方“叙事 + 开发商”（association 链）以“合并目录语义”徽章区分“Remedy Entertainment”"
   },
   "Riot Games": {
     "entity_type": "company",
@@ -6130,66 +6242,66 @@ export const ELEMENT_ICONS = {
   },
   "S Studio": {
     "icon": {
-      "base": "🕹️",
-      "badge": "🐼",
+      "base": "🔷",
+      "badge": "🗺️",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🕹️”，依据种子配方“对战 + 工作室”（studio 链）以“合并目录语义”徽章区分“S Studio”"
+    "rationale": "沿用种子语义“🔷”，依据种子配方“对战 + 工作室”（studio 链）以“合并目录语义”徽章区分“S Studio”"
   },
   "Sea": {
     "icon": {
-      "base": "🤝",
-      "badge": "🔍",
+      "base": "🌊",
+      "badge": "💡",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“游戏 + 电商”（association 链）以“合并目录语义”徽章区分“Sea”"
+    "rationale": "沿用种子语义“🌊”，依据种子配方“游戏 + 电商”（association 链）以“合并目录语义”徽章区分“Sea”"
   },
   "Sharkmob": {
     "icon": {
-      "base": "🤝",
-      "badge": "☁️",
-      "palette": "product",
-      "source": "generated"
-    },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“吸血鬼 + 开发商”（association 链）以“合并目录语义”徽章区分“Sharkmob”"
-  },
-  "Smilegate": {
-    "icon": {
-      "base": "🤝",
+      "base": "🦈",
       "badge": "🏠",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“开发商 + 穿越火线”（association 链）以“合并目录语义”徽章区分“Smilegate”"
+    "rationale": "沿用种子语义“🦈”，依据种子配方“吸血鬼 + 开发商”（association 链）以“合并目录语义”徽章区分“Sharkmob”"
   },
-  "Snap": {
+  "Smilegate": {
     "icon": {
-      "base": "🤝",
-      "badge": "🏢",
+      "base": "😊",
+      "badge": "🏭",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“相机 + 社交”（association 链）以“合并目录语义”徽章区分“Snap”"
+    "rationale": "沿用种子语义“😊”，依据种子配方“开发商 + 穿越火线”（association 链）以“合并目录语义”徽章区分“Smilegate”"
+  },
+  "Snap": {
+    "icon": {
+      "base": "👻",
+      "badge": "🔑",
+      "palette": "product",
+      "source": "generated"
+    },
+    "rationale": "沿用种子语义“👻”，依据种子配方“相机 + 社交”（association 链）以“合并目录语义”徽章区分“Snap”"
   },
   "Spotify": {
     "icon": {
-      "base": "🤝",
+      "base": "🎧",
       "badge": "🏝️",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“流媒体 + 音乐”（association 链）以“合并目录语义”徽章区分“Spotify”"
+    "rationale": "沿用种子语义“🎧”，依据种子配方“流媒体 + 音乐”（association 链）以“合并目录语义”徽章区分“Spotify”"
   },
   "Sumo Group": {
     "icon": {
-      "base": "🤝",
-      "badge": "🎤",
+      "base": "🏎️",
+      "badge": "🌍",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“开发商 + 竞速”（association 链）以“合并目录语义”徽章区分“Sumo Group”"
+    "rationale": "沿用种子语义“🏎️”，依据种子配方“开发商 + 竞速”（association 链）以“合并目录语义”徽章区分“Sumo Group”"
   },
   "Supercell": {
     "entity_type": "company",
@@ -6259,12 +6371,12 @@ export const ELEMENT_ICONS = {
   },
   "Take-Two": {
     "icon": {
-      "base": "🤝",
-      "badge": "🏆",
+      "base": "2️⃣",
+      "badge": "✈️",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“NBA2K Online + 开发商”（association 链）以“合并目录语义”徽章区分“Take-Two”"
+    "rationale": "沿用种子语义“2️⃣”，依据种子配方“NBA2K Online + 开发商”（association 链）以“合并目录语义”徽章区分“Take-Two”"
   },
   "TAPD": {
     "entity_type": "product",
@@ -6288,21 +6400,21 @@ export const ELEMENT_ICONS = {
   },
   "Team Jade": {
     "icon": {
-      "base": "🕹️",
-      "badge": "🏀",
+      "base": "💚",
+      "badge": "⚽",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🕹️”，依据种子配方“使命召唤Online + 工作室”（studio 链）以“合并目录语义”徽章区分“Team Jade”"
+    "rationale": "沿用种子语义“💚”，依据种子配方“使命召唤Online + 工作室”（studio 链）以“合并目录语义”徽章区分“Team Jade”"
   },
   "Techland": {
     "icon": {
-      "base": "🤝",
-      "badge": "🧑‍💼",
+      "base": "🧟",
+      "badge": "🟠",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“僵尸 + 开发商”（association 链）以“合并目录语义”徽章区分“Techland”"
+    "rationale": "沿用种子语义“🧟”，依据种子配方“僵尸 + 开发商”（association 链）以“合并目录语义”徽章区分“Techland”"
   },
   "TEG": {
     "entity_type": "organization",
@@ -6326,12 +6438,12 @@ export const ELEMENT_ICONS = {
   },
   "TiKi Studio": {
     "icon": {
-      "base": "🕹️",
-      "badge": "💡",
+      "base": "🗿",
+      "badge": "🏆",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🕹️”，依据种子配方“工作室 + 麻将”（studio 链）以“合并目录语义”徽章区分“TiKi Studio”"
+    "rationale": "沿用种子语义“🗿”，依据种子配方“工作室 + 麻将”（studio 链）以“合并目录语义”徽章区分“TiKi Studio”"
   },
   "TIM": {
     "entity_type": "product",
@@ -6401,21 +6513,21 @@ export const ELEMENT_ICONS = {
   },
   "Ubisoft": {
     "icon": {
-      "base": "🤝",
-      "badge": "🕹️",
+      "base": "🌀",
+      "badge": "⚙️",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“刺客 + 开发商”（association 链）以“合并目录语义”徽章区分“Ubisoft”"
+    "rationale": "沿用种子语义“🌀”，依据种子配方“刺客 + 开发商”（association 链）以“合并目录语义”徽章区分“Ubisoft”"
   },
   "Uncapped Games": {
     "icon": {
-      "base": "🕹️",
+      "base": "🚀",
       "badge": "📱",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🕹️”，依据种子配方“即时战略 + 工作室”（studio 链）以“合并目录语义”徽章区分“Uncapped Games”"
+    "rationale": "沿用种子语义“🚀”，依据种子配方“即时战略 + 工作室”（studio 链）以“合并目录语义”徽章区分“Uncapped Games”"
   },
   "Valorant": {
     "entity_type": "product",
@@ -6461,12 +6573,21 @@ export const ELEMENT_ICONS = {
   },
   "WebQQ": {
     "icon": {
-      "base": "💬",
-      "badge": "💚",
+      "base": "🌐",
+      "badge": "💬",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 互联网”（qq_memory 链）以“合并目录语义”徽章区分“WebQQ”"
+    "fallback_icon": {
+      "base": "🌐",
+      "badge": "💬",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "互联网与消息气泡表达网页版QQ",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "Wedata": {
     "entity_type": "product",
@@ -6530,12 +6651,12 @@ export const ELEMENT_ICONS = {
   },
   "上古世纪": {
     "icon": {
-      "base": "🎮",
-      "badge": "💬",
+      "base": "🗿",
+      "badge": "🛒",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“上古 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“上古世纪”"
+    "rationale": "沿用种子语义“🗿”，依据种子配方“上古 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“上古世纪”"
   },
   "上海总部": {
     "icon": {
@@ -6568,12 +6689,21 @@ export const ELEMENT_ICONS = {
   },
   "个性签名": {
     "icon": {
-      "base": "💬",
-      "badge": "🐼",
-      "palette": "product",
-      "source": "generated"
+      "base": "✍️",
+      "badge": "📝",
+      "palette": "people",
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 签名”（qq_memory 链）以“合并目录语义”徽章区分“个性签名”"
+    "fallback_icon": {
+      "base": "✍️",
+      "badge": "📝",
+      "palette": "people",
+      "source": "fallback"
+    },
+    "rationale": "书写动作与文本表达个性签名",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "中台": {
     "icon": {
@@ -6635,21 +6765,30 @@ export const ELEMENT_ICONS = {
   },
   "你是GG还是MM": {
     "icon": {
-      "base": "💬",
-      "badge": "🏛️",
-      "palette": "product",
-      "source": "generated"
+      "base": "🚻",
+      "badge": "❓",
+      "palette": "people",
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 陌生人”（qq_memory 链）以“合并目录语义”徽章区分“你是GG还是MM”"
+    "fallback_icon": {
+      "base": "🚻",
+      "badge": "❓",
+      "palette": "people",
+      "source": "fallback"
+    },
+    "rationale": "性别标记与问号表达QQ时代的身份询问",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "使命召唤Online": {
     "icon": {
-      "base": "🎮",
-      "badge": "📍",
+      "base": "📯",
+      "badge": "⚽",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“使命召唤 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“使命召唤Online”"
+    "rationale": "沿用种子语义“📯”，依据种子配方“使命召唤 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“使命召唤Online”"
   },
   "健身房": {
     "icon": {
@@ -6662,12 +6801,21 @@ export const ELEMENT_ICONS = {
   },
   "偷菜": {
     "icon": {
-      "base": "💬",
-      "badge": "🗺️",
-      "palette": "product",
-      "source": "generated"
+      "base": "🥬",
+      "badge": "🤏",
+      "palette": "people",
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ农场 + 朋友”（qq_memory 链）以“合并目录语义”徽章区分“偷菜”"
+    "fallback_icon": {
+      "base": "🥬",
+      "badge": "🤏",
+      "palette": "people",
+      "source": "fallback"
+    },
+    "rationale": "蔬菜与取物手势表达QQ农场偷菜",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "元宝": {
     "entity_type": "product",
@@ -6776,12 +6924,12 @@ export const ELEMENT_ICONS = {
   },
   "全民飞机大战": {
     "icon": {
-      "base": "🎮",
-      "badge": "⚓",
+      "base": "✈️",
+      "badge": "🎮",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“游戏 + 飞机”（tencent_game 链）以“合并目录语义”徽章区分“全民飞机大战”"
+    "rationale": "沿用种子语义“✈️”，依据种子配方“游戏 + 飞机”（tencent_game 链）以“合并目录语义”徽章区分“全民飞机大战”"
   },
   "公众号": {
     "entity_type": "product_feature",
@@ -6816,12 +6964,12 @@ export const ELEMENT_ICONS = {
   },
   "剑灵": {
     "icon": {
-      "base": "🎮",
-      "badge": "🎤",
+      "base": "🗡️",
+      "badge": "👥",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“剑 + 灵魂”（tencent_game 链）以“合并目录语义”徽章区分“剑灵”"
+    "rationale": "沿用种子语义“🗡️”，依据种子配方“剑 + 灵魂”（tencent_game 链）以“合并目录语义”徽章区分“剑灵”"
   },
   "北京总部": {
     "icon": {
@@ -6924,12 +7072,21 @@ export const ELEMENT_ICONS = {
   },
   "在线升级": {
     "icon": {
-      "base": "💬",
-      "badge": "✈️",
-      "palette": "product",
-      "source": "generated"
+      "base": "⬆️",
+      "badge": "⏱️",
+      "palette": "office",
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 经验值”（qq_memory 链）以“合并目录语义”徽章区分“在线升级”"
+    "fallback_icon": {
+      "base": "⬆️",
+      "badge": "⏱️",
+      "palette": "office",
+      "source": "fallback"
+    },
+    "rationale": "升级箭头与在线时长表达在线升级",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "外包": {
     "entity_type": "role",
@@ -6964,30 +7121,30 @@ export const ELEMENT_ICONS = {
   },
   "天天爱消除": {
     "icon": {
-      "base": "🎮",
-      "badge": "🐼",
+      "base": "💞",
+      "badge": "💡",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“消除 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“天天爱消除”"
+    "rationale": "沿用种子语义“💞”，依据种子配方“消除 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“天天爱消除”"
   },
   "天天酷跑": {
     "icon": {
-      "base": "🎮",
-      "badge": "🕹️",
+      "base": "🏃",
+      "badge": "🧑‍💻",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“游戏 + 跑步”（tencent_game 链）以“合并目录语义”徽章区分“天天酷跑”"
+    "rationale": "沿用种子语义“🏃”，依据种子配方“游戏 + 跑步”（tencent_game 链）以“合并目录语义”徽章区分“天天酷跑”"
   },
   "天涯明月刀": {
     "icon": {
-      "base": "🎮",
+      "base": "🌙",
       "badge": "🐉",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“刀 + 明月”（tencent_game 链）以“合并目录语义”徽章区分“天涯明月刀”"
+    "rationale": "沿用种子语义“🌙”，依据种子配方“刀 + 明月”（tencent_game 链）以“合并目录语义”徽章区分“天涯明月刀”"
   },
   "天美工作室群": {
     "entity_type": "studio",
@@ -7014,12 +7171,21 @@ export const ELEMENT_ICONS = {
   },
   "太阳号": {
     "icon": {
-      "base": "💬",
-      "badge": "🏔️",
-      "palette": "product",
-      "source": "generated"
+      "base": "☀️",
+      "badge": "🔢",
+      "palette": "office",
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ等级 + 时间”（qq_memory 链）以“合并目录语义”徽章区分“太阳号”"
+    "fallback_icon": {
+      "base": "☀️",
+      "badge": "🔢",
+      "palette": "office",
+      "source": "fallback"
+    },
+    "rationale": "太阳等级与号码表达太阳号",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "实习生": {
     "entity_type": "role",
@@ -7043,12 +7209,12 @@ export const ELEMENT_ICONS = {
   },
   "寻仙": {
     "icon": {
-      "base": "🎮",
-      "badge": "🎨",
+      "base": "🧙",
+      "badge": "📊",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“仙侠 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“寻仙”"
+    "rationale": "沿用种子语义“🧙”，依据种子配方“仙侠 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“寻仙”"
   },
   "小程序": {
     "entity_type": "product_feature",
@@ -7192,21 +7358,21 @@ export const ELEMENT_ICONS = {
   },
   "弹弹堂": {
     "icon": {
-      "base": "🎮",
-      "badge": "✨",
+      "base": "🎯",
+      "badge": "⭐",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“弹射 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“弹弹堂”"
+    "rationale": "沿用种子语义“🎯”，依据种子配方“弹射 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“弹弹堂”"
   },
   "御龙在天": {
     "icon": {
-      "base": "🎮",
-      "badge": "🛒",
+      "base": "🐉",
+      "badge": "📦",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“御龙 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“御龙在天”"
+    "rationale": "沿用种子语义“🐉”，依据种子配方“御龙 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“御龙在天”"
   },
   "微云": {
     "entity_type": "product",
@@ -7232,12 +7398,12 @@ export const ELEMENT_ICONS = {
   },
   "微众银行": {
     "icon": {
-      "base": "🤝",
+      "base": "🏦",
       "badge": "🎵",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“微信支付 + 银行”（association 链）以“合并目录语义”徽章区分“微众银行”"
+    "rationale": "沿用种子语义“🏦”，依据种子配方“微信支付 + 银行”（association 链）以“合并目录语义”徽章区分“微众银行”"
   },
   "微信总部": {
     "icon": {
@@ -7343,21 +7509,30 @@ export const ELEMENT_ICONS = {
   },
   "战地之王": {
     "icon": {
-      "base": "🎮",
-      "badge": "🪨",
+      "base": "🪖",
+      "badge": "♟️",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“战地 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“战地之王”"
+    "rationale": "沿用种子语义“🪖”，依据种子配方“战地 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“战地之王”"
   },
   "手机QQ": {
     "icon": {
-      "base": "💬",
-      "badge": "🟣",
+      "base": "📱",
+      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 手机”（qq_memory 链）以“合并目录语义”徽章区分“手机QQ”"
+    "fallback_icon": {
+      "base": "📱",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "手机与QQ企鹅表达手机QQ",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "打卡": {
     "icon": {
@@ -7379,12 +7554,21 @@ export const ELEMENT_ICONS = {
   },
   "抢车位": {
     "icon": {
-      "base": "💬",
-      "badge": "📷",
+      "base": "🚗",
+      "badge": "🅿️",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ空间 + 汽车”（qq_memory 链）以“合并目录语义”徽章区分“抢车位”"
+    "fallback_icon": {
+      "base": "🚗",
+      "badge": "🅿️",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "汽车与停车标记表达抢车位",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "拼多多": {
     "entity_type": "company",
@@ -7444,12 +7628,12 @@ export const ELEMENT_ICONS = {
   },
   "斗战神": {
     "icon": {
-      "base": "🎮",
-      "badge": "💙",
+      "base": "🐒",
+      "badge": "🎵",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“斗战 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“斗战神”"
+    "rationale": "沿用种子语义“🐒”，依据种子配方“斗战 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“斗战神”"
   },
   "早会": {
     "icon": {
@@ -7489,12 +7673,21 @@ export const ELEMENT_ICONS = {
   },
   "朋友网": {
     "icon": {
-      "base": "💬",
-      "badge": "🎉",
-      "palette": "product",
-      "source": "generated"
+      "base": "👥",
+      "badge": "🌐",
+      "palette": "people",
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ校友 + 朋友”（qq_memory 链）以“合并目录语义”徽章区分“朋友网”"
+    "fallback_icon": {
+      "base": "👥",
+      "badge": "🌐",
+      "palette": "people",
+      "source": "fallback"
+    },
+    "rationale": "好友群体与网络表达朋友网",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "欢乐斗地主": {
     "entity_type": "product",
@@ -7562,21 +7755,21 @@ export const ELEMENT_ICONS = {
   },
   "水帖": {
     "icon": {
-      "base": "💬",
-      "badge": "🌸",
+      "base": "💦",
+      "badge": "🌱",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“乐享 + 周五”（tencent 链）以“合并目录语义”徽章区分“水帖”"
+    "rationale": "沿用种子语义“💦”，依据种子配方“乐享 + 周五”（tencent 链）以“合并目录语义”徽章区分“水帖”"
   },
   "洛克王国": {
     "icon": {
-      "base": "🎮",
-      "badge": "🌈",
+      "base": "🏰",
+      "badge": "🌙",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ宠物 + 魔法”（tencent_game 链）以“合并目录语义”徽章区分“洛克王国”"
+    "rationale": "沿用种子语义“🏰”，依据种子配方“QQ宠物 + 魔法”（tencent_game 链）以“合并目录语义”徽章区分“洛克王国”"
   },
   "活水": {
     "icon": {
@@ -7629,12 +7822,21 @@ export const ELEMENT_ICONS = {
   },
   "滴滴滴": {
     "icon": {
-      "base": "💬",
-      "badge": "📍",
+      "base": "🔔",
+      "badge": "💬",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 声音”（qq_memory 链）以“合并目录语义”徽章区分“滴滴滴”"
+    "fallback_icon": {
+      "base": "🔔",
+      "badge": "💬",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "铃声与消息气泡表达QQ经典提示音",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "火影忍者手游": {
     "entity_type": "product",
@@ -7669,12 +7871,21 @@ export const ELEMENT_ICONS = {
   },
   "灰色头像": {
     "icon": {
-      "base": "💬",
-      "badge": "🦋",
-      "palette": "product",
-      "source": "generated"
+      "base": "👤",
+      "badge": "⚫",
+      "palette": "people",
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 离线”（qq_memory 链）以“合并目录语义”徽章区分“灰色头像”"
+    "fallback_icon": {
+      "base": "👤",
+      "badge": "⚫",
+      "palette": "people",
+      "source": "fallback"
+    },
+    "rationale": "灰暗用户轮廓表达离线灰色头像",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "烤企鹅": {
     "icon": {
@@ -7687,12 +7898,12 @@ export const ELEMENT_ICONS = {
   },
   "爆料": {
     "icon": {
-      "base": "💬",
-      "badge": "📢",
+      "base": "📢",
+      "badge": "💬",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“南极圈 + 脉脉”（tencent 链）以“公开传播消息”徽章区分“爆料”"
+    "rationale": "沿用种子语义“📢”，依据种子配方“南极圈 + 脉脉”（tencent 链）以“QQ 社交传播语义”徽章区分“爆料”"
   },
   "王者荣耀": {
     "icon": {
@@ -7763,12 +7974,21 @@ export const ELEMENT_ICONS = {
   },
   "留言板": {
     "icon": {
-      "base": "💬",
-      "badge": "🏠",
+      "base": "📝",
+      "badge": "💬",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ空间 + 留言”（qq_memory 链）以“合并目录语义”徽章区分“留言板”"
+    "fallback_icon": {
+      "base": "📝",
+      "badge": "💬",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "便笺与消息气泡表达空间留言板",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "知乎": {
     "entity_type": "company",
@@ -7844,30 +8064,48 @@ export const ELEMENT_ICONS = {
   },
   "窗口抖动": {
     "icon": {
-      "base": "💬",
-      "badge": "🟡",
+      "base": "🪟",
+      "badge": "💥",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 震动”（qq_memory 链）以“合并目录语义”徽章区分“窗口抖动”"
+    "fallback_icon": {
+      "base": "🪟",
+      "badge": "💥",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "窗口与冲击标记表达QQ窗口抖动",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "第七大道": {
     "icon": {
-      "base": "🤝",
-      "badge": "❤️",
+      "base": "7️⃣",
+      "badge": "🦊",
       "palette": "product",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🤝”，依据种子配方“开发商 + 弹弹堂”（association 链）以“合并目录语义”徽章区分“第七大道”"
+    "rationale": "沿用种子语义“7️⃣”，依据种子配方“开发商 + 弹弹堂”（association 链）以“合并目录语义”徽章区分“第七大道”"
   },
   "粉钻": {
     "icon": {
-      "base": "💬",
-      "badge": "🚇",
+      "base": "qq-era:pink-diamond",
       "palette": "product",
-      "source": "generated"
+      "source": "curated"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ会员 + QQ宠物”（qq_memory 链）以“合并目录语义”徽章区分“粉钻”"
+    "fallback_icon": {
+      "base": "💎",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "使用QQ 2008粉钻经典点亮图标",
+    "provenance": {
+      "source_id": "qq-icons-2010-pack",
+      "archive_path": "08版本7钻/粉钻.png"
+    }
   },
   "红包": {
     "entity_type": "product_feature",
@@ -7893,21 +8131,39 @@ export const ELEMENT_ICONS = {
   },
   "红钻": {
     "icon": {
-      "base": "💬",
-      "badge": "🍜",
+      "base": "qq-era:red-diamond",
       "palette": "product",
-      "source": "generated"
+      "source": "curated"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ会员 + QQ秀”（qq_memory 链）以“合并目录语义”徽章区分“红钻”"
+    "fallback_icon": {
+      "base": "💎",
+      "badge": "👗",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "使用QQ 2008红钻经典点亮图标",
+    "provenance": {
+      "source_id": "qq-icons-2010-pack",
+      "archive_path": "08版本7钻/红钻.png"
+    }
   },
   "紫钻": {
     "icon": {
-      "base": "💬",
-      "badge": "⭐",
-      "palette": "product",
-      "source": "generated"
+      "base": "qq-era:purple-diamond",
+      "palette": "studio",
+      "source": "curated"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ会员 + QQ飞车”（qq_memory 链）以“合并目录语义”徽章区分“紫钻”"
+    "fallback_icon": {
+      "base": "💎",
+      "badge": "🎵",
+      "palette": "studio",
+      "source": "fallback"
+    },
+    "rationale": "使用QQ 2008紫钻经典点亮图标",
+    "provenance": {
+      "source_id": "qq-icons-2010-pack",
+      "archive_path": "08版本7钻/紫钻.png"
+    }
   },
   "组织架构调整": {
     "icon": {
@@ -7929,12 +8185,21 @@ export const ELEMENT_ICONS = {
   },
   "绿钻": {
     "icon": {
-      "base": "💬",
-      "badge": "🔧",
+      "base": "qq-era:green-diamond",
       "palette": "product",
-      "source": "generated"
+      "source": "curated"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ会员 + QQ音乐”（qq_memory 链）以“合并目录语义”徽章区分“绿钻”"
+    "fallback_icon": {
+      "base": "💎",
+      "badge": "🎵",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "使用QQ 2008绿钻经典点亮图标",
+    "provenance": {
+      "source_id": "qq-icons-2010-pack",
+      "archive_path": "08版本7钻/绿钻.png"
+    }
   },
   "美团": {
     "entity_type": "company",
@@ -7967,12 +8232,21 @@ export const ELEMENT_ICONS = {
   },
   "腾讯TT": {
     "icon": {
-      "base": "💬",
-      "badge": "🍎",
+      "base": "🧭",
+      "badge": "🔤",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ浏览器 + 电脑”（qq_memory 链）以“合并目录语义”徽章区分“腾讯TT”"
+    "fallback_icon": {
+      "base": "🧭",
+      "badge": "🔤",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "浏览器罗盘与文字标记表达腾讯TT",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "腾讯云": {
     "entity_type": "product",
@@ -8096,12 +8370,21 @@ export const ELEMENT_ICONS = {
   },
   "腾讯微博": {
     "icon": {
-      "base": "💬",
-      "badge": "🪨",
+      "base": "📣",
+      "badge": "🐧",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 新闻”（qq_memory 链）以“合并目录语义”徽章区分“腾讯微博”"
+    "fallback_icon": {
+      "base": "📣",
+      "badge": "🐧",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "广播符号与企鹅表达腾讯微博",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "腾讯文档": {
     "icon": {
@@ -8195,21 +8478,21 @@ export const ELEMENT_ICONS = {
   },
   "自由幻想": {
     "icon": {
-      "base": "🎮",
-      "badge": "💻",
+      "base": "🦋",
+      "badge": "📈",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“QQ幻想 + 自由”（tencent_game 链）以“合并目录语义”徽章区分“自由幻想”"
+    "rationale": "沿用种子语义“🦋”，依据种子配方“QQ幻想 + 自由”（tencent_game 链）以“合并目录语义”徽章区分“自由幻想”"
   },
   "节奏大师": {
     "icon": {
-      "base": "🎮",
-      "badge": "🔥",
+      "base": "🥁",
+      "badge": "⚙️",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“游戏 + 节奏”（tencent_game 链）以“合并目录语义”徽章区分“节奏大师”"
+    "rationale": "沿用种子语义“🥁”，依据种子配方“游戏 + 节奏”（tencent_game 链）以“合并目录语义”徽章区分“节奏大师”"
   },
   "英雄联盟": {
     "entity_type": "product",
@@ -8253,12 +8536,21 @@ export const ELEMENT_ICONS = {
   },
   "蓝钻": {
     "icon": {
-      "base": "💬",
-      "badge": "📦",
-      "palette": "product",
-      "source": "generated"
+      "base": "qq-era:blue-diamond",
+      "palette": "studio",
+      "source": "curated"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ会员 + QQ游戏”（qq_memory 链）以“合并目录语义”徽章区分“蓝钻”"
+    "fallback_icon": {
+      "base": "💎",
+      "badge": "🎮",
+      "palette": "studio",
+      "source": "fallback"
+    },
+    "rationale": "使用QQ 2008蓝钻经典点亮图标",
+    "provenance": {
+      "source_id": "qq-icons-2010-pack",
+      "archive_path": "08版本7钻/蓝钻.png"
+    }
   },
   "蔚来": {
     "entity_type": "company",
@@ -8302,39 +8594,57 @@ export const ELEMENT_ICONS = {
   },
   "超级QQ": {
     "icon": {
-      "base": "💬",
-      "badge": "🎮",
+      "base": "qq-era:super-qq",
       "palette": "product",
-      "source": "generated"
+      "source": "curated"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ会员 + 手机”（qq_memory 链）以“合并目录语义”徽章区分“超级QQ”"
+    "fallback_icon": {
+      "base": "🐧",
+      "badge": "📱",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "使用2010年前后的超级QQ等级图标",
+    "provenance": {
+      "source_id": "qq-icons-2010-pack",
+      "archive_path": "超Q/vip_1.png"
+    }
   },
   "踩空间": {
     "icon": {
-      "base": "💬",
-      "badge": "🎨",
+      "base": "👣",
+      "badge": "🌌",
       "palette": "product",
-      "source": "generated"
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ空间 + 访问”（qq_memory 链）以“合并目录语义”徽章区分“踩空间”"
+    "fallback_icon": {
+      "base": "👣",
+      "badge": "🌌",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "脚印与空间背景表达访问好友QQ空间",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "轩辕传奇": {
     "icon": {
-      "base": "🎮",
-      "badge": "📷",
+      "base": "📜",
+      "badge": "📣",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“游戏 + 轩辕”（tencent_game 链）以“合并目录语义”徽章区分“轩辕传奇”"
+    "rationale": "沿用种子语义“📜”，依据种子配方“游戏 + 轩辕”（tencent_game 链）以“合并目录语义”徽章区分“轩辕传奇”"
   },
   "逆战": {
     "icon": {
-      "base": "🎮",
-      "badge": "⚡",
+      "base": "🔫",
+      "badge": "🏝️",
       "palette": "studio",
       "source": "generated"
     },
-    "rationale": "沿用种子语义“🎮”，依据种子配方“未来 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“逆战”"
+    "rationale": "沿用种子语义“🔫”，依据种子配方“未来 + 游戏”（tencent_game 链）以“合并目录语义”徽章区分“逆战”"
   },
   "通勤睡眠": {
     "icon": {
@@ -8407,12 +8717,21 @@ export const ELEMENT_ICONS = {
   },
   "隐身上线": {
     "icon": {
-      "base": "💬",
-      "badge": "🐧",
-      "palette": "product",
-      "source": "generated"
+      "base": "🥷",
+      "badge": "🟢",
+      "palette": "people",
+      "source": "fallback"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ + 影子”（qq_memory 链）以“合并目录语义”徽章区分“隐身上线”"
+    "fallback_icon": {
+      "base": "🥷",
+      "badge": "🟢",
+      "palette": "people",
+      "source": "fallback"
+    },
+    "rationale": "隐匿人物与在线绿点表达隐身上线",
+    "provenance": {
+      "source_id": "noto-emoji"
+    }
   },
   "静音挂机": {
     "icon": {
@@ -8511,12 +8830,21 @@ export const ELEMENT_ICONS = {
   },
   "黄钻": {
     "icon": {
-      "base": "💬",
-      "badge": "🦊",
+      "base": "qq-era:yellow-diamond",
       "palette": "product",
-      "source": "generated"
+      "source": "curated"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“QQ会员 + QQ空间”（qq_memory 链）以“合并目录语义”徽章区分“黄钻”"
+    "fallback_icon": {
+      "base": "💎",
+      "badge": "⭐",
+      "palette": "product",
+      "source": "fallback"
+    },
+    "rationale": "使用QQ 2008空间黄钻经典点亮图标",
+    "provenance": {
+      "source_id": "qq-icons-2010-pack",
+      "archive_path": "08版本7钻/黄钻.png"
+    }
   },
   "黑屏挂机": {
     "icon": {
@@ -8529,12 +8857,21 @@ export const ELEMENT_ICONS = {
   },
   "黑钻": {
     "icon": {
-      "base": "💬",
-      "badge": "🔥",
-      "palette": "product",
-      "source": "generated"
+      "base": "qq-era:black-diamond",
+      "palette": "studio",
+      "source": "curated"
     },
-    "rationale": "沿用种子语义“💬”，依据种子配方“DNF + 会员”（qq_memory 链）以“合并目录语义”徽章区分“黑钻”"
+    "fallback_icon": {
+      "base": "💎",
+      "badge": "⚔️",
+      "palette": "studio",
+      "source": "fallback"
+    },
+    "rationale": "使用QQ 2008黑钻经典点亮图标",
+    "provenance": {
+      "source_id": "qq-icons-2010-pack",
+      "archive_path": "08版本7钻/黑钻.png"
+    }
   }
 };
 
@@ -8951,8 +9288,8 @@ export const ICON_RULES = {
       "keywords": [
         "爆料"
       ],
-      "badge": "📢",
-      "reason": "公开传播消息",
+      "badge": "💬",
+      "reason": "QQ 社交传播语义",
       "categories": [
         "tencent"
       ]

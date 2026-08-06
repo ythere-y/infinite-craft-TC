@@ -5,6 +5,7 @@ import {
   llmConfiguration,
   parseModelCombination,
   requestModelCombination,
+  testLLMConnection,
 } from "../edge-functions/_lib/llm.js";
 import {
   DEFAULT_COMMENT,
@@ -261,6 +262,23 @@ test("model request sends the same bounded contract to official DeepSeek", async
   assert.equal(body.model, "deepseek-v4-flash");
   assert.deepEqual(body.thinking, { type: "disabled" });
   assert.equal(body.max_tokens, 128);
+});
+
+test("LLM availability tests enforce the configured request timeout", async () => {
+  let signal;
+  const result = await testLLMConnection({
+    provider: "makers",
+    env: {MAKERS_MODELS_KEY: "secret"},
+    fetchImpl: async (_url, init) => {
+      signal = init.signal;
+      return new Response(JSON.stringify({
+        choices: [{message: {content: "OK"}}],
+      }), {status: 200});
+    },
+  });
+
+  assert.equal(result.ok, true);
+  assert.ok(signal instanceof AbortSignal);
 });
 
 test("model request selects weighted style hints at fixed boundaries", async () => {
