@@ -64,7 +64,11 @@ export async function onRequest({ request, env }) {
   let initializationErrorCode = "";
   let initializationErrorReason = "";
   try {
-    initializer = createContentInitializer({ kv: runtime.kv });
+    initializer = createContentInitializer({
+      kv: runtime.kv,
+      batchSize: 10,
+      workBudget: 1,
+    });
     initialization = await initializer.ensureInitialized();
   } catch (error) {
     initializationErrorCode = PUBLIC_INITIALIZATION_ERROR_CODES.has(

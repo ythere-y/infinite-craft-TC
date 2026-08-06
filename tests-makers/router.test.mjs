@@ -1500,6 +1500,26 @@ test("health reports an invalid reset receipt without exposing receipt data", as
   }
 });
 
+test("entry bounds one initialization request below the cloud timeout budget", async () => {
+  const kv = new FakeKV();
+  globalThis.test = kv;
+  try {
+    const { onRequest } = await import("../edge-functions/api/[[default]].js");
+    const health = await onRequest({
+      request: request("/api/health"),
+      env: {},
+    });
+
+    assert.equal(health.status, 200);
+    assert.ok(
+      kv.putCalls <= 25,
+      `one initialization request made ${kv.putCalls} KV writes`,
+    );
+  } finally {
+    delete globalThis.test;
+  }
+});
+
 test("failed epoch 2 persistence never exposes an epoch 1 ready tuple", async () => {
   const staleDigest =
     "sha256:0000000000000000000000000000000000000000000000000000000000000000";
