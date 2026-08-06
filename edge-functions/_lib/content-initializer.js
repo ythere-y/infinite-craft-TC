@@ -56,10 +56,11 @@ const DIFFERENTIAL_PHASES = new Set([
 const BOOTSTRAP_PHASES = DIFFERENTIAL_PHASES;
 
 class ContentInitializationPolicyError extends Error {
-  constructor(code, message) {
+  constructor(code, message, reason = "") {
     super(`${code}: ${message}`);
     this.name = "ContentInitializationPolicyError";
     this.code = code;
+    this.reason = reason;
   }
 }
 
@@ -387,8 +388,8 @@ function parseStoredJson(raw) {
   }
 }
 
-function policyError(code, message) {
-  return new ContentInitializationPolicyError(code, message);
+function policyError(code, message, reason = "") {
+  return new ContentInitializationPolicyError(code, message, reason);
 }
 
 function resetAuthorized(sourceEpoch) {
@@ -574,6 +575,7 @@ export function createContentInitializer({
       throw policyError(
         CONTENT_RESET_RECEIPT_INVALID,
         "the persisted reset receipt is malformed or conflicts with Epoch 2",
+        "receipt_shape",
       );
     }
     return parsed;
@@ -678,6 +680,7 @@ export function createContentInitializer({
         throw policyError(
           CONTENT_RESET_RECEIPT_INVALID,
           "the reset receipt conflicts with a higher persisted epoch",
+          "higher_epoch",
         );
       }
       throw policyError(
@@ -703,6 +706,7 @@ export function createContentInitializer({
           throw receiptError || policyError(
             CONTENT_RESET_RECEIPT_INVALID,
             "an in-progress reset receipt conflicts with ready content",
+            "ready_conflict",
           );
         }
         receipt = await putResetReceipt({
@@ -728,6 +732,7 @@ export function createContentInitializer({
             throw policyError(
               CONTENT_RESET_RECEIPT_INVALID,
               "an Epoch 2 destructive migration has no durable receipt",
+              "missing_receipt",
             );
           }
           receipt = await putResetReceipt({
@@ -753,6 +758,7 @@ export function createContentInitializer({
         throw policyError(
           CONTENT_RESET_RECEIPT_INVALID,
           "an in-progress reset receipt conflicts with a non-destructive migration",
+          "differential_conflict",
         );
       }
       return { state };
@@ -764,6 +770,7 @@ export function createContentInitializer({
           throw policyError(
             CONTENT_RESET_RECEIPT_INVALID,
             "the reset receipt source does not match persisted content",
+            "source_conflict",
           );
         }
       }
@@ -1094,6 +1101,7 @@ export function createContentInitializer({
         throw policyError(
           CONTENT_RESET_RECEIPT_INVALID,
           "the reset receipt disappeared before catalog verification",
+          "receipt_missing_verify",
         );
       }
       if (receipt.status === "in_progress") {

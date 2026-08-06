@@ -72,6 +72,15 @@ const PUBLIC_CONTENT_ERROR_CODES = new Set([
   "CONTENT_RESET_NOT_AUTHORIZED",
   "CONTENT_RESET_RECEIPT_INVALID",
 ]);
+const PUBLIC_CONTENT_ERROR_REASONS = new Set([
+  "differential_conflict",
+  "higher_epoch",
+  "missing_receipt",
+  "ready_conflict",
+  "receipt_missing_verify",
+  "receipt_shape",
+  "source_conflict",
+]);
 const PUBLIC_CONTENT_PHASES = new Set([
   "detect",
   "purge_runtime_data",
@@ -87,6 +96,7 @@ export function publicContentStatus(
   {
     initializationFailed = false,
     initializationErrorCode = "",
+    initializationErrorReason = "",
   } = {},
 ) {
   const epoch = Number(value?.epoch);
@@ -102,6 +112,14 @@ export function publicContentStatus(
   const publicErrorCode = PUBLIC_CONTENT_ERROR_CODES.has(requestedErrorCode)
     ? requestedErrorCode
     : "CONTENT_INITIALIZATION_FAILED";
+  const requestedErrorReason = cleanText(
+    initializationErrorReason || value?.error_reason,
+  );
+  const publicErrorReason = PUBLIC_CONTENT_ERROR_REASONS.has(
+    requestedErrorReason,
+  )
+    ? requestedErrorReason
+    : "";
   const currentTarget = (
     epoch === CONTENT_EPOCH &&
     rawDigest === CATALOG_DIGEST
@@ -140,6 +158,7 @@ export function publicContentStatus(
       ? {
           error: "内容初始化暂时失败",
           error_code: publicErrorCode,
+          ...(publicErrorReason ? { error_reason: publicErrorReason } : {}),
         }
       : {}),
   };

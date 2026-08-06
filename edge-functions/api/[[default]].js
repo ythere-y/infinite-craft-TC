@@ -32,6 +32,15 @@ const PUBLIC_INITIALIZATION_ERROR_CODES = new Set([
   "CONTENT_RESET_NOT_AUTHORIZED",
   "CONTENT_RESET_RECEIPT_INVALID",
 ]);
+const PUBLIC_INITIALIZATION_ERROR_REASONS = new Set([
+  "differential_conflict",
+  "higher_epoch",
+  "missing_receipt",
+  "ready_conflict",
+  "receipt_missing_verify",
+  "receipt_shape",
+  "source_conflict",
+]);
 
 export async function onRequest({ request, env }) {
   const runtime = resolveRuntimeKv({
@@ -53,6 +62,7 @@ export async function onRequest({ request, env }) {
   let initializer = null;
   let initialization;
   let initializationErrorCode = "";
+  let initializationErrorReason = "";
   try {
     initializer = createContentInitializer({ kv: runtime.kv });
     initialization = await initializer.ensureInitialized();
@@ -61,6 +71,11 @@ export async function onRequest({ request, env }) {
       error?.code,
     )
       ? error.code
+      : "";
+    initializationErrorReason = PUBLIC_INITIALIZATION_ERROR_REASONS.has(
+      error?.reason,
+    )
+      ? error.reason
       : "";
     let status = null;
     if (initializer) {
@@ -93,6 +108,7 @@ export async function onRequest({ request, env }) {
   const publicStatus = publicContentStatus(initialization.status, {
     initializationFailed: initialization.failed === true,
     initializationErrorCode,
+    initializationErrorReason,
   });
   const path = new URL(request.url).pathname.replace(/\/+$/u, "") || "/";
   if (!initialization.ready && !isReadyContentState(initialization.status)) {

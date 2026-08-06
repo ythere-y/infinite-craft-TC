@@ -1491,6 +1491,7 @@ test("health reports an invalid reset receipt without exposing receipt data", as
       body.content.error_code,
       "CONTENT_RESET_RECEIPT_INVALID",
     );
+    assert.equal(body.content.error_reason, "receipt_shape");
     assert.doesNotMatch(JSON.stringify(body), /receipt-secret|started_at/u);
     assert.equal(kv.putCalls, 0);
     assert.equal(kv.deleteCalls, 0);
