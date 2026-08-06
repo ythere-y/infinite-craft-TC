@@ -659,7 +659,19 @@ export function createContentInitializer({
 
   async function prepareInitialState() {
     const state = await readStatus();
-    let receipt = await readResetReceipt();
+    let receipt = null;
+    let receiptError = null;
+    try {
+      receipt = await readResetReceipt();
+    } catch (error) {
+      if (error?.code !== CONTENT_RESET_RECEIPT_INVALID) throw error;
+      receiptError = error;
+    }
+    const repairableReceiptState = (
+      validReadyState(state) ||
+      (validMigratingState(state) && state.mode === "epoch_reset")
+    );
+    if (receiptError && !repairableReceiptState) throw receiptError;
 
     if (Number(state?.epoch) > CONTENT_EPOCH) {
       if (receipt) {
@@ -681,11 +693,26 @@ export function createContentInitializer({
       return { state, terminal: newerTargetResult(state) };
     }
     if (validReadyState(state)) {
-      if (receipt?.status === "in_progress") {
-        throw policyError(
-          CONTENT_RESET_RECEIPT_INVALID,
-          "an in-progress reset receipt conflicts with ready content",
-        );
+      if (receiptError || receipt?.status === "in_progress") {
+        const startedAt = receipt?.started_at ?? state?.started_at;
+        if (
+          typeof startedAt !== "number" ||
+          !Number.isFinite(startedAt) ||
+          startedAt <= 0
+        ) {
+          throw receiptError || policyError(
+            CONTENT_RESET_RECEIPT_INVALID,
+            "an in-progress reset receipt conflicts with ready content",
+          );
+        }
+        receipt = await putResetReceipt({
+          target_epoch: CONTENT_EPOCH,
+          source_epoch: receipt?.source_epoch ?? "legacy",
+          catalog_digest: state.catalog_digest,
+          status: "completed",
+          started_at: startedAt,
+          completed_at: Math.max(now(), startedAt),
+        });
       }
       return { state, terminal: stateResult(state) };
     }
