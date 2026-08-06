@@ -659,7 +659,7 @@ export function createContentInitializer({
 
   async function prepareInitialState() {
     const state = await readStatus();
-    const receipt = await readResetReceipt();
+    let receipt = await readResetReceipt();
 
     if (Number(state?.epoch) > CONTENT_EPOCH) {
       if (receipt) {
@@ -692,10 +692,25 @@ export function createContentInitializer({
     if (validMigratingState(state)) {
       if (state.mode === "epoch_reset") {
         if (!receipt) {
-          throw policyError(
-            CONTENT_RESET_RECEIPT_INVALID,
-            "an Epoch 2 destructive migration has no durable receipt",
-          );
+          const startedAt = state?.started_at;
+          if (
+            typeof startedAt !== "number" ||
+            !Number.isFinite(startedAt) ||
+            startedAt <= 0
+          ) {
+            throw policyError(
+              CONTENT_RESET_RECEIPT_INVALID,
+              "an Epoch 2 destructive migration has no durable receipt",
+            );
+          }
+          receipt = await putResetReceipt({
+            target_epoch: CONTENT_EPOCH,
+            source_epoch: "legacy",
+            catalog_digest: state.catalog_digest,
+            status: "in_progress",
+            started_at: startedAt,
+            completed_at: null,
+          });
         }
         if (receipt.status === "completed") {
           const recovery = await putCompletedReceiptRecoveryState(

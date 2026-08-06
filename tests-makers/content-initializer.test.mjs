@@ -148,6 +148,53 @@ test("legacy KV is purged only after a durable reset receipt", async () => {
   assert.ok(readyWrite > receiptCompletion);
 });
 
+test("pre-receipt epoch reset upgrades its durable migration state", async () => {
+  const kv = new RecordingKV({
+    system_content_state: JSON.stringify({
+      epoch: CONTENT_EPOCH,
+      catalog_digest: CATALOG_DIGEST,
+      status: "migrating",
+      mode: "epoch_reset",
+      phase: "purge_runtime_data",
+      cursor: null,
+      index: 0,
+      scan: null,
+      purge_pass: 0,
+      purge_deleted: 0,
+      scan_pass: 0,
+      scan_deleted: 0,
+      purge_completed: false,
+      started_at: NOW - 1_000,
+      completed_at: null,
+      error: "",
+    }),
+    player_runtime_data: JSON.stringify({ keep: false }),
+  });
+  const initializer = createContentInitializer({
+    kv,
+    batchSize: 2,
+    workBudget: 1,
+    now: () => NOW,
+  });
+
+  const first = await initializer.ensureInitialized();
+  const receipt = JSON.parse(await kv.get(RESET_RECEIPT_KEY));
+  assert.equal(receipt.source_epoch, "legacy");
+  assert.equal(receipt.status, "in_progress");
+  assert.equal(receipt.started_at, NOW - 1_000);
+  const receiptWrite = kv.operations.findIndex((operation) =>
+    operation.type === "put" && operation.key === RESET_RECEIPT_KEY
+  );
+  const firstDelete = kv.operations.findIndex((operation) =>
+    operation.type === "delete"
+  );
+  assert.ok(receiptWrite >= 0);
+  assert.ok(firstDelete > receiptWrite);
+
+  await runToReady(initializer, first);
+  assert.equal(kv.values.has("player_runtime_data"), false);
+});
+
 test("empty namespace bootstraps without a destructive reset receipt", async () => {
   const kv = new FakeKV();
   const result = await runToReady(createContentInitializer({
