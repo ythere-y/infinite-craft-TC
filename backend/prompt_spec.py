@@ -78,7 +78,8 @@ def _validate_system_module(item: Any) -> str:
     _require_boolean(record.get("enabled"), "system_modules enabled")
     if not _is_safe_integer_number(record.get("order")):
         raise ValueError("system_modules order must be an integer")
-    _require_non_empty_string(record.get("content"), "system_modules content")
+    if record["enabled"]:
+        _require_non_empty_string(record.get("content"), "system_modules content")
     return item_id
 
 
@@ -100,10 +101,20 @@ def _validate_style(item: Any) -> str:
     record = _require_record(item, "styles record")
     item_id = _validate_id(record.get("id"), "styles")
     _require_boolean(record.get("enabled"), "styles enabled")
-    _require_non_empty_string(record.get("label"), "styles label")
-    _require_non_empty_string(record.get("guidance"), "styles guidance")
+    if record["enabled"]:
+        _require_non_empty_string(record.get("label"), "styles label")
+        _require_non_empty_string(record.get("guidance"), "styles guidance")
     if not _is_finite_number(record.get("weight")):
         raise ValueError("styles weight must be a finite number")
+    return item_id
+
+
+def _validate_text_example(item: Any, field: str) -> str:
+    record = _require_record(item, f"{field} record")
+    item_id = _validate_id(record.get("id"), field)
+    _require_boolean(record.get("enabled"), f"{field} enabled")
+    if record["enabled"]:
+        _require_non_empty_string(record.get("content"), f"{field} content")
     return item_id
 
 
@@ -112,8 +123,11 @@ def validate_prompt_spec(value: Any) -> Dict[str, Any]:
     schema_version = record.get("schema_version")
     if not _is_finite_number(schema_version) or schema_version != 1:
         raise ValueError("unsupported prompt schema version")
-    if not _is_finite_number(record.get("temperature")):
+    temperature = record.get("temperature")
+    if not _is_finite_number(temperature):
         raise ValueError("temperature must be finite")
+    if not 0 <= temperature <= 2:
+        raise ValueError("temperature must be between 0 and 2")
 
     validators = {
         "system_modules": _validate_system_module,
@@ -125,6 +139,16 @@ def validate_prompt_spec(value: Any) -> Dict[str, Any]:
         if not isinstance(items, list):
             raise ValueError(f"{field} must be an array")
         ids = [validator(item) for item in items]
+        if len(set(ids)) != len(ids):
+            raise ValueError(f"duplicate {field} id")
+
+    for field in ("positive_examples", "negative_examples"):
+        if field not in record:
+            continue
+        items = record[field]
+        if not isinstance(items, list):
+            raise ValueError(f"{field} must be an array")
+        ids = [_validate_text_example(item, field) for item in items]
         if len(set(ids)) != len(ids):
             raise ValueError(f"duplicate {field} id")
 
@@ -224,6 +248,25 @@ def build_prompt_messages_from_spec(
         lines.append(f"输入：{_json(input_example)}")
         lines.append(f"输出：{_json(output_example)}")
     lines.append("")
+
+    positive_examples = [
+        item["content"]
+        for item in spec.get("positive_examples", [])
+        if item["enabled"]
+    ]
+    negative_examples = [
+        item["content"]
+        for item in spec.get("negative_examples", [])
+        if item["enabled"]
+    ]
+    if positive_examples:
+        lines.append("【正面案例】")
+        lines.extend(positive_examples)
+        lines.append("")
+    if negative_examples:
+        lines.append("【负面案例】")
+        lines.extend(negative_examples)
+        lines.append("")
 
     if community_examples:
         lines.append("【社区高质量示例（仅参考风格，不要照抄）】")

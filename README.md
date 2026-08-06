@@ -233,6 +233,7 @@ cd infinite-craft-TC
 
 cp .env.example .env
 # 可选：在 .env 的 LLM_API_KEY 中填写自己的 DeepSeek API Key
+# 使用本地管理后台时，在 .env 中设置非空 ADMIN_TOKEN
 npm run dev
 ```
 
@@ -240,9 +241,21 @@ npm run dev
 
 - 游戏：<http://127.0.0.1:8000/>
 - 首发墙：<http://127.0.0.1:8000/wall>
+- 管理后台：<http://127.0.0.1:8000/admin>
 - 健康检查：<http://127.0.0.1:8000/api/health>
 
 没有 API Key 时服务仍可启动，预设配方和缓存正常可用；未知组合会走既有 fallback。密钥只能写入 `.env`，请勿提交到 Git。
+
+### 本地 Prompt 发布与回滚
+
+1. 在 `.env` 设置非空 `ADMIN_TOKEN`。
+2. 启动本地服务并访问 `/admin`，输入同一个管理员令牌。
+3. 在“Prompt 管理”页编辑并保存草稿。
+4. 点击“聚合”，检查生成版本的完整预览。
+5. 确认后将该版本设为生效；需要回滚时，在历史版本中重新启用目标版本。
+
+草稿、聚合版本和生效指针只保存在本地 SQLite。Makers 构建继续使用仓库中已提交的
+`shared/combine-prompt.json`，不会读取或发布本地 SQLite Prompt 配置。
 
 停止服务：
 

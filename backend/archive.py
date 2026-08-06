@@ -43,12 +43,13 @@ def _db_path() -> Path:
     return _DATA_DIR / f"{env}.db"
 
 
-def _conn() -> sqlite3.Connection:
+def _conn(*, timeout: float = 5.0) -> sqlite3.Connection:
     _DATA_DIR.mkdir(parents=True, exist_ok=True)
-    con = sqlite3.connect(str(_db_path()))
+    con = sqlite3.connect(str(_db_path()), timeout=timeout)
     con.row_factory = sqlite3.Row
     con.execute("PRAGMA journal_mode=WAL")  # 并发写友好
     con.execute("PRAGMA synchronous=NORMAL")
+    con.execute(f"PRAGMA busy_timeout={max(0, int(timeout * 1000))}")
     return con
 
 
@@ -100,6 +101,28 @@ def init_archive() -> None:
                     ts   REAL NOT NULL
                 );
 
+                CREATE TABLE IF NOT EXISTS prompt_draft (
+                    singleton   INTEGER PRIMARY KEY CHECK (singleton = 1),
+                    config_json TEXT NOT NULL,
+                    updated_at  REAL NOT NULL,
+                    revision    INTEGER NOT NULL DEFAULT 1
+                );
+
+                CREATE TABLE IF NOT EXISTS prompt_versions (
+                    id                  TEXT PRIMARY KEY,
+                    created_at          REAL NOT NULL,
+                    selected_style_id   TEXT,
+                    selected_style_name TEXT,
+                    snapshot_json       TEXT NOT NULL,
+                    effective_spec_json TEXT NOT NULL,
+                    preview             TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS prompt_state (
+                    singleton         INTEGER PRIMARY KEY CHECK (singleton = 1),
+                    active_version_id TEXT NOT NULL REFERENCES prompt_versions(id)
+                );
+
                 CREATE TABLE IF NOT EXISTS content_state (
                     singleton      INTEGER PRIMARY KEY CHECK(singleton = 1),
                     epoch          INTEGER NOT NULL,
@@ -114,6 +137,8 @@ def init_archive() -> None:
                 CREATE INDEX IF NOT EXISTS idx_kpi_session ON kpi_events(session_id);
                 CREATE INDEX IF NOT EXISTS idx_first_ts    ON first_discoveries(ts DESC);
                 CREATE INDEX IF NOT EXISTS idx_combo_chain ON combinations(chain);
+                CREATE INDEX IF NOT EXISTS idx_prompt_versions_created
+                ON prompt_versions(created_at DESC);
                 """
             )
             columns = {
@@ -137,6 +162,17 @@ def init_archive() -> None:
                 con.execute("ALTER TABLE elements ADD COLUMN icon_json TEXT")
             if "source" not in element_columns:
                 con.execute("ALTER TABLE elements ADD COLUMN source TEXT")
+            prompt_draft_columns = {
+                row["name"]
+                for row in con.execute(
+                    "PRAGMA table_info(prompt_draft)"
+                ).fetchall()
+            }
+            if "revision" not in prompt_draft_columns:
+                con.execute(
+                    "ALTER TABLE prompt_draft "
+                    "ADD COLUMN revision INTEGER NOT NULL DEFAULT 1"
+                )
             con.commit()
             print(f"[sqlite] archive ready: {_db_path()}")
         finally:

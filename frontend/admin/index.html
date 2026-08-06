@@ -6,6 +6,9 @@
   <title>🎛️ 后台监控 · 鹅厂无限合成 ♾️</title>
   <link rel="icon" type="image/png" href="/assets/icons/generated/emoji/1f427.png">
   <link rel="stylesheet" href="/icon-system.css">
+  <!-- LOCAL_PROMPT_ADMIN_ASSETS_START -->
+  <link rel="stylesheet" href="/admin/prompt-admin.css">
+  <!-- LOCAL_PROMPT_ADMIN_ASSETS_END -->
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     html, body {
@@ -181,6 +184,19 @@
   </header>
 
   <main>
+    <!-- LOCAL_PROMPT_ADMIN_NAV_START -->
+    <nav class="admin-tabs" role="tablist" aria-label="后台功能">
+      <button type="button" data-admin-tab="monitor"
+              id="admin-monitor-tab" role="tab" aria-controls="admin-monitor-panel"
+              aria-selected="true" tabindex="0">运行监控</button>
+      <button type="button" data-admin-tab="prompt"
+              id="admin-prompt-tab" role="tab" aria-controls="admin-prompt-panel"
+              aria-selected="false" tabindex="-1">Prompt 管理</button>
+    </nav>
+    <!-- LOCAL_PROMPT_ADMIN_NAV_END -->
+
+    <section id="admin-monitor-panel" data-admin-panel="monitor"
+             role="tabpanel" aria-labelledby="admin-monitor-tab">
     <!-- 核心实时指标 -->
     <div class="grid">
       <div class="card live">
@@ -262,13 +278,188 @@
         <div class="chip-row" id="chains"></div>
       </div>
     </div>
+    </section>
+
+    <!-- LOCAL_PROMPT_ADMIN_PANEL_START -->
+    <section id="admin-prompt-panel" data-admin-panel="prompt"
+             role="tabpanel" aria-labelledby="admin-prompt-tab" hidden>
+      <div class="prompt-toolbar">
+        <div>
+          <h2>Prompt 配置</h2>
+          <p>先保存完整草稿，再聚合为不可变版本并设为生效。</p>
+        </div>
+        <div class="prompt-actions">
+          <button type="button" id="prompt-save">保存草稿</button>
+          <button type="button" id="prompt-aggregate">保存并聚合</button>
+          <button type="button" id="prompt-activate" disabled>设为生效</button>
+        </div>
+      </div>
+
+      <p id="prompt-status" class="prompt-status" role="status" aria-live="polite">
+        切换到本页签后加载配置。
+      </p>
+
+      <div class="prompt-layout">
+        <div class="prompt-editor">
+          <section class="prompt-section" aria-labelledby="prompt-basics-title">
+            <h3 id="prompt-basics-title">基础设置</h3>
+            <div class="prompt-field-grid">
+              <label>
+                Schema 版本
+                <input id="prompt-schema-version" type="number" readonly>
+              </label>
+              <label>
+                Temperature
+                <input id="prompt-temperature" type="number" min="0" max="2"
+                       step="0.01" required
+                       aria-describedby="prompt-temperature-error">
+                <span id="prompt-temperature-error" class="prompt-field-error"></span>
+              </label>
+            </div>
+          </section>
+
+          <section class="prompt-section" aria-labelledby="prompt-modules-title">
+            <div class="prompt-section-heading">
+              <h3 id="prompt-modules-title">系统模块</h3>
+              <button type="button" data-add-prompt-item="system-modules">添加模块</button>
+            </div>
+            <div id="prompt-system-modules" class="prompt-collection"></div>
+          </section>
+
+          <section class="prompt-section" aria-labelledby="prompt-styles-title">
+            <div class="prompt-section-heading">
+              <div>
+                <h3 id="prompt-styles-title">风格与概率</h3>
+                <p id="prompt-probability-total" class="prompt-probability"></p>
+              </div>
+              <button type="button" data-add-prompt-item="styles">添加风格</button>
+            </div>
+            <div id="prompt-styles" class="prompt-collection"></div>
+          </section>
+
+          <section class="prompt-section" aria-labelledby="prompt-positive-title">
+            <div class="prompt-section-heading">
+              <h3 id="prompt-positive-title">正面案例</h3>
+              <button type="button" data-add-prompt-item="positive-examples">添加案例</button>
+            </div>
+            <div id="prompt-positive-examples" class="prompt-collection"></div>
+          </section>
+
+          <section class="prompt-section" aria-labelledby="prompt-negative-title">
+            <div class="prompt-section-heading">
+              <h3 id="prompt-negative-title">负面案例</h3>
+              <button type="button" data-add-prompt-item="negative-examples">添加案例</button>
+            </div>
+            <div id="prompt-negative-examples" class="prompt-collection"></div>
+          </section>
+
+          <section class="prompt-section" aria-labelledby="prompt-advanced-title">
+            <h3 id="prompt-advanced-title">完整草稿的其他字段</h3>
+            <label>
+              结构化案例（JSON）
+              <textarea id="prompt-structured-examples" rows="12" spellcheck="false"></textarea>
+            </label>
+            <div class="prompt-field-grid">
+              <label>
+                容量设置（JSON）
+                <textarea id="prompt-capacities" rows="7" spellcheck="false"></textarea>
+              </label>
+              <label>
+                限制设置（JSON）
+                <textarea id="prompt-limits" rows="7" spellcheck="false"></textarea>
+              </label>
+            </div>
+          </section>
+        </div>
+
+        <aside class="prompt-sidebar">
+          <section class="prompt-section">
+            <h3>当前生效版本</h3>
+            <p id="prompt-active-version" class="prompt-version-meta">尚未加载。</p>
+            <button type="button" id="prompt-view-active" disabled>
+              查看当前生效版本
+            </button>
+          </section>
+
+          <section class="prompt-section">
+            <h3 id="prompt-preview-title">聚合预览</h3>
+            <textarea id="prompt-preview" rows="22" readonly
+                      aria-labelledby="prompt-preview-title"
+                      placeholder="聚合或查看历史版本后显示完整 Prompt。"></textarea>
+          </section>
+
+          <section class="prompt-section">
+            <h3>历史版本</h3>
+            <div id="prompt-version-history" class="prompt-version-history"></div>
+            <button type="button" id="prompt-load-more" hidden>加载更多版本</button>
+          </section>
+        </aside>
+      </div>
+    </section>
+    <!-- LOCAL_PROMPT_ADMIN_PANEL_END -->
   </main>
+
+  <!-- LOCAL_PROMPT_ADMIN_TEMPLATES_START -->
+  <template id="prompt-module-template">
+    <article class="prompt-item prompt-module">
+      <div class="prompt-item-header">
+        <label class="prompt-toggle">
+          <input type="checkbox" data-field="enabled">
+          启用
+        </label>
+        <button type="button" class="prompt-remove" data-remove-prompt-item>删除</button>
+      </div>
+      <div class="prompt-field-grid">
+        <label>ID <input type="text" data-field="id"></label>
+        <label>顺序 <input type="number" data-field="order" step="1"></label>
+      </div>
+      <label>内容 <textarea data-field="content" rows="7"></textarea></label>
+    </article>
+  </template>
+
+  <template id="prompt-style-template">
+    <article class="prompt-item prompt-style">
+      <div class="prompt-item-header">
+        <label class="prompt-toggle">
+          <input type="checkbox" data-field="enabled">
+          启用
+        </label>
+        <button type="button" class="prompt-remove" data-remove-prompt-item>删除</button>
+      </div>
+      <div class="prompt-field-grid prompt-style-grid">
+        <label>ID <input type="text" data-field="id"></label>
+        <label>名称 <input type="text" data-field="label"></label>
+        <label>概率（%） <input type="number" data-field="probability" min="0" max="100" step="0.01"></label>
+      </div>
+      <label>引导语 <textarea data-field="guidance" rows="4"></textarea></label>
+    </article>
+  </template>
+
+  <template id="prompt-example-template">
+    <article class="prompt-item prompt-example">
+      <div class="prompt-item-header">
+        <label class="prompt-toggle">
+          <input type="checkbox" data-field="enabled">
+          启用
+        </label>
+        <button type="button" class="prompt-remove" data-remove-prompt-item>删除</button>
+      </div>
+      <label>ID <input type="text" data-field="id"></label>
+      <label>内容 <textarea data-field="content" rows="4"></textarea></label>
+    </article>
+  </template>
+  <!-- LOCAL_PROMPT_ADMIN_TEMPLATES_END -->
 
   <footer>
     每 3 秒自动刷新 · 关闭页面即停止轮询 · 数据源 <code>/api/admin/stats</code>
   </footer>
 
   <script src="/icon-system.js"></script>
+  <!-- LOCAL_PROMPT_ADMIN_SCRIPTS_START -->
+  <script src="/admin/prompt-decimal.js"></script>
+  <script src="/admin/prompt-admin-model.js"></script>
+  <script src="/admin/prompt-admin.js"></script>
+  <!-- LOCAL_PROMPT_ADMIN_SCRIPTS_END -->
   <script>
     const REFRESH_SEC = 3;
     const ADMIN_TOKEN_KEY = "infinity_admin_token";

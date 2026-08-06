@@ -18,18 +18,20 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 import json
+import logging
 import os
 import random
+import secrets
 import time
 import uuid
 from pathlib import Path
 from typing import Optional, List
 
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from . import (
     archive,
@@ -40,6 +42,7 @@ from . import (
     db,
     depth as depth_mod,
     kpi,
+    prompt_store,
 )
 from .community_api import (
     router as community_router,
@@ -61,6 +64,7 @@ from .runtime_contract import (
 
 # ---- app bootstrap ----
 app = FastAPI(title="Infinity Craft · 鹅厂打工人版", version="1.0.0")
+logger = logging.getLogger(__name__)
 
 app.add_middleware(
     CORSMiddleware,
@@ -82,6 +86,7 @@ _LLM_EXECUTOR = ThreadPoolExecutor(
 async def _startup() -> None:
     load_prompt_spec()
     db.init_db()  # 连 Redis + 建 SQLite 表
+    prompt_store.init_prompt_store()
     community.init()
     try:
         decision = content_epoch.prepare_local()
@@ -157,6 +162,22 @@ class VoteReq(BaseModel):
     value: int
 
 
+class PromptDraftReq(BaseModel):
+    config: dict
+
+
+class PromptAggregateReq(BaseModel):
+    expected_revision: int = Field(strict=True, ge=1)
+
+
+class PromptVersionCopyReq(BaseModel):
+    expected_revision: int = Field(
+        strict=True,
+        ge=0,
+        le=prompt_store.MAX_VERSION_OFFSET,
+    )
+
+
 # ============================================================
 # API
 # ============================================================
@@ -219,9 +240,116 @@ async def api_analytics_combinations(limit: int = 20):
 
 
 # ============================================================
-# Admin 监控（无鉴权，只监听 localhost / 内网。生产可加 token）
+# Admin
 # ============================================================
-@app.get("/api/admin/stats")
+def require_admin_token(request: Request) -> None:
+    expected = os.environ.get("ADMIN_TOKEN", "").strip()
+    supplied = request.headers.get("authorization", "")
+    token = supplied[7:].strip() if supplied.lower().startswith("bearer ") else ""
+    try:
+        valid = bool(expected) and secrets.compare_digest(
+            token.encode("utf-8"),
+            expected.encode("utf-8"),
+        )
+    except UnicodeError:
+        valid = False
+    if not valid:
+        raise HTTPException(
+            status_code=401,
+            detail="管理员密钥无效",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+def _prompt_version_response(version: dict, active_version_id: str) -> dict:
+    return {**version, "active": version["id"] == active_version_id}
+
+
+def _prompt_version_summary(version: dict, active_version_id: str) -> dict:
+    allowed = (
+        "id",
+        "created_at",
+        "selected_style_id",
+        "selected_style_name",
+        "selected_style",
+    )
+    return {
+        **{key: version.get(key) for key in allowed},
+        "active": version["id"] == active_version_id,
+    }
+
+
+def _prompt_version_not_found(exc: KeyError) -> HTTPException:
+    detail = str(exc.args[0]) if exc.args else "prompt version not found"
+    return HTTPException(status_code=404, detail=detail)
+
+
+def _prompt_etag(revision: int) -> str:
+    return f'"{revision}"'
+
+
+def _prompt_if_match_revision(request: Request) -> int:
+    value = request.headers.get("if-match")
+    if value is None:
+        raise HTTPException(
+            status_code=428,
+            detail="If-Match draft revision is required",
+        )
+    if len(value) < 3 or not (value.startswith('"') and value.endswith('"')):
+        raise HTTPException(status_code=400, detail="invalid If-Match draft revision")
+    revision_text = value[1:-1]
+    if not revision_text.isascii() or not revision_text.isdigit():
+        raise HTTPException(status_code=400, detail="invalid If-Match draft revision")
+    revision = int(revision_text)
+    if revision < 1:
+        raise HTTPException(status_code=400, detail="invalid If-Match draft revision")
+    return revision
+
+
+def _safe_prompt_log_value(value: object) -> str:
+    safe = "".join(
+        character
+        for character in str(value)
+        if character.isascii()
+        and (character.isalnum() or character in {"-", "_", ".", ":"})
+    )
+    return safe[:128] or "invalid"
+
+
+@app.exception_handler(prompt_store.PromptStoreBusyError)
+async def _prompt_store_busy_handler(
+    _request: Request,
+    _exc: prompt_store.PromptStoreBusyError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=503,
+        content={"detail": "Prompt store is busy"},
+        headers={"Retry-After": "1"},
+    )
+
+
+@app.exception_handler(prompt_store.PromptStoreCorruptionError)
+async def _prompt_store_corruption_handler(
+    request: Request,
+    exc: prompt_store.PromptStoreCorruptionError,
+) -> JSONResponse:
+    logger.error(
+        "prompt_store_corruption path=%s record_type=%s record_id=%s error_type=%s",
+        request.url.path,
+        _safe_prompt_log_value(exc.record_type),
+        _safe_prompt_log_value(exc.record_id),
+        _safe_prompt_log_value(exc.error_type),
+    )
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Prompt store is unavailable"},
+    )
+
+
+@app.get(
+    "/api/admin/stats",
+    dependencies=[Depends(require_admin_token)],
+)
 async def api_admin_stats():
     """后台监控：实时活跃、累计合成、Top 榜单、最近首发。"""
     c = db.get_client()
@@ -315,6 +443,156 @@ async def api_admin_stats():
         "top_chains": top_chains,
         "recent_firsts": recent_firsts,
     }
+
+
+@app.get(
+    "/api/admin/prompt/config",
+    dependencies=[Depends(require_admin_token)],
+)
+async def api_admin_prompt_config(
+    response: Response,
+    version_limit: int = Query(default=50, ge=1, le=100),
+    version_offset: int = Query(
+        default=0,
+        ge=0,
+        le=prompt_store.MAX_VERSION_OFFSET,
+    ),
+):
+    draft_state = prompt_store.get_draft_state()
+    active = prompt_store.get_active_version_summary()
+    version_page = prompt_store.list_version_page(
+        limit=version_limit,
+        offset=version_offset,
+    )
+    response.headers["ETag"] = _prompt_etag(draft_state["revision"])
+    return {
+        "config": draft_state["config"],
+        "revision": draft_state["revision"],
+        "active_version": _prompt_version_summary(active, active["id"]),
+        "versions": [
+            _prompt_version_summary(version, active["id"])
+            for version in version_page["versions"]
+        ],
+        "version_page": {
+            "limit": version_page["limit"],
+            "offset": version_page["offset"],
+            "next_offset": version_page["next_offset"],
+            "has_more": version_page["has_more"],
+        },
+    }
+
+
+@app.put(
+    "/api/admin/prompt/config",
+    dependencies=[Depends(require_admin_token)],
+)
+async def api_admin_prompt_save(
+    req: PromptDraftReq,
+    request: Request,
+    response: Response,
+):
+    expected_revision = _prompt_if_match_revision(request)
+    try:
+        state = prompt_store.save_draft(
+            req.config,
+            expected_revision=expected_revision,
+        )
+    except prompt_store.PromptRevisionConflict as exc:
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc),
+            headers={"ETag": _prompt_etag(exc.current_revision)},
+        ) from exc
+    except prompt_store.PromptValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    response.headers["ETag"] = _prompt_etag(state["revision"])
+    return state
+
+
+@app.post(
+    "/api/admin/prompt/aggregate",
+    dependencies=[Depends(require_admin_token)],
+)
+async def api_admin_prompt_aggregate(req: PromptAggregateReq):
+    try:
+        version = prompt_store.aggregate_draft(
+            expected_revision=req.expected_revision,
+        )
+    except prompt_store.PromptRevisionConflict as exc:
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc),
+            headers={"ETag": _prompt_etag(exc.current_revision)},
+        ) from exc
+    except prompt_store.PromptValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    active_id = prompt_store.get_active_version_summary()["id"]
+    return _prompt_version_response(version, active_id)
+
+
+@app.get(
+    "/api/admin/prompt/versions/{version_id}",
+    dependencies=[Depends(require_admin_token)],
+)
+async def api_admin_prompt_version(version_id: str):
+    try:
+        version = prompt_store.get_version(version_id)
+    except KeyError as exc:
+        raise _prompt_version_not_found(exc) from exc
+    active_id = prompt_store.get_active_version_summary()["id"]
+    return _prompt_version_response(version, active_id)
+
+
+@app.post(
+    "/api/admin/prompt/versions/{version_id}/activate",
+    dependencies=[Depends(require_admin_token)],
+)
+async def api_admin_prompt_activate(version_id: str):
+    try:
+        version = prompt_store.activate_version(version_id)
+    except KeyError as exc:
+        raise _prompt_version_not_found(exc) from exc
+    return _prompt_version_response(version, version["id"])
+
+
+@app.post(
+    "/api/admin/prompt/versions/{version_id}/copy-to-draft",
+    dependencies=[Depends(require_admin_token)],
+)
+async def api_copy_prompt_version(
+    version_id: str,
+    body: PromptVersionCopyReq,
+):
+    try:
+        return prompt_store.copy_version_to_draft(
+            version_id,
+            expected_revision=body.expected_revision,
+        )
+    except KeyError as exc:
+        raise _prompt_version_not_found(exc) from exc
+    except prompt_store.PromptRevisionConflict as exc:
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc),
+            headers={"ETag": _prompt_etag(exc.current_revision)},
+        ) from exc
+    except prompt_store.PromptValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.delete(
+    "/api/admin/prompt/versions/{version_id}",
+    status_code=204,
+    dependencies=[Depends(require_admin_token)],
+)
+async def api_delete_prompt_version(version_id: str):
+    try:
+        prompt_store.delete_version(version_id)
+    except KeyError as exc:
+        raise _prompt_version_not_found(exc) from exc
+    except prompt_store.PromptStoreConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return Response(status_code=204)
 
 
 @app.get("/admin")
@@ -654,7 +932,7 @@ async def _combine_via_llm(
             flush=True,
         )
         return None
-    spec = prompt_spec or load_prompt_spec()
+    spec = prompt_spec if prompt_spec is not None else prompt_store.get_active_spec()
     prompt_limits = spec["limits"]
     recent_results = db.recent_result_names(prompt_limits["avoid_words"])
     positive_examples, negative_results = community.feedback_examples(

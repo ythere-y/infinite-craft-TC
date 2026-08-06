@@ -527,6 +527,69 @@ test("normal build needs no words checkout and ships only local icon assets", as
   }
 });
 
+test("Makers build excludes the local Prompt administration UI and assets", async () => {
+  const root = await mkdtemp(join(tmpdir(), "makers-local-prompt-boundary-"));
+  try {
+    await copyWorkingBuildFixture(root);
+
+    const result = await runFixtureBuild(root);
+    assert.equal(
+      result.code,
+      0,
+      `working-tree build failed:\n${result.stdout}\n${result.stderr}`,
+    );
+
+    const adminHtml = await readFile(join(root, "dist/admin/index.html"), "utf8");
+    assert.doesNotMatch(adminHtml, /data-admin-tab="prompt"/u);
+    assert.doesNotMatch(adminHtml, /class="admin-tabs"/u);
+    assert.doesNotMatch(adminHtml, /\/api\/admin\/prompt/u);
+    assert.doesNotMatch(adminHtml, /\/copy-to-draft/u);
+    assert.doesNotMatch(adminHtml, /version_offset/u);
+    assert.doesNotMatch(adminHtml, /method:\s*["']DELETE["']/u);
+    assert.doesNotMatch(
+      adminHtml,
+      /prompt-(?:admin|admin-model|decimal)\.(?:js|css)/u,
+    );
+    assert.doesNotMatch(adminHtml, /id="prompt-(?:load-more|view-active)"/u);
+    assert.doesNotMatch(
+      adminHtml,
+      /id="prompt-(?:module|style|example)-template"/u,
+    );
+    assert.doesNotMatch(adminHtml, /LOCAL_PROMPT_ADMIN_/u);
+    assert.match(adminHtml, /id="admin-monitor-panel"/u);
+    assert.match(adminHtml, /\/api\/admin\/stats/u);
+    assert.doesNotMatch(adminHtml, /aria-labelledby="admin-monitor-tab"/u);
+    assert.doesNotMatch(adminHtml, /role="tabpanel"/u);
+    await assert.rejects(
+      access(join(root, "dist/admin/prompt-admin.js")),
+      { code: "ENOENT" },
+    );
+    await assert.rejects(
+      access(join(root, "dist/admin/prompt-admin.css")),
+      { code: "ENOENT" },
+    );
+    await assert.rejects(
+      access(join(root, "dist/admin/prompt-decimal.js")),
+      { code: "ENOENT" },
+    );
+    await assert.rejects(
+      access(join(root, "dist/admin/prompt-admin-model.js")),
+      { code: "ENOENT" },
+    );
+
+    for (const file of await collectTextFiles(join(root, "dist"))) {
+      const contents = await readFile(file, "utf8");
+      assert.doesNotMatch(
+        contents,
+        /\/api\/admin\/prompt/u,
+        `${file} must not publish the local Prompt API client`,
+      );
+    }
+  } finally {
+    await rm(root, { force: true, recursive: true });
+  }
+});
+
 test("nickname generator is deterministic and needs no words checkout", async () => {
   const root = await mkdtemp(join(tmpdir(), "nickname-generator-"));
   try {

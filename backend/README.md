@@ -12,6 +12,7 @@
 | `generated/bounty-content.json` | 校验、可达性证明和摘要完成后的本地运行产物        | FastAPI 启动、迁移和固定公式查询          |
 | `shared/combine-prompt.json` | 合成 prompt 的 canonical 共享规范、策略与 few-shot 示例 | Python 后端与 Makers 构建生成器            |
 | `prompt.py`              | LLM 调用编排、共享 prompt 加载与 JSON 解析             | 后端 miss 后调用 LLM                      |
+| `prompt_store.py`        | 本地 Prompt 草稿、不可变聚合版本和生效指针             | FastAPI 管理 API 与本地 LLM 链路          |
 
 ## 数据流
 
@@ -56,6 +57,22 @@ npm run generate:makers-data
 ```
 
 随后提交目录源、生成的本地/Makers 数据和图标映射。
+
+## 本地 Prompt 管理
+
+本地 FastAPI 启动时会用 `shared/combine-prompt.json` 幂等初始化 SQLite Prompt Store。
+在 `.env` 设置非空 `ADMIN_TOKEN` 后，可访问 `/admin` 的“Prompt 管理”页：
+
+1. 编辑并保存草稿；
+2. 聚合草稿并检查完整预览；
+3. 将确认过的聚合版本设为生效；
+4. 需要回滚时，从历史记录重新启用旧版本。
+
+保存草稿不会改变在线 LLM 使用的 Prompt；只有显式激活聚合版本才会更新生效指针。
+聚合版本是不可变快照，后续草稿修改不会改写历史版本。
+
+这套管理链路仅用于本地 FastAPI 和 SQLite。Makers 构建使用已提交的
+`shared/combine-prompt.json`，不读取本地 SQLite Prompt 配置。
 
 ## 类别约束（category / chain）
 
