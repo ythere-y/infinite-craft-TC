@@ -1512,7 +1512,7 @@ test("entry bounds one initialization request below the cloud timeout budget", a
 
     assert.equal(health.status, 200);
     assert.ok(
-      kv.putCalls <= 65,
+      kv.putCalls <= 40,
       `one initialization request made ${kv.putCalls} KV writes`,
     );
   } finally {

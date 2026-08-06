@@ -66,7 +66,7 @@ export async function onRequest({ request, env }) {
   try {
     initializer = createContentInitializer({
       kv: runtime.kv,
-      batchSize: 50,
+      batchSize: 20,
       workBudget: 1,
     });
     initialization = await initializer.ensureInitialized();
