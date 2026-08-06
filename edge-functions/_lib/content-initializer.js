@@ -536,6 +536,7 @@ export function createContentInitializer({
   kv,
   now = () => Date.now(),
   batchSize = 50,
+  scanBatchSize = batchSize,
   workBudget = 4,
 } = {}) {
   if (
@@ -557,6 +558,12 @@ export function createContentInitializer({
     workBudget,
     4,
     "workBudget",
+  );
+  const safeScanBatchSize = positiveInteger(
+    scanBatchSize,
+    safeBatchSize,
+    "scanBatchSize",
+    256,
   );
   const store = new KvStore(kv, { now });
 
@@ -937,7 +944,7 @@ export function createContentInitializer({
         ? "recipe_"
         : "element_";
     const page = await kv.list(
-      listOptions(prefix, safeBatchSize, state.cursor),
+      listOptions(prefix, safeScanBatchSize, state.cursor),
     );
     const keys = (page?.keys || [])
       .map((item) => item?.key || item?.name)

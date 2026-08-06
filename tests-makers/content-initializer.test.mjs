@@ -600,6 +600,49 @@ test("same epoch digest change preserves dynamic records", async () => {
   assert.equal(await store.getElement("旧种子结果"), null);
 });
 
+test("reconciliation scans can use a larger read-only batch", async () => {
+  const dynamic = Object.fromEntries(
+    Array.from({ length: 120 }, (_, index) => [
+      `combo_dynamic_${String(index).padStart(3, "0")}`,
+      JSON.stringify({
+        a: `a-${index}`,
+        b: `b-${index}`,
+        result: `result-${index}`,
+        source: "llm",
+      }),
+    ]),
+  );
+  const kv = new FakeKV({
+    system_content_state: JSON.stringify({
+      epoch: CONTENT_EPOCH,
+      catalog_digest: CATALOG_DIGEST,
+      status: "migrating",
+      mode: "differential",
+      phase: "rebuild_indexes",
+      cursor: null,
+      index: 0,
+      scan: "combinations",
+      started_at: NOW,
+      completed_at: null,
+      error: "",
+    }),
+    ...dynamic,
+  });
+
+  const result = await createContentInitializer({
+    kv,
+    batchSize: 20,
+    scanBatchSize: 100,
+    workBudget: 1,
+    now: () => NOW,
+  }).ensureInitialized();
+
+  assert.equal(result.status.phase, "rebuild_indexes");
+  assert.equal(result.status.scan, "combinations");
+  assert.equal(result.status.index, 100);
+  assert.equal(kv.deleteCalls, 0);
+});
+
 test("differential offset scans remove all 400 stale seed combinations", async () => {
   const kv = readyKv(
     { catalog_digest: "sha256:obsolete" },
