@@ -31,29 +31,21 @@ function providerConfiguration(env, provider) {
   };
 }
 
-export async function onRequestPost(context) {
-  const expected = String(context.env?.ADMIN_TOKEN || "").trim();
-  if (!expected || bearer(context.request) !== expected) {
-    return json({ detail: "模型代理凭据无效" }, 401);
-  }
-
-  let body;
-  try {
-    body = await context.request.json();
-  } catch {
-    return json({ detail: "请求体不是合法 JSON" }, 400);
-  }
+export async function forwardModelRequest({
+  body,
+  env = {},
+  fetchImpl = globalThis.fetch,
+}) {
   const provider = body?.provider;
   if (!["makers", "deepseek"].includes(provider)) {
     return json({ detail: "provider 无效" }, 400);
   }
-  const config = providerConfiguration(context.env || {}, provider);
+  const config = providerConfiguration(env, provider);
   if (!config.apiKey) return json({ detail: "模型接口未配置" }, 503);
   if (!body?.payload || typeof body.payload !== "object") {
     return json({ detail: "payload 无效" }, 400);
   }
 
-  const fetchImpl = context.fetchImpl || globalThis.fetch;
   try {
     const response = await fetchImpl(`${config.baseUrl}/chat/completions`, {
       method: "POST",
@@ -76,4 +68,23 @@ export async function onRequestPost(context) {
   } catch {
     return json({ error: { code: "proxy_fetch_failed" } }, 502);
   }
+}
+
+export async function onRequestPost(context) {
+  const expected = String(context.env?.ADMIN_TOKEN || "").trim();
+  if (!expected || bearer(context.request) !== expected) {
+    return json({ detail: "模型代理凭据无效" }, 401);
+  }
+
+  let body;
+  try {
+    body = await context.request.json();
+  } catch {
+    return json({ detail: "请求体不是合法 JSON" }, 400);
+  }
+  return forwardModelRequest({
+    body,
+    env: context.env || {},
+    fetchImpl: context.fetchImpl || globalThis.fetch,
+  });
 }
