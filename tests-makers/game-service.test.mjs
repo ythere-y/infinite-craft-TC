@@ -264,13 +264,13 @@ test("model request sends the same bounded contract to official DeepSeek", async
   assert.equal(body.max_tokens, 128);
 });
 
-test("LLM availability tests enforce the configured request timeout", async () => {
-  let signal;
+test("LLM requests omit unsupported Edge Function fetch signals", async () => {
+  let requestInit;
   const result = await testLLMConnection({
     provider: "makers",
     env: {MAKERS_MODELS_KEY: "secret"},
     fetchImpl: async (_url, init) => {
-      signal = init.signal;
+      requestInit = init;
       return new Response(JSON.stringify({
         choices: [{message: {content: "OK"}}],
       }), {status: 200});
@@ -278,7 +278,31 @@ test("LLM availability tests enforce the configured request timeout", async () =
   });
 
   assert.equal(result.ok, true);
-  assert.ok(signal instanceof AbortSignal);
+  assert.equal(Object.hasOwn(requestInit, "signal"), false);
+  assert.deepEqual(JSON.parse(requestInit.body).thinking, {type: "disabled"});
+});
+
+test("LLM availability tests expose safe upstream HTTP diagnostics", async () => {
+  const result = await testLLMConnection({
+    provider: "makers",
+    env: {MAKERS_MODELS_KEY: "secret"},
+    fetchImpl: async () => new Response(JSON.stringify({
+      error: {
+        code: "invalid_api_key",
+        message: "secret credential should not be returned",
+      },
+    }), {status: 401}),
+  });
+
+  assert.deepEqual(result, {
+    ok: false,
+    provider: "makers",
+    message: "连接失败（HTTP 401 · invalid_api_key）",
+    latency_ms: result.latency_ms,
+    http_status: 401,
+    error_code: "invalid_api_key",
+  });
+  assert.doesNotMatch(JSON.stringify(result), /secret credential/u);
 });
 
 test("model request selects weighted style hints at fixed boundaries", async () => {

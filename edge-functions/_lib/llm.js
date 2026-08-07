@@ -53,6 +53,49 @@ function completionUrl(baseUrl) {
     : `${baseUrl}/chat/completions`;
 }
 
+async function fetchWithTimeout(fetchImpl, url, init, timeoutSeconds) {
+  let timer = null;
+  try {
+    return await Promise.race([
+      fetchImpl(url, init),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => {
+          const error = new Error("模型请求超时");
+          error.code = "MODEL_TIMEOUT";
+          reject(error);
+        }, timeoutSeconds * 1_000);
+      }),
+    ]);
+  } finally {
+    if (timer != null) clearTimeout(timer);
+  }
+}
+
+function safeUpstreamCode(value) {
+  const code = String(value ?? "").trim();
+  return /^[A-Za-z0-9_.-]{1,64}$/u.test(code) ? code : "";
+}
+
+async function upstreamFailure(response) {
+  let code = "";
+  try {
+    const payload = await response.json();
+    code = safeUpstreamCode(
+      payload?.error?.code ||
+      payload?.code ||
+      payload?.error?.type ||
+      payload?.type,
+    );
+  } catch {
+    // HTTP status remains enough for a safe diagnostic.
+  }
+  return {
+    message: `连接失败（HTTP ${response.status}${code ? ` · ${code}` : ""}）`,
+    http_status: response.status,
+    ...(code ? { error_code: code } : {}),
+  };
+}
+
 export function parseModelCombination(text) {
   if (!text) return null;
   const source = String(text).trim();
@@ -102,14 +145,6 @@ export async function requestModelCombination({
   const config = llmConfiguration(env, provider);
   if (!config.configured || typeof fetchImpl !== "function") return null;
 
-  const controller = new AbortController();
-  const timeout =
-    typeof setTimeout === "function"
-      ? setTimeout(
-          () => controller.abort(),
-          config.timeoutSeconds * 1_000,
-        )
-      : null;
   try {
     const messages = buildPromptMessagesFromSpec({
       ...promptSpec,
@@ -122,24 +157,28 @@ export async function requestModelCombination({
       community_examples: communityExamples,
       style_value: random(),
     });
-    const response = await fetchImpl(completionUrl(config.baseUrl), {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${config.apiKey}`,
+    const response = await fetchWithTimeout(
+      fetchImpl,
+      completionUrl(config.baseUrl),
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${config.apiKey}`,
+        },
+        body: JSON.stringify({
+          model: config.model,
+          temperature: messages.temperature,
+          thinking: { type: "disabled" },
+          max_tokens: 128,
+          messages: [
+            { role: "system", content: messages.system },
+            { role: "user", content: messages.user },
+          ],
+        }),
       },
-      body: JSON.stringify({
-        model: config.model,
-        temperature: messages.temperature,
-        thinking: { type: "disabled" },
-        max_tokens: 128,
-        messages: [
-          { role: "system", content: messages.system },
-          { role: "user", content: messages.user },
-        ],
-      }),
-      signal: controller.signal,
-    });
+      config.timeoutSeconds,
+    );
     if (!response.ok) return null;
     const payload = await response.json();
     const text =
@@ -152,10 +191,6 @@ export async function requestModelCombination({
     return parseModelCombination(text);
   } catch {
     return null;
-  } finally {
-    if (timeout != null && typeof clearTimeout === "function") {
-      clearTimeout(timeout);
-    }
   }
 }
 
@@ -174,51 +209,54 @@ export async function testLLMConnection({
       latency_ms: 0,
     };
   }
-  const controller = new AbortController();
-  const timeout =
-    typeof setTimeout === "function"
-      ? setTimeout(
-          () => controller.abort(),
-          config.timeoutSeconds * 1_000,
-        )
-      : null;
   try {
-    const response = await fetchImpl(completionUrl(config.baseUrl), {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${config.apiKey}`,
+    const response = await fetchWithTimeout(
+      fetchImpl,
+      completionUrl(config.baseUrl),
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${config.apiKey}`,
+        },
+        body: JSON.stringify({
+          model: config.model,
+          temperature: 0,
+          thinking: { type: "disabled" },
+          max_tokens: 32,
+          messages: [
+            {role: "system", content: "Reply with exactly OK."},
+            {role: "user", content: "ping"},
+          ],
+        }),
       },
-      body: JSON.stringify({
-        model: config.model,
-        temperature: 0,
-        max_tokens: 8,
-        messages: [
-          {role: "system", content: "Reply with exactly OK."},
-          {role: "user", content: "ping"},
-        ],
-      }),
-      signal: controller.signal,
-    });
-    const payload = response.ok ? await response.json() : null;
+      config.timeoutSeconds,
+    );
+    if (!response.ok) {
+      return {
+        ok: false,
+        provider,
+        ...(await upstreamFailure(response)),
+        latency_ms: Math.max(0, Date.now() - started),
+      };
+    }
+    const payload = await response.json();
     const content = payload?.choices?.[0]?.message?.content;
-    const ok = response.ok && typeof content === "string" && Boolean(content.trim());
+    const ok = typeof content === "string" && Boolean(content.trim());
     return {
       ok,
       provider,
-      message: ok ? "连接成功" : "连接失败",
+      message: ok ? "连接成功" : "连接失败（模型响应为空）",
       latency_ms: Math.max(0, Date.now() - started),
     };
-  } catch {
+  } catch (error) {
+    const timedOut = error?.code === "MODEL_TIMEOUT";
     return {
       ok: false,
       provider,
-      message: "连接失败",
+      message: timedOut ? "连接失败（请求超时）" : "连接失败（请求未发出）",
       latency_ms: Math.max(0, Date.now() - started),
+      ...(timedOut ? { error_code: "MODEL_TIMEOUT" } : {}),
     };
-  } finally {
-    if (timeout != null && typeof clearTimeout === "function") {
-      clearTimeout(timeout);
-    }
   }
 }
