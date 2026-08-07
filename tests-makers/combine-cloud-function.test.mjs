@@ -4,8 +4,13 @@ import test from "node:test";
 import {
   onRequestPost,
 } from "../cloud-functions/api/combine.js";
+import {
+  entityKey,
+  normalizePair,
+} from "../edge-functions/_lib/keys.js";
+import { FakeKV } from "./fake-kv.mjs";
 
-function context({ body, env = {}, fetchImpl, headers = {} }) {
+function context({ body, env = {}, fetchImpl, headers = {}, kv }) {
   return {
     request: new Request("https://game.example/api/combine", {
       method: "POST",
@@ -17,37 +22,26 @@ function context({ body, env = {}, fetchImpl, headers = {} }) {
     }),
     env,
     fetchImpl,
+    kv,
   };
 }
 
-test("Cloud combine orchestrates Edge preparation, model call, and Edge completion", async () => {
+test("Cloud combine uses the bound KV and calls the selected model directly", async () => {
   const calls = [];
-  const result = {
-    a: "云",
-    b: "人",
-    result: "云上鹅",
-    emoji: "🪿",
-    source: "llm",
-  };
+  const kv = new FakeKV();
   const response = await onRequestPost(context({
-    body: { a: "云", b: "人", session_id: "cloud-combine" },
+    body: {
+      a: "Cloud直连甲",
+      b: "Cloud直连乙",
+      session_id: "cloud-combine",
+    },
+    kv,
     env: {
       ADMIN_TOKEN: "admin-secret",
       MAKERS_MODELS_KEY: "makers-secret",
-      MAKERS_INTERNAL_ORIGIN: "https://internal.example",
     },
-    headers: { cookie: "craft_player=existing" },
     fetchImpl: async (url, init) => {
       calls.push({ url, init });
-      if (url === "https://internal.example/api/internal/combine/prepare") {
-        return new Response(JSON.stringify({
-          state: "model_required",
-          provider: "makers",
-          payload: {
-            messages: [{ role: "user", content: "combine" }],
-          },
-        }), { status: 200 });
-      }
       if (url === "https://ai-gateway.edgeone.link/v1/chat/completions") {
         return new Response(JSON.stringify({
           choices: [{
@@ -58,58 +52,61 @@ test("Cloud combine orchestrates Edge preparation, model call, and Edge completi
           }],
         }), { status: 200 });
       }
-      if (url === "https://internal.example/api/internal/combine/complete") {
-        return new Response(JSON.stringify(result), {
-          status: 200,
-          headers: { "set-cookie": "craft_player=created; Path=/" },
-        });
-      }
       throw new Error(`unexpected URL ${url}`);
     },
   }));
+  const result = await response.json();
 
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), result);
-  assert.equal(calls.length, 3);
+  assert.equal(result.result, "云上鹅");
+  assert.equal(result.source, "llm");
+  assert.equal(calls.length, 1);
   assert.equal(
     calls[0].init.headers.authorization,
-    "Bearer admin-secret",
-  );
-  assert.equal(calls[0].init.headers.cookie, "craft_player=existing");
-  assert.equal(
-    calls[1].init.headers.authorization,
     "Bearer makers-secret",
   );
-  const completion = JSON.parse(calls[2].init.body);
-  assert.equal(completion.generated.name, "云上鹅");
-  assert.match(response.headers.get("set-cookie"), /craft_player=created/u);
+  assert.equal(
+    JSON.parse(calls[0].init.body).model,
+    "@makers/deepseek-v4-flash",
+  );
+  assert.equal(
+    JSON.parse(await kv.get(
+      await entityKey(
+        "combo",
+        normalizePair("Cloud直连甲", "Cloud直连乙"),
+      ),
+    )).result,
+    "云上鹅",
+  );
 });
 
-test("Cloud combine returns known Edge results without calling a model", async () => {
-  let calls = 0;
-  const known = {
-    a: "水",
-    b: "火",
-    result: "蒸汽",
-    emoji: "💨",
-    source: "seed",
-  };
-  const response = await onRequestPost(context({
-    body: { a: "水", b: "火", session_id: "known-combine" },
+test("Cloud combine reuses its KV cache without a second model request", async () => {
+  const kv = new FakeKV();
+  let modelCalls = 0;
+  const options = {
+    body: { a: "缓存云", b: "缓存鹅", session_id: "cached-combine" },
+    kv,
     env: {
       ADMIN_TOKEN: "admin-secret",
-      MAKERS_INTERNAL_ORIGIN: "https://internal.example",
+      MAKERS_MODELS_KEY: "makers-secret",
     },
     fetchImpl: async () => {
-      calls += 1;
+      modelCalls += 1;
       return new Response(JSON.stringify({
-        state: "complete",
-        result: known,
+        choices: [{
+          message: {
+            content:
+              '{"name":"缓存产物","emoji":"💾","comment":"一次生成，后续复用。"}',
+          },
+        }],
       }), { status: 200 });
     },
-  }));
+  };
+  const first = await onRequestPost(context(options));
+  const second = await onRequestPost(context(options));
 
-  assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), known);
-  assert.equal(calls, 1);
+  assert.equal(first.status, 200);
+  assert.equal(second.status, 200);
+  assert.equal((await second.json()).result, "缓存产物");
+  assert.equal(modelCalls, 1);
 });
