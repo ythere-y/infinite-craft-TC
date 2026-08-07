@@ -93,6 +93,54 @@ test("model parser accepts clean or fenced JSON and rejects invalid output", () 
   );
 });
 
+test("external combine preparation builds a model request without Edge fetch", async () => {
+  let fetchCalls = 0;
+  const { service } = makeService({
+    env: { MAKERS_MODELS_KEY: "makers-secret" },
+    fetchImpl: async () => {
+      fetchCalls += 1;
+      throw new Error("Edge runtime must not call the model");
+    },
+  });
+
+  const prepared = await service.prepareExternalCombine({
+    a: "外部编排甲",
+    b: "外部编排乙",
+    session_id: "external-prepare",
+  });
+
+  assert.equal(prepared.state, "model_required");
+  assert.equal(prepared.provider, "makers");
+  assert.ok(Array.isArray(prepared.payload.messages));
+  assert.equal(fetchCalls, 0);
+});
+
+test("external combine completion validates, persists, and returns model output", async () => {
+  const { service, store } = makeService({
+    env: { MAKERS_MODELS_KEY: "makers-secret" },
+  });
+  const input = {
+    a: "外部完成甲",
+    b: "外部完成乙",
+    session_id: "external-complete",
+  };
+  await service.prepareExternalCombine(input);
+
+  const completed = await service.completeExternalCombine(input, {
+    name: "云端产物",
+    emoji: "☁️",
+    comment: "模型调用已由云函数完成。",
+  });
+
+  assert.equal(completed.source, "llm");
+  assert.equal(completed.result, "云端产物");
+  assert.equal(completed.emoji, "☁️");
+  assert.equal(
+    (await store.getCombination(input.a, input.b)).result,
+    "云端产物",
+  );
+});
+
 test("Makers comments use the same safe degradation policy as FastAPI", () => {
   assert.equal(
     normalizeComment("  一次生成，长期复用。  "),

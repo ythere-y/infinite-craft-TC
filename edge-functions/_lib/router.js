@@ -40,6 +40,7 @@ import { PromptStore } from "./prompt-store.js";
 import {
   defaultLLMProvider,
   llmConfiguration,
+  parseModelCombination,
   testLLMConnection,
 } from "./llm.js";
 import {
@@ -567,6 +568,43 @@ export function createRouter({
       return jsonResponse(nicknameStats());
     }
 
+    if (path === "/api/internal/combine/prepare") {
+      requireMethod(request, "POST");
+      requireAdminAccess(request);
+      const body = await readJson(request);
+      const sessionId = cleanText(body?.session_id) || "anonymous";
+      const identity = await playerIdentity(request, env);
+      const result = await game.prepareExternalCombine({
+        ...body,
+        player_id: identity.id,
+        client_identity: sessionId,
+      });
+      return jsonResponse(result, {
+        headers: identity.setCookie ? { "set-cookie": identity.setCookie } : {},
+      });
+    }
+    if (path === "/api/internal/combine/complete") {
+      requireMethod(request, "POST");
+      requireAdminAccess(request);
+      const body = await readJson(request);
+      const input = body?.input;
+      const generated = parseModelCombination(
+        JSON.stringify(body?.generated || null),
+      );
+      if (!generated) {
+        throw new HttpError(400, "模型合成结果无效");
+      }
+      const sessionId = cleanText(input?.session_id) || "anonymous";
+      const identity = await playerIdentity(request, env);
+      const result = await game.completeExternalCombine({
+        ...input,
+        player_id: identity.id,
+        client_identity: sessionId,
+      }, generated);
+      return jsonResponse(result, {
+        headers: identity.setCookie ? { "set-cookie": identity.setCookie } : {},
+      });
+    }
     if (path === "/api/combine") {
       requireMethod(request, "POST");
       const body = await readJson(request);

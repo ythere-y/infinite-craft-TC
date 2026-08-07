@@ -155,6 +155,82 @@ export function parseModelCombination(text) {
   };
 }
 
+export function buildModelCombinationPayload({
+  a,
+  b,
+  avoidWords = [],
+  bountyCandidates = [],
+  communityExamples = [],
+  random = Math.random,
+  promptLimits,
+  promptSpec = PROMPT_SPEC,
+}) {
+  const messages = buildPromptMessagesFromSpec({
+    ...promptSpec,
+    limits: promptLimits || promptSpec.limits || PROMPT_SPEC.limits,
+  }, {
+    a,
+    b,
+    avoid_words: avoidWords,
+    bounty_candidates: bountyCandidates,
+    community_examples: communityExamples,
+    style_value: random(),
+  });
+  return {
+    temperature: messages.temperature,
+    thinking: { type: "disabled" },
+    max_tokens: 128,
+    messages: [
+      { role: "system", content: messages.system },
+      { role: "user", content: messages.user },
+    ],
+  };
+}
+
+export async function requestPreparedModelCombination({
+  env = {},
+  fetchImpl = globalThis.fetch,
+  payload,
+  proxyToken = "",
+  proxyUrl = "",
+  provider = null,
+}) {
+  const config = llmConfiguration(env, provider);
+  if (
+    !config.configured ||
+    typeof fetchImpl !== "function" ||
+    !payload ||
+    typeof payload !== "object"
+  ) {
+    return null;
+  }
+  try {
+    const response = await fetchCompletion({
+      config,
+      fetchImpl,
+      payload: {
+        ...payload,
+        model: config.model,
+      },
+      provider: provider || defaultLLMProvider(env),
+      proxyToken,
+      proxyUrl,
+    });
+    if (!response.ok) return null;
+    const responsePayload = await response.json();
+    const text =
+      responsePayload?.choices?.[0]?.message?.content ||
+      responsePayload?.answer ||
+      responsePayload?.text ||
+      responsePayload?.output ||
+      responsePayload?.result ||
+      "";
+    return parseModelCombination(text);
+  } catch {
+    return null;
+  }
+}
+
 export async function requestModelCombination({
   a,
   b,
@@ -170,51 +246,23 @@ export async function requestModelCombination({
   proxyUrl = "",
   provider = null,
 }) {
-  const config = llmConfiguration(env, provider);
-  if (!config.configured || typeof fetchImpl !== "function") return null;
-
-  try {
-    const messages = buildPromptMessagesFromSpec({
-      ...promptSpec,
-      limits: promptLimits || promptSpec.limits || PROMPT_SPEC.limits,
-    }, {
+  return requestPreparedModelCombination({
+    env,
+    fetchImpl,
+    payload: buildModelCombinationPayload({
       a,
       b,
-      avoid_words: avoidWords,
-      bounty_candidates: bountyCandidates,
-      community_examples: communityExamples,
-      style_value: random(),
-    });
-    const response = await fetchCompletion({
-      config,
-      fetchImpl,
-      payload: {
-        model: config.model,
-        temperature: messages.temperature,
-        thinking: { type: "disabled" },
-        max_tokens: 128,
-        messages: [
-          { role: "system", content: messages.system },
-          { role: "user", content: messages.user },
-        ],
-      },
-      provider: provider || defaultLLMProvider(env),
-      proxyToken,
-      proxyUrl,
-    });
-    if (!response.ok) return null;
-    const payload = await response.json();
-    const text =
-      payload?.choices?.[0]?.message?.content ||
-      payload?.answer ||
-      payload?.text ||
-      payload?.output ||
-      payload?.result ||
-      "";
-    return parseModelCombination(text);
-  } catch {
-    return null;
-  }
+      avoidWords,
+      communityExamples,
+      bountyCandidates,
+      random,
+      promptLimits,
+      promptSpec,
+    }),
+    proxyToken,
+    proxyUrl,
+    provider,
+  });
 }
 
 export async function testLLMConnection({

@@ -16,9 +16,10 @@ import {
 } from "./bounty.js";
 import { normalizePair, cleanText } from "./keys.js";
 import {
+  buildModelCombinationPayload,
   defaultLLMProvider,
   llmConfiguration,
-  requestModelCombination,
+  requestPreparedModelCombination,
 } from "./llm.js";
 import { scoreFor, shouldExplode } from "./kpi.js";
 import {
@@ -40,6 +41,7 @@ const FALLBACK = {
   chain: null,
 };
 const ELEMENT_WRITE_NEEDED = Symbol("element-write-needed");
+const MODEL_REQUEST_NEEDED = Symbol("model-request-needed");
 
 function badRequest(message) {
   const error = new TypeError(message);
@@ -124,65 +126,8 @@ export function createGameService({
     }
   }
 
-  async function resolveCombination(a, b, clientIdentity = "anonymous") {
-    const seeded = COMBINATIONS[normalizePair(a, b)];
-    if (seeded?.result) return withResolvedIcon(seeded, a, b);
-    const communityState = await community.combinationState(a, b);
-    const cached = await store.getCombination(a, b);
-    if (communityState?.status === "active" && communityState.version > 1 && cached?.result) {
-      return withResolvedIcon(cached, a, b);
-    }
-    if (communityState?.status !== "retired") {
-      if (cached?.result) return withResolvedIcon(cached, a, b);
-    }
-    const provider = await store.llmProvider(defaultLLMProvider(env));
-    if (!llmConfiguration(env, provider).configured) return null;
-
-    const quota = await store.consumeRateLimit(clientIdentity, {
-      limit: modelCallsPerMinute,
-      windowSeconds: 60,
-    });
-    if (!quota.allowed) {
-      throw tooManyRequests("新组合生成过于频繁，请稍后再试");
-    }
-
-    const promptSpec = await prompts.activeSpec();
-    const effectivePromptLimits =
-      promptLimits || promptSpec.limits || PROMPT_SPEC.limits;
-    const firsts = await store.allFirsts();
-    const feedback = await community.feedback(env, {
-      positiveLimit: effectivePromptLimits.community_examples,
-      negativeLimit: effectivePromptLimits.avoid_words,
-    });
-    const avoidWords = [
-      ...new Set([
-        ...feedback.negatives,
-        ...firsts.map((item) => item.result),
-      ]),
-    ].slice(0, effectivePromptLimits.avoid_words);
-    const generated = await requestModelCombination({
-      a,
-      b,
-      avoidWords,
-      communityExamples: feedback.positives,
-      bountyCandidates: selectBountyCandidates({
-        a,
-        b,
-        elements: { ...(await store.dynamicElements()), ...ELEMENTS },
-        starters: STARTERS,
-        firsts,
-        limit: effectivePromptLimits.bounty_candidates,
-      }),
-      env,
-      fetchImpl,
-      random,
-      promptLimits: effectivePromptLimits,
-      promptSpec,
-      proxyToken: env.ADMIN_TOKEN,
-      proxyUrl: modelProxyUrl,
-      provider,
-    });
-    if (!generated) return null;
+  async function storeGeneratedCombination(a, b, generated) {
+    if (!generated?.name || !generated?.emoji) return null;
     const generatedHit = await withResolvedIcon(
       {
         result: generated.name,
@@ -211,6 +156,86 @@ export function createGameService({
     return stored;
   }
 
+  async function resolveCombination(
+    a,
+    b,
+    clientIdentity = "anonymous",
+    options = {},
+  ) {
+    const seeded = COMBINATIONS[normalizePair(a, b)];
+    if (seeded?.result) return withResolvedIcon(seeded, a, b);
+    const communityState = await community.combinationState(a, b);
+    const cached = await store.getCombination(a, b);
+    if (communityState?.status === "active" && communityState.version > 1 && cached?.result) {
+      return withResolvedIcon(cached, a, b);
+    }
+    if (communityState?.status !== "retired") {
+      if (cached?.result) return withResolvedIcon(cached, a, b);
+    }
+    if (Object.hasOwn(options, "generated")) {
+      return storeGeneratedCombination(a, b, options.generated);
+    }
+    const provider = await store.llmProvider(defaultLLMProvider(env));
+    if (!llmConfiguration(env, provider).configured) return null;
+
+    const quota = await store.consumeRateLimit(clientIdentity, {
+      limit: modelCallsPerMinute,
+      windowSeconds: 60,
+    });
+    if (!quota.allowed) {
+      throw tooManyRequests("新组合生成过于频繁，请稍后再试");
+    }
+
+    const promptSpec = await prompts.activeSpec();
+    const effectivePromptLimits =
+      promptLimits || promptSpec.limits || PROMPT_SPEC.limits;
+    const firsts = await store.allFirsts();
+    const feedback = await community.feedback(env, {
+      positiveLimit: effectivePromptLimits.community_examples,
+      negativeLimit: effectivePromptLimits.avoid_words,
+    });
+    const avoidWords = [
+      ...new Set([
+        ...feedback.negatives,
+        ...firsts.map((item) => item.result),
+      ]),
+    ].slice(0, effectivePromptLimits.avoid_words);
+    const payload = buildModelCombinationPayload({
+      a,
+      b,
+      avoidWords,
+      communityExamples: feedback.positives,
+      bountyCandidates: selectBountyCandidates({
+        a,
+        b,
+        elements: { ...(await store.dynamicElements()), ...ELEMENTS },
+        starters: STARTERS,
+        firsts,
+        limit: effectivePromptLimits.bounty_candidates,
+      }),
+      random,
+      promptLimits: effectivePromptLimits,
+      promptSpec,
+    });
+    if (options.deferModel) {
+      return {
+        [MODEL_REQUEST_NEEDED]: true,
+        provider,
+        payload,
+      };
+    }
+    const generated = await requestPreparedModelCombination({
+      proxyToken: env.ADMIN_TOKEN,
+      proxyUrl: modelProxyUrl,
+      provider,
+      payload,
+      env,
+      fetchImpl,
+    });
+    if (!generated) return null;
+    return storeGeneratedCombination(a, b, generated);
+  }
+
   async function depthFor(a, b, result) {
     const dynamicDepth = async (name) =>
       DEPTHS[name] ?? (await store.getElement(name))?.depth;
@@ -224,7 +249,7 @@ export function createGameService({
     return current == null ? candidate : Math.min(Number(current), candidate);
   }
 
-  async function combine(input) {
+  async function combine(input, options = {}) {
     const a = normalizeBountyAlias(input?.a);
     const b = normalizeBountyAlias(input?.b);
     if (!a || !b) {
@@ -249,12 +274,19 @@ export function createGameService({
       throw badRequest("discoverer 过长");
     }
     const discoverer = validDiscoverer(input?.discoverer);
-    if (cleanText(input?.discoverer)) {
+    if (!options.skipNicknameTouch && cleanText(input?.discoverer)) {
       await store.touchNickname(cleanText(input.discoverer));
     }
 
-    const hit =
-      (await resolveCombination(a, b, clientIdentity)) || FALLBACK;
+    const resolved = await resolveCombination(a, b, clientIdentity, options);
+    if (resolved?.[MODEL_REQUEST_NEEDED]) {
+      return {
+        state: "model_required",
+        provider: resolved.provider,
+        payload: resolved.payload,
+      };
+    }
+    const hit = resolved || FALLBACK;
     const source = hit.source || "seed";
     const chain = hit.chain || null;
     const comment = normalizeComment(hit.comment);
@@ -352,5 +384,24 @@ export function createGameService({
     };
   }
 
-  return { combine, resolveCombination };
+  async function prepareExternalCombine(input) {
+    const result = await combine(input, { deferModel: true });
+    return result?.state === "model_required"
+      ? result
+      : { state: "complete", result };
+  }
+
+  async function completeExternalCombine(input, generated) {
+    return combine(input, {
+      generated,
+      skipNicknameTouch: true,
+    });
+  }
+
+  return {
+    combine,
+    completeExternalCombine,
+    prepareExternalCombine,
+    resolveCombination,
+  };
 }

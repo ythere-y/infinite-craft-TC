@@ -1263,6 +1263,55 @@ test("LLM admin selection persists in KV and controls live provider tests", asyn
   assert.equal(calls[0].options.headers.authorization, "Bearer deepseek-secret");
 });
 
+test("internal combine routes require admin auth and never call the model", async () => {
+  let modelCalls = 0;
+  const router = makeRouter({
+    fetchImpl: async () => {
+      modelCalls += 1;
+      throw new Error("internal preparation must defer the model call");
+    },
+  });
+  const input = {
+    a: "内部编排甲",
+    b: "内部编排乙",
+    session_id: "internal-combine",
+  };
+
+  const denied = await json(router, "/api/internal/combine/prepare", {
+    method: "POST",
+    body: input,
+  });
+  assert.equal(denied.response.status, 401);
+
+  const prepared = await json(router, "/api/internal/combine/prepare", {
+    method: "POST",
+    headers: { authorization: "Bearer test-admin" },
+    body: input,
+  });
+  assert.equal(prepared.response.status, 200);
+  assert.equal(prepared.body.state, "model_required");
+  assert.equal(prepared.body.provider, "makers");
+  assert.ok(Array.isArray(prepared.body.payload.messages));
+  assert.equal(modelCalls, 0);
+
+  const completed = await json(router, "/api/internal/combine/complete", {
+    method: "POST",
+    headers: { authorization: "Bearer test-admin" },
+    body: {
+      input,
+      generated: {
+        name: "内部云产物",
+        emoji: "☁️",
+        comment: "由云函数生成并交回边缘落库。",
+      },
+    },
+  });
+  assert.equal(completed.response.status, 200);
+  assert.equal(completed.body.source, "llm");
+  assert.equal(completed.body.result, "内部云产物");
+  assert.equal(modelCalls, 0);
+});
+
 test("Prompt admin versions persist in KV and the active version drives model calls", async () => {
   const kv = new FakeKV();
   const modelRequests = [];
