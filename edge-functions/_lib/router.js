@@ -40,9 +40,12 @@ import { PromptStore } from "./prompt-store.js";
 import {
   defaultLLMProvider,
   llmConfiguration,
-  parseModelCombination,
   testLLMConnection,
 } from "./llm.js";
+import {
+  signModelTicket,
+  verifyModelTicket,
+} from "./model-ticket.js";
 import {
   generateNickname,
   nicknameStats,
@@ -229,6 +232,7 @@ export function createRouter({
   random = Math.random,
   promptLimits,
   modelProxyUrl = "",
+  deferModelToClient = false,
 } = {}) {
   const store = new KvStore(kv, { now });
   const game = createGameService({
@@ -568,39 +572,31 @@ export function createRouter({
       return jsonResponse(nicknameStats());
     }
 
-    if (path === "/api/internal/combine/prepare") {
+    if (path === "/api/combine/complete") {
       requireMethod(request, "POST");
-      requireAdminAccess(request);
       const body = await readJson(request);
-      const sessionId = cleanText(body?.session_id) || "anonymous";
-      const identity = await playerIdentity(request, env);
-      const result = await game.prepareExternalCombine({
-        ...body,
-        player_id: identity.id,
-        client_identity: sessionId,
-      });
-      return jsonResponse(result, {
-        headers: identity.setCookie ? { "set-cookie": identity.setCookie } : {},
-      });
-    }
-    if (path === "/api/internal/combine/complete") {
-      requireMethod(request, "POST");
-      requireAdminAccess(request);
-      const body = await readJson(request);
-      const input = body?.input;
-      const generated = parseModelCombination(
-        JSON.stringify(body?.generated || null),
+      const secret = cleanText(env.SESSION_SECRET || env.ADMIN_TOKEN);
+      const task = await verifyModelTicket(
+        secret,
+        body?.ticket,
+        { now: now() },
       );
-      if (!generated) {
-        throw new HttpError(400, "模型合成结果无效");
+      if (
+        !secret ||
+        task?.kind !== "model_result" ||
+        !task?.input ||
+        !task?.generated
+      ) {
+        throw new HttpError(401, "模型结果无效或已过期");
       }
-      const sessionId = cleanText(input?.session_id) || "anonymous";
       const identity = await playerIdentity(request, env);
-      const result = await game.completeExternalCombine({
-        ...input,
-        player_id: identity.id,
-        client_identity: sessionId,
-      }, generated);
+      if (cleanText(task.input.player_id) !== identity.id) {
+        throw new HttpError(401, "模型结果不属于当前玩家");
+      }
+      const result = await game.completeExternalCombine(
+        task.input,
+        task.generated,
+      );
       return jsonResponse(result, {
         headers: identity.setCookie ? { "set-cookie": identity.setCookie } : {},
       });
@@ -611,13 +607,39 @@ export function createRouter({
       const sessionId = cleanText(body?.session_id) || "anonymous";
       const clientIp = cleanText(request.eo?.clientIp);
       const identity = await playerIdentity(request, env);
-      const result = await game.combine({
+      const combineInput = {
           ...body,
           player_id: identity.id,
           client_identity: clientIp
             ? `${clientIp}:${sessionId}`
             : sessionId,
+        };
+      const prepared = deferModelToClient
+        ? await game.prepareExternalCombine(combineInput)
+        : null;
+      if (prepared?.state === "model_required") {
+        const secret = cleanText(env.SESSION_SECRET || env.ADMIN_TOKEN);
+        if (!secret) {
+          throw new HttpError(503, "模型中继服务未配置签名密钥");
+        }
+        const ticket = await signModelTicket(secret, {
+          kind: "model_request",
+          exp: now() + 60_000,
+          input: combineInput,
+          provider: prepared.provider,
+          payload: prepared.payload,
         });
+        return jsonResponse({
+          state: "model_required",
+          ticket,
+        }, {
+          status: 202,
+          headers: identity.setCookie ? { "set-cookie": identity.setCookie } : {},
+        });
+      }
+      const result = prepared?.state === "complete"
+        ? prepared.result
+        : await game.combine(combineInput);
       return jsonResponse(result, {
         headers: identity.setCookie ? { "set-cookie": identity.setCookie } : {},
       });

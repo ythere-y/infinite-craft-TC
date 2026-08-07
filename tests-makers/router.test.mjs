@@ -8,6 +8,10 @@ import {
 import { KvStore } from "../edge-functions/_lib/kv-store.js";
 import { createRouter } from "../edge-functions/_lib/router.js";
 import {
+  signModelTicket,
+  verifyModelTicket,
+} from "../edge-functions/_lib/model-ticket.js";
+import {
   MAX_COMBINE_ELEMENT_LENGTH,
   MAX_DISCOVERER_LENGTH,
   MAX_RECIPE_FIELD_LENGTH,
@@ -1263,52 +1267,68 @@ test("LLM admin selection persists in KV and controls live provider tests", asyn
   assert.equal(calls[0].options.headers.authorization, "Bearer deepseek-secret");
 });
 
-test("internal combine routes require admin auth and never call the model", async () => {
+test("deferred model combines issue and accept signed browser relay tickets", async () => {
   let modelCalls = 0;
-  const router = makeRouter({
+  const now = 1_700_000_000_000;
+  const env = {
+    APP_ENV: "test",
+    ADMIN_TOKEN: "ticket-secret",
+    SESSION_SECRET: "ticket-secret",
+    MAKERS_MODELS_KEY: "makers-secret",
+  };
+  const router = createRouter({
+    kv: new FakeKV(),
+    env,
+    deferModelToClient: true,
+    now: () => now,
+    random: () => 0,
     fetchImpl: async () => {
       modelCalls += 1;
-      throw new Error("internal preparation must defer the model call");
+      throw new Error("Edge must not call the model");
     },
   });
   const input = {
-    a: "内部编排甲",
-    b: "内部编排乙",
-    session_id: "internal-combine",
+    a: "浏览器中继甲",
+    b: "浏览器中继乙",
+    session_id: "browser-relay",
   };
-
-  const denied = await json(router, "/api/internal/combine/prepare", {
+  const prepared = await json(router, "/api/combine", {
     method: "POST",
     body: input,
   });
-  assert.equal(denied.response.status, 401);
+  const modelTask = await verifyModelTicket(
+    "ticket-secret",
+    prepared.body.ticket,
+    { now },
+  );
 
-  const prepared = await json(router, "/api/internal/combine/prepare", {
-    method: "POST",
-    headers: { authorization: "Bearer test-admin" },
-    body: input,
-  });
-  assert.equal(prepared.response.status, 200);
+  assert.equal(prepared.response.status, 202);
   assert.equal(prepared.body.state, "model_required");
-  assert.equal(prepared.body.provider, "makers");
-  assert.ok(Array.isArray(prepared.body.payload.messages));
+  assert.equal(modelTask.kind, "model_request");
+  assert.equal(modelTask.provider, "makers");
   assert.equal(modelCalls, 0);
 
-  const completed = await json(router, "/api/internal/combine/complete", {
-    method: "POST",
-    headers: { authorization: "Bearer test-admin" },
-    body: {
-      input,
-      generated: {
-        name: "内部云产物",
-        emoji: "☁️",
-        comment: "由云函数生成并交回边缘落库。",
-      },
+  const resultTicket = await signModelTicket("ticket-secret", {
+    kind: "model_result",
+    exp: now + 60_000,
+    input: modelTask.input,
+    generated: {
+      name: "中继产物",
+      emoji: "🛰️",
+      comment: "浏览器只负责搬运签名票据。",
     },
   });
+  const completed = await json(router, "/api/combine/complete", {
+    method: "POST",
+    headers: {
+      cookie: prepared.response.headers.get("set-cookie"),
+    },
+    body: { ticket: resultTicket },
+  });
+
   assert.equal(completed.response.status, 200);
   assert.equal(completed.body.source, "llm");
-  assert.equal(completed.body.result, "内部云产物");
+  assert.equal(completed.body.result, "中继产物");
   assert.equal(modelCalls, 0);
 });
 

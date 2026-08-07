@@ -745,6 +745,37 @@ function removeCanvasEl(id) {
 // ============================================================
 // 合成（带超时）
 // ============================================================
+async function requestCombination(payload, signal) {
+  let response = await fetch("/api/combine", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    signal,
+  });
+  let body = await response.json();
+  if (response.status !== 202 || body?.state !== "model_required") {
+    return { response, body };
+  }
+
+  response = await fetch("/api/model/combine", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ticket: body.ticket }),
+    signal,
+  });
+  body = await response.json();
+  if (!response.ok) return { response, body };
+
+  response = await fetch("/api/combine/complete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ticket: body.ticket }),
+    signal,
+  });
+  body = await response.json();
+  return { response, body };
+}
+
 async function combine(srcId, dstId, x, y) {
   const src = state.onCanvas.find(r => r.id === srcId);
   const dst = state.onCanvas.find(r => r.id === dstId);
@@ -768,16 +799,13 @@ async function combine(srcId, dstId, x, y) {
   const timer = setTimeout(() => ctrl.abort(), 65000);
 
   try {
-    const response = await fetch("/api/combine", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    const { response, body: resp } = await requestCombination(
+      {
         a: src.name, b: dst.name,
         discoverer: NICKNAME, session_id: SESSION_ID,
-      }),
-      signal: ctrl.signal,
-    });
-    const resp = await response.json();
+      },
+      ctrl.signal,
+    );
     if (!response.ok) {
       throw new Error(resp.detail || `HTTP ${response.status}`);
     }

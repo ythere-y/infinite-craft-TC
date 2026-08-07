@@ -244,6 +244,15 @@ test("secondary pages load the shared icon system before page scripts", async ()
   }
 });
 
+test("browser relays signed model tasks between Edge and Cloud combine routes", async () => {
+  const app = await readFile("frontend/app.js", "utf8");
+
+  assert.match(app, /response\.status !== 202/u);
+  assert.match(app, /fetch\("\/api\/model\/combine"/u);
+  assert.match(app, /fetch\("\/api\/combine\/complete"/u);
+  assert.match(app, /body:\s*JSON\.stringify\(\{\s*ticket:/u);
+});
+
 test("secondary element views use safe sticker and action renderers", async () => {
   const [wall, community, communityAdmin, admin] = await Promise.all([
     readFile("frontend/wall/wall.js", "utf8"),

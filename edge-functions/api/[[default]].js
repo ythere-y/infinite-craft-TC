@@ -69,6 +69,7 @@ export async function onRequest({ request, env }) {
     return createRouter({
       kv: runtime.kv,
       env: { ...(env || {}), APP_ENV: runtime.appEnv },
+      deferModelToClient: true,
       modelProxyUrl: new URL("/internal/llm-proxy", request.url).href,
     }).handle(request);
   }
@@ -135,6 +136,7 @@ export async function onRequest({ request, env }) {
         kv: runtime.kv,
         env: { ...(env || {}), APP_ENV: runtime.appEnv },
         contentStatus: publicStatus,
+        deferModelToClient: true,
         modelProxyUrl: new URL("/internal/llm-proxy", request.url).href,
       }).handle(request);
     }
@@ -150,6 +152,7 @@ export async function onRequest({ request, env }) {
     kv: runtime.kv,
     env: { ...(env || {}), APP_ENV: runtime.appEnv },
     contentStatus: publicStatus,
+    deferModelToClient: true,
     modelProxyUrl: new URL("/internal/llm-proxy", request.url).href,
   }).handle(request);
 }
