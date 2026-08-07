@@ -67,6 +67,7 @@ export function createGameService({
   now = () => Date.now(),
   random = Math.random,
   promptLimits,
+  modelProxyUrl = "",
 } = {}) {
   if (!store) throw new TypeError("Game service requires a KV store");
   const community = new CommunityStore(store.kv, { now });
@@ -177,6 +178,8 @@ export function createGameService({
       random,
       promptLimits: effectivePromptLimits,
       promptSpec,
+      proxyToken: env.ADMIN_TOKEN,
+      proxyUrl: modelProxyUrl,
       provider,
     });
     if (!generated) return null;

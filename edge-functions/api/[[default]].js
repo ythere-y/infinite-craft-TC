@@ -69,6 +69,7 @@ export async function onRequest({ request, env }) {
     return createRouter({
       kv: runtime.kv,
       env: { ...(env || {}), APP_ENV: runtime.appEnv },
+      modelProxyUrl: new URL("/internal/llm-proxy", request.url).href,
     }).handle(request);
   }
 
@@ -134,6 +135,7 @@ export async function onRequest({ request, env }) {
         kv: runtime.kv,
         env: { ...(env || {}), APP_ENV: runtime.appEnv },
         contentStatus: publicStatus,
+        modelProxyUrl: new URL("/internal/llm-proxy", request.url).href,
       }).handle(request);
     }
     return errorResponse(
@@ -148,5 +150,6 @@ export async function onRequest({ request, env }) {
     kv: runtime.kv,
     env: { ...(env || {}), APP_ENV: runtime.appEnv },
     contentStatus: publicStatus,
+    modelProxyUrl: new URL("/internal/llm-proxy", request.url).href,
   }).handle(request);
 }

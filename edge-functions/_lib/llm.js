@@ -71,6 +71,32 @@ async function fetchWithTimeout(fetchImpl, url, init, timeoutSeconds) {
   }
 }
 
+async function fetchCompletion({
+  config,
+  fetchImpl,
+  payload,
+  provider,
+  proxyToken,
+  proxyUrl,
+}) {
+  const proxied = Boolean(proxyUrl && proxyToken);
+  return fetchWithTimeout(
+    fetchImpl,
+    proxied ? proxyUrl : completionUrl(config.baseUrl),
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${proxied ? proxyToken : config.apiKey}`,
+      },
+      body: JSON.stringify(
+        proxied ? { provider, payload } : payload,
+      ),
+    },
+    config.timeoutSeconds,
+  );
+}
+
 function safeUpstreamCode(value) {
   const code = String(value ?? "").trim();
   return /^[A-Za-z0-9_.-]{1,64}$/u.test(code) ? code : "";
@@ -140,6 +166,8 @@ export async function requestModelCombination({
   random = Math.random,
   promptLimits,
   promptSpec = PROMPT_SPEC,
+  proxyToken = "",
+  proxyUrl = "",
   provider = null,
 }) {
   const config = llmConfiguration(env, provider);
@@ -157,28 +185,23 @@ export async function requestModelCombination({
       community_examples: communityExamples,
       style_value: random(),
     });
-    const response = await fetchWithTimeout(
+    const response = await fetchCompletion({
+      config,
       fetchImpl,
-      completionUrl(config.baseUrl),
-      {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${config.apiKey}`,
-        },
-        body: JSON.stringify({
-          model: config.model,
-          temperature: messages.temperature,
-          thinking: { type: "disabled" },
-          max_tokens: 128,
-          messages: [
-            { role: "system", content: messages.system },
-            { role: "user", content: messages.user },
-          ],
-        }),
+      payload: {
+        model: config.model,
+        temperature: messages.temperature,
+        thinking: { type: "disabled" },
+        max_tokens: 128,
+        messages: [
+          { role: "system", content: messages.system },
+          { role: "user", content: messages.user },
+        ],
       },
-      config.timeoutSeconds,
-    );
+      provider: provider || defaultLLMProvider(env),
+      proxyToken,
+      proxyUrl,
+    });
     if (!response.ok) return null;
     const payload = await response.json();
     const text =
@@ -198,6 +221,8 @@ export async function testLLMConnection({
   env = {},
   provider,
   fetchImpl = globalThis.fetch,
+  proxyToken = "",
+  proxyUrl = "",
 }) {
   const config = llmConfiguration(env, provider);
   const started = Date.now();
@@ -210,28 +235,23 @@ export async function testLLMConnection({
     };
   }
   try {
-    const response = await fetchWithTimeout(
+    const response = await fetchCompletion({
+      config,
       fetchImpl,
-      completionUrl(config.baseUrl),
-      {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${config.apiKey}`,
-        },
-        body: JSON.stringify({
-          model: config.model,
-          temperature: 0,
-          thinking: { type: "disabled" },
-          max_tokens: 32,
-          messages: [
-            {role: "system", content: "Reply with exactly OK."},
-            {role: "user", content: "ping"},
-          ],
-        }),
+      payload: {
+        model: config.model,
+        temperature: 0,
+        thinking: { type: "disabled" },
+        max_tokens: 32,
+        messages: [
+          {role: "system", content: "Reply with exactly OK."},
+          {role: "user", content: "ping"},
+        ],
       },
-      config.timeoutSeconds,
-    );
+      provider,
+      proxyToken,
+      proxyUrl,
+    });
     if (!response.ok) {
       return {
         ok: false,

@@ -227,6 +227,7 @@ export function createRouter({
   now = () => Date.now(),
   random = Math.random,
   promptLimits,
+  modelProxyUrl = "",
 } = {}) {
   const store = new KvStore(kv, { now });
   const game = createGameService({
@@ -236,6 +237,7 @@ export function createRouter({
     now,
     random,
     promptLimits,
+    modelProxyUrl,
   });
   const community = new CommunityStore(kv, { now });
   const prompts = new PromptStore(kv, { now, random });
@@ -926,6 +928,8 @@ export function createRouter({
         env,
         provider,
         fetchImpl,
+        proxyToken: env.ADMIN_TOKEN,
+        proxyUrl: modelProxyUrl,
       }));
     }
     if (path === "/api/admin/prompt/config") {
