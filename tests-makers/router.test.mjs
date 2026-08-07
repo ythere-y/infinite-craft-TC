@@ -1263,6 +1263,104 @@ test("LLM admin selection persists in KV and controls live provider tests", asyn
   assert.equal(calls[0].options.headers.authorization, "Bearer deepseek-secret");
 });
 
+test("Prompt admin versions persist in KV and the active version drives model calls", async () => {
+  const kv = new FakeKV();
+  const modelRequests = [];
+  const router = makeRouter({
+    kv,
+    fetchImpl: async (_url, options) => {
+      modelRequests.push(JSON.parse(options.body));
+      return new Response(JSON.stringify({
+        choices: [{
+          message: {
+            content:
+              '{"name":"Prompt产物","emoji":"✨","comment":"新版本已经生效。"}',
+          },
+        }],
+      }), { status: 200 });
+    },
+  });
+  const auth = { authorization: "Bearer test-admin" };
+
+  const unauthorized = await json(router, "/api/admin/prompt/config");
+  assert.equal(unauthorized.response.status, 401);
+
+  const initial = await json(router, "/api/admin/prompt/config", {
+    headers: auth,
+  });
+  assert.equal(initial.response.status, 200);
+  assert.equal(initial.body.revision, 1);
+  assert.equal(initial.body.active_version.id, "prompt-initial-v1");
+  assert.equal(initial.body.versions[0].active, true);
+
+  const config = structuredClone(initial.body.config);
+  config.temperature = 0.42;
+  config.system_modules[0].content = "仅用于验证的生效 Prompt";
+  config.positive_examples = [{
+    id: "runtime-positive",
+    enabled: true,
+    content: "运行时正面案例",
+  }];
+  const saved = await json(router, "/api/admin/prompt/config", {
+    method: "PUT",
+    headers: { ...auth, "if-match": '"1"' },
+    body: { config },
+  });
+  assert.equal(saved.response.status, 200);
+  assert.equal(saved.body.revision, 2);
+
+  const aggregated = await json(router, "/api/admin/prompt/aggregate", {
+    method: "POST",
+    headers: auth,
+    body: { expected_revision: 2 },
+  });
+  assert.equal(aggregated.response.status, 200);
+  assert.equal(aggregated.body.active, false);
+  assert.match(aggregated.body.preview, /仅用于验证的生效 Prompt/u);
+
+  const versionId = aggregated.body.id;
+  const activated = await json(
+    router,
+    `/api/admin/prompt/versions/${encodeURIComponent(versionId)}/activate`,
+    { method: "POST", headers: auth },
+  );
+  assert.equal(activated.response.status, 200);
+  assert.equal(activated.body.active, true);
+
+  const combined = await json(router, "/api/combine", {
+    method: "POST",
+    body: {
+      a: "验证原料甲",
+      b: "验证原料乙",
+      session_id: "prompt-version-test",
+      discoverer: "测试鹅",
+    },
+  });
+  assert.equal(combined.response.status, 200);
+  assert.equal(modelRequests.length, 1);
+  assert.equal(modelRequests[0].temperature, 0.42);
+  assert.match(modelRequests[0].messages[0].content, /仅用于验证的生效 Prompt/u);
+  assert.match(modelRequests[0].messages[1].content, /运行时正面案例/u);
+
+  const cannotDeleteActive = await json(
+    router,
+    `/api/admin/prompt/versions/${encodeURIComponent(versionId)}`,
+    { method: "DELETE", headers: auth },
+  );
+  assert.equal(cannotDeleteActive.response.status, 409);
+
+  await json(
+    router,
+    "/api/admin/prompt/versions/prompt-initial-v1/activate",
+    { method: "POST", headers: auth },
+  );
+  const removed = await router.handle(request(
+    `/api/admin/prompt/versions/${encodeURIComponent(versionId)}`,
+    { method: "DELETE", headers: auth },
+  ));
+  assert.equal(removed.status, 204);
+});
+
 test("health tolerates a failed LLM provider preference read", async () => {
   const kv = new FakeKV();
   const get = kv.get.bind(kv);

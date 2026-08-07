@@ -1826,7 +1826,7 @@ test("concurrent initializers converge through persisted idempotent state", asyn
   );
 });
 
-test("catalog verification rejects incorrect fixed element fields", async () => {
+test("catalog verification repairs incorrect fixed element fields", async () => {
   const kv = new FakeKV();
   const initializer = createContentInitializer({
     kv,
@@ -1840,6 +1840,11 @@ test("catalog verification rejects incorrect fixed element fields", async () => 
   await kv.put(elementKey, JSON.stringify({
     ...element,
     emoji: "❌",
+    icon: {
+      base: "❌",
+      palette: "neutral",
+      source: "generated",
+    },
   }));
   await kv.put("system_content_state", JSON.stringify({
     epoch: CONTENT_EPOCH,
@@ -1855,13 +1860,13 @@ test("catalog verification rejects incorrect fixed element fields", async () => 
     error: "",
   }));
 
-  await assert.rejects(
-    initializer.ensureInitialized(),
-    /catalog verification failed for element:水/,
-  );
+  await runToReady(initializer);
+  const repaired = JSON.parse(await kv.get(elementKey));
+  assert.equal(repaired.emoji, "💧");
+  assert.deepEqual(repaired.icon, element.icon);
 });
 
-test("catalog verification rejects incorrect fixed combination fields", async () => {
+test("catalog verification repairs incorrect fixed combination fields", async () => {
   const kv = new FakeKV();
   const initializer = createContentInitializer({
     kv,
@@ -1890,13 +1895,11 @@ test("catalog verification rejects incorrect fixed combination fields", async ()
     error: "",
   }));
 
-  await assert.rejects(
-    initializer.ensureInitialized(),
-    /catalog verification failed for combination:电脑 \+ 网络/,
-  );
+  await runToReady(initializer);
+  assert.equal(JSON.parse(await kv.get(comboKey)).emoji, combo.emoji);
 });
 
-test("catalog verification rejects a missing exact recipe record", async () => {
+test("catalog verification repairs a missing exact recipe record", async () => {
   const kv = new FakeKV();
   const initializer = createContentInitializer({
     kv,
@@ -1923,13 +1926,11 @@ test("catalog verification rejects a missing exact recipe record", async () => {
     error: "",
   }));
 
-  await assert.rejects(
-    initializer.ensureInitialized(),
-    /catalog verification failed for combination:电脑 \+ 网络/,
-  );
+  await runToReady(initializer);
+  assert.ok(await kv.get(recipeKey));
 });
 
-test("catalog verification rejects a missing exact element index entry", async () => {
+test("catalog verification repairs a missing exact element index entry", async () => {
   const kv = new FakeKV();
   const initializer = createContentInitializer({
     kv,
@@ -1961,8 +1962,7 @@ test("catalog verification rejects a missing exact element index entry", async (
     error: "",
   }));
 
-  await assert.rejects(
-    initializer.ensureInitialized(),
-    /catalog verification failed for element:水/,
-  );
+  await runToReady(initializer);
+  const repaired = JSON.parse(await kv.get(indexKey));
+  assert.ok(repaired.items[elementKey]);
 });

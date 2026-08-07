@@ -36,6 +36,7 @@ import {
 } from "./kpi.js";
 import { cleanText, normalizePair } from "./keys.js";
 import { KvStore } from "./kv-store.js";
+import { PromptStore } from "./prompt-store.js";
 import {
   defaultLLMProvider,
   llmConfiguration,
@@ -235,6 +236,7 @@ export function createRouter({
     promptLimits,
   });
   const community = new CommunityStore(kv, { now });
+  const prompts = new PromptStore(kv, { now, random });
 
   async function candidateNickname() {
     return generateNickname({ random });
@@ -407,7 +409,7 @@ export function createRouter({
   function requireAdminAccess(request) {
     const expected = cleanText(env.ADMIN_TOKEN);
     if (!expected) {
-      throw new HttpError(503, "LLM 配置已关闭：请配置 ADMIN_TOKEN");
+      throw new HttpError(503, "管理配置已关闭：请配置 ADMIN_TOKEN");
     }
     const authorization = cleanText(request.headers.get("authorization"));
     const bearer = authorization.match(/^Bearer\s+(.+)$/iu)?.[1] || "";
@@ -415,6 +417,13 @@ export function createRouter({
     if (bearer !== expected && explicit !== expected) {
       throw new HttpError(401, "管理面板凭据无效");
     }
+  }
+
+  function promptRevision(request) {
+    const value = cleanText(request.headers.get("if-match"));
+    const match = value.match(/^(?:W\/)?"?(\d+)"?$/u);
+    if (!match) throw new HttpError(428, "缺少有效的 If-Match 草稿版本");
+    return Number(match[1]);
   }
 
   async function llmAdminConfiguration(provider = null) {
@@ -897,6 +906,63 @@ export function createRouter({
         provider,
         fetchImpl,
       }));
+    }
+    if (path === "/api/admin/prompt/config") {
+      requireAdminAccess(request);
+      if (request.method === "GET") {
+        const payload = await prompts.configuration({
+          limit: intParam(url.searchParams, "version_limit", 50, 1, 100),
+          offset: intParam(url.searchParams, "version_offset", 0, 0, 10_000),
+        });
+        return jsonResponse(payload, {
+          headers: { etag: `"${payload.revision}"` },
+        });
+      }
+      requireMethod(request, "PUT");
+      const body = await readJson(request);
+      const payload = await prompts.saveDraft(
+        body?.config,
+        promptRevision(request),
+      );
+      return jsonResponse(payload, {
+        headers: { etag: `"${payload.revision}"` },
+      });
+    }
+    if (path === "/api/admin/prompt/aggregate") {
+      requireMethod(request, "POST");
+      requireAdminAccess(request);
+      const body = await readJson(request);
+      return jsonResponse(await prompts.aggregate(Number(body?.expected_revision)));
+    }
+    const promptVersionMatch = path.match(
+      /^\/api\/admin\/prompt\/versions\/([^/]+)(?:\/(activate|copy-to-draft))?$/,
+    );
+    if (promptVersionMatch) {
+      requireAdminAccess(request);
+      const versionId = cleanText(decoded(promptVersionMatch[1], "version_id"));
+      if (!versionId) throw new HttpError(400, "version_id 不能为空");
+      const action = promptVersionMatch[2] || "";
+      if (action === "activate") {
+        requireMethod(request, "POST");
+        return jsonResponse(await prompts.activate(versionId));
+      }
+      if (action === "copy-to-draft") {
+        requireMethod(request, "POST");
+        const body = await readJson(request);
+        const payload = await prompts.copyToDraft(
+          versionId,
+          Number(body?.expected_revision),
+        );
+        return jsonResponse(payload, {
+          headers: { etag: `"${payload.revision}"` },
+        });
+      }
+      if (request.method === "GET") {
+        return jsonResponse(await prompts.getVersion(versionId));
+      }
+      requireMethod(request, "DELETE");
+      await prompts.deleteVersion(versionId);
+      return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
     if (path === "/api/analytics/chains") {
       requireMethod(request, "GET");

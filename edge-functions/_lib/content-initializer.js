@@ -1101,9 +1101,18 @@ export function createContentInitializer({
         )
         : combinationFieldsMatch(subordinate, item.record);
       if (!record || !fieldsMatch || !subordinateMatches) {
-        throw new Error(
-          `catalog verification failed for ${item.kind}:${item.name || item.pair}`,
-        );
+        if (item.kind === "element") {
+          await store.rememberElement(item.name, item.info, {
+            overwrite: true,
+          });
+        } else {
+          await store.putCombination(
+            item.record.a,
+            item.record.b,
+            item.record,
+            { overwrite: true },
+          );
+        }
       }
     }
     const index = start + batch.length;
@@ -1162,7 +1171,9 @@ export function createContentInitializer({
         STARTERS,
         "seed_starters",
         "seed_elements",
-        ({ name, info }) => store.rememberElement(name, info),
+        ({ name, info }) => store.rememberElement(name, info, {
+          overwrite: true,
+        }),
       );
     }
     if (state.phase === "seed_elements") {
@@ -1171,7 +1182,9 @@ export function createContentInitializer({
         ELEMENTS,
         "seed_elements",
         "seed_recipes",
-        ({ name, info }) => store.rememberElement(name, info),
+        ({ name, info }) => store.rememberElement(name, info, {
+          overwrite: true,
+        }),
       );
     }
     if (state.phase === "seed_recipes") {

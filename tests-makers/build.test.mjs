@@ -527,7 +527,7 @@ test("normal build needs no words checkout and ships only local icon assets", as
   }
 });
 
-test("Makers build excludes the local Prompt administration UI and assets", async () => {
+test("Makers build includes the Prompt administration UI and assets", async () => {
   const root = await mkdtemp(join(tmpdir(), "makers-local-prompt-boundary-"));
   try {
     await copyWorkingBuildFixture(root);
@@ -540,22 +540,17 @@ test("Makers build excludes the local Prompt administration UI and assets", asyn
     );
 
     const adminHtml = await readFile(join(root, "dist/admin/index.html"), "utf8");
-    assert.doesNotMatch(adminHtml, /data-admin-tab="prompt"/u);
+    assert.match(adminHtml, /data-admin-tab="prompt"/u);
     assert.match(adminHtml, /class="admin-tabs"/u);
-    assert.doesNotMatch(adminHtml, /\/api\/admin\/prompt/u);
-    assert.doesNotMatch(adminHtml, /\/copy-to-draft/u);
-    assert.doesNotMatch(adminHtml, /version_offset/u);
-    assert.doesNotMatch(adminHtml, /method:\s*["']DELETE["']/u);
-    assert.doesNotMatch(
+    assert.match(adminHtml, /prompt-(?:admin|admin-model|decimal)\.(?:js|css)/u);
+    assert.match(
       adminHtml,
-      /prompt-(?:admin|admin-model|decimal)\.(?:js|css)/u,
+      /id="prompt-(?:load-more|view-active)"/u,
     );
-    assert.doesNotMatch(adminHtml, /id="prompt-(?:load-more|view-active)"/u);
-    assert.doesNotMatch(
+    assert.match(
       adminHtml,
       /id="prompt-(?:module|style|example)-template"/u,
     );
-    assert.doesNotMatch(adminHtml, /LOCAL_PROMPT_ADMIN_/u);
     assert.match(adminHtml, /id="admin-monitor-panel"/u);
     assert.match(adminHtml, /\/api\/admin\/stats/u);
     assert.match(adminHtml, /aria-labelledby="admin-monitor-tab"/u);
@@ -563,31 +558,10 @@ test("Makers build excludes the local Prompt administration UI and assets", asyn
     assert.match(adminHtml, /role="tabpanel"/u);
     assert.match(adminHtml, /admin\/llm-admin\.js/u);
     assert.match(adminHtml, /admin\/llm-admin\.css/u);
-    await assert.rejects(
-      access(join(root, "dist/admin/prompt-admin.js")),
-      { code: "ENOENT" },
-    );
-    await assert.rejects(
-      access(join(root, "dist/admin/prompt-admin.css")),
-      { code: "ENOENT" },
-    );
-    await assert.rejects(
-      access(join(root, "dist/admin/prompt-decimal.js")),
-      { code: "ENOENT" },
-    );
-    await assert.rejects(
-      access(join(root, "dist/admin/prompt-admin-model.js")),
-      { code: "ENOENT" },
-    );
-
-    for (const file of await collectTextFiles(join(root, "dist"))) {
-      const contents = await readFile(file, "utf8");
-      assert.doesNotMatch(
-        contents,
-        /\/api\/admin\/prompt/u,
-        `${file} must not publish the local Prompt API client`,
-      );
-    }
+    await access(join(root, "dist/admin/prompt-admin.js"));
+    await access(join(root, "dist/admin/prompt-admin.css"));
+    await access(join(root, "dist/admin/prompt-admin-model.js"));
+    await access(join(root, "dist/admin/prompt-decimal.js"));
   } finally {
     await rm(root, { force: true, recursive: true });
   }

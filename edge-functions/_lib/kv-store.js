@@ -439,7 +439,7 @@ export class KvStore {
     return record;
   }
 
-  async rememberElement(name, info) {
+  async rememberElement(name, info, { overwrite = false } = {}) {
     const cleanName = cleanText(name);
     if (!cleanName) return;
 
@@ -452,19 +452,26 @@ export class KvStore {
       catalog_digest: existingCatalogDigest,
       ...existingFields
     } = existing || {};
-    const icon =
-      normalizeIcon(existingIconValue) ||
-      normalizeIcon(info?.icon);
+    const existingIcon = normalizeIcon(existingIconValue);
+    const incomingIcon = normalizeIcon(info?.icon);
+    const icon = overwrite && incomingIcon
+      ? incomingIcon
+      : existingIcon || incomingIcon;
     const existingSource = cleanText(existingSourceValue);
     const incomingSource = cleanText(info?.source);
-    const source = incomingSource && incomingSource !== "seed"
-      ? incomingSource
-      : existingSource && existingSource !== "seed"
-        ? existingSource
-        : incomingSource || existingSource;
-    const contentEpoch = info?.content_epoch ?? existingContentEpoch;
-    const catalogDigest =
-      cleanText(info?.catalog_digest) || cleanText(existingCatalogDigest);
+    const source = overwrite
+      ? incomingSource || existingSource
+      : incomingSource && incomingSource !== "seed"
+        ? incomingSource
+        : existingSource && existingSource !== "seed"
+          ? existingSource
+          : incomingSource || existingSource;
+    const contentEpoch = overwrite
+      ? info?.content_epoch
+      : info?.content_epoch ?? existingContentEpoch;
+    const catalogDigest = overwrite
+      ? cleanText(info?.catalog_digest)
+      : cleanText(info?.catalog_digest) || cleanText(existingCatalogDigest);
     const record = {
       ...existingFields,
       name: cleanName,

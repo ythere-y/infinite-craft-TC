@@ -45,6 +45,19 @@ export function buildPromptMessagesFromSpec(spec, {
   }
   lines.push("");
 
+  const positiveExamples = (spec.positive_examples || [])
+    .filter((item) => item.enabled !== false)
+    .map((item) => item.content);
+  const negativeExamples = (spec.negative_examples || [])
+    .filter((item) => item.enabled !== false)
+    .map((item) => item.content);
+  if (positiveExamples.length) {
+    lines.push("【正面案例】", ...positiveExamples, "");
+  }
+  if (negativeExamples.length) {
+    lines.push("【负面案例】", ...negativeExamples, "");
+  }
+
   if (community_examples.length) {
     lines.push("【社区高质量示例（仅参考风格，不要照抄）】");
     for (const item of community_examples.slice(0, limits.community_examples)) {

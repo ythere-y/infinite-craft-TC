@@ -1,6 +1,7 @@
 export const CORS_HEADERS = {
-  "access-control-allow-methods": "GET, POST, PUT, OPTIONS",
-  "access-control-allow-headers": "content-type, authorization, x-admin-token",
+  "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "access-control-allow-headers":
+    "content-type, authorization, x-admin-token, if-match",
 };
 
 export function jsonResponse(

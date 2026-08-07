@@ -30,6 +30,7 @@ import {
   normalizeIcon,
   resolveIconRecipe,
 } from "./icon-recipes.js";
+import { PromptStore } from "./prompt-store.js";
 
 const FALLBACK = {
   result: "未知产物",
@@ -65,10 +66,11 @@ export function createGameService({
   fetchImpl = globalThis.fetch,
   now = () => Date.now(),
   random = Math.random,
-  promptLimits = PROMPT_SPEC.limits,
+  promptLimits,
 } = {}) {
   if (!store) throw new TypeError("Game service requires a KV store");
   const community = new CommunityStore(store.kv, { now });
+  const prompts = new PromptStore(store.kv, { now, random });
   const modelCallsPerMinute = Math.max(
     1,
     Math.min(1_000, Number(env.MODEL_CALLS_PER_MINUTE) || 20),
@@ -143,17 +145,20 @@ export function createGameService({
       throw tooManyRequests("新组合生成过于频繁，请稍后再试");
     }
 
+    const promptSpec = await prompts.activeSpec();
+    const effectivePromptLimits =
+      promptLimits || promptSpec.limits || PROMPT_SPEC.limits;
     const firsts = await store.allFirsts();
     const feedback = await community.feedback(env, {
-      positiveLimit: promptLimits.community_examples,
-      negativeLimit: promptLimits.avoid_words,
+      positiveLimit: effectivePromptLimits.community_examples,
+      negativeLimit: effectivePromptLimits.avoid_words,
     });
     const avoidWords = [
       ...new Set([
         ...feedback.negatives,
         ...firsts.map((item) => item.result),
       ]),
-    ].slice(0, promptLimits.avoid_words);
+    ].slice(0, effectivePromptLimits.avoid_words);
     const generated = await requestModelCombination({
       a,
       b,
@@ -165,12 +170,13 @@ export function createGameService({
         elements: { ...(await store.dynamicElements()), ...ELEMENTS },
         starters: STARTERS,
         firsts,
-        limit: promptLimits.bounty_candidates,
+        limit: effectivePromptLimits.bounty_candidates,
       }),
       env,
       fetchImpl,
       random,
-      promptLimits,
+      promptLimits: effectivePromptLimits,
+      promptSpec,
       provider,
     });
     if (!generated) return null;

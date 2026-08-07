@@ -95,7 +95,8 @@ export async function requestModelCombination({
   env = {},
   fetchImpl = globalThis.fetch,
   random = Math.random,
-  promptLimits = PROMPT_SPEC.limits,
+  promptLimits,
+  promptSpec = PROMPT_SPEC,
   provider = null,
 }) {
   const config = llmConfiguration(env, provider);
@@ -111,8 +112,8 @@ export async function requestModelCombination({
       : null;
   try {
     const messages = buildPromptMessagesFromSpec({
-      ...PROMPT_SPEC,
-      limits: promptLimits,
+      ...promptSpec,
+      limits: promptLimits || promptSpec.limits || PROMPT_SPEC.limits,
     }, {
       a,
       b,
