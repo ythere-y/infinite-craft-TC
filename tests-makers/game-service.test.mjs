@@ -141,6 +141,46 @@ test("external combine completion validates, persists, and returns model output"
   );
 });
 
+test("community catalogue inconsistency never rolls back a generated combine", async () => {
+  class IncompleteCommunityKV extends FakeKV {
+    async list(options = {}) {
+      if (String(options.prefix || "").startsWith("community_formula_marker_")) {
+        return { keys: [] };
+      }
+      return super.list(options);
+    }
+  }
+  const kv = new IncompleteCommunityKV();
+  const store = new KvStore(kv, { now: () => 1_700_000_000_000 });
+  const service = createGameService({
+    store,
+    env: { MAKERS_MODELS_KEY: "makers-secret" },
+    now: () => 1_700_000_000_000,
+    random: () => 0,
+  });
+  const input = {
+    a: "目录降级甲",
+    b: "目录降级乙",
+    session_id: "catalog-degrade",
+    player_id: "p_catalog",
+  };
+  await service.prepareExternalCombine(input);
+
+  const completed = await service.completeExternalCombine(input, {
+    name: "可靠产物",
+    emoji: "✅",
+    comment: "社区目录异常也不影响核心合成。",
+  });
+
+  assert.equal(completed.result, "可靠产物");
+  assert.equal(completed.source, "llm");
+  assert.equal(completed.formula_id, null);
+  assert.equal(
+    (await store.getCombination(input.a, input.b)).result,
+    "可靠产物",
+  );
+});
+
 test("Makers comments use the same safe degradation policy as FastAPI", () => {
   assert.equal(
     normalizeComment("  一次生成，长期复用。  "),

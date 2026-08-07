@@ -339,16 +339,22 @@ export function createGameService({
     }
 
     let formula = null;
-    if (source === "seed") {
-      formula = await community.reconcileAuthoritativeFormula({
-        a, b, result: hit.result, emoji: hit.emoji, comment, source,
-        discoverer: recordedDiscoverer, playerId: cleanText(input?.player_id) || null,
-      });
-    } else if (source !== "fallback" && cleanText(input?.player_id)) {
-      formula = await community.ensureFormula({
-        a, b, result: hit.result, emoji: hit.emoji, comment, source,
-        discoverer: recordedDiscoverer, playerId: cleanText(input.player_id),
-      });
+    try {
+      if (source === "seed") {
+        formula = await community.reconcileAuthoritativeFormula({
+          a, b, result: hit.result, emoji: hit.emoji, comment, source,
+          discoverer: recordedDiscoverer, playerId: cleanText(input?.player_id) || null,
+        });
+      } else if (source !== "fallback" && cleanText(input?.player_id)) {
+        formula = await community.ensureFormula({
+          a, b, result: hit.result, emoji: hit.emoji, comment, source,
+          discoverer: recordedDiscoverer, playerId: cleanText(input.player_id),
+        });
+      }
+    } catch {
+      // Community publication is auxiliary. A temporarily inconsistent
+      // formula catalogue must not roll back a valid generated combination.
+      formula = null;
     }
 
     await store.recordCombineActivity({
