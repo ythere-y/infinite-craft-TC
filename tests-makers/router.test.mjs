@@ -1361,6 +1361,47 @@ test("Prompt admin versions persist in KV and the active version drives model ca
   assert.equal(removed.status, 204);
 });
 
+test("Makers KV destruction requires admin confirmation and clears bounded batches", async () => {
+  const kv = new FakeKV(Object.fromEntries(
+    Array.from({ length: 125 }, (_, index) => [
+      `destroy_${index}`,
+      JSON.stringify({ index }),
+    ]),
+  ));
+  const router = makeRouter({ kv });
+  const auth = { authorization: "Bearer test-admin" };
+
+  const denied = await json(router, "/api/admin/kv/destroy", {
+    method: "POST",
+    body: { confirmation: "DESTROY_ALL_MAKERS_KV" },
+  });
+  assert.equal(denied.response.status, 401);
+  assert.equal(kv.values.size, 125);
+
+  const unconfirmed = await json(router, "/api/admin/kv/destroy", {
+    method: "POST",
+    headers: auth,
+    body: { confirmation: "wrong" },
+  });
+  assert.equal(unconfirmed.response.status, 400);
+  assert.equal(kv.values.size, 125);
+
+  let deleted = 0;
+  let done = false;
+  while (!done) {
+    const result = await json(router, "/api/admin/kv/destroy", {
+      method: "POST",
+      headers: auth,
+      body: { confirmation: "DESTROY_ALL_MAKERS_KV" },
+    });
+    assert.equal(result.response.status, 200);
+    deleted += result.body.deleted;
+    done = result.body.done;
+  }
+  assert.equal(deleted, 125);
+  assert.equal(kv.values.size, 0);
+});
+
 test("health tolerates a failed LLM provider preference read", async () => {
   const kv = new FakeKV();
   const get = kv.get.bind(kv);
@@ -1470,6 +1511,29 @@ test("migration serves bundled catalog while gameplay writes stay closed", async
         /^(first_|session_|formula_|community_)/u.test(key)),
       false,
     );
+  } finally {
+    delete globalThis.test;
+  }
+});
+
+test("Makers KV destruction stays reachable before content initialization", async () => {
+  const kv = new FakeKV({
+    legacy_runtime_value: JSON.stringify({ stale: true }),
+  });
+  globalThis.test = kv;
+  try {
+    const { onRequest } = await import("../edge-functions/api/[[default]].js");
+    const response = await onRequest({
+      request: request("/api/admin/kv/destroy", {
+        method: "POST",
+        headers: { authorization: "Bearer destroy-admin" },
+        body: { confirmation: "DESTROY_ALL_MAKERS_KV" },
+      }),
+      env: { ADMIN_TOKEN: "destroy-admin" },
+    });
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).deleted, 1);
+    assert.equal(kv.values.has("system_content_state"), false);
   } finally {
     delete globalThis.test;
   }

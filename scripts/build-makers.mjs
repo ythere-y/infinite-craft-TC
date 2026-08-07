@@ -44,6 +44,7 @@ const REQUIRED_ENTRIES = [
   "wall/wall.js",
   "admin/index.html",
   "admin/admin-tabs.js",
+  "admin/kv-admin.js",
   "admin/llm-admin.css",
   "admin/llm-admin.js",
   "admin/prompt-admin.css",

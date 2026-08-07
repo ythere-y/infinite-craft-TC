@@ -62,6 +62,8 @@ import {
 } from "./icon-recipes.js";
 
 const VERIFY_READ_BATCH = 20;
+const KV_DESTROY_BATCH_SIZE = 100;
+const KV_DESTROY_CONFIRMATION = "DESTROY_ALL_MAKERS_KV";
 const PUBLIC_CONTENT_MODES = new Set([
   "ready",
   "bootstrap",
@@ -878,6 +880,25 @@ export function createRouter({
       requireMethod(request, "GET");
       requireDashboardAccess(request);
       return jsonResponse(await adminPayload());
+    }
+    if (path === "/api/admin/kv/destroy") {
+      requireMethod(request, "POST");
+      requireAdminAccess(request);
+      requireSameOrigin(request);
+      const body = await readJson(request);
+      if (body?.confirmation !== KV_DESTROY_CONFIRMATION) {
+        throw new HttpError(400, "毁灭确认文字不匹配");
+      }
+      const page = await kv.list({ limit: KV_DESTROY_BATCH_SIZE });
+      const keys = (page?.keys || [])
+        .map((item) => cleanText(item?.key || item?.name))
+        .filter(Boolean)
+        .slice(0, KV_DESTROY_BATCH_SIZE);
+      await Promise.all(keys.map((key) => kv.delete(key)));
+      return jsonResponse({
+        deleted: keys.length,
+        done: keys.length === 0,
+      });
     }
     if (path === "/api/admin/llm/config") {
       requireAdminAccess(request);

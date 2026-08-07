@@ -46,6 +46,7 @@ const MIGRATION_SAFE_PATHS = new Set([
   "/api/health",
   "/api/starters",
 ]);
+const KV_DESTROY_PATH = "/api/admin/kv/destroy";
 
 export async function onRequest({ request, env }) {
   const runtime = resolveRuntimeKv({
@@ -62,6 +63,13 @@ export async function onRequest({ request, env }) {
       undefined,
       "KV_BINDING_INVALID",
     );
+  }
+  const path = new URL(request.url).pathname.replace(/\/+$/u, "") || "/";
+  if (path === KV_DESTROY_PATH) {
+    return createRouter({
+      kv: runtime.kv,
+      env: { ...(env || {}), APP_ENV: runtime.appEnv },
+    }).handle(request);
   }
 
   let initializer = null;
@@ -120,7 +128,6 @@ export async function onRequest({ request, env }) {
     initializationErrorCode,
     initializationErrorReason,
   });
-  const path = new URL(request.url).pathname.replace(/\/+$/u, "") || "/";
   if (!initialization.ready && !isReadyContentState(initialization.status)) {
     if (MIGRATION_SAFE_PATHS.has(path)) {
       return createRouter({

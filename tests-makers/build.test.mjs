@@ -558,6 +558,9 @@ test("Makers build includes the Prompt administration UI and assets", async () =
     assert.match(adminHtml, /role="tabpanel"/u);
     assert.match(adminHtml, /admin\/llm-admin\.js/u);
     assert.match(adminHtml, /admin\/llm-admin\.css/u);
+    assert.match(adminHtml, /data-admin-tab="danger"/u);
+    assert.match(adminHtml, /admin\/kv-admin\.js/u);
+    await access(join(root, "dist/admin/kv-admin.js"));
     await access(join(root, "dist/admin/prompt-admin.js"));
     await access(join(root, "dist/admin/prompt-admin.css"));
     await access(join(root, "dist/admin/prompt-admin-model.js"));

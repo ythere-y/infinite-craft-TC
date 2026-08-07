@@ -154,6 +154,28 @@
       color: #62677A; font-size: 12px; padding: 20px 0; text-align: center;
     }
 
+    .danger-card {
+      max-width: 760px;
+      padding: 24px;
+      border: 1px solid #7F1D1D;
+      border-radius: 14px;
+      background: #241517;
+    }
+    .danger-card h2 { color: #FF8A80; margin-top: 0; }
+    .danger-card p { color: #D8B4B4; line-height: 1.65; }
+    #kv-destroy {
+      margin-top: 12px;
+      border-color: #EF5350;
+      background: #B71C1C;
+      color: #FFF;
+      font-weight: 700;
+    }
+    #kv-destroy:disabled { opacity: .55; cursor: wait; }
+    .danger-status { min-height: 1.5em; margin-bottom: 0; }
+    .danger-status[data-tone="success"] { color: #7EE787; }
+    .danger-status[data-tone="warning"] { color: #FFD54F; }
+    .danger-status[data-tone="error"] { color: #FF8A80; }
+
     .chip-row {
       display: flex; flex-wrap: wrap; gap: 6px;
     }
@@ -197,6 +219,9 @@
               id="admin-prompt-tab" role="tab" aria-controls="admin-prompt-panel"
               aria-selected="false" tabindex="-1">Prompt 管理</button>
       <!-- LOCAL_PROMPT_ADMIN_NAV_END -->
+      <button type="button" data-admin-tab="danger"
+              id="admin-danger-tab" role="tab" aria-controls="admin-danger-panel"
+              aria-selected="false" tabindex="-1">危险操作</button>
     </nav>
 
     <section id="admin-monitor-panel" data-admin-panel="monitor"
@@ -429,6 +454,27 @@
       </div>
     </section>
     <!-- LOCAL_PROMPT_ADMIN_PANEL_END -->
+
+    <section id="admin-danger-panel" data-admin-panel="danger"
+             role="tabpanel" aria-labelledby="admin-danger-tab" hidden>
+      <div class="danger-card">
+        <div>
+          <h2>毁灭 Makers KV</h2>
+          <p>
+            永久删除生产 Makers KV 中的全部元素、配方、首发、玩家、Prompt
+            版本和初始化状态。此操作不会访问或删除本地 SQLite、Redis。
+          </p>
+          <p>
+            清空后，下一次访问会从仓库内置目录重新初始化生产 KV。
+          </p>
+        </div>
+        <button type="button" id="kv-destroy">毁灭全部 Makers KV 数据</button>
+        <p id="kv-destroy-status" class="danger-status"
+           role="status" aria-live="polite">
+          尚未执行。
+        </p>
+      </div>
+    </section>
   </main>
 
   <!-- LOCAL_PROMPT_ADMIN_TEMPLATES_START -->
@@ -489,6 +535,7 @@
   <script src="/icon-system.js"></script>
   <script src="/admin/admin-tabs.js"></script>
   <script src="/admin/llm-admin.js"></script>
+  <script src="/admin/kv-admin.js"></script>
   <!-- LOCAL_PROMPT_ADMIN_SCRIPTS_START -->
   <script src="/admin/prompt-decimal.js"></script>
   <script src="/admin/prompt-admin-model.js"></script>
