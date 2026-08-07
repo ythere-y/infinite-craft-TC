@@ -307,6 +307,7 @@ async function init() {
   window.CASINO_MODE?.init?.({ awardScore: awardCasinoScore });
   window.EFFECTS?.initBossMode?.({ defaultOn: false });
   await loadElements();
+  void warmContentInBackground();
   window.ICON_SYSTEM.hydrateActions(document);
   renderHomeLevel();
   await runOpeningIdentity();
@@ -351,14 +352,11 @@ async function runOpeningIdentity() {
 
 async function loadElements() {
   try {
-    const [starters, all] = await Promise.all([
-      fetch("/api/starters").then(r => r.json()),
-      fetch("/api/elements").then(r => r.json()),
-    ]);
-    Object.entries(all.elements).forEach(([name, info]) => {
+    const catalog = await window.STARTUP_API.loadInitialCatalog();
+    Object.entries(catalog.elements).forEach(([name, info]) => {
       state.elements[name] = normalizeElementInfo(name, info);
     });
-    starters.starters.forEach(s => {
+    catalog.starters.forEach(s => {
       state.elements[s.name] = normalizeElementInfo(s.name, {
         ...state.elements[s.name],
         ...s,
@@ -370,7 +368,23 @@ async function loadElements() {
     renderSidebar();
   } catch (e) {
     console.error("loadElements failed", e);
-    alert("加载初始元素失败，检查后端是否启动");
+    alert(window.STARTUP_API.startupErrorMessage(e));
+  }
+}
+
+async function warmContentInBackground() {
+  let previousPhase = "";
+  try {
+    await window.STARTUP_API.warmContentUntilReady({
+      onProgress(content) {
+        const phase = `${content.status}:${content.phase}:${content.index ?? 0}`;
+        if (phase === previousPhase) return;
+        previousPhase = phase;
+        console.info("content initialization", content);
+      },
+    });
+  } catch (error) {
+    console.error("content warmup failed", error);
   }
 }
 

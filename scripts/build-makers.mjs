@@ -44,6 +44,7 @@ const REQUIRED_ENTRIES = [
   "score-level.js",
   "recipe-links.css",
   "recipe-links.js",
+  "startup-api.js",
   "style.css",
   "vendor/anime.iife.min.js",
   "assets/icons/generated/emoji-icon-manifest.json",

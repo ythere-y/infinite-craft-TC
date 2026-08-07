@@ -38,6 +38,7 @@ def _production_page() -> str:
             "combine-feedback.js",
             "score-level.js",
             "effects.js",
+            "startup-api.js",
             "app.js",
         }:
             return ""
@@ -69,6 +70,8 @@ def _production_page() -> str:
           var path = String(url);
           var payload = path.indexOf("/api/starters") >= 0 ? { starters: [] }
             : path.indexOf("/api/elements") >= 0 ? { elements: {} }
+            : path.indexOf("/api/health") >= 0
+              ? { content: { status: "ready", phase: "ready" } }
             : {};
           return Promise.resolve({ ok: true, json: function () { return Promise.resolve(payload); } });
         };

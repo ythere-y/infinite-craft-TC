@@ -17,6 +17,7 @@ from test_combine_feedback import (
 )
 
 SCORE_LEVEL_SOURCE = Path("frontend/score-level.js")
+STARTUP_API_SOURCE = Path("frontend/startup-api.js")
 
 
 def _run_score_effects(
@@ -83,11 +84,12 @@ def _run_score_app(tmp_path: Path, script: str, setup: str = ""):
         "window.alert=function(){};window.confirm=function(){return true};",
         "window.EFFECTS={initBossMode:function(){}};",
         "window.RECIPE_LINKS={create:function(){return {sync:function(){},scheduleGeometryUpdate:function(){},clear:function(){},destroy:function(){}}}};",
-        "window.fetch=function(url){var p=String(url),x=p.includes('element-icon-map')?{'预设':{icon:{base:'🧩',palette:'product',source:'preset'}}}:p.includes('/api/starters')?[]:p.includes('/api/elements')?{}:{};return Promise.resolve({ok:true,json:function(){return Promise.resolve(x)}})};",
+        "window.fetch=function(url){var p=String(url),x=p.includes('element-icon-map')?{'预设':{icon:{base:'🧩',palette:'product',source:'preset'}}}:p.includes('/api/starters')?{starters:[]}:p.includes('/api/elements')?{elements:{}}:p.includes('/api/health')?{content:{status:'ready',phase:'ready'}}:{};return Promise.resolve({ok:true,status:200,json:function(){return Promise.resolve(x)}})};",
         "localStorage.setItem('ic_nick','测试');localStorage.setItem('ic_nick_id','test');",
         "</script>", f"<script>{ICON_SOURCE.read_text(encoding='utf-8')}</script>",
         f"<script>{SOURCE.read_text(encoding='utf-8')}</script>",
         f"<script>{SCORE_LEVEL_SOURCE.read_text(encoding='utf-8')}</script>",
+        f"<script>{STARTUP_API_SOURCE.read_text(encoding='utf-8')}</script>",
         f"<script>{setup}</script>", f"<script>{APP_SOURCE.read_text(encoding='utf-8')}</script>",
         "<script>window.ICON_SYSTEM.ready.then(function(){return new Promise(function(r){setTimeout(r,0)})}).then(function(){try{var v=(function(){",
         script,

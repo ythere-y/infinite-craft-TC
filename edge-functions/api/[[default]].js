@@ -41,6 +41,11 @@ const PUBLIC_INITIALIZATION_ERROR_REASONS = new Set([
   "receipt_shape",
   "source_conflict",
 ]);
+const MIGRATION_SAFE_PATHS = new Set([
+  "/api/elements",
+  "/api/health",
+  "/api/starters",
+]);
 
 export async function onRequest({ request, env }) {
   const runtime = resolveRuntimeKv({
@@ -117,7 +122,7 @@ export async function onRequest({ request, env }) {
   });
   const path = new URL(request.url).pathname.replace(/\/+$/u, "") || "/";
   if (!initialization.ready && !isReadyContentState(initialization.status)) {
-    if (path === "/api/health") {
+    if (MIGRATION_SAFE_PATHS.has(path)) {
       return createRouter({
         kv: runtime.kv,
         env: { ...(env || {}), APP_ENV: runtime.appEnv },

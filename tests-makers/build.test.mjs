@@ -502,7 +502,7 @@ test("normal build needs no words checkout and ships only local icon assets", as
         "utf8",
       ),
     );
-    assert.equal(Object.keys(manifest).length, 9111);
+    assert.equal(Object.keys(manifest).length, 9125);
     await Promise.all(
       [...new Set(Object.values(manifest))].map((url) =>
         access(join(root, "dist", url.slice(1))),

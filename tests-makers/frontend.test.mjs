@@ -99,7 +99,7 @@ test("main game ships the opening stage in dependency order", async () => {
   );
   assert.match(
     html,
-    /<script src="\/app\.js\?v=20260804e"><\/script>/,
+    /<script src="\/app\.js\?v=20260807a"><\/script>/,
   );
   assert.match(
     html,
@@ -133,6 +133,20 @@ test("app delegates startup identity to the opening controller", async () => {
   assert.match(init[1], /await runOpeningIdentity\(\)/);
   assert.match(app, /async function rerollNickname\(\)/);
   assert.match(app, /openNickModal\(false\)/);
+});
+
+test("main game loads the startup API before app and warms migrating content", async () => {
+  const [html, app, build] = await Promise.all([
+    readFile("frontend/index.html", "utf8"),
+    readFile("frontend/app.js", "utf8"),
+    readFile("scripts/build-makers.mjs", "utf8"),
+  ]);
+
+  assert.ok(html.indexOf("startup-api.js") < html.indexOf("app.js"));
+  assert.match(app, /window\.STARTUP_API\.loadInitialCatalog\(/);
+  assert.match(app, /window\.STARTUP_API\.warmContentUntilReady\(/);
+  assert.match(app, /window\.STARTUP_API\.startupErrorMessage\(/);
+  assert.match(build, /"startup-api\.js"/);
 });
 
 test("THUOCL notice names the canonical and generated nickname artifacts", async () => {

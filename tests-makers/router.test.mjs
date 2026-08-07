@@ -1313,7 +1313,7 @@ test("router returns safe JSON errors, CORS preflight and stream shutdown", asyn
   assert.equal(stream.status, 204);
 });
 
-test("health reports migration while gameplay fails closed", async () => {
+test("migration serves bundled catalog while gameplay writes stay closed", async () => {
   const kv = new FakeKV({
     combo_legacy: JSON.stringify({
       a: "旧",
@@ -1335,6 +1335,26 @@ test("health reports migration while gameplay fails closed", async () => {
     assert.equal(healthBody.content.epoch, CONTENT_EPOCH);
     assert.equal(healthBody.content.catalog_digest, CATALOG_DIGEST);
     assert.equal(healthBody.content.status, "migrating");
+
+    const starters = await onRequest({
+      request: request("/api/starters"),
+      env: {},
+    });
+    const startersBody = await starters.json();
+    assert.equal(starters.status, 200);
+    assert.equal(startersBody.starters.length, 11);
+    assert.equal(
+      startersBody.starters.find((item) => item.name === "水")?.emoji,
+      "💧",
+    );
+
+    const elements = await onRequest({
+      request: request("/api/elements"),
+      env: {},
+    });
+    const elementsBody = await elements.json();
+    assert.equal(elements.status, 200);
+    assert.equal(elementsBody.elements["企鹅"]?.emoji, "🐧");
 
     const combine = await onRequest({
       request: request("/api/combine/?probe=migration", {
