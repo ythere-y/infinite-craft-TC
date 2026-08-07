@@ -23,7 +23,7 @@ function base64UrlDecode(value) {
 }
 
 async function signature(secret, encodedPayload) {
-  const key = await crypto.subtle.importKey(
+  const key = await globalThis.crypto.subtle.importKey(
     "raw",
     encoder.encode(secret),
     { name: "HMAC", hash: "SHA-256" },
@@ -31,7 +31,7 @@ async function signature(secret, encodedPayload) {
     ["sign"],
   );
   return base64UrlEncode(new Uint8Array(
-    await crypto.subtle.sign(
+    await globalThis.crypto.subtle.sign(
       "HMAC",
       key,
       encoder.encode(encodedPayload),

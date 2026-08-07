@@ -4,7 +4,7 @@ import {
 import {
   signModelTicket,
   verifyModelTicket,
-} from "../../../edge-functions/_lib/model-ticket.js";
+} from "../../_lib/model-ticket.js";
 
 function json(value, status = 200) {
   return new Response(JSON.stringify(value), {

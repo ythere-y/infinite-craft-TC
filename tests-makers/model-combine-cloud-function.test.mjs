@@ -24,29 +24,42 @@ test("Cloud model route verifies a task and signs the generated result", async (
     payload: { messages: [{ role: "user", content: "combine" }] },
   });
   let captured;
-  const response = await onRequestPost({
-    request: new Request("https://game.example/api/model/combine", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ ticket: requestTicket }),
-    }),
-    env: {
-      ADMIN_TOKEN: "ticket-secret",
-      MAKERS_MODELS_KEY: "makers-secret",
-    },
-    now: () => now,
-    fetchImpl: async (url, init) => {
-      captured = { url, init };
-      return new Response(JSON.stringify({
-        choices: [{
-          message: {
-            content:
-              '{"name":"票据产物","emoji":"🎫","comment":"签名链路完成。"}',
-          },
-        }],
-      }), { status: 200 });
-    },
+  const webCrypto = globalThis.crypto;
+  Object.defineProperty(globalThis, "crypto", {
+    configurable: true,
+    value: undefined,
   });
+  let response;
+  try {
+    response = await onRequestPost({
+      request: new Request("https://game.example/api/model/combine", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ticket: requestTicket }),
+      }),
+      env: {
+        ADMIN_TOKEN: "ticket-secret",
+        MAKERS_MODELS_KEY: "makers-secret",
+      },
+      now: () => now,
+      fetchImpl: async (url, init) => {
+        captured = { url, init };
+        return new Response(JSON.stringify({
+          choices: [{
+            message: {
+              content:
+                '{"name":"票据产物","emoji":"🎫","comment":"签名链路完成。"}',
+            },
+          }],
+        }), { status: 200 });
+      },
+    });
+  } finally {
+    Object.defineProperty(globalThis, "crypto", {
+      configurable: true,
+      value: webCrypto,
+    });
+  }
   const body = await response.json();
   const completed = await verifyModelTicket(
     "ticket-secret",
